@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Eye Test: Peripheral Acuity</title>
+     <meta charset="utf-8"/>
+  </head>
+  <body style="background:#707070;">
+
+    <input id="myInput" type="text" onkeydown="keyIsDown(event)" onkeyup="keyIsUp(event)" style="position:relative; left:-10000px;">
+    <canvas id="myCanvas" width=768px height=768px style="display:block; outline:1px solid #606060; margin:0 auto 0 auto; padding: 0px;"></canvas>
+
+    <div id="content" style="width:768px; margin: 0 auto 0 auto;">
+
+      <div id="controlDiv" style="margin:0 auto 0 auto; text-align:center;">
+        <form>
+          <input type="radio" id="eyeSelect_left"  name="eyeSelect" value="left" checked>O.S. (Left Eye)
+          <input type="radio" id="eyeSelect_right" name="eyeSelect" value="right">O.D. (Right Eye)
+        </form>
+      </div>
+
+      <p>Debug: <span id="debug"></span></p>
+      <h2>Instructions</h2>
+      <p>Lorem ipsum dolor</p>
+      <h2>Description</h2>
+      <p>Lorem ipsum dolor</p>
+    </div>
+
+    <script>
+
+const background = "#a0a0a0"
+const black      = "#000000";
+const red        = "#FF0000";
+const green      = "#00FF00";
+const blue       = "#0000FF";
+
+const LEFT_EYE   = 0;
+const RIGHT_EYE  = 1;
+const testSize = 10;
+
+document.getElementById("myInput").focus()
+
+var canvas       = document.getElementById("myCanvas");
+var width        = canvas.width;
+var height       = canvas.height;
+var ctx          = canvas.getContext("2d");
+
+var results      = [[],[]];
+var false_pos    = [-1, -1];
+var current_eye  = LEFT_EYE;
+var testing      = false;
+var isSpacePressed = false;
+
+var intensity = 0;
+var hist = [];
+var posX = 0;
+var posY = 0;
+
+// Click to start test and reset focus
+myCanvas.onclick = function() {
+    myInput.focus();
+
+    if (testing == true) {
+        isSpacePressed = true;
+        return;
+    }
+
+    startTest();
+    return;
+}
+
+function keyIsDown(e) {
+    if (e.keyCode == 32)
+        isSpacePressed = true;
+}
+
+function keyIsUp(e) {
+    if (e.keyCode == 32)
+        isSpacePressed = false;
+}
+
+function getSelectedEye() {
+    if (document.getElementById("eyeSelect_left").checked)
+        return LEFT_EYE;
+    if (document.getElementById("eyeSelect_right").checked)
+        return RIGHT_EYE;
+}
+
+function displayResults(){
+    resetScreen();
+    displayResult(LEFT_EYE,  100, 75);
+    displayResult(RIGHT_EYE, 425, 75);
+}
+
+function displayResult(eye, x, y){
+    var block_size = 25;
+    var chart_length = testSize * block_size;
+
+    // Label Graph
+    ctx.font = "20px Arial";
+    ctx.fillStyle = black;
+    ctx.textAlign = "center";
+    var chartTitle = "O.D. (Right Eye)";
+    if (eye == LEFT_EYE)
+        chartTitle = "O.S. (Left Eye)";
+    ctx.fillText(chartTitle, x + chart_length/2, y - 5);
+
+    // If no data, leave!
+    if (results[eye].length == 0)
+        return;
+
+    // Draw squares
+    for (var x1=0; x1<testSize; x1++) {
+        for (var y1=0; y1<testSize; y1++) {
+            if (results[eye][x1][y1] < 0)
+                continue;
+            ctx.fillStyle = nextColor(results[eye][x1][y1]);
+            ctx.fillRect(x + (block_size*x1), y + (block_size*y1), block_size, block_size);
+            ctx.strokeStyle=black;
+            ctx.lineWidth=1;
+            ctx.strokeRect(x + (block_size*x1), y + (block_size*y1), block_size, block_size);
+        }
+    }
+
+    // Draw center reference
+    drawCircle(x+ testSize/2 * block_size, y+ testSize/2 * block_size, 3, black);
+
+    // Print false positive count
+    ctx.textAlign = "left";
+    ctx.font = "10px Arial";
+    ctx.fillText("False Positives: " + false_pos[current_eye], x, y + chart_length + 15);
+
+    return;
+}
+
+function drawCircle(x, y, r, c, start=0, end=2*Math.PI) {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.arc(x,y,r,start, end);
+    ctx.fill();
+}
+
+function rgbToHex(r, g, b) {
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function resetScreen() {
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, width, height);
+    ctx.font = "30px Arial";
+    ctx.fillStyle = black;
+    ctx.textAlign = "center";
+    ctx.fillText("Click to Begin", width/2, height/2);
+}
+
+function nextColor(n){
+    c = 0xA0 - Math.floor(n);
+    return rgbToHex(c, c, c);
+}
+
+function updateTest(event=0) {
+    //if (testing == false)
+    //    return;
+
+    // Fill in the background
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw animated square
+    var block_size = 70;
+    var left = width/2  - (testSize/2 * block_size);
+    var top  = height/2 - (testSize/2 * block_size);
+    intensity += .25;
+    if (intensity > 0) {
+        ctx.fillStyle = nextColor(intensity);
+        ctx.fillRect(left + block_size*posX, top + block_size*posY, block_size, block_size);
+    }
+    // If space bar detected
+    if (isSpacePressed || intensity == 128){
+        // See if false positive
+        if (intensity < 1) {
+            false_pos[current_eye]++;
+            document.getElementById("debug").innerHTML = "False Pasitive!";
+            return;
+        } else {
+            document.getElementById("debug").innerHTML = "Correct!";
+        }
+
+        // Save our intensity to history
+        hist[posX][posY] = intensity;
+
+        // Check if test done, and get next position
+        if (getValidPosition() == false) {
+            endTest();
+            return;
+        }
+
+        // Reset the intensity to random negative number so new pixels don't show up immediately
+        intensity = Math.floor(Math.random() * -10);
+
+        // Unpress space bar
+        isSpacePressed = false;
+    }
+
+    // Make center dot for users focus
+    drawCircle(width/2, height/2, 3, black);
+}
+
+function getValidPosition() {
+    var r = testSize/2;
+    var offset = r -.5; // Reduce by half because we are measuring to center of square
+    var x;
+    var y;
+
+    while (1==1) {
+        // See if all squares are filled in
+        var finished = true;
+        for (x=0; x<testSize; x++)
+            for (y=0; y<testSize; y++)
+                if (hist[x][y] == 0)
+                    finished = false;
+        if (finished == true)
+            return false;
+        
+        // Choose random points
+        x = Math.floor(Math.random() * testSize);
+        y = Math.floor(Math.random() * testSize);
+
+        // Make sure the squares haven't been used
+        if (hist[x][y] != 0)
+            continue;
+
+        // restrict testing squares into circle shape
+        if ((x-offset)*(x-offset) + (y-offset)*(y-offset) > r*r){
+            hist[x][y] = -1;
+            continue;
+        }
+
+        // We made it, it must be valid
+        posX = x;
+        posY = y;
+        break
+    }
+
+    return true;
+}
+
+var animate = null;
+function startTest(){
+    // Set testing variables
+    testing     = true;
+    current_eye = getSelectedEye();
+    false_pos[current_eye] = 0;
+
+    // Clear out array
+    hist = [];
+    var r = testSize/2-.5;
+    for (var x=0; x<testSize; x++) {
+        var row = [];
+        for (var y=0; y<testSize; y++) {
+            row.push(0);
+        }
+        hist.push(row);
+    }
+
+    // Get a random starting position
+    getValidPosition();
+
+    animate = setInterval(updateTest, 100);
+    return
+}
+
+function endTest(){
+    stopAnimate();
+    testing = false;
+    results[current_eye] = hist;
+    displayResults();
+}
+
+function stopAnimate() {
+    clearInterval(animate);
+}
+
+// Initialize the screen with instructions
+resetScreen();
+
+    </script>
+  </body>
+</html>
