@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Eye Test: Peripheral Acuity</title>
+     <meta charset="utf-8"/>
+  </head>
+  <body style="background:#707070;">
+
+    <input id="myInput" type="text" style="position:relative; left:-10000px;">
+    <canvas id="myCanvas" width=768px height=768px style="display:block; outline:1px solid #606060; margin:0 auto 0 auto; padding: 0px;"></canvas>
+
+    <div id="content" style="width:768px; margin: 0 auto 0 auto;">
+
+      <div id="controlDiv" style="margin:0 auto 0 auto; text-align:center;">
+        <form>
+          <input type="radio" id="eyeSelect_left"  name="eyeSelect" value="left" checked>O.S. (Left Eye)
+          <input type="radio" id="eyeSelect_right" name="eyeSelect" value="right">O.D. (Right Eye)
+        </form>
+      </div>
+
+      <p>Debug: <span id="debug"></span></p>
+      <h2>Instructions</h2>
+      <p>Lorem ipsum dolor</p>
+      <h2>Description</h2>
+      <p>Lorem ipsum dolor</p>
+    </div>
+
+    <script>
+
+const background = "#a0a0a0"
+const black      = "#000000";
+const red        = "#FF0000";
+const green      = "#00FF00";
+const blue       = "#0000FF";
+
+const LEFT_EYE   = 0;
+const RIGHT_EYE  = 1;
+const testSize = 10;
+
+document.getElementById("myInput").focus()
+
+var canvas       = document.getElementById("myCanvas");
+var width        = canvas.width;
+var height       = canvas.height;
+var ctx          = canvas.getContext("2d");
+
+// Click to start test and reset focus
+myCanvas.onclick = function() {
+    myInput.focus();
+
+    resetDrawing();
+    return;
+}
+
+function drawCircle(x, y, r, c, start=0, end=2*Math.PI) {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.arc(x,y,r,start, end);
+    ctx.fill();
+}
+
+function rgbToHex(r, g, b) {
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function resetScreen() {
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, width, height);
+    ctx.font = "30px Arial";
+    ctx.fillStyle = black;
+    ctx.textAlign = "center";
+    ctx.fillText("Click to Begin", width/2, height/2);
+}
+
+function noIntersection(xIn, yIn, r) {
+    // Get the image data from canvas
+    var padding = 5;
+    r += padding;
+    var ctxData = ctx.getImageData(xIn-r, yIn-r, 2*r, 2*r).data;
+    var pixelSize = 4; //(R, G, B, A)
+    var rowSize = 2 * r * pixelSize;
+
+    // Walk circle looking for overlapping info
+    var rSquared = r*r;
+    for (var x=0; x<2*r; x++){
+        var xSquared = (r-x)*(r-x);
+        for (var y=0; y<2*r; y++){
+            if (xSquared + ((r-y)*(r-y)) < rSquared){
+                if (ctxData[(pixelSize * y * 2*r) + (pixelSize * x)] != 255) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+function drawRandomCircles(count, radius){
+    var tries = 0;
+    while (count > 0 & tries < count * 2) {
+        x = Math.floor(Math.random() * width);
+        y = Math.floor(Math.random() * height);
+
+        if (noIntersection(x, y, Math.floor(radius))) {
+            drawCircle(x, y, Math.floor(radius), "#000");
+            count -= 1;
+            tries = 0;
+        } else {
+            tries += 1;
+        }
+    }
+}
+
+function resetDrawing(){
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw a white circle in the center
+    drawCircle(width/2, height/2, width/2, "#fff");
+
+    // Draw random circles within the circle
+    var r = width/2;
+    /*
+    for (var i=0; i<600; i++) {
+        var x = Math.floor(Math.random() * width);
+        var y = Math.floor(Math.random() * height);
+        if ((x-r)*(x-r) + (y-r)*(y-r) > r*r)
+            i--;
+        else
+            drawCircle(x, y, 3, "#000");
+    }
+    */
+    for(var x=0; x<width; x+=25)
+        for(var y=0; y<width; y+=25)
+            if ((x-r)*(x-r) + (y-r)*(y-r) < r*r)
+                drawCircle(x, y, 3, "#000");
+    return;
+}
+
+// Initialize the screen with instructions
+resetScreen();
+
+    </script>
+  </body>
+</html>
