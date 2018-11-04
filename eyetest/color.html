@@ -2,22 +2,24 @@
 
 <html>
   <head>
-    <title>Eye Test: Peripheral Acuity</title>
+    <title>Eye Test: Ishihara Plates</title>
      <meta charset="utf-8"/>
   </head>
   <body style="background:#707070;">
 
-    <input id="myInput" type="text" style="position:relative; left:-10000px;">
-    <canvas id="myCanvas" width=768px height=768px style="display:block; outline:1px solid #606060; margin:0 auto 0 auto; padding: 0px;"></canvas>
+    <input id="myInput" type="text" onkeydown="resetDrawing(event)" style="position:relative; left:-10000px;">
+    <canvas id="myCanvas" width=768px height=768px style="display:block; outline:0px solid #606060; margin:0 auto 0 auto; padding: 0px;"></canvas>
 
     <div id="content" style="width:768px; margin: 0 auto 0 auto;">
 
+    <!--
       <div id="controlDiv" style="margin:0 auto 0 auto; text-align:center;">
         <form>
           <input type="radio" id="eyeSelect_left"  name="eyeSelect" value="left" checked>O.S. (Left Eye)
           <input type="radio" id="eyeSelect_right" name="eyeSelect" value="right">O.D. (Right Eye)
         </form>
       </div>
+    -->
 
       <p>Debug: <span id="debug"></span></p>
       <h2>Instructions</h2>
@@ -28,7 +30,7 @@
 
     <script>
 
-const background = "#a0a0a0"
+const background = "#707070"
 const black      = "#000000";
 const red        = "#FF0000";
 const green      = "#00FF00";
@@ -67,8 +69,7 @@ function rgbToHex(r, g, b) {
 
 function resetScreen() {
     ctx.fillStyle = background;
-    ctx.fillRect(0, 0, width, height);
-    ctx.font = "30px Arial";
+    ctx.fillRect(0, 0, width, height);    ctx.font = "30px Arial";
     ctx.fillStyle = black;
     ctx.textAlign = "center";
     ctx.fillText("Click to Begin", width/2, height/2);
@@ -76,7 +77,7 @@ function resetScreen() {
 
 function noIntersection(xIn, yIn, r) {
     // Get the image data from canvas
-    var padding = 5;
+    var padding = 0;
     r += padding;
     var ctxData = ctx.getImageData(xIn-r, yIn-r, 2*r, 2*r).data;
     var pixelSize = 4; //(R, G, B, A)
@@ -98,14 +99,70 @@ function noIntersection(xIn, yIn, r) {
     return true;
 }
 
-function drawRandomCircles(count, radius){
+function chooseRandomColor(set=0, isGlyph=false){
+    colorGroups = [
+        [
+            [
+                [192, 195, 100],
+                [119, 125,  56],
+                [160, 163,  74],
+                [ 72, 137, 125],
+                [154, 205, 122],
+            ],
+            [
+                [244, 179, 108],
+                [219, 140,  70],
+                [182,  99,  35],
+            ]
+        ],
+        [
+            [
+                [253, 138,   2],
+                [242, 115,  89],
+                [208,  79,  59],
+                [245, 180, 107],
+                [254, 207,   2],
+            ],
+            [
+                [161, 169,  75],
+                [ 74, 132,  70],
+                [196, 198,  11],
+                [254, 206,   4],
+            ]
+        ]
+    ];
+
+    if (isGlyph == false) {
+        color = colorGroups[set][0];
+    } else {
+        color = colorGroups[set][1];
+    }
+
+    var i = Math.floor(Math.random() * color.length);
+
+    return rgbToHex(color[i][0], color[i][1], color[i][2]);
+}
+
+function isInGlyph(x, y, glyph){
+    var pixelSize = 4; //(R, G, B, A)
+    var rowSize = width * pixelSize;
+
+    if (glyph[(pixelSize * y * width) + (pixelSize * x)] == 255) {
+        return true;
+    }
+
+    return false;
+
+}
+
+function drawRandomCircles(count, radius, glyph, colorGroup){
     var tries = 0;
     while (count > 0 & tries < count * 2) {
         x = Math.floor(Math.random() * width);
         y = Math.floor(Math.random() * height);
 
         if (noIntersection(x, y, Math.floor(radius))) {
-            drawCircle(x, y, Math.floor(radius), "#000");
+            drawCircle(x, y, Math.floor(radius), chooseRandomColor(colorGroup, isInGlyph(x, y, glyph)));
             count -= 1;
             tries = 0;
         } else {
@@ -114,29 +171,49 @@ function drawRandomCircles(count, radius){
     }
 }
 
-function resetDrawing(){
+var impressions = 0;
+var randInt = -1;
+var correct = 0;
+
+function resetDrawing(event=0){
+    // Keep score?
+    if (event != 0) {
+        // Check if valid key; if not, do nothing
+        if (!((event.keyCode >= 0x30 & event.keyCode <= 0x39) || (event.keyCode >= 96 & event.keyCode <= 105))){
+            console.log(event.keyCode);
+            return;
+        }
+
+        // Check if key is correct
+        if (event.key == randInt) {
+            correct += 1;
+        }
+
+        document.getElementById("debug").innerHTML = "Correct: " + correct + "; Impressions: " + impressions + "; Percent Correct: " + correct * 100 / impressions;
+    }
+    impressions += 1;
+
+    // New drawing
     ctx.fillStyle = background;
     ctx.fillRect(0, 0, width, height);
+
+    // Draw glyph for deciding colors
+    ctx.font = "700px Arial";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    randInt = Math.floor(Math.random() * 10);
+    ctx.fillText(randInt, width/2, height - ((height-500)/2));
+    var glyphData = ctx.getImageData(0, 0, width, height).data;
 
     // Draw a white circle in the center
     drawCircle(width/2, height/2, width/2, "#fff");
 
     // Draw random circles within the circle
-    var r = width/2;
-    /*
-    for (var i=0; i<600; i++) {
-        var x = Math.floor(Math.random() * width);
-        var y = Math.floor(Math.random() * height);
-        if ((x-r)*(x-r) + (y-r)*(y-r) > r*r)
-            i--;
-        else
-            drawCircle(x, y, 3, "#000");
-    }
-    */
-    for(var x=0; x<width; x+=25)
-        for(var y=0; y<width; y+=25)
-            if ((x-r)*(x-r) + (y-r)*(y-r) < r*r)
-                drawCircle(x, y, 3, "#000");
+    var colorGroup = Math.floor(Math.random() * 2);
+    drawRandomCircles(300, 20, glyphData, colorGroup);
+    drawRandomCircles(400, 10, glyphData, colorGroup);
+    drawRandomCircles(500,  5, glyphData, colorGroup);
+
     return;
 }
 
