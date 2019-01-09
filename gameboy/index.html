@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>GAMEBOY</title>
+    <script type="text/javascript" src="DMG_ROM.js"></script>
+    <meta charset="utf-8"/>
+  </head>
+  <body style="background:#ffffff;">
+
+    <div id="gameboy" style="display:block; width:356px; height:575px; margin: 0px auto 0px auto; background-image:url('images/gb_background.jpg'); background-repeat: no-repeat; outline:0px solid red;">
+      <canvas id="screen" width=160px height=144px style="display:block; position:relative; outline:0px solid #606060; left:98px; top:91px;"></canvas>
+    </div>
+    <div id="content" style="width:768px; margin: 0 auto 0 auto; padding:15px; text-align:center;">
+      <input id="myInput" type="text" onkeyup="" style="">
+      <br>
+      <select id="romSelect">
+        <option value="roms/Tetris.gb">Tetris</option>
+      </select>
+      <button id="myButton" onclick="reset()">Reset</button>
+    </div>
+
+<script type="text/javascript">
+
+document.getElementById("myInput").focus()
+
+var screen = document.getElementById("screen");
+var width  = screen.width;
+var height = screen.height;
+var ctx    = screen.getContext("2d");
+
+var memory = new Array(0xFFFF);
+
+const ROM_0       = 0x0000 // ROM Bank 1
+const ROM_N       = 0x4000 // Switchable ROM bank
+const VRAM        = 0x8000 // Video RAM
+const RAM_N       = 0xA000 // Switchable RAM bank
+const RAM         = 0xC000 // Internal RAM
+const RAM_E       = 0xE000 // Internal RAM (Echo)
+const SPRITE      = 0xFE00 // Sprite Attrib Memory (OAM)
+const IO          = 0xFF00 // I/O Ports
+const RAM_I       = 0xFF80 // Internal RAM
+const INTR_ENABLE = 0xFFFF // Interrupt Enable Register
+
+const background = "#FFFFFF";
+const colors = [
+    "#465612",
+    "#3D480F",
+    "#34400D",
+    "#29330A"
+];
+
+function readFile(file, f) {
+    var rawFile = new XMLHttpRequest();
+    rawFile.open("GET", file, true);
+    rawFile.onreadystatechange = function () {
+        if(rawFile.readyState === 4) {
+            if(rawFile.status === 200 || rawFile.status == 0) {
+                f(rawFile.responseText);
+            }
+        }
+    }
+    rawFile.send(null);
+}
+
+function reset() {
+    // Initialize memory
+    for (var i=0; i<memory.length; i++) {
+        memory[i] = 0;
+    }
+
+    // Read in Boot ROM to memory location 0
+    for (var i=0; i<dmg_rom.length; i++) {
+        memory[i] = dmg_rom[i];
+    }
+
+    // Read in selected game ROM
+    //readFile("DMG_ROM.bin", function(data) {});
+
+    // Reset the screen
+    ctx.fillStyle = colors[0];
+    ctx.fillRect(0, 0, width, height);
+
+    // Start something
+}
+
+function main() {
+}
+
+    </script>
+  </body>
+</html>
