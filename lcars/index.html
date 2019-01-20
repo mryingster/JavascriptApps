@@ -1,0 +1,103 @@
+tml1<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>LCARS</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="height=320" />
+    <style type="text/css">
+body {
+    background-color: #000;
+}
+
+@font-face {
+    font-family: "lcars";
+    src: url('fonts/swiss_911.ttf') format('truetype');
+}
+    </style>
+  </head>
+  <body onload=start();>
+
+    <svg width="100%" height="100%" viewBox="0 0 480 320" version="1.1"
+         xmlns="http://www.w3.org/2000/svg"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xml:space="preserve"
+         xmlns:serif="http://www.serif.com/"
+         style="width:100%; height:100%; position:fixed; top:0; left:0; z-index:1; fill-rule:evenodd; clip-rule:evenodd; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:1.5;">
+
+      <g id="test_button" transform="matrix(1,0,0,1,20,0)" onclick="test()">
+	<g id="button_shape" transform="matrix(1,0,0,1,0,0)" style="fill:rgb(255,100,100);">
+	  <g id="convex_large" transform="matrix(1,0,0,1,0,0)">
+	    <path d="M0,18.28L0,18.221C0.032,8.184 8.17,0.041 18.28,0L69.794,0L69.794,36.56L0,36.56L0,18.28Z"/>
+	  </g>
+	  <g id="concave_small" transform="matrix(1,0,0,1,69.5,9.5)">
+	    <path d="M10,0C4.5,0 0,4.5 0,10L0,5.822L0,0L10,0Z"/>
+	  </g>
+	  <rect x="69px" y="0px" width="370px" height="10px"/>
+	</g>
+	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
+      </g>
+
+      <g id="test_button" transform="matrix(1,0,0,1,20,40)">
+	<rect x="0px" y="0px" width="70px" height="37px" style="fill:rgb(255,100,100);:hover:#fff;" onclick="test()"/>
+	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
+      </g>
+
+      <g id="test_button" transform="matrix(1,0,0,1,20,80)">
+	<rect x="0px" y="0px" width="70px" height="37px" style="fill:rgb(255,100,100);:hover:#fff;" onclick="test()"/>
+	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
+      </g>
+
+      <g id="test_button" transform="matrix(1,0,0,1,20,120)" onclick="test()">
+	<g id="button_shape" transform="matrix(1,0,0,-1,0,37)" style="fill:rgb(255,100,100);">
+	  <g id="convex_large" transform="matrix(1,0,0,1,0,0)">
+	    <path d="M0,18.28L0,18.221C0.032,8.184 8.17,0.041 18.28,0L69.794,0L69.794,36.56L0,36.56L0,18.28Z"/>
+	  </g>
+	  <g id="concave_small" transform="matrix(1,0,0,1,69.5,9.5)">
+	    <path d="M10,0C4.5,0 0,4.5 0,10L0,5.822L0,0L10,0Z"/>
+	  </g>
+	  <rect x="69px" y="0px" width="370px" height="10px"/>
+	</g>
+	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
+      </g>
+
+      <g id="test_button" transform="matrix(1,0,0,1,20,160)" onclick="test()">
+	<g id="button_shape" transform="matrix(1,0,0,1,0,0)" style="fill:rgb(255,100,100);">
+	  <g id="convex_large" transform="matrix(1,0,0,1,0,0)">
+	    <path d="M0,18.28L0,18.221C0.032,8.184 8.17,0.041 18.28,0L69.794,0L69.794,36.56L0,36.56L0,18.28Z"/>
+	  </g>
+	  <g id="concave_small" transform="matrix(1,0,0,1,69.5,9.5)">
+	    <path d="M10,0C4.5,0 0,4.5 0,10L0,5.822L0,0L10,0Z"/>
+	  </g>
+	  <rect x="69px" y="0px" width="370px" height="10px"/>
+	</g>
+	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
+      </g>
+
+      <g id="test_button" transform="matrix(1,0,0,1,20,200)">
+	<rect x="0px" y="0px" width="70px" height="37px" style="fill:rgb(255,100,100);:hover:#fff;" onclick="test()"/>
+	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
+      </g>
+
+      <g id="test_button" transform="matrix(1,0,0,1,20,240)">
+	<rect x="0px" y="0px" width="70px" height="37px" style="fill:rgb(255,100,100);:hover:#fff;" onclick="test()"/>
+	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
+      </g>
+
+      <g id="test_button" transform="matrix(1,0,0,1,20,280)" onclick="test()">
+	<g id="button_shape" transform="matrix(1,0,0,-1,0,37)" style="fill:rgb(255,100,100);">
+	  <g id="convex_large" transform="matrix(1,0,0,1,0,0)">
+	    <path d="M0,18.28L0,18.221C0.032,8.184 8.17,0.041 18.28,0L69.794,0L69.794,36.56L0,36.56L0,18.28Z"/>
+	  </g>
+	  <g id="concave_small" transform="matrix(1,0,0,1,69.5,9.5)">
+	    <path d="M10,0C4.5,0 0,4.5 0,10L0,5.822L0,0L10,0Z"/>
+	  </g>
+	  <rect x="69px" y="0px" width="370px" height="10px"/>
+	</g>
+	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
+      </g>
+
+      <!--<path d="M0,-0.93L5.479,-0.93L5.479,-0.923C11.587,-0.707 16.479,4.319 16.479,10.479C16.479,16.776 11.367,21.889 5.07,21.889C4.765,21.889 4.463,21.877 4.165,21.853L0,21.853L0,-0.93Z" style="fill:rgb(208,195,224);"/>-->
+
+    </svg>
+  </body>
+</html>
