@@ -1,4 +1,4 @@
-tml1<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>LCARS</title>
@@ -15,7 +15,7 @@ body {
 }
     </style>
   </head>
-  <body onload=start();>
+    <body onload=update_clock();>
 
     <svg width="100%" height="100%" viewBox="0 0 480 320" version="1.1"
          xmlns="http://www.w3.org/2000/svg"
@@ -24,80 +24,207 @@ body {
          xmlns:serif="http://www.serif.com/"
          style="width:100%; height:100%; position:fixed; top:0; left:0; z-index:1; fill-rule:evenodd; clip-rule:evenodd; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:1.5;">
 
-      <g id="test_button" transform="matrix(1,0,0,1,20,0)" onclick="test()">
-	<g id="button_shape" transform="matrix(1,0,0,1,0,0)" style="fill:rgb(255,100,100);">
-	  <g id="convex_large" transform="matrix(1,0,0,1,0,0)">
-	    <path d="M0,18.28L0,18.221C0.032,8.184 8.17,0.041 18.28,0L69.794,0L69.794,36.56L0,36.56L0,18.28Z"/>
-	  </g>
-	  <g id="concave_small" transform="matrix(1,0,0,1,69.5,9.5)">
-	    <path d="M10,0C4.5,0 0,4.5 0,10L0,5.822L0,0L10,0Z"/>
-	  </g>
-	  <rect x="69px" y="0px" width="370px" height="10px"/>
-	</g>
-	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
-      </g>
+      <!-- Starfleet Emblem -->
+      <path d="M435.157,249.391C436.202,249.514 436.712,250.665 437.257,251.65C441.411,259.16 443.855,267.591 446.268,275.984C447.937,281.788 449.461,287.634 450.798,293.518C450.798,293.518 450.884,294.133 450.808,294.407C450.79,294.471 450.747,294.526 450.707,294.579C450.104,295.39 448.72,294.923 448.248,293.81C446.19,288.962 444.314,284.01 441.371,279.702C440.492,278.416 439.366,277.162 437.946,276.919C436.162,276.614 434.589,278.123 433.147,279.502C428.873,283.587 425.562,288.598 422.379,293.639C421.407,295.192 419.238,295.517 419.348,293.671C419.348,293.671 419.532,292.834 419.669,292.241C422.678,279.463 425.917,266.507 431.326,254.811C432.121,253.092 432.817,251.219 434.109,249.906C434.387,249.623 434.571,249.367 435.157,249.391ZM435.076,250.712C434.945,250.834 434.829,250.971 434.72,251.113C433.201,253.085 432.324,255.538 431.334,257.91C426.577,269.31 423.443,281.416 420.661,293.508L420.611,293.728C421.087,293.735 421.289,293.019 421.624,292.491C425.207,286.891 428.79,280.96 434.089,277.053C435.371,276.109 436.982,275.267 438.653,275.808C441.321,276.671 442.969,279.712 444.356,282.389C446.203,285.954 447.841,289.647 449.4,293.321C449.434,293.399 449.458,293.479 449.5,293.557C449.574,293.687 449.387,292.97 449.284,292.526C446.22,279.513 443.1,266.386 437.223,254.308C436.609,253.046 436.096,251.646 435.097,250.712C435.097,250.712 435.096,250.694 435.076,250.712ZM444.715,287.992C444.879,288.346 445.044,288.707 445.211,289.069C442.072,290.146 438.483,290.757 434.671,290.757C431.617,290.757 428.706,290.365 426.056,289.655C426.294,289.313 426.533,288.972 426.774,288.633C429.211,289.255 431.877,289.598 434.671,289.598C438.311,289.598 441.734,289.016 444.715,287.992ZM426.808,263.161C426.646,263.602 426.486,264.046 426.329,264.492C418.928,266.509 413.754,271.128 413.754,276.504C413.754,280.236 416.249,283.604 420.252,285.99C420.154,286.399 420.056,286.809 419.958,287.218C415.302,284.606 412.363,280.774 412.363,276.504C412.363,270.4 418.368,265.192 426.808,263.161ZM443.529,263.418C451.442,265.608 456.978,270.642 456.978,276.504C456.978,280.538 454.355,284.18 450.14,286.773C450.042,286.354 449.944,285.935 449.846,285.516C453.404,283.168 455.588,279.995 455.588,276.504C455.588,271.376 450.88,266.937 444.024,264.788C443.862,264.33 443.697,263.873 443.529,263.418Z" style="fill:rgb(60,60,60);fill-rule:nonzero;"/>
 
-      <g id="test_button" transform="matrix(1,0,0,1,20,40)">
-	<rect x="0px" y="0px" width="70px" height="37px" style="fill:rgb(255,100,100);:hover:#fff;" onclick="test()"/>
-	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
-      </g>
+      <!-- LCARS Boxes-->
+      <path d="M442.793,13.006L448.272,13.006L448.272,13.013C454.38,13.229 459.272,18.256 459.272,24.416C459.272,30.713 454.16,35.825 447.863,35.825C447.558,35.825 447.257,35.813 446.958,35.789L442.793,35.789L442.793,13.006Z" style="fill:rgb(208,195,224);"/>
 
-      <g id="test_button" transform="matrix(1,0,0,1,20,80)">
-	<rect x="0px" y="0px" width="70px" height="37px" style="fill:rgb(255,100,100);:hover:#fff;" onclick="test()"/>
-	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
-      </g>
+      <path d="M456.978,165.883L102.968,165.883C96.907,165.883 91.986,170.804 91.986,176.865L91.986,194.512L22.192,194.512L22.192,176.232L22.192,176.173C22.224,166.111 30.403,157.952 40.472,157.952L456.978,157.952L456.978,165.883Z" style="fill:rgb(151,120,142);" onclick="toggleDateFormat()"/>
 
-      <g id="test_button" transform="matrix(1,0,0,1,20,120)" onclick="test()">
-	<g id="button_shape" transform="matrix(1,0,0,-1,0,37)" style="fill:rgb(255,100,100);">
-	  <g id="convex_large" transform="matrix(1,0,0,1,0,0)">
-	    <path d="M0,18.28L0,18.221C0.032,8.184 8.17,0.041 18.28,0L69.794,0L69.794,36.56L0,36.56L0,18.28Z"/>
-	  </g>
-	  <g id="concave_small" transform="matrix(1,0,0,1,69.5,9.5)">
-	    <path d="M10,0C4.5,0 0,4.5 0,10L0,5.822L0,0L10,0Z"/>
-	  </g>
-	  <rect x="69px" y="0px" width="370px" height="10px"/>
-	</g>
-	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
-      </g>
+      <path d="M456.978,147.936L102.968,147.936C96.907,147.936 91.986,143.016 91.986,136.954L91.986,119.308L22.192,119.308L22.192,137.587L22.192,137.647C22.224,147.708 30.403,155.867 40.472,155.867L456.978,155.867L456.978,147.936Z" style="fill:rgb(208,195,224);" onclick="toggleTimeFormat()"/>
 
-      <g id="test_button" transform="matrix(1,0,0,1,20,160)" onclick="test()">
-	<g id="button_shape" transform="matrix(1,0,0,1,0,0)" style="fill:rgb(255,100,100);">
-	  <g id="convex_large" transform="matrix(1,0,0,1,0,0)">
-	    <path d="M0,18.28L0,18.221C0.032,8.184 8.17,0.041 18.28,0L69.794,0L69.794,36.56L0,36.56L0,18.28Z"/>
-	  </g>
-	  <g id="concave_small" transform="matrix(1,0,0,1,69.5,9.5)">
-	    <path d="M10,0C4.5,0 0,4.5 0,10L0,5.822L0,0L10,0Z"/>
-	  </g>
-	  <rect x="69px" y="0px" width="370px" height="10px"/>
-	</g>
-	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
-      </g>
+      <path d="M91.986,290.267C91.986,296.329 96.907,301.249 102.968,301.249L456.978,301.249L456.978,309.18L40.472,309.18C30.403,309.18 22.224,301.021 22.192,290.96L22.192,290.901L22.192,196.597L91.986,196.597L91.986,290.267Z" style="fill:rgb(255,207,109);" onclick="getLocation()"/>
 
-      <g id="test_button" transform="matrix(1,0,0,1,20,200)">
-	<rect x="0px" y="0px" width="70px" height="37px" style="fill:rgb(255,100,100);:hover:#fff;" onclick="test()"/>
-	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
-      </g>
+      <path d="M138.869,13.006L138.869,35.789L102.465,35.789C96.68,35.791 91.986,40.486 91.986,46.269L91.986,117.223L22.192,117.223L22.192,35.782C22.192,23.212 32.397,13.007 44.968,13.006L138.869,13.006Z" style="fill:rgb(255,170,0);" onclick="toggleTimeFormat()"/>
 
-      <g id="test_button" transform="matrix(1,0,0,1,20,240)">
-	<rect x="0px" y="0px" width="70px" height="37px" style="fill:rgb(255,100,100);:hover:#fff;" onclick="test()"/>
-	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
-      </g>
+      <rect x="140.954" y="13.006" width="225.88" height="22.783" style="fill:rgb(255,207,109);" />
 
-      <g id="test_button" transform="matrix(1,0,0,1,20,280)" onclick="test()">
-	<g id="button_shape" transform="matrix(1,0,0,-1,0,37)" style="fill:rgb(255,100,100);">
-	  <g id="convex_large" transform="matrix(1,0,0,1,0,0)">
-	    <path d="M0,18.28L0,18.221C0.032,8.184 8.17,0.041 18.28,0L69.794,0L69.794,36.56L0,36.56L0,18.28Z"/>
-	  </g>
-	  <g id="concave_small" transform="matrix(1,0,0,1,69.5,9.5)">
-	    <path d="M10,0C4.5,0 0,4.5 0,10L0,5.822L0,0L10,0Z"/>
-	  </g>
-	  <rect x="69px" y="0px" width="370px" height="10px"/>
-	</g>
-	<text x="65px" y="30px" style="font-family:'lcars', sans-serif; font-size:12px; fill:rgb(0,0,0); text-anchor:end;">TEST</text>
-      </g>
+      <!-- Text -->
+      <text x="370px" y="034px" style="font-family:'lcars', sans-serif;font-size:28px;fill:rgb(255,207,109);">LCARS 1.0</text>
 
-      <!--<path d="M0,-0.93L5.479,-0.93L5.479,-0.923C11.587,-0.707 16.479,4.319 16.479,10.479C16.479,16.776 11.367,21.889 5.07,21.889C4.765,21.889 4.463,21.877 4.165,21.853L0,21.853L0,-0.93Z" style="fill:rgb(208,195,224);"/>-->
+      <text x="073px" y="112px" style="font-family:'lcars', sans-serif;font-size:12px;fill:rgb(0,0,0);">FULL</text>
+      <text x="073px" y="132px" style="font-family:'lcars', sans-serif;font-size:12px;fill:rgb(0,0,0);">TIME</text>
+      <text x="073px" y="190px" style="font-family:'lcars', sans-serif;font-size:12px;fill:rgb(0,0,0);">DATE</text>
+      <text x="073px" y="210px" style="font-family:'lcars', sans-serif;font-size:12px;fill:rgb(0,0,0);">&nbsp;GEO</text>
+      <text x="275px" y="135px" style="font-family:'lcars', sans-serif;font-size:90px;fill:rgb(255,170,0);" id="time" text-anchor="middle">12:00:00 AM</text>
+      <text x="275px" y="190px" style="font-family:'lcars', sans-serif;font-size:24px;fill:rgb(255,170,0);" id="date" text-anchor="middle">Monday, January 1, 2019</text>
+
+      <text x="110px" y="215px" style="font-family:'lcars', sans-serif;font-size:20px;fill:rgb(255,207,109);" id="city">Unable to locate</text>
+
+      <!-- Weather labels -->
+      <text x="110px" y="235px" style="font-family:'lcars', sans-serif;font-size:20px;fill:rgb(255,207,109);">Weather:</text>
+      <text x="110px" y="255px" style="font-family:'lcars', sans-serif;font-size:20px;fill:rgb(255,207,109);">Temperature:</text>
+      <text x="110px" y="275px" style="font-family:'lcars', sans-serif;font-size:20px;fill:rgb(255,207,109);">Humidity:</text>
+      <text x="110px" y="295px" style="font-family:'lcars', sans-serif;font-size:20px;fill:rgb(255,207,109);">Wind:</text>
+
+      <!-- Weather Data -->
+      <text x="180px" y="235px" style="font-family:'lcars', sans-serif;font-size:20px;fill:rgb(255,207,109);" id="desc">No Data</text>
+      <text x="180px" y="255px" style="font-family:'lcars', sans-serif;font-size:20px;fill:rgb(255,207,109);" id="temp">No Data</text>
+      <text x="180px" y="275px" style="font-family:'lcars', sans-serif;font-size:20px;fill:rgb(255,207,109);" id="humid">No Data</text>
+      <text x="180px" y="295px" style="font-family:'lcars', sans-serif;font-size:20px;fill:rgb(255,207,109);" id="wind">No Data</text>
 
     </svg>
+
+    <script type="text/javascript">
+
+var twelve_hour = true;
+var linux_date = false;
+
+function toggleTimeFormat() {
+    if (twelve_hour == true) {
+	twelve_hour = false;
+    } else {
+	twelve_hour = true;
+    }
+}
+
+function toggleDateFormat() {
+    if (linux_date == true) {
+	linux_date = false;
+    } else {
+	linux_date = true;
+    }
+}
+
+function wait() {
+    var refresh = 1000;
+    mytime = setTimeout('update_clock()', refresh);
+}
+
+function update_clock() {
+    var date_time = new Date();
+    var date_string = "None"
+    var day = date_time.getDay();
+    day = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][day]
+    var date = date_time.getDate();
+    var month = date_time.getMonth();
+    month = ["January","February","March","April","May","June","July","August","September","October","November","December",][month]
+    var year = date_time.getFullYear();;
+    date_string = day+", "+month+" "+date+", "+year
+
+    if (linux_date == true) {
+	date_string = date_time.getTime();
+    }
+
+    document.getElementById('date').innerHTML = date_string;
+
+    var time_string = "None";
+    var hours = date_time.getHours();
+    var minutes = date_time.getMinutes();
+    var seconds = date_time.getSeconds();
+    var meridiem = "";
+    if (twelve_hour == true) {
+	var meridiem = " AM";
+	if (hours > 11) {
+            meridiem = " PM";
+	}
+    }
+    if (hours > 12 && twelve_hour == true) {
+        hours -= 12;
+    }
+    if (minutes < 10) {
+        minutes = "0"+minutes;
+    }
+    if (seconds < 10) {
+        seconds = "0"+seconds;
+    }
+
+    time_string = hours+":"+minutes+":"+seconds+meridiem
+    document.getElementById('time').innerHTML = time_string;
+
+    // Update weather hourly
+    if (minutes == "00" && seconds == "01") {
+        getLocation();
+    }
+
+    wait();
+}
+
+function httpGetAsync(theUrl, callback)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.send(null);
+}
+
+function getWeather(lat, lon) {
+    var api = "7c0606acc5d2bf023d4188f3233ccf61";
+    var CurrentWeatherURL = "https://api.openweathermap.org/data/2.5/weather?lat="+lat+"&lon="+lon+"&appid="+api+"&units=imperial"
+    httpGetAsync(CurrentWeatherURL, updateWeather);
+}
+
+function getLocation() {
+    navigator.geolocation.getCurrentPosition(geolocate_success, geolocate_fail);
+}
+
+function geolocate_success(pos) {
+    getWeather(pos.coords.latitude, pos.coords.longitude);
+    
+}
+
+function geolocate_fail() {
+    console.log("Failed to get geolocation");
+    var LocationURL = "https://json.geoiplookup.io/api"
+    httpGetAsync(LocationURL, updateLocation);
+}
+
+function updateLocation(data_in) {
+    var location_data = JSON.parse(data_in);
+    getWeather(location_data.latitude, location_data.longitude);
+}
+
+function updateWeather(data_in) {
+    var weather_data = JSON.parse(data_in);
+    console.log(weather_data);
+    var deg_to_dir = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+                      "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+    
+    var location_string = weather_data.name.toUpperCase() + " (" + weather_data.coord.lat + ", " + weather_data.coord.lon + ")";
+    var weather_string  = weather_data.weather[0].main;
+    var temp_string     = weather_data.main.temp + "&deg;F (High: " + weather_data.main.temp_max + "&deg;F, Low: " + weather_data.main.temp_min + "&deg;F)";
+    var humidity_string = weather_data.main.humidity + "%";
+    var wind_string     = weather_data.wind.speed + " MPH";
+
+    // Add direction if available
+    if (weather_data.wind.deg < 361) {
+        var wind_string     = deg_to_dir[Math.floor(weather_data.wind.deg/22.5)]+ " " + wind_string;
+    }
+
+    document.getElementById('city').innerHTML    = location_string;
+    document.getElementById('desc').innerHTML    = weather_string;
+    document.getElementById('temp').innerHTML    = temp_string;
+    document.getElementById('humid').innerHTML   = humidity_string;
+    document.getElementById('wind').innerHTML    = wind_string;
+}
+
+function fullscreen(){
+    if ((document.fullScreenElement && document.fullScreenElement !== null) ||  // alternative standard method
+	(!document.mozFullScreen && !document.webkitIsFullScreen)) {            // current working methods
+	if (document.documentElement.requestFullScreen) {
+	    document.documentElement.requestFullScreen();
+	} else if (document.documentElement.mozRequestFullScreen) {
+	    document.documentElement.mozRequestFullScreen();
+	} else if (document.documentElement.webkitRequestFullScreen) {
+	    document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+	}
+    } else {
+	if (document.cancelFullScreen) {
+	    document.cancelFullScreen();
+	} else if (document.mozCancelFullScreen) {
+	    document.mozCancelFullScreen();
+	} else if (document.webkitCancelFullScreen) {
+	    document.webkitCancelFullScreen();
+	}
+    }
+}
+
+getLocation();
+
+    </script>
   </body>
 </html>
