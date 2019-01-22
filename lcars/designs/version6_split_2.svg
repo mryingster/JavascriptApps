@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 480 320" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;">
+    <rect id="Artboard3" x="0" y="0" width="480" height="320" style="fill:none;"/>
+    <clipPath id="_clip1">
+        <rect id="Artboard31" serif:id="Artboard3" x="0" y="0" width="480" height="320"/>
+    </clipPath>
+    <g clip-path="url(#_clip1)">
+        <rect x="0" y="0" width="480" height="320"/>
+        <path d="M0,18L0,0L70,0L70,16C70,22.623 75.377,28 82,28L460,28L460,36L70,36L18,36C8.066,36 0,27.934 0,18Z" style="fill:rgb(255,30,30);"/>
+        <path d="M0,18L0,0L70,0L70,16C70,22.623 75.377,28 82,28L460,28L460,36L70,36L18,36C8.066,36 0,27.934 0,18Z" style="fill:rgb(255,30,30);"/>
+        <path d="M0,18L0,36L70,36L70,20C70,13.377 75.377,8 82,8L460,8L460,0L70,0L18,0C8.066,0 0,8.066 0,18Z" style="fill:rgb(50,255,30);"/>
+        <rect x="0" y="0" width="70" height="36" style="fill:rgb(27,15,255);"/>
+        <path d="M70,12C70,5.377 64.623,0 58,0L12,0C5.377,0 0,5.377 0,12C0,18.623 5.377,24 12,24L58,24C64.623,24 70,18.623 70,12Z" style="fill:rgb(27,15,255);"/>
+        <path d="M70,12C70,5.377 64.623,0 58,0L12,0C5.377,0 0,5.377 0,12C0,18.623 5.377,24 12,24L58,24C64.623,24 70,18.623 70,12Z" style="fill:rgb(27,15,255);"/>
+        <rect x="0" y="0" width="70" height="36" style="fill:rgb(27,15,255);"/>
+        <rect x="0" y="0" width="70" height="36" style="fill:rgb(27,15,255);"/>
+        <rect x="0" y="0" width="70" height="36" style="fill:rgb(27,15,255);"/>
+        <circle cx="2.998" cy="2.998" r="2.998"/>
+        <path d="M451.058,0C455.999,0.032 460,4.052 460,9C460,13.967 455.967,18 451,18C451,18 82,18 82,18C75.377,18 70,23.377 70,30L70,36L18,36L0,36L0,18C0,8.066 8.065,0 18,0L451,0L451.058,0Z" style="fill:rgb(255,203,15);"/>
+        <rect x="0" y="0" width="67.428" height="18"/>
+    </g>
+</svg>
