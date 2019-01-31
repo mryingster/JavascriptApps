@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Magic 8-Ball</title>
+    <meta charset="utf-8"/>
+    <style>
+      body {
+          background:#fff;
+          color:#000;
+      }
+    </style>
+  </head>
+  <body>
+
+    <svg width="582px"
+         height="768"
+         version="1.1"
+         xmlns="http://www.w3.org/2000/svg"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xml:space="preserve"
+         xmlns:serif="http://www.serif.com/"
+         style="display:block; margin:25px auto; z-index:-1; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:1.5;">
+
+      <g id="entire_graphic" transform="matrix(1,0,0,1,35,0)">
+
+        <g id="entire_8ball">
+          <circle id="background" cx="256" cy="256" r="243.348" style="fill:url(#_Radial1); filter:url(#_Dropshadow);"/>
+
+          <g id="ball_mask" style="mask:url(#main_mask)">
+
+            <g id="ball_features">
+              <g id="eight_circle">
+                <circle cx="256" cy="256" r="125.705" style="fill:rgb(236,236,236);"/>
+                <path d="M219.302,256L212.547,249.245C211.378,247.997 210.7,246.377 210.643,244.649L210.643,212.638C210.699,210.928 211.365,209.304 212.547,208.042L223.898,196.691C225.147,195.522 226.766,194.844 228.494,194.787L283.506,194.787C283.648,194.792 283.789,194.797 283.931,194.801C286.267,195.031 286.825,195.495 288.102,196.691L299.453,208.042C300.622,209.291 301.3,210.91 301.357,212.638L301.357,244.649C301.301,246.359 300.635,247.983 299.453,249.245L292.698,256L299.453,262.755C300.622,264.003 301.3,265.623 301.357,267.351L301.357,299.362C301.301,301.072 300.635,302.696 299.453,303.958L288.102,315.309C286.854,316.478 285.234,317.156 283.506,317.213L228.494,317.213C226.784,317.157 225.16,316.491 223.898,315.309L212.547,303.958C211.378,302.709 210.7,301.09 210.643,299.362L210.643,267.351C210.699,265.641 211.365,264.017 212.547,262.755L219.302,256ZM280.814,262.5L231.186,262.5L223.643,270.043L223.643,296.67L231.186,304.213L280.814,304.213L288.357,296.67L288.357,270.043L280.814,262.5ZM280.814,207.787L231.186,207.787L223.643,215.33L223.643,241.957L231.186,249.5L280.814,249.5L288.357,241.957L288.357,215.33L280.814,207.787Z" style="fill-rule:nonzero;"/>
+                <animateTransform
+                  id="motion_slide_8_up"
+                  attributeName="transform"
+                  attributeType="XML"
+                  type="translate"
+                  from="0 0"
+                  to="0 -200"
+                  begin="motion_shake.begin"
+                  dur="1500ms"
+                  fill="freeze"
+                  repeatCount="1"
+                  additive="sum"
+                  />
+                <animateTransform
+                  id="motion_squish_8"
+                  attributeName="transform"
+                  attributeType="XML"
+                  type="scale"
+                  from="1 1"
+                  to="1 0"
+                  begin="motion_shake.begin"
+                  dur="500ms"
+                  fill="freeze"
+                  repeatCount="1"
+                  additive="sum"
+                  />
+              </g> <!-- /eight_circle -->
+
+              <g id="response_group">
+                <circle cx="256" cy="768" r="96.901" style="fill:rgc(0,0,0)"/>
+                <circle cx="256" cy="768" r="91.028" style="fill:rgb(6,0,27);"/>
+
+                <g id="response_circle" serif:id="Layer 1"  filter="url(#f1)">
+                  <circle cx="256" cy="768" r="91.028" style="fill:rgb(6,0,27);"/>
+                  <path d="M315.861,728.327L256,832.01L196.139,728.327L315.861,728.327Z" style="fill:url(#_Radial2);fill-rule:nonzero;"/>
+                  <path d="M315.861,728.327L256,695.067L196.139,728.327L315.861,728.327Z" style="fill:rgb(18,0,43);fill-rule:nonzero;"/>
+                  <path d="M256,832.01L314.735,796.799L315.861,728.327L256,832.01Z" style="fill:rgb(18,0,43);fill-rule:nonzero;"/>
+                  <path d="M196.139,728.327L197.265,796.799L256,832.01L196.139,728.327Z" style="fill:rgb(18,0,43);fill-rule:nonzero;"/>
+                  <text id="reply_line_1" x="256px" y="750px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:white; text-anchor:middle">YES</text>
+                  <text id="reply_line_2" x="256px" y="765px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:white; text-anchor:middle">YES</text>
+                  <text id="reply_line_3" x="256px" y="780px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:white; text-anchor:middle">YES</text>
+                  <text id="reply_line_4" x="256px" y="795px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:12px;fill:white; text-anchor:middle">YES</text>
+
+                  <animateTransform
+                    id="motion_spin_response"
+                    attributeName="transform"
+                    begin="motion_slide_8_up.begin+500ms"
+                    dur="3s"
+                    type="rotate"
+                    from="-45 256 768"
+                    to="15 256 768"
+                    repeatCount="1"
+                    fill="freeze"
+                    />
+                  <animate
+                    id="motion_fade_response"
+                    attributeName="opacity"
+                    attributeType="XML"
+                    from="0" to="1"
+                    fill="freeze"
+                    begin="motion_spin_response.begin"
+                    dur="3s"
+                    />
+                </g> <!-- /response_circle -->
+
+                <animateTransform
+                  id="motion_slide_response_up"
+                  attributeName="transform"
+                  attributeType="XML"
+                  type="translate"
+                  from="0 0"
+                  to="0 -512"
+                  begin="motion_slide_8_up.begin"
+                  dur="1.5s"
+                  fill="freeze"
+                  repeatCount="1"
+                  />
+
+              </g> <!-- /response_group -->
+            </g> <!-- /ball_features -->
+
+            <path id="glare" d="M253.184,12.669C111.589,14.304 27.354,128.226 27.354,212.076C27.354,296.595 137.003,352.669 256,352.669C374.997,352.669 483.542,296.595 483.542,212.076C483.542,128.226 399.144,14.289 258.816,12.669C391.828,14.18 499.348,122.633 499.348,256C499.348,390.307 390.307,499.348 256,499.348C121.693,499.348 12.652,390.307 12.652,256C12.652,122.633 120.172,14.18 253.184,12.669ZM253.844,12.662L253.265,12.668L253.642,12.664L253.844,12.662ZM258.358,12.664L258.735,12.668L258.156,12.662L258.358,12.664ZM254.542,12.657L254.083,12.66L254.427,12.657L254.542,12.657ZM257.573,12.657L257.917,12.66L257.458,12.657L257.573,12.657ZM255.262,12.654L254.934,12.655L255.213,12.654L255.262,12.654ZM256.787,12.654L257.066,12.655L256.738,12.654L256.787,12.654Z" style="fill:url(#_Linear3);"/>
+
+          </g> <!-- /ball_mask -->
+
+          <animateMotion
+            id="motion_shake"
+            path="M0,0 30,0 -30,0 30,0 -30,0 30,0 0,0"
+            begin="indefinite"
+            dur="500ms"
+            repeatCount="1"
+            />
+        </g> <!-- /entire_8ball -->
+
+        <g id="ask_button" onclick="test()">
+          <path d="M352.901,560.664C352.901,554.377 347.797,549.272 341.509,549.272L161.654,549.272C155.367,549.272 150.262,554.377 150.262,560.664L150.262,583.448C150.262,589.735 155.367,594.84 161.654,594.84L341.509,594.84C347.797,594.84 352.901,589.735 352.901,583.448L352.901,560.664Z" style="fill:url(#_Linear5);"/>
+          <path d="M341.509,551.983C347.797,551.983 352.901,557.087 352.901,563.375L352.901,566.771C352.901,561.109 348.304,556.512 342.642,556.512L160.522,556.512C154.859,556.512 150.262,561.109 150.262,566.771L150.262,563.375C150.262,557.087 155.367,551.983 161.654,551.983L341.509,551.983Z" style="fill:url(#_Linear4);"/>
+          <text x="224.055px" y="581.404px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:26.118px;fill:white;">ASK</text>
+        </g> <!-- /ask_button -->
+      </g> <!-- /entire_graphic -->
+
+      <defs>
+        <mask id="main_mask" x="0" y="0" width="512" height="512">
+          <circle cx="256" cy="256" r="243.348" style="stroke:none; fill: #ffffff"/>
+        </mask>
+
+        <radialGradient id="_Radial1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-137.44,-94.5939,59.5967,-86.5909,340.882,151.914)"><stop offset="0" style="stop-color:white;stop-opacity:1"/><stop offset="0.56" style="stop-color:rgb(77,77,77);stop-opacity:1"/><stop offset="1" style="stop-color:black;stop-opacity:1"/></radialGradient>
+        <radialGradient id="_Radial2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-121.517,100.997,-36.6914,-44.1462,335.973,695.067)"><stop offset="0" style="stop-color:white;stop-opacity:1"/><stop offset="0.53" style="stop-color:rgb(111,70,165);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(56,0,131);stop-opacity:1"/></radialGradient>
+        <linearGradient id="_Linear3" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(2.82277e-14,460.993,-460.993,2.82277e-14,219.985,156.064)"><stop offset="0" style="stop-color:white;stop-opacity:0.498039"/><stop offset="0.46" style="stop-color:white;stop-opacity:0.109804"/><stop offset="1" style="stop-color:white;stop-opacity:0"/></linearGradient>
+        <linearGradient id="_Linear4" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(2.73455e-15,44.6586,-44.6586,2.73455e-15,275.508,539.746)"><stop offset="0" style="stop-color:black;stop-opacity:1"/><stop offset="1" style="stop-color:rgb(173,173,173);stop-opacity:1"/></linearGradient>
+        <linearGradient id="_Linear5" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0.242671,45.5678,-45.5678,0.242671,253.651,549.272)"><stop offset="0" style="stop-color:black;stop-opacity:1"/><stop offset="0.57" style="stop-color:rgb(15,15,15);stop-opacity:1"/><stop offset="0.79" style="stop-color:rgb(47,47,47);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(77,77,77);stop-opacity:1"/></linearGradient>
+
+        <filter id="f1" x="0" y="0">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="15">
+            <animate
+              id="blur"
+              attributeName="stdDeviation" attributeType="XML"
+              from="10"  to=".15"
+              begin="motion_spin_response.begin" dur="3s"
+              fill="freeze"
+              repeatCount="0"/>
+          </feGaussianBlur>
+        </filter>
+
+        <filter id="_Dropshadow" height="150%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="15"/> <!-- stdDeviation is how much to blur -->
+          <feOffset dx="-5" dy="15" result="offsetblur"/> <!-- how much to offset -->
+          <feComponentTransfer>
+            <feFuncA type="linear" slope=".45"/> <!-- slope is the opacity of the shadow -->
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode/> <!-- this contains the offset blurred image -->
+            <feMergeNode in="SourceGraphic"/> <!-- this contains the element that the filter is applied to -->
+          </feMerge>
+        </filter>
+
+      </defs>
+    </svg>
+
+    <script type="text/javascript">
+var answers = [
+    ["OUTLOOK",     "GOOD",        "",      ""],
+    ["MY REPLY",    "IS",          "NO",    ""],
+    ["WITHOUT",     "A",           "DOUBT", ""],
+    ["CANNOT",      "PREDICT",     "NOW",   ""],
+    ["VERY",        "DOUBTFUL",    "",      ""],
+    ["SIGNS",       "POINT TO",    "YES",   ""],
+    ["YES",         "DEFINITEeLY", "",      ""],
+    ["",            "YES",         "",      ""],
+    ["YOU MAY",     "RELY",        "ON IT", ""],
+    ["MY",          "SOURCES",     "SAY",   "NO"],
+    ["REPLY HAZY",  "TRY",         "AGAIN", ""],
+    ["ASK",         "AGAIN",       "LATER", ""],
+    ["OUTLOOK",     "NOT SO",      "GOOD",  ""],
+    ["MOST",        "LIKELY",      "",      ""],
+    ["AS I",        "SEE IT",      "YES",   ""],
+    ["DON'T",       "COUNT",       "ON IT", ""],
+    ["CONCENTRATE", "AND ASK",     "AGAIN", ""],
+    ["It IS",       "CERTAIN",     "",      ""],
+    ["BETTER NOT",  "TELL YOU",    "NOW",   ""],
+    ["IT IS",       "DECIDEDLY",   "SO",    ""]
+];
+
+function test(){
+    // Get random response
+    var answer = Math.floor(Math.random() * answers.length);
+    document.getElementById("reply_line_1").innerHTML = answers[answer][0];
+    document.getElementById("reply_line_2").innerHTML = answers[answer][1];
+    document.getElementById("reply_line_3").innerHTML = answers[answer][2];
+    document.getElementById("reply_line_4").innerHTML = answers[answer][3];
+
+    // Make spin random
+    var start_rotate = Math.floor(Math.random() * 90) - 45;
+    var end_rotate = Math.floor(Math.random() * 90) - 45;
+    document.getElementById("motion_spin_response").setAttribute("from", start_rotate + " 256 768");
+    document.getElementById("motion_spin_response").setAttribute("to", end_rotate + " 256 768");
+
+    // Animate
+    document.getElementById("motion_shake").beginElement();
+}
+    </script>
+  </body>
+</html>
