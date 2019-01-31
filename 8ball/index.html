@@ -39,7 +39,7 @@
                   type="translate"
                   from="0 0"
                   to="0 -200"
-                  begin="motion_shake.begin"
+                  begin="motion_shake.end"
                   dur="1500ms"
                   fill="freeze"
                   repeatCount="1"
@@ -52,8 +52,35 @@
                   type="scale"
                   from="1 1"
                   to="1 0"
-                  begin="motion_shake.begin"
+                  begin="motion_shake.end"
                   dur="500ms"
+                  fill="freeze"
+                  repeatCount="1"
+                  additive="sum"
+                  />
+
+                <animateTransform
+                  id="motion_slide_8_down"
+                  attributeName="transform"
+                  attributeType="XML"
+                  type="translate"
+                  from="0 -200"
+                  to="0 0"
+                  begin="motion_slide_response_down.end"
+                  dur="500ms"
+                  fill="freeze"
+                  repeatCount="1"
+                  additive="replace"
+                  />
+                <animateTransform
+                  id="motion_unsquish_8"
+                  attributeName="transform"
+                  attributeType="XML"
+                  type="scale"
+                  from="1 0"
+                  to="1 1"
+                  begin="motion_slide_8_down.begin"
+                  dur="200ms"
                   fill="freeze"
                   repeatCount="1"
                   additive="sum"
@@ -87,7 +114,7 @@
                     fill="freeze"
                     />
                   <animate
-                    id="motion_fade_response"
+                    id="motion_fade_response_in"
                     attributeName="opacity"
                     attributeType="XML"
                     from="0" to="1"
@@ -95,6 +122,16 @@
                     begin="motion_spin_response.begin"
                     dur="3s"
                     />
+		  <animate
+                    id="motion_fade_response_out"
+                    attributeName="opacity"
+                    attributeType="XML"
+                    from="1" to="0"
+                    fill="freeze"
+                    begin="motion_slide_response_down.begin"
+                    dur="50ms"
+                    />
+
                 </g> <!-- /response_circle -->
 
                 <animateTransform
@@ -105,7 +142,20 @@
                   from="0 0"
                   to="0 -512"
                   begin="motion_slide_8_up.begin"
-                  dur="1.5s"
+                  dur="1500ms"
+                  fill="freeze"
+                  repeatCount="1"
+                  />
+
+                <animateTransform
+                  id="motion_slide_response_down"
+                  attributeName="transform"
+                  attributeType="XML"
+                  type="translate"
+                  from="0 -512"
+                  to="0 0"
+                  begin="indefinite"
+                  dur="200ms"
                   fill="freeze"
                   repeatCount="1"
                   />
@@ -119,8 +169,8 @@
 
           <animateMotion
             id="motion_shake"
-            path="M0,0 30,0 -30,0 30,0 -30,0 30,0 0,0"
-            begin="indefinite"
+            path="M0,0 30,0 -30,0 30,0 -30,0 0,0"
+            begin="motion_slide_8_down.end"
             dur="500ms"
             repeatCount="1"
             />
@@ -152,7 +202,7 @@
               from="10"  to=".15"
               begin="motion_spin_response.begin" dur="3s"
               fill="freeze"
-              repeatCount="0"/>
+              repeatCount="1"/>
           </feGaussianBlur>
         </filter>
 
@@ -173,27 +223,29 @@
 
     <script type="text/javascript">
 var answers = [
-    ["OUTLOOK",     "GOOD",        "",      ""],
-    ["MY REPLY",    "IS",          "NO",    ""],
-    ["WITHOUT",     "A",           "DOUBT", ""],
-    ["CANNOT",      "PREDICT",     "NOW",   ""],
-    ["VERY",        "DOUBTFUL",    "",      ""],
-    ["SIGNS",       "POINT TO",    "YES",   ""],
-    ["YES",         "DEFINITEeLY", "",      ""],
-    ["",            "YES",         "",      ""],
-    ["YOU MAY",     "RELY",        "ON IT", ""],
-    ["MY",          "SOURCES",     "SAY",   "NO"],
-    ["REPLY HAZY",  "TRY",         "AGAIN", ""],
-    ["ASK",         "AGAIN",       "LATER", ""],
-    ["OUTLOOK",     "NOT SO",      "GOOD",  ""],
-    ["MOST",        "LIKELY",      "",      ""],
-    ["AS I",        "SEE IT",      "YES",   ""],
-    ["DON'T",       "COUNT",       "ON IT", ""],
-    ["CONCENTRATE", "AND ASK",     "AGAIN", ""],
-    ["It IS",       "CERTAIN",     "",      ""],
-    ["BETTER NOT",  "TELL YOU",    "NOW",   ""],
-    ["IT IS",       "DECIDEDLY",   "SO",    ""]
+    ["OUTLOOK",     "GOOD",         "",      ""],
+    ["MY REPLY",    "IS",           "NO",    ""],
+    ["WITHOUT",     "A",            "DOUBT", ""],
+    ["CANNOT",      "PREDICT",      "NOW",   ""],
+    ["VERY",        "DOUBTFUL",     "",      ""],
+    ["SIGNS",       "POINT TO",     "YES",   ""],
+    ["YES",         "DEFINITIVELY", "",      ""],
+    ["",            "YES",          "",      ""],
+    ["YOU MAY",     "RELY",         "ON IT", ""],
+    ["MY",          "SOURCES",      "SAY",   "NO"],
+    ["REPLY HAZY",  "TRY",          "AGAIN", ""],
+    ["ASK",         "AGAIN",        "LATER", ""],
+    ["OUTLOOK",     "NOT SO",       "GOOD",  ""],
+    ["MOST",        "LIKELY",       "",      ""],
+    ["AS I",        "SEE IT",       "YES",   ""],
+    ["DON'T",       "COUNT",        "ON IT", ""],
+    ["CONCENTRATE", "AND ASK",      "AGAIN", ""],
+    ["It IS",       "CERTAIN",      "",      ""],
+    ["BETTER NOT",  "TELL YOU",     "NOW",   ""],
+    ["IT IS",       "DECIDEDLY",    "SO",    ""]
 ];
+
+var first_run = true;
 
 function test(){
     // Get random response
@@ -210,7 +262,12 @@ function test(){
     document.getElementById("motion_spin_response").setAttribute("to", end_rotate + " 256 768");
 
     // Animate
-    document.getElementById("motion_shake").beginElement();
+    if (first_run == true) {
+	document.getElementById("motion_shake").beginElement();
+	first_run = false;
+    } else {
+	document.getElementById("motion_slide_response_down").beginElement();
+    }
 }
     </script>
   </body>
