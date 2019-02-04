@@ -6,60 +6,65 @@
     <meta charset="utf-8"/>
     <style>
       body {
-          background:#AAA;
+      background:#AAA;
+      cursor: url(cursor_amiga.cur), default;
       }
     </style>
   </head>
   <body onload=wait()>
+    <script src="jscolor.js"></script>
+    <button onclick="pause()">Pause</button>
+    <button class="jscolor {value:'#ffffff', valueElement:'chosen-value', onFineChange:'setColorA(this)'}">Color A</button>
+    <button class="jscolor {value:'#ff0000', valueElement:'chosen-value', onFineChange:'setColorB(this)'}">Color B</button>
 
     <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 width="100%"
 	 height="100%"
-	 viewBox="0 0 324 288"
+	 viewBox="0 20 324 288"
 	 xml:space="preserve"
-         style="width:100%; height:100%; position:fixed; top:0; left:0; z-index:1; fill-rule:evenodd; clip-rule:evenodd; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:1.5; background-color:#AAA;">
+         style="width:100%; height:100%; position:fixed; top:0; left:0; z-index:-11; fill-rule:evenodd; clip-rule:evenodd; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:1.5; background-color:#AAA;">
 
       <g id="background">
-	<rect y="0" x="0" fill="#AAAAAA" width="324" height="288"/>
 	<g>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="38.336,28.036 38.336,248.38 26.753,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="54.797,28.036 54.797,248.38 44.758,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="71.259,28.036 71.259,248.38 62.764,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="87.72,28.036 87.72,248.38 80.77,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="104.181,28.036 104.181,248.38 98.775,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="120.642,28.036 120.642,248.38 116.781,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="137.103,28.036 137.103,248.38 134.786,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="153.564,28.036 153.564,248.38 152.792,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="170.025,28.036 170.025,248.38 170.798,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="186.486,28.036 186.486,248.38 188.804,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="202.947,28.036 202.947,248.38 206.81,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="219.408,28.036 219.408,248.38 224.814,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="235.87,28.036 235.87,248.38 242.82,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="252.331,28.036 252.331,248.38 260.826,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="268.792,28.036 268.792,248.38 278.831,259.964"/>
-	  <polyline fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" points="285.253,28.036 285.253,248.38 296.837,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="38.336,51.118 38.336,248.38 26.753,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="54.797,51.118 54.797,248.38 44.758,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="71.259,51.118 71.259,248.38 62.764,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="87.72,51.118 87.72,248.38 80.77,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="104.181,51.118 104.181,248.38 98.775,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="120.642,51.118 120.642,248.38 116.781,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="137.103,51.118 137.103,248.38 134.786,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="153.564,51.118 153.564,248.38 152.792,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="170.025,51.118 170.025,248.38 170.798,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="186.486,51.118 186.486,248.38 188.804,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="202.947,51.118 202.947,248.38 206.81,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="219.408,51.118 219.408,248.38 224.814,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="235.87,51.118 235.87,248.38 242.82,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="252.331,51.118 252.331,248.38 260.826,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="268.792,51.118 268.792,248.38 278.831,259.964"/>
+	  <polyline fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" points="285.253,51.118 285.253,248.38 296.837,259.964"/>
 	</g>
-	<g>  
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="28.036" x2="285.253" y2="28.036"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="46.419" x2="285.253" y2="46.419"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="64.803" x2="285.253" y2="64.803"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="83.187" x2="285.253" y2="83.187"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="101.57" x2="285.253" y2="101.57"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="119.954" x2="285.253" y2="119.954"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="138.337" x2="285.253" y2="138.337"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="156.721" x2="285.253" y2="156.721"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="175.105" x2="285.253" y2="175.105"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="193.489" x2="285.253" y2="193.489"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="211.873" x2="285.253" y2="211.873"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="230.256" x2="285.253" y2="230.256"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="248.64" x2="285.253" y2="248.64"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="35.003" y1="251.713" x2="288.586" y2="251.713"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="31.419" y1="255.297" x2="292.17" y2="255.297"/>
-	  <line fill="none" stroke="#AA33CC" stroke-linecap="round" stroke-miterlimit="10" x1="26.752" y1="259.964" x2="296.837" y2="259.964"/>
+	<g>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="51.118" x2="285.253" y2="51.118"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="67.577" x2="285.253" y2="67.577"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="84.038" x2="285.253" y2="84.038"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="100.498" x2="285.253" y2="100.498"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="116.958" x2="285.253" y2="116.958"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="133.418" x2="285.253" y2="133.418"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="149.878" x2="285.253" y2="149.878"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="166.338" x2="285.253" y2="166.338"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="182.799" x2="285.253" y2="182.799"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="199.26" x2="285.253" y2="199.26"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="215.72" x2="285.253" y2="215.72"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="232.179" x2="285.253" y2="232.179"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="38.336" y1="248.64" x2="285.253" y2="248.64"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="33.872" y1="252.844" x2="289.717" y2="252.844"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="36.185" y1="250.531" x2="287.404" y2="250.531"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="30.903" y1="255.812" x2="292.686" y2="255.812"/>
+          <line fill="none" stroke="#AA33CC" stroke-width="0.75" stroke-linecap="round" stroke-miterlimit="10" x1="17.589" y1="259.964" x2="306" y2="259.964"/>
 	</g>
       </g> <!-- /background -->
 
-      <g id="ball" transform="matrix(1,0,0,1,120,100)">
+      <g id="ball" transform="matrix(1,0,0,1,0,0)">
 	<circle id="shadow" opacity="0.5" cx="23.531" cy="-2.498" r="57.501"/>
 	<circle id="ball_background" fill="#FFF" cx="-0.205" cy="0.001" r="57.501"/>
 
@@ -1168,91 +1173,64 @@
 	</radialGradient>
 	<circle id="ball_shading_light" fill="url(#SVGID_2_)" cx="-0.205" cy="0.001" r="57.501"/>
 
-	<animateMotion
-          id="motion_bounce_up"
-	  path="M0,100 0,0"
-	  keySplines="0 .5 .7 1;"
-	  calcMode="spline"
-	  begin="motion_bounce_down.end"
-          dur="2s"
-          repeatCount="1"
-	  additive="sum"
-	  fill="freeze"
-          />
-
-	<animateMotion
-          id="motion_bounce_down"
-	  path="M0,0 0,100"
-	  keySplines=".5 0 1 .7;"
-	  calcMode="spline"
-	  begin="0s;motion_bounce_up.end"
-          dur="2s"
-          repeatCount="1"
-	  additive="sum"
-	  onend="play_sound(2)"
-          />
-
-      	<animateMotion
-          id="motion_translate_left"
-	  path="M110,0 -25,0"
-	  calcMode="spline"
-	  begin="0s;motion_translate_right.end"
-          dur="7340ms"
-          repeatCount="1"
-          additive="sum"
-	  onend="reverse()"
-          />
-
-	<animateMotion
-          id="motion_translate_right"
-	  path="M-25,0 110,0"
-	  calcMode="spline"
-	  begin="motion_translate_left.end"
-          dur="7340ms"
-          repeatCount="1"
-          additive="sum"
-	  onend="reverse()"
-          />
-
-      </g>
-
-      <path id="bounce_path" fill="none" stroke="#AAAAAA" stroke-miterlimit="10" d="M-0.343,0.091c0,0,0,0.437,0,1.277c0,0.881,0,2.207,0,3.946
-	c0,1.852,0,4.169,0,6.914c0,2.998,0,6.508,0,10.472c0,4.52,0,9.63,0,15.255c0,7.007,0,14.812,0,23.263c0,18.989,0,41.241,0,65.029
-	c0-23.788,0-46.04,0-65.029c0-8.451,0-16.256,0-23.263c0-5.625,0-10.735,0-15.255c0-3.964,0-7.474,0-10.472c0-2.744,0-5.062,0-6.914
-	c0-1.74,0-3.065,0-3.946C-0.343,0.528-0.343,0.091-0.343,0.091"/>
     </svg>
-
     <script type="text/javascript">
 
 var counterClockWise = false;
-var bandIndex = 0;
+var bandIndex      = 0;
 var bounce_sound_1 = new Audio('bounce.mp3');
 var bounce_sound_2 = new Audio('bounce.mp3');
+var position  	   = [190, 50];
+var direction 	   = [-1, -1];
+var color_a        = "#ffffff";
+var color_b        = "#ff0000";
+var paused         = false;
 
 function reverse() {
-    play_sound(1);
+    bounce_sound_1.play();
     if (counterClockWise == true) {
 	counterClockWise = false;
-	bandIndex += 16;
+	bandIndex += 15;
     } else {
 	counterClockWise = true;
-	bandIndex += 16;
+	bandIndex += 15;
     }
     bandIndex %= 32;
 }
 
-function play_sound(a=1) {
-    if (a == 1) {
-	bounce_sound_1.play();
-    } else {
-	bounce_sound_2.play();
-    }
+function wait() {
+    var refresh = 30;
+    rotate();
+    move();
+    mytime = setTimeout(function() { wait() }, refresh);
 }
 
-function wait() {
-    var refresh = 70;
-    rotate();
-    mytime = setTimeout(function() { wait() }, refresh);
+function move() {
+    var ball = document.getElementById("ball")
+
+    var x = position[0];
+    var y = position[1];
+
+    var transform = ball.transform.baseVal.getItem(0);
+    var matrix = transform.matrix;
+
+    // Handle x translation
+    position[0] += direction[0];
+    if (position[0] == 95 || position[0] == 228) {
+	direction[0] *= -1;
+	reverse();
+    }
+    matrix.e = position[0];
+
+    // Handle y position
+    position[1] += direction[1];
+    if (position[1] == 0 || position[1] == 50) {
+	direction[1] *= -1;
+	if (direction[1] == 1) {
+	    bounce_sound_2.play();
+	}
+    }
+    matrix.f = Math.sin(3.1415925/2 * (position[1] / 50)) * -85 + 200;
 }
 
 function rotate() {
@@ -1265,8 +1243,26 @@ function rotate() {
     }
     bandIndex %= 32;
 
-    document.getElementById(nextRed).style.fill = "#FF0000";
-    document.getElementById(nextWhite).style.fill = "#FFFFFF";
+    document.getElementById(nextRed).style.fill = color_a;
+    document.getElementById(nextWhite).style.fill = color_b;
+}
+
+function pause() {
+    if (paused == false) {
+	clearTimeout(mytime);
+	paused = true;
+    } else {
+	mytime = setTimeout(function() { wait() }, 0);
+	paused = false;
+    }
+}
+
+function setColorA(picker) {
+    color_a = '#' + picker.toString();
+}
+
+function setColorB(picker) {
+    color_b = '#' + picker.toString();
 }
 
     </script>
