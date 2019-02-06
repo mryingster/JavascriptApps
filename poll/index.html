@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>POLL</title>
+    <meta charset="utf-8"/>
+    <style>
+      body {
+      background:#000;
+      }
+    </style>
+  </head>
+  <body>
+
+    <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="100%"
+	 height="100%"
+	 viewBox="0 0 480 320"
+	 xml:space="preserve"
+         style="width:100%; height:100%; position:fixed; top:0; left:0; z-index:-11; fill-rule:evenodd; clip-rule:evenodd; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:1.5; background-color:#000;">
+
+      <rect id="yesBar" x="100" y="280" width="100" height="0" style="fill:rgb(0, 255, 0);"/>
+      <text x="150px" y="310px" style="font-family:sans-serif; font-size:24px; fill:rgb(255,255,255); text-anchor:middle;">Yes</text>	
+      <text id="yesPercent" x="150px" y="265px" style="font-family:sans-serif; font-size:18px; fill:rgb(0,0,0); text-anchor:middle;">0%</text>	
+
+      <rect id="noBar" x="280" y="280" width="100" height="0" style="fill:rgb(255, 0, 0);"/>
+      <text x="330px" y="310px" style="font-family:sans-serif; font-size:24px; fill:rgb(255,255,255); text-anchor:middle;">No</text>	
+      <text id="noPercent" x="330px" y="265px" style="font-family:sans-serif; font-size:18px; fill:rgb(0,0,0); text-anchor:middle;">0%</text>	
+    </svg>
+
+    <div id="fullscreen_div" style="position:fixed; top:0px; right:0px; padding:13px;">
+      <button onclick="voteYes()">Yes</button>
+      <button onclick="voteNo()">No</button>
+      <button id="toggle_fullscreen" onclick="fullscreen()">Toggle Fullscreen</button>
+    </div>
+    <script type="text/javascript">
+
+var yes = 0;
+var no  = 0;
+
+function voteYes() {
+    yes += 1;
+    updateGraph();
+}
+
+function voteNo() {
+    no += 1;
+    updateGraph();
+}
+
+function updateGraph() {
+    var total     = yes+no;
+    var maxHieght = 260;
+    var bottom    = 280;
+
+    var height   = 1.0 * yes / total * maxHieght;
+    var location = bottom-height;
+    document.getElementById("yesBar").setAttribute("height", height);
+    document.getElementById("yesBar").setAttribute("y", location);
+    document.getElementById("yesPercent").innerHTML = (100 * yes / total).toFixed(2) +"%";
+
+    var height   = 1.0 * no / total * maxHieght;
+    var location = bottom-height;
+    document.getElementById("noBar").setAttribute("height", height);
+    document.getElementById("noBar").setAttribute("y", location);
+    document.getElementById("noPercent").innerHTML = (100 * no / total).toFixed(2) +"%";
+}
+
+function fullscreen(){
+    if ((document.fullScreenElement && document.fullScreenElement !== null) ||  // alternative standard method
+	(!document.mozFullScreen && !document.webkitIsFullScreen)) {            // current working methods
+	if (document.documentElement.requestFullScreen) {
+	    document.documentElement.requestFullScreen();
+	} else if (document.documentElement.mozRequestFullScreen) {
+	    document.documentElement.mozRequestFullScreen();
+	} else if (document.documentElement.webkitRequestFullScreen) {
+	    document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+	}
+    } else {
+	if (document.cancelFullScreen) {
+	    document.cancelFullScreen();
+	} else if (document.mozCancelFullScreen) {
+	    document.mozCancelFullScreen();
+	} else if (document.webkitCancelFullScreen) {
+	    document.webkitCancelFullScreen();
+	}
+    }
+}
+
+    </script>
+  </body>
+</html>
