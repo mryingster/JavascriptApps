@@ -21,25 +21,35 @@
       </select>
       <button onclick="newDeal()">New Deal</button>
       <button onclick="hint()">Hint</button>
-      <button onclick="threeCards()">3 More Cards</button>
-      Cards Left: <span id="remainingString"></span>
+      Cards Ramaining: <span id="remainingString"></span>
       &nbsp;&nbsp;
       Groups Collected: <span id="groupsString"></span>
       &nbsp;&nbsp;
       Elapsed Time: <span id="elapsed">0:00</span>
     </div>
+
     <script type="text/javascript">
 
-var width    = 25 * 5;
-var height   = 35 * 5;
+var TABLE   = 0;
+var DRAW    = 1;
+var DISCARD = 2;
 
-var deck       = [];
-var selected   = [];
-var out        = [];
-var normal_out = 12;
-var max_out    = 21;
-var sets_found = 0;
-var start      = null;
+var scale    = 5;
+var width    = 25 * scale;
+var height   = 35 * scale;
+
+var deck         = [];
+var selected     = [];
+var draw_pile    = [];
+var discard_pile = [];
+var out          = [];
+var normal_out   = 12;
+var max_out      = 21;
+var sets_found   = 0;
+var start        = null;
+
+var animateNames = [];
+var animateIDs   = [];
 
 function timeLoop() {
     var refresh = 1000;
@@ -56,58 +66,73 @@ function timeLoop() {
 }
 
 function setScale(){
-    var scale = document.getElementById("scale").value
+    scale = document.getElementById("scale").value
     width  = 25 * scale;
     height = 35 * scale;
 
-    for (var i=0; i<out.length; i++) {
-	document.getElementById(out[i]).width  = width;
-	document.getElementById(out[i]).height = height;
+    var cards = document.getElementsByClassName("card");
+    for (var i=0; i<cards.length; i++) {
+	var card = cards[i];
+	card.width = width;
+	card.height = height;
+	moveCardOnScreen(card.id, false);
     }
 
-    reflowCards();
-    return
+    return;
 }
-
+      
 function threeCards() {
-    if (out.length < max_out)
+    if (out.length < max_out || out[out.length-1] == null)
 	for (var i=0; i<3; i++)
 	    if (deck.length > 0)
-		dealCard(out.length);
+		dealCard();
     return;
 }
 
 function isGroupPresent() {
-    for (var a=0; a<out.length; a++)
-	for (var b=a+1; b<out.length; b++)
-	    for (var c=b+1; c<out.length; c++)
+    for (var a=0; a<out.length; a++) {
+	if (out[a] == null) continue;
+	for (var b=a+1; b<out.length; b++) {
+	    if (out[b] == null) continue;
+	    for (var c=b+1; c<out.length; c++) {
+		if (out[c] == null) continue;
 		if (isValidGroup([out[a], out[b], out[c]]))
 		    return true;
+	    }
+	}
+    }
 
     return false;
 }
 
 function hint() {
-    for (var a=0; a<out.length; a++)
-	for (var b=a+1; b<out.length; b++)
-	    for (var c=b+1; c<out.length; c++)
-		if (isValidGroup([out[a], out[b], out[c]])){
+    for (var a=0; a<out.length; a++){
+	if (out[a] == null) continue;
+	for (var b=a+1; b<out.length; b++){
+	    if (out[b] == null) continue;
+	    for (var c=b+1; c<out.length; c++){
+		if (out[c] == null) continue;
+		if (isValidGroup([out[a], out[b], out[c]])) {
 		    toggleSelect(out[b], true);
 		    return;
 		}
+	    }
+	}
+    }
 
     window.alert("No sets found!");
     return;
 }
 
-function isValidGroup(selected) {
+function isValidGroup(s) {
     var valid = true;
     for (var c=0; c<4; c++) {
 	var characteristic = [];
-	for (var i=0; i<selected.length; i++) {
+	for (var i=0; i<s.length; i++) {
+	    if (s[i] == null) continue;
 	    // Add characteristic to array if not in array
-	    if (characteristic.indexOf(selected[i][c]) < 0) {
-		characteristic.push(selected[i][c]);
+	    if (characteristic.indexOf(s[i][c]) < 0) {
+		characteristic.push(s[i][c]);
 	    }
 	}
 	// if there are not exactly 3 or 1 characterstics, not valid
@@ -119,82 +144,182 @@ function isValidGroup(selected) {
     return valid;
 }
 
-function dealCard(position) {
-    // Get random card
-    var newCard = Math.floor(Math.random() * deck.length);
-    var name = deck[newCard];
-
-    // Remove selected card and update remaining count
-    deck.splice(newCard,1);
-    document.getElementById("remainingString").innerHTML = deck.length;
-
-    // Create selected card
-    var image = document.createElement('img');
-    image.id  = name;
-    image.src = "cards/" + name + ".png"
-    image.style = "position:absolute;" + getPosition(position);
-    image.setAttribute("onclick", "toggleSelect(\""+name+"\")");
-    image.setAttribute("position", position);
-    image.height = height;
-    image.width  = width;
+function createCard(name) {
+    // Create selected card, but draw face down
+    var image       = document.createElement('img');
+    image.className = "card";
+    image.id        = name;
+    image.src       = "cards/back.png"
+    image.height    = height;
+    image.width     = width;
+    image.style.position = "absolute";
+    image.style.touchAction = "manipulation";
     document.body.appendChild(image);
-
-    out.splice(position,0,name);
     return
 }
 
-function reflowCards() {
-    for (var i=0; i<out.length; i++) {
-	card = document.getElementById(out[i]);
-	card.style = "position:absolute;" + getPosition(i);
-	card.setAttribute("position", i);
-    }
-    return
-}
-
-function dealNewCard(name) {
+function animateCard(name) {
     var card = document.getElementById(name);
 
-    // Get old card position and name
-    var position = card.getAttribute("position");
-    
-    // Erase old card
-    card.remove();
-    out.splice(out.indexOf(name), 1);
+    var current_x = card.style.left;
+    var current_y = card.style.top;
 
-    // Don't replace card if greater than max out
-    if (out.length >= normal_out)
-	return;
+    current_x = Number(current_x.substring(0,current_x.length-2));
+    current_y = Number(current_y.substring(0,current_y.length-2));
 
-    // If deck is empty, don't do anything
-    if (deck.length < 1) {
-	return;
+    var destination_x = Number(card.getAttribute("xpos"));
+    var destination_y = Number(card.getAttribute("ypos"));
+
+    var change_x = destination_x - current_x;
+    var change_y = destination_y - current_y;
+    var distance = Math.sqrt(change_x * change_x + change_y * change_y)
+
+    // Move 20 pixels in desired direction
+    var proportion = 20/distance;
+    var new_x = current_x + change_x * proportion;
+    var new_y = current_y + change_y * proportion; 
+
+    if (Math.abs(current_x - destination_x) < 15 && Math.abs(current_y - destination_y) < 15 ) {
+	card.style.left   = destination_x + "px";
+	card.style.top    = destination_y + "px";
+	card.style.zIndex = Number(card.getAttribute("position"));
+
+	var idIndex   = animateNames.indexOf(name);
+	var animateID = animateIDs[idIndex];
+
+	animateNames.splice(idIndex, 1);
+	animateIDs.splice(idIndex, 1);
+	cancelAnimationFrame(animateID);
+    } else {
+	card.style.left = new_x + "px";
+	card.style.top  = new_y + "px";
+	requestAnimationFrame(function() {animateCard(name)});
+    }
+}
+
+function moveCardOnScreen(name, animate=false){
+    var card = document.getElementById(name);
+    var location = card.getAttribute("location");
+    var position = Number(card.getAttribute("position"));
+    var xpos = 0;
+    var ypos = 0;
+
+    if (location == DRAW) {
+	var left_offset = 30;
+	var top_offset  = 70;
+	xpos = left_offset + (position/(10/scale));
+	ypos = top_offset  + (position/(5/scale));
+	animate = false; // Can't animate cards going to draw pile
+
+    } else if (location == DISCARD) {
+	var left_offset = 30;
+	var top_offset  = 70 + height + (162*scale/10);
+	xpos = left_offset + (position/(10/scale));
+	ypos = top_offset  + (position/(5/scale));
+
+    } else if (location == TABLE) {
+	var left_offset = 30 + (2 * width);
+	var top_offset  = 70;
+	xpos = left_offset + (Math.floor(position / 3) * width);
+	ypos = top_offset + (position * height % (height * 3));
     }
 
-    // Select new card and Deal to same position
-    dealCard(position);
+    // Set card attrbutes
+    if (animate == false) {
+	card.style.left = xpos + "px";
+	card.style.top  = ypos + "px";
+    } else {
+	card.style.zIndex = 100;
+	card.setAttribute("xpos", xpos);
+	card.setAttribute("ypos", ypos);
+	animateNames.push(name);
+	animateIDs.push(animateCard(name));
+    }
+    return;
+}
+
+function moveCard(name, location, locationChanged=true) {
+    card = document.getElementById(name);
+
+    var from   = card.getAttribute("location");
+    var zIndex = 0;
+    var action = null;
+    var source = card.src;
+
+    if (location == DRAW) {
+	position = draw_pile.length;
+	draw_pile.push(name);
+	action = "threeCards()";
+
+    } else if (location == DISCARD) {
+	position = discard_pile.length;
+	discard_pile.push(name);
+	out[out.indexOf(name)] = null;
+
+    } else if (location == TABLE) {
+	source   = "cards/" + name + ".png";
+
+	if (from == DRAW) {
+	    draw_pile.splice(draw_pile.indexOf(name), 1);
+	    document.getElementById("remainingString").innerHTML = draw_pile.length;
+	}
+	if (from == TABLE) {
+	    out[out.indexOf(name)]=null;
+	}
+
+	// Look for vacant space first
+	var cardPlaced = false;
+	for (var i=0; i<out.length; i++) {
+	    if (out[i] == null || out[i] == name) {
+		position   = i;
+		out[i]     = name;
+		cardPlaced = true;
+		break;
+	    }
+	}
+
+	// If not, put card at end
+	if (cardPlaced == false) {
+	    position = out.length;
+	    out.push(name);
+	}
+
+	action = "toggleSelect(\""+name+"\")"
+    }
+
+    // Set card attrbutes
+    card.src = source;
+    card.setAttribute("onclick", action);
+    card.setAttribute("position", position);
+    card.setAttribute("location", location);
+
+    // Draw card to screen
+    moveCardOnScreen(name, true);
+    return
+}
+
+function dealCard() {
+    if (draw_pile.length > 0) {
+	moveCard(draw_pile[draw_pile.length-1], TABLE)
+    }
+
+    return;
 }
 
 function toggleSelect(name, unhighlight=false) {
-    //console.log(name);
-
     // Un-hilight all elements in selected
-    for (var i=0; i<selected.length; i++) {
+    for (var i=0; i<selected.length; i++)
 	document.getElementById(selected[i]).style.outline="0px";
-	document.getElementById(selected[i]).style.zIndex="1";
-    }
 
     // See if selected card is in selected array. If not, append it
     var new_selected = [];
-    if (selected.indexOf(name) < 0) {
+    if (selected.indexOf(name) < 0)
 	new_selected.push(name);
-    }
 
-    for (var i=0; i<selected.length; i++) {
-	if (selected[i] != name) {
+    for (var i=0; i<selected.length; i++)
+	if (selected[i] != name)
 	    new_selected.push(selected[i]);
-	}
-    }
+
     selected = new_selected;
 
     // For hints, we just highlight the newely selected card
@@ -205,20 +330,34 @@ function toggleSelect(name, unhighlight=false) {
     if (selected.length == 3) {
 	// Check if valid group
 	if (isValidGroup(selected) == true) {
-	    // Yes? Erase cards
+	    // Yes?
 	    for (var i=0; i<selected.length; i++) {
-		dealNewCard(selected[i]);
+		// Discard cards
+		moveCard(selected[i], DISCARD);
 	    }
 
-	    // reflow cards
-	    reflowCards();
+	    //Move cards > 12 into vacant spots
+	    for (var n=normal_out; n<=out.length; n++) {
+		if (out[n] != null) {
+		    moveCard(out[n], TABLE);
+		}
+	    }
+
+	    // Deal new ones if available
+	    if (draw_pile.length > 0) {
+		for (var n=0; n<normal_out; n++) {
+		    if (out[n] == null) {
+			moveCard(draw_pile[draw_pile.length-1], TABLE);
+		    }
+		}
+	    }
 
 	    // Increment number of sets
 	    sets_found++;
 	    document.getElementById("groupsString").innerHTML = sets_found;
 
 	    // Check if game is over
-	    if (deck.length <=0 && isGroupPresent() == false) {
+	    if (draw_pile.length <=0 && isGroupPresent() == false) {
 		window.alert("Game over. No more groups left!")
 
 		// Stop timer
@@ -231,11 +370,9 @@ function toggleSelect(name, unhighlight=false) {
     }
 
     // Select cards in array
-    //console.log(selected);
     for (var i=0; i<selected.length; i++) {
-	document.getElementById(selected[i]).style.outline="yellow solid 7px";
-	document.getElementById(selected[i]).style.outlineOffset="-8px";
-	document.getElementById(selected[i]).style.zIndex="100";
+	document.getElementById(selected[i]).style.outline = "yellow solid 7px";
+	document.getElementById(selected[i]).style.outlineOffset = "-10px";
     }
 
     return;
@@ -247,8 +384,29 @@ function getPosition(n) {
     return "top:" + (top_offset + (n*height % (height*3))) + "px; left:" + (left_offset + (Math.floor(n/3)*width)) + "px;";
 }
 
+function shuffle(array) {
+    var m = array.length, t, i;
+
+    // While there remain elements to shuffle…
+    while (m) {
+
+	// Pick a remaining element…
+	i = Math.floor(Math.random() * m--);
+
+	// And swap it with the current element.
+	t = array[m];
+	array[m] = array[i];
+	array[i] = t;
+    }
+
+    return array;
+}
+
 function deal() {
-    deck = [];
+    out       	 = [];
+    deck      	 = [];
+    draw_pile 	 = [];
+    discard_pile = [];
 
     // Build new deck
     var card_attributes = [
@@ -269,18 +427,20 @@ function deal() {
 	}
     }
 
-    // Remove all existing cards (in case it's a re-deal)
-    out = [];
+    // Shuffle the deck
+    deck = shuffle(deck);
+
+    // Remove all on-screen cards, place new deck on table
     for (var i=0; i<deck.length; i++){
 	var card = document.getElementById(deck[i]);
-	if (card) {
-	    card.remove();
-	}
+	if (card) { card.remove(); }
+	createCard(deck[i]);
+	moveCard(deck[i], DRAW);
     }
 
     // Deal until we hit max
     while (out.length < normal_out){
-	dealCard(out.length);
+	moveCard(draw_pile[draw_pile.length-1], TABLE);
     }
 
     // Start timer
