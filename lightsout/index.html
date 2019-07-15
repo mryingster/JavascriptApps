@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Lights Out</title>
+    <meta charset="utf-8"/>
+    <style>
+      body {
+          background:#fff;
+          color:#000;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="settings" style="width: 512px; border: black 1px solid; padding: 3px; margin:0px auto;">
+      <select id="size">
+	<option>3x3</option>
+	<option>4x4</option>
+	<option>5x5</option>
+	<option>6x6</option>
+	<option>7x7</option>
+      </select>
+      <button id="new_game" onclick="setup()">New Game</button>
+      <button id="reset" onclick="reset()">Reset</button>
+      Moves Required:
+      <span id="moves_required">-</span>
+      Moves Taken:
+      <span id="moves_taken">-</span>
+    </div>
+
+    <svg width="512px"
+	 height="512px"
+	 id="gamefield"
+         version="1.1"
+         xmlns="http://www.w3.org/2000/svg"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xml:space="preserve"
+         xmlns:serif="http://www.serif.com/"
+         style="display:block; margin:25px auto; z-index:-1; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:1.5;">
+
+    </svg>
+
+    <script type="text/javascript">
+const on_color  = "#ffbb00";
+const off_color = "#555555";
+const cheat_color = "#ff0000";
+const svg_size = 512;
+const tile_border = 5;
+var   game_size = null;
+var   moves_taken = 0;
+var   moves_required = 0;
+var   initial_state = null;
+
+function setup(){
+    // delete all squares
+    var tiles = document.getElementsByClassName('tile');
+    for (var i=tiles.length-1; i>=0; i--) {
+	tiles[i].parentNode.removeChild(tiles[i]);
+    }
+
+    // calculate square size
+    game_size = Number(document.getElementById("size").value.split("x")[0]);
+    var tile_size = Math.round(svg_size / game_size) - tile_border;
+
+    // create new squares
+    var svgns = "http://www.w3.org/2000/svg";
+    for (var x = 0; x < game_size ; x += 1) {
+	for (var y = 0; y < game_size; y += 1) {
+            var rect = document.createElementNS(svgns, 'rect');
+            rect.setAttributeNS(null, 'class', "tile");
+            rect.setAttributeNS(null, 'id', x + "-" + y);
+            rect.setAttributeNS(null, 'x', x *  tile_size + (x * tile_border));
+            rect.setAttributeNS(null, 'y', y *  tile_size + (y * tile_border));
+            rect.setAttributeNS(null, 'height', tile_size);
+            rect.setAttributeNS(null, 'width',  tile_size);
+            rect.setAttributeNS(null, 'fill',   off_color);
+            rect.setAttributeNS(null, 'onclick', "user_tap(this)");
+	    rect.setAttributeNS(null, 'style', "touch-action: manipulation");
+            document.getElementById('gamefield').appendChild(rect);
+	}
+    }
+
+    // Randomly press buttons
+    moves_taken = 0;
+    moves_required = 0;
+    initial_state = [];
+    for (var x=0; x<game_size; x++){
+	for (var y=0; y<game_size; y++){
+	    if (Math.random() > .5){
+		initial_state.push([x, y]);
+		tap(x, y);
+		moves_required += 1;
+	    }
+	}
+    }
+
+    document.getElementById("moves_taken").innerHTML = moves_taken;
+    document.getElementById("moves_required").innerHTML = moves_required;
+
+    return;
+}
+
+function reset(){
+    // Turn off all lights
+    for (var x=0; x<game_size; x++){
+	for (var y=0; y<game_size; y++){
+	    set_state(x, y, off_color);
+	}
+    }
+    
+    // Turn on lights according to initial game state
+    for (var a=0; a<initial_state.length; a++) {
+	tap(initial_state[a][0], initial_state[a][1]);
+    }
+
+    // Reset user counter
+    moves_taken = 0;
+    document.getElementById("moves_taken").innerHTML = moves_taken;
+    return;
+}
+
+function is_over(){
+    for (var x=0; x<game_size; x++){
+	for (var y=0; y<game_size; y++){
+	    if (get_state(x, y) == on_color){
+		return false;
+	    }
+	}
+    }
+    for (var a=0; a<initial_state.length; a++) {
+	set_state(initial_state[a][0], initial_state[a][1], cheat_color);
+    }
+
+    return true;
+}
+
+function get_state(x, y){
+    var square = document.getElementById(x+"-"+y);
+    return square.getAttribute("fill");
+}
+
+function set_state(x, y, state){
+    var square = document.getElementById(x+"-"+y);
+    square.setAttribute("fill", state);
+    return;
+}
+
+function invert(x, y){
+    if (get_state(x, y) == off_color){
+	set_state(x, y, on_color);
+    } else {
+	set_state(x, y, off_color);
+    }
+}
+
+function tap(x, y){
+    invert(x, y);
+    if (x > 0) {
+	invert(x-1, y);
+    }
+    if (x < game_size-1) {
+	invert(x+1, y);
+    }
+    if (y > 0) {
+	invert(x, y-1);
+    }
+    if (y < game_size-1) {
+	invert(x, y+1);
+    }
+}
+
+function user_tap(e){
+    var x = Number(e.id.split("-")[0]);
+    var y = Number(e.id.split("-")[1]);
+
+    tap(x, y);
+
+    moves_taken += 1;
+    document.getElementById("moves_taken").innerHTML = moves_taken;
+
+    if (is_over() == true) {
+	window.alert("You win!");
+    }
+}
+
+setup();
+    </script>
+  </body>
+</html>
