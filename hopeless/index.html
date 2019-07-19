@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Test</title>
+    <meta charset="utf-8"/>
+  </head>
+
+  <body style="background:#ffffff;">
+    <div id="content" style="width:768px; margin: 0 auto 0 auto; padding:15px;">
+    <h1>Test</h1>
+    <canvas id="canvas" width="512" height="512" style="border:1px solid red;"></canvas>
+    </div>
+
+    <script>
+// Comment
+
+function getCursorPosition(canvas, event){
+    // Determine where clicked
+    const rect = canvas.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+
+    // Determine square size
+    const square = canvas.width / array.length;
+    var sx = Math.floor(x/square);
+    var sy = Math.floor(y/square);
+
+    // Update array
+    array[sy][sx] += 1;
+    array[sy][sx] %= 8;
+
+    // Draw something
+    redraw();
+}
+
+const canvas = document.querySelector('canvas')
+canvas.addEventListener('mousedown', function(e){
+    getCursorPosition(canvas, e)
+})
+
+var array = [
+    [0,0,0,0,0],
+    [0,0,0,0,0],
+    [0,0,0,0,0],
+    [0,0,0,0,0],
+    [0,0,0,0,0],
+];
+
+const colors = [
+    ["#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF"],
+    ["#BB0000","#DD0000","#FF0000","#FF2222","#FF4444"],
+    ["#BB6600","#DD7700","#FF8800","#FF9922","#FFAA44"],
+    ["#BBBB00","#DDDD00","#FFFF00","#FFFF22","#FFFF44"],
+    ["#00BB00","#00DD00","#00FF00","#22FF22","#44FF44"],
+    ["#00BBBB","#00DDDD","#00FFFF","#22FFFF","#44FFFF"],
+    ["#0000BB","#0000DD","#0000FF","#2222FF","#4444FF"],
+    ["#BB00BB","#DD00DD","#FF00FF","#FF22FF","#FF44FF"]
+];
+
+function redraw(){
+    var c = document.getElementById("canvas");
+    var ctx = c.getContext("2d");
+    // Determine square size
+    const sqr = Math.floor(c.width / array.length);
+
+    for (var y=0; y<array.length; y++){
+	for (var x=0; x<array.length; x++){
+	    drawBlock(ctx, x*sqr, y*sqr, sqr,
+		      colors[array[y][x]],
+		      y > 0                 ? array[y][x] == array[y-1][x] : false,
+		      x < array[0].length-1 ? array[y][x] == array[y][x+1] : false,
+		      y < array.length-1    ? array[y][x] == array[y+1][x] : false,
+		      x > 0                 ? array[y][x] == array[y][x-1] : false,
+		     );
+	}
+    }
+}
+
+function drawBlock(ctx, x, y, l, c, n, e, s, w){
+    const edge = 15;
+    
+    // Fill in background color
+    ctx.fillStyle = c[2];
+    ctx.fillRect(x, y, l, l);
+
+    // North Edge
+    if (n == false){
+	ctx.beginPath();
+	ctx.moveTo(x, y);
+	if (w == true)
+	    ctx.lineTo(x, y+edge);
+	else
+	    ctx.lineTo(x+edge, y+edge);
+	if (e == true)
+	    ctx.lineTo(x+l, y+edge);
+	else
+	    ctx.lineTo(x+l-edge, y+edge);
+	ctx.lineTo(x+l, y);
+	ctx.fillStyle = c[4];
+	ctx.fill();
+    }
+
+    // West Edge
+    if (w == false){
+	ctx.beginPath();
+	ctx.moveTo(x, y);
+	if (n == true)
+	    ctx.lineTo(x+edge, y);
+	else
+	    ctx.lineTo(x+edge, y+edge);
+	if (s == true)
+	    ctx.lineTo(x+edge, y+l);
+	else
+	    ctx.lineTo(x+edge, y+l-edge);
+	ctx.lineTo(x, y+l);
+	ctx.fillStyle = c[3];
+	ctx.fill();
+    }
+
+    // East Edge
+    if (e == false){
+	ctx.beginPath();
+	ctx.moveTo(x+l, y);
+	if (n == true)
+	    ctx.lineTo(x+l-edge, y);
+	else
+	    ctx.lineTo(x+l-edge, y+edge);
+	if (s == true)
+	    ctx.lineTo(x+l-edge, y+l);
+	else
+	    ctx.lineTo(x+l-edge, y+l-edge);
+	ctx.lineTo(x+l, y+l);
+	ctx.fillStyle = c[1];
+	ctx.fill();
+    }
+
+    // South Edge
+    if (s == false){
+	ctx.beginPath();
+	ctx.moveTo(x, y+l);
+	if (w == true)
+	    ctx.lineTo(x, y+l-edge);
+	else
+	    ctx.lineTo(x+edge, y+l-edge);
+	if (e == true)
+	    ctx.lineTo(x+l, y+l-edge);
+	else
+	    ctx.lineTo(x+l-edge, y+l-edge);
+	ctx.lineTo(x+l, y+l);
+	ctx.fillStyle = c[0];
+	ctx.fill();
+    }
+
+    // NW Corner
+    if (n == true && w == true){
+	ctx.beginPath();
+	ctx.moveTo(x, y);
+	ctx.lineTo(x+edge, y);
+	ctx.lineTo(x+edge, y+edge);
+	ctx.fillStyle = c[3];
+	ctx.fill();
+	ctx.beginPath();
+	ctx.moveTo(x, y);
+	ctx.lineTo(x, y+edge);
+	ctx.lineTo(x+edge, y+edge);
+	ctx.fillStyle = c[4];
+	ctx.fill();
+    }
+
+    // NE Corner
+    if (n == true && e == true){
+	ctx.beginPath();
+	ctx.moveTo(x+l, y);
+	ctx.lineTo(x+l-edge, y);
+	ctx.lineTo(x+l-edge, y+edge);
+	ctx.fillStyle = c[1];
+	ctx.fill();
+	ctx.beginPath();
+	ctx.moveTo(x+l, y);
+	ctx.lineTo(x+l, y+edge);
+	ctx.lineTo(x+l-edge, y+edge);
+	ctx.fillStyle = c[4];
+	ctx.fill();
+    }
+
+    // SW Corner
+    if (s == true && w == true){
+	ctx.beginPath();
+	ctx.moveTo(x, y+l);
+	ctx.lineTo(x+edge, y+l);
+	ctx.lineTo(x+edge, y+l-edge);
+	ctx.fillStyle = c[3];
+	ctx.fill();
+	ctx.beginPath();
+	ctx.moveTo(x, y+l);
+	ctx.lineTo(x, y+l-edge);
+	ctx.lineTo(x+edge, y+l-edge);
+	ctx.fillStyle = c[0];
+	ctx.fill();
+    }
+
+    // SE Corner
+    if (s == true && e == true){
+	ctx.beginPath();
+	ctx.moveTo(x+l, y+l);
+	ctx.lineTo(x+l-edge, y+l);
+	ctx.lineTo(x+l-edge, y+l-edge);
+	ctx.fillStyle = c[1];
+	ctx.fill();
+	ctx.beginPath();
+	ctx.moveTo(x+l, y+l);
+	ctx.lineTo(x+l, y+l-edge);
+	ctx.lineTo(x+l-edge, y+l-edge);
+	ctx.fillStyle = c[0];
+	ctx.fill();
+    }
+
+}
+
+    </script>
+  </body>
+</html>
