@@ -2,18 +2,156 @@
 
 <html>
   <head>
-    <title>Test</title>
+    <title>Hopeless</title>
     <meta charset="utf-8"/>
+    <style>
+      body {
+          background:#aaa;
+          color:#000;
+	  font-family:sans-serif;
+      }
+
+      div#content {
+	  background:#fff;
+      }
+
+      h1 {
+	  margin:10px;
+	  font-size:3em;
+      }
+    </style>
   </head>
 
-  <body style="background:#ffffff;">
+  <body style="background:#bbbbbb;">
+
     <div id="content" style="width:768px; margin: 0 auto 0 auto; padding:15px;">
-    <h1>Test</h1>
-    <canvas id="canvas" width="512" height="512" style="border:1px solid red;"></canvas>
+    <h1>Hopeless</h1>
+    <canvas id="canvas" width="768" height="512" style="border:1px solid black; touch-action: manipulation"></canvas>
+    Number of colors:
+    <select id="numColors">
+    	<option>1</option>
+    	<option>2</option>
+    	<option>3</option>
+    	<option selected>4</option>
+    	<option>5</option>
+    	<option>6</option>
+    	<option>7</option>
+    </select>
+    <button onclick="new_game()">New Game</button>
+    Blocks Left: <span id="blocks">0</span>
+    Moves Taken: <span id="moves">0</span>
     </div>
 
     <script>
 // Comment
+
+function recursiveDelete(x, y, c){
+    array[y][x] = 0;
+
+    if (y < array.length-1)
+	if (array[y+1][x] == c) recursiveDelete(x, y+1, c);
+    if (y > 0)
+	if (array[y-1][x] == c) recursiveDelete(x, y-1, c);
+    if (x < array[y].length)
+	if (array[y][x+1] == c) recursiveDelete(x+1, y, c);
+    if (x > 0)
+	if (array[y][x-1] == c) recursiveDelete(x-1, y, c);
+
+    return;	
+}
+
+function isValidMove(x, y, c){
+    if (y < array.length-1)
+	if (array[y+1][x] == c) return true;
+    if (y > 0)
+	if (array[y-1][x] == c) return true;
+    if (x < array[y].length)
+	if (array[y][x+1] == c) return true;
+    if (x > 0)
+	if (array[y][x-1] == c) return true;
+    return false;
+}
+
+function isGameOver(){
+    for (var y=0; y<array.length; y++){
+	for (var x=0; x<array[y].length; x++){
+	    if (array[y][x] > 0){
+		if (isValidMove(x, y, array[y][x])){
+		    return false;
+		}
+	    }
+	}
+    }
+    return true;
+}
+
+function shiftDown(){
+    var did_something = true;
+    while (did_something == true){
+	did_something = false;
+	for (var y=array.length-1; y>0; y--){
+	    for (var x=0; x<array[y].length; x++){
+		if (array[y][x] == 0 && array[y-1][x] != 0){
+		    array[y][x] = array[y-1][x];
+		    array[y-1][x] = 0
+		    did_something = true;
+		}
+	    }
+	}
+    }
+    return;
+	
+}
+
+function shiftLeft(){
+    var did_something = true;
+    while (did_something == true){
+	did_something = false;
+	for (var x=0; x<array[0].length-1; x++){
+	    var column_empty = true;
+	    for (var y=0; y<array.length; y++){
+		if (array[y][x] != 0){
+		    column_empty = false;
+		    break;
+		}
+	    }
+	    if (column_empty == true){
+		for (var y=0; y<array.length; y++){
+		    array[y][x] = array[y][x+1];
+		    array[y][x+1] = 0;
+		    if (array[y][x] != 0){
+			did_something = true;
+		    }
+		}
+	    }
+	}
+    }
+    return;
+}
+
+function makeMove(x, y){
+    var this_color = array[y][x];
+
+    // Is valid move?
+    if (this_color == 0) return;
+    if (isValidMove(x, y, this_color) == false) return;
+    moves += 1;
+
+    // Call recursive function to delete touching color
+    recursiveDelete(x, y, this_color);
+
+    // Shift remaining blocks down and to left
+    shiftDown();
+    shiftLeft();
+
+    // Redraw
+    redraw();
+
+    // Check for completion
+    if (isGameOver())
+	window.alert("Game over!");
+    return;
+}
 
 function getCursorPosition(canvas, event){
     // Determine where clicked
@@ -22,16 +160,11 @@ function getCursorPosition(canvas, event){
     const y = event.clientY - rect.top
 
     // Determine square size
-    const square = canvas.width / array.length;
-    var sx = Math.floor(x/square);
-    var sy = Math.floor(y/square);
+    var sx = Math.floor(x/square_size);
+    var sy = Math.floor(y/square_size);
 
-    // Update array
-    array[sy][sx] += 1;
-    array[sy][sx] %= 8;
-
-    // Draw something
-    redraw();
+    // Proceed with our move
+    makeMove(sx, sy);
 }
 
 const canvas = document.querySelector('canvas')
@@ -39,34 +172,49 @@ canvas.addEventListener('mousedown', function(e){
     getCursorPosition(canvas, e)
 })
 
-var array = [
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-];
+const width = canvas.width;
+const height = canvas.height;
+const square_size = 32;
+var array = [];
+var moves = 0;
 
 const colors = [
     ["#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF"],
-    ["#BB0000","#DD0000","#FF0000","#FF2222","#FF4444"],
-    ["#BB6600","#DD7700","#FF8800","#FF9922","#FFAA44"],
-    ["#BBBB00","#DDDD00","#FFFF00","#FFFF22","#FFFF44"],
-    ["#00BB00","#00DD00","#00FF00","#22FF22","#44FF44"],
-    ["#00BBBB","#00DDDD","#00FFFF","#22FFFF","#44FFFF"],
-    ["#0000BB","#0000DD","#0000FF","#2222FF","#4444FF"],
-    ["#BB00BB","#DD00DD","#FF00FF","#FF22FF","#FF44FF"]
+    ["#BB0000","#DD0000","#FF0000","#FF4444","#FF8888"],
+    ["#BB6600","#DD7700","#FF8800","#FFAA44","#FFCC88"],
+    ["#BBBB00","#DDDD00","#FFFF00","#FFFF44","#FFFF88"],
+    ["#00BB00","#00DD00","#00FF00","#44FF44","#88FF88"],
+    ["#00BBBB","#00DDDD","#00FFFF","#44FFFF","#88FFFF"],
+    ["#0000BB","#0000DD","#0000FF","#4444FF","#8888FF"],
+    ["#BB00BB","#DD00DD","#FF00FF","#FF44FF","#FF88FF"]
 ];
+
+function new_game(){
+    var num_colors = Number(document.getElementById("numColors").value);
+    moves = 0;
+    
+    // Shuffle
+    array = [];
+    for (var y=0; y<height/square_size; y++){
+	var temp = [];
+	for (var x=0; x<width/square_size; x++){
+	    temp.push(Math.floor(Math.random()*num_colors)+1);
+	}
+	array.push(temp);
+    }
+
+    // Draw the screen
+    redraw();
+}
 
 function redraw(){
     var c = document.getElementById("canvas");
     var ctx = c.getContext("2d");
-    // Determine square size
-    const sqr = Math.floor(c.width / array.length);
 
+    // Redraw each block
     for (var y=0; y<array.length; y++){
-	for (var x=0; x<array.length; x++){
-	    drawBlock(ctx, x*sqr, y*sqr, sqr,
+	for (var x=0; x<array[y].length; x++){
+	    drawBlock(ctx, x*square_size, y*square_size, square_size,
 		      colors[array[y][x]],
 		      y > 0                 ? array[y][x] == array[y-1][x] : false,
 		      x < array[0].length-1 ? array[y][x] == array[y][x+1] : false,
@@ -75,10 +223,20 @@ function redraw(){
 		     );
 	}
     }
+
+    // Update move and block counts
+    document.getElementById("moves").innerHTML = moves;
+    var blockcount = 0;
+    for (var y=array.length-1; y>0; y--)
+	for (var x=0; x<array[y].length; x++)
+	    if (array[y][x] > 0)
+		blockcount += 1;
+    document.getElementById("blocks").innerHTML = blockcount;
+
 }
 
 function drawBlock(ctx, x, y, l, c, n, e, s, w){
-    const edge = 15;
+    const edge = Math.floor(square_size * .25);;
     
     // Fill in background color
     ctx.fillStyle = c[2];
@@ -218,6 +376,7 @@ function drawBlock(ctx, x, y, l, c, n, e, s, w){
 
 }
 
+new_game();
     </script>
   </body>
 </html>
