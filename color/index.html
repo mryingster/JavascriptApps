@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Color Survey</title>
+     <meta charset="utf-8"/>
+  </head>
+  <body style="background:#888888;">
+
+    <canvas id="resultCanvas" width=770px height=125px style="display:block; outline:0px solid #606060; margin:0 auto 0 auto; padding: 0px;"></canvas>
+    <canvas id="colorCanvas" width=256px height=100px style="display:block; outline:1px solid #606060; margin:10px auto 0 auto; padding: 2px;"></canvas>
+
+    <div id="content" style="text-align:center; width:768px; margin: 0 auto 0 auto; padding:15px;">
+      <button id="myButton" onclick="saveColor('#FF0000')">Red</button>
+      <button id="myButton" onclick="saveColor('#FFAA00')">Orange</button>
+      <button id="myButton" onclick="saveColor('#FFFF00')">Yellow</button>
+      <button id="myButton" onclick="saveColor('#00FF00')">Green</button>
+      <button id="myButton" onclick="saveColor('#00FFAA')">Teal</button>
+      <button id="myButton" onclick="saveColor('#0000FF')">Blue</button>
+      <button id="myButton" onclick="saveColor('#AA00FF')">Purple</button>
+      <button id="myButton" onclick="saveColor('#FF00FF')">Pink</button>
+
+      <p>Select the color that most accurately describes the color shown above.</p>
+
+      <button id="myButton" onclick="saveImage()">Save image</button>
+    </div>
+
+    <script>
+
+var canvas       = document.getElementById("resultCanvas");
+var width        = canvas.width;
+var height       = canvas.height;
+var ctx          = canvas.getContext("2d");
+
+var ccanvas      = document.getElementById("colorCanvas");
+var cwidth       = ccanvas.width;
+var cheight      = ccanvas.height;
+var cctx         = ccanvas.getContext("2d");
+
+const background = "#888888";
+const black      = "#000000";
+const white      = "#FFFFFF";
+const numcolors  = 35;
+const colorwidth = Math.floor(width/numcolors);
+
+var lastcolor    = -1;
+var colorhistory = [-1];
+
+// Click to start test and reset focus
+//canvas.onclick = function() {
+//    if (colorhistory.length == 1) {
+//        saveColor(-1);
+//    }
+//    return;
+//}
+
+function resetScreen(color=background) {
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, width, height);
+}
+
+function drawNewColor(color) {
+    cctx.fillStyle = color;
+    cctx.fillRect(0, 0, cwidth, cheight);
+}
+
+function hexString(n) {
+    t = Math.floor(n).toString(16)
+    if (t.length % 2) {
+        t = "0" + t;
+    }
+    return t;
+}
+
+function chooseColor(i) {
+    var r = 0;
+    var g = 0;
+    var b = 0;
+
+    const band = numcolors / 6;
+    
+    if (i >= band * 0 & i < band * 1){
+        r = 0xff;
+        g = 0xff * i / band;
+    }
+    if (i >= band * 1 & i < band * 2) {
+        g = 0xff;
+        r = 0xff * ((band - (i % band)) / band);
+    }
+    if (i >= band * 2 & i < band * 3) {
+        g = 0xff;
+        b = 0xff * (i % band) / band;
+    }
+    if (i >= band * 3 & i < band * 4) {
+        b = 0xff;
+        g = 0xff * ((band - (i % band)) / band);
+    }
+    if (i >= band * 4 & i < band * 5) {
+        b = 0xff;
+        r = 0xff * (i % band) / band;
+    }
+    if (i >= band * 5 & i < band * 6) {
+        r = 0xff;
+        b = 0xff * ((band - (i % band)) / band);
+    }
+
+    return "#"+hexString(r)+hexString(g)+hexString(b);
+}
+
+function saveColor(c) {
+    // Record old color
+    if (lastcolor != -1) {
+        ctx.fillStyle = c;
+        ctx.fillRect(lastcolor*colorwidth, 100, colorwidth, 25);
+    }
+
+    // See if finished
+    if (colorhistory.length == numcolors + 1) {
+        drawNewColor(background);
+        cctx.fillStyle = black;
+        cctx.font = "30px Arial";
+        string = "Finished";
+        cctx.fillText(string, (cwidth-cctx.measureText(string).width)/2, 65);
+        return;
+    }
+
+    // Cleanse the pallet for a second
+    drawNewColor(white);
+
+    // Draw new color
+    while (colorhistory.indexOf(lastcolor) != -1) {
+        lastcolor = Math.floor(Math.random()*numcolors);
+    }
+    setTimeout(function(){ drawNewColor(chooseColor(lastcolor)); }, 750);
+    
+    colorhistory.push(lastcolor);
+    return;
+}
+
+function resetTest() {
+    // Initialize the screen
+    resetScreen();
+
+    // Draw rainbow in top 100 px
+    for (var i=0; i<numcolors; i+=1) {
+        ctx.fillStyle = chooseColor(i);
+        console.log(chooseColor(i));
+        ctx.fillRect(i*colorwidth, 0, colorwidth, 100);
+    }
+
+    // pick first color
+    saveColor(-1);
+}
+
+function saveImage() {
+    window.location = canvas.toDataURL("image/png");
+}
+
+resetTest();
+
+    </script>
+  </body>
+</html>
