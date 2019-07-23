@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Mandelbrot</title>
+     <meta charset="utf-8"/>
+  </head>
+  <body style="background:#888888;">
+
+    <div style="display:block; background:#ffffff; width:768px; outline:1px solid #606060; margin:10px auto 0 auto; padding: 2px;">
+      <canvas id="canvas" width=768px height=768px></canvas>
+      <br>
+      <button onclick="render()">Render</button>
+      <select id="depthSelection">
+        <option>1</option>
+        <option>2</option>
+        <option>4</option>
+        <option>8</option>
+        <option selected>16</option>
+        <option>32</option>
+        <option>64</option>
+        <option>128</option>
+      </select>
+      Elapsed Time: <span id="elapsed">--</span>&nbsp;&nbsp;
+      Mouse Coordinates: <span id="coords">--,--</span>
+    </div>
+
+    <script>
+
+var canvas      = document.getElementById("canvas");
+var ctx         = canvas.getContext("2d");
+var width       = canvas.width;
+var height      = canvas.height;
+
+var view_x_min  = -2.25;
+var view_y_min  = -2.25;
+var view_width  = 4.5;
+var view_height = 4.5;
+
+var depth       = 10;
+
+function render(){
+    // Set settings
+    depth = Number(document.getElementById("depthSelection").value);
+
+    // Start timer
+    var start = new Date().getTime();
+
+    // Render
+    for (var y=0; y<height; y++){
+        for (var x=0; x<width; x++){
+            var scaled_x = view_width / width;
+            var scaled_y = view_height / height;
+
+            var xValue = (x * scaled_x) + (view_x_min);
+            var yValue = (y * scaled_y) + (view_y_min);
+            var result = mandel(xValue, yValue, depth);
+
+            // Choose a color
+            var finalColor = "#000000";
+            if (result != -1)
+                finalColor = chooseColor(result, depth);
+
+            // Draw the pixel
+            ctx.fillStyle = finalColor;
+            ctx.fillRect(x, y, 1, 1);
+        }
+    }
+
+    // End timer
+    var duration = (new Date().getTime() - start);
+    var minutes = Math.floor(duration/1000/60);
+    var seconds = Math.floor(duration/1000) % 60;
+    var miliseconds = Math.floor(duration) % 1000;
+    if (seconds < 10) { seconds = "0" + seconds; }
+    if (minutes < 10) { minutes = "0" + minutes; }
+    var duration_string = minutes +":"+ seconds +"."+ miliseconds;
+    document.getElementById("elapsed").innerHTML = duration_string;
+}
+
+function mandel(x, y, depth){
+    // Prime Values
+    var xP=0;
+    var yP=0;
+    // Temporary Values
+    var xT=0;
+    var yT=0;
+    var i=0;
+
+    for (i=0; i<depth; i++)
+    {
+        xT = (Math.pow(xP, 2)) + x - (Math.pow(yP, 2));
+        yT = 2 * xP * yP + y;
+        if (Math.pow(Math.abs(xT),2) + Math.pow(Math.abs(yT),2) > 4)
+            return i;
+        xP = xT;
+        yP = yT;
+    }
+    return -1;
+}
+
+function chooseColor(i, d) {
+    var r = 0;
+    var g = 0;
+    var b = 0;
+
+    const band = d / 6;
+    
+    if (i >= band * 0 & i < band * 1){
+        r = 0xff;
+        g = 0xff * i / band;
+    }
+    if (i >= band * 1 & i < band * 2) {
+        g = 0xff;
+        r = 0xff * ((band - (i % band)) / band);
+    }
+    if (i >= band * 2 & i < band * 3) {
+        g = 0xff;
+        b = 0xff * (i % band) / band;
+    }
+    if (i >= band * 3 & i < band * 4) {
+        b = 0xff;
+        g = 0xff * ((band - (i % band)) / band);
+    }
+    if (i >= band * 4 & i < band * 5) {
+        b = 0xff;
+        r = 0xff * (i % band) / band;
+    }
+    if (i >= band * 5 & i < band * 6) {
+        r = 0xff;
+        b = 0xff * ((band - (i % band)) / band);
+    }
+
+    return "#"+hexString(r)+hexString(g)+hexString(b);
+}
+
+function hexString(n) {
+    t = Math.floor(n).toString(16)
+    if (t.length % 2) {
+        t = "0" + t;
+    }
+    return t;
+}
+
+function getCursorPosition(canvas, event){
+    // Determine pixel location
+    const rect = canvas.getBoundingClientRect()
+    const x_pixel = event.clientX - rect.left
+    const y_pixel = event.clientY - rect.top
+
+    // Determine scale
+    const x_scale = view_width / width;
+    const y_scale = view_height / height;
+
+    // Update label
+    var x_coord = x_pixel * x_scale + view_x_min;
+    var y_coord = y_pixel * y_scale + view_y_min;
+    document.getElementById("coords").innerHTML = x_coord.toFixed(3) + "," + y_coord.toFixed(3);
+}
+
+canvas.addEventListener('mousemove', function(e){
+    getCursorPosition(canvas, e)
+})
+
+render();
+</script>
+  </body>
+</html>
