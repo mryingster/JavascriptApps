@@ -8,18 +8,24 @@
   <body style="background:#888888;">
 
     <div style="display:block; background:#ffffff; width:768px; outline:1px solid #606060; margin:10px auto 0 auto; padding: 2px;">
-      <canvas id="canvas" width=768px height=768px></canvas>
+      <canvas id="canvas" width="768px" height="768px"></canvas>
       <br>
-      <button onclick="render()">Render</button>
-      <select id="depthSelection">
+      <button onclick="zoom(false)">-</button>
+      <button onclick="zoom(true)">+</button>
+      <select onchange="render()" id="depthSelection">
         <option>1</option>
         <option>2</option>
         <option>4</option>
         <option>8</option>
-        <option selected>16</option>
-        <option>32</option>
+        <option>16</option>
+        <option selected>32</option>
         <option>64</option>
         <option>128</option>
+        <option>256</option>
+        <option>512</option>
+        <option>1024</option>
+        <option>2048</option>
+        <option>4096</option>
       </select>
       Elapsed Time: <span id="elapsed">--</span>&nbsp;&nbsp;
       Mouse Coordinates: <span id="coords">--,--</span>
@@ -27,17 +33,17 @@
 
     <script>
 
-var canvas      = document.getElementById("canvas");
-var ctx         = canvas.getContext("2d");
-var width       = canvas.width;
-var height      = canvas.height;
+var canvas        = document.getElementById("canvas");
+var ctx           = canvas.getContext("2d");
+var width         = canvas.width;
+var height        = canvas.height;
 
-var view_x_min  = -2.25;
-var view_y_min  = -2.25;
-var view_width  = 4.5;
-var view_height = 4.5;
+var view_x_center = 0;
+var view_y_center = 0;
+var view_width    = 4.5;
+var view_height   = 4.5;
 
-var depth       = 10;
+var depth         = 10;
 
 function render(){
     // Set settings
@@ -47,13 +53,15 @@ function render(){
     var start = new Date().getTime();
 
     // Render
+    var scaled_x  = view_width / width;
+    var scaled_y  = view_height / height;
+    var view_left = view_x_center - (view_width / 2);
+    var view_top  = view_y_center - (view_height / 2);
+
     for (var y=0; y<height; y++){
         for (var x=0; x<width; x++){
-            var scaled_x = view_width / width;
-            var scaled_y = view_height / height;
-
-            var xValue = (x * scaled_x) + (view_x_min);
-            var yValue = (y * scaled_y) + (view_y_min);
+            var xValue = (x * scaled_x) + (view_left);
+            var yValue = (y * scaled_y) + (view_top);
             var result = mandel(xValue, yValue, depth);
 
             // Choose a color
@@ -142,7 +150,7 @@ function hexString(n) {
     return t;
 }
 
-function getCursorPosition(canvas, event){
+function getCursorPosition(canvas, event, recenter){
     // Determine pixel location
     const rect = canvas.getBoundingClientRect()
     const x_pixel = event.clientX - rect.left
@@ -153,14 +161,39 @@ function getCursorPosition(canvas, event){
     const y_scale = view_height / height;
 
     // Update label
-    var x_coord = x_pixel * x_scale + view_x_min;
-    var y_coord = y_pixel * y_scale + view_y_min;
-    document.getElementById("coords").innerHTML = x_coord.toFixed(3) + "," + y_coord.toFixed(3);
+    var view_left = view_x_center - (view_width / 2);
+    var view_top  = view_y_center - (view_height / 2);
+    var x_coord = x_pixel * x_scale + view_left;
+    var y_coord = y_pixel * y_scale + view_top;
+    document.getElementById("coords").innerHTML = x_coord.toFixed(3) + "," + (-1 * y_coord.toFixed(3));
+
+    // Recenter render
+    if (recenter == true){
+	view_x_center = x_coord;
+	view_y_center = y_coord;
+	render();
+    }
 }
 
 canvas.addEventListener('mousemove', function(e){
-    getCursorPosition(canvas, e)
+    getCursorPosition(canvas, e, false)
 })
+
+canvas.addEventListener('mousedown', function(e){
+    getCursorPosition(canvas, e, true)
+})
+
+function zoom(zoom_in){
+    if (zoom_in == true){
+	view_width /= 2;
+	view_height /= 2;
+    } else {
+	view_width *= 2;
+	view_height *= 2;
+    }
+
+    render();
+}
 
 render();
 </script>
