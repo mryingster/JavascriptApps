@@ -1,55 +1,90 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>Lights Out</title>
+    <title>LightsOut</title>
     <meta charset="utf-8"/>
+    <meta name="viewport" content="width=600px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
     <style>
       body {
-          background:#fff;
+          background:#aaa;
           color:#000;
+	  font-family:sans-serif;
       }
+
+      div#content {
+	  background:#fff;
+      }
+
+      h1 {
+	  margin:10px;
+	  font-size:3em;
+      }
+
+      .orange { color:#ffbb00; }
+      .grey { color:#555555; }
+
     </style>
   </head>
   <body>
 
-    <div id="settings" style="width: 512px; border: black 1px solid; padding: 3px; margin:0px auto;">
-      <select id="size">
-	<option>3x3</option>
-	<option>4x4</option>
-	<option>5x5</option>
-	<option>6x6</option>
-	<option>7x7</option>
-      </select>
-      <button id="new_game" onclick="setup()">New Game</button>
-      <button id="reset" onclick="reset()">Reset</button>
-      Moves Required:
-      <span id="moves_required">-</span>
-      Moves Taken:
-      <span id="moves_taken">-</span>
+    <div id="content" style="width: 512px; border: black 1px solid; padding: 3px; margin:0px auto;">
+      <h1><span class="orange">Lights</span><span class="grey">Out<span></h1>
+      
+      <svg width="512px"
+	   height="512px"
+	   id="gamefield"
+           version="1.1"
+           xmlns="http://www.w3.org/2000/svg"
+           xmlns:xlink="http://www.w3.org/1999/xlink"
+           xml:space="preserve"
+           xmlns:serif="http://www.serif.com/"
+           style="display:block; margin:2px; z-index:-1; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:1.5;">
+      </svg>
+
+      <span id="controls">
+	<span style="display:inline-block; text-align:right; float:right;">
+	  Moves Required: <span id="moves_required">-</span><br>
+	  Moves Taken:    <span id="moves_taken">-</span>
+	</span>
+
+	Size:
+	<select id="size">
+	  <option>2x2</option>
+	  <option>3x3</option>
+	  <option>4x4</option>
+	  <option selected="selected">5x5</option>
+	  <option>6x6</option>
+	  <option>7x7</option>
+	  <option>8x8</option>
+	</select>
+
+	<br>
+
+	<button id="new_game" onclick="setup()">New Game</button>
+	<button id="reset" onclick="reset()">Reset</button>
+	<button id="peek" onmousedown="peek()" onmouseleave="cleanup()" onmouseup="cleanup()">&#128065;</button>
+      </span>
     </div>
 
-    <svg width="512px"
-	 height="512px"
-	 id="gamefield"
-         version="1.1"
-         xmlns="http://www.w3.org/2000/svg"
-         xmlns:xlink="http://www.w3.org/1999/xlink"
-         xml:space="preserve"
-         xmlns:serif="http://www.serif.com/"
-         style="display:block; margin:25px auto; z-index:-1; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:1.5;">
-
-    </svg>
-
     <script type="text/javascript">
-const on_color  = "#ffbb00";
-const off_color = "#555555";
-const cheat_color = "#ff0000";
-const svg_size = 512;
+const on_color    = "#ffbb00";
+const hi_color    = "#ffdd44";
+const off_color   = "#555555";
+const peek_color  = "#ff0000";
+const svg_size    = 512;
 const tile_border = 5;
-var   game_size = null;
-var   moves_taken = 0;
-var   moves_required = 0;
-var   initial_state = null;
+
+const on  = 1;
+const off = 0;
+
+var game_size         = null;
+var moves_taken       = 0;
+var moves_required    = 0;
+var shuffles_required = 0;
+var initial_state     = null;
+var actual_tap        = false;
+var game_started      = false;
+var peaked            = false;
 
 function setup(){
     // delete all squares
@@ -74,46 +109,85 @@ function setup(){
             rect.setAttributeNS(null, 'height', tile_size);
             rect.setAttributeNS(null, 'width',  tile_size);
             rect.setAttributeNS(null, 'fill',   off_color);
-            rect.setAttributeNS(null, 'onclick', "user_tap(this)");
+            rect.setAttributeNS(null, 'onmousedown', "highlight(this)");
+            rect.setAttributeNS(null, 'onmouseup', "user_tap(this)");
+            rect.setAttributeNS(null, 'onmouseout', "cleanup()");
 	    rect.setAttributeNS(null, 'style', "touch-action: manipulation");
+	    rect.setAttributeNS(null, 'startstate', off);
+	    rect.setAttributeNS(null, 'state', off);
+	    rect.setAttributeNS(null, 'toggles', 0);
             document.getElementById('gamefield').appendChild(rect);
 	}
     }
 
-    // Randomly press buttons
+    game_started = true;
     moves_taken = 0;
-    moves_required = 0;
-    initial_state = [];
-    for (var x=0; x<game_size; x++){
-	for (var y=0; y<game_size; y++){
-	    if (Math.random() > .5){
-		initial_state.push([x, y]);
-		tap(x, y);
-		moves_required += 1;
-	    }
-	}
-    }
-
+    peeked = false;
     document.getElementById("moves_taken").innerHTML = moves_taken;
-    document.getElementById("moves_required").innerHTML = moves_required;
+    document.getElementById("moves_required").innerHTML = 0;
+    shuffle();
 
     return;
 }
 
+function shuffle_loop(){
+    var refresh = 30;
+    shuffles_required -= 1;
+
+    var x = Math.round(Math.random() * (game_size - 1));
+    var y = Math.round(Math.random() * (game_size - 1));
+
+    var square = document.getElementById(x+"-"+y);
+    var start_state = Number(square.getAttributeNS(null, 'startstate'))
+
+    // Keep track of start state, even if a button was tapped twice
+    square.setAttributeNS(null, 'startstate', start_state ^ on)
+    tap(x, y);
+
+    // Increment or decrement depending on how many times the button was tapped
+    var moves_required = Number(document.getElementById("moves_required").innerHTML);
+    moves_required += start_state == 1 ? -1 : 1;
+    document.getElementById("moves_required").innerHTML = moves_required;
+
+    // If moves required drops down to 0, make sure we have at least one more shuffle
+    if (moves_required == 0 && shuffles_required == 0){
+	shuffles_required += 1;
+    }
+
+    // Animate the shuffle using timeouts
+    if (shuffles_required == 0){
+	clearTimeout(timer);
+    } else {
+	var timer = setTimeout(function() { shuffle_loop() }, refresh);
+    }
+}
+
+function shuffle(){
+    shuffles_required = Math.round((game_size * game_size) / 2);
+    shuffle_loop();
+    return;
+}
+
 function reset(){
-    // Turn off all lights
+    // Set all states to off
     for (var x=0; x<game_size; x++){
 	for (var y=0; y<game_size; y++){
-	    set_state(x, y, off_color);
+	    set_state(x, y, off);
 	}
     }
     
-    // Turn on lights according to initial game state
-    for (var a=0; a<initial_state.length; a++) {
-	tap(initial_state[a][0], initial_state[a][1]);
+    // Toggle all initial states
+    for (var x=0; x<game_size; x++){
+	for (var y=0; y<game_size; y++){
+	    var square = document.getElementById(x+"-"+y);
+	    if (square.getAttributeNS(null, "startstate") == on){
+		tap(x, y);
+	    }
+	}
     }
 
     // Reset user counter
+    game_started = true;
     moves_taken = 0;
     document.getElementById("moves_taken").innerHTML = moves_taken;
     return;
@@ -122,13 +196,10 @@ function reset(){
 function is_over(){
     for (var x=0; x<game_size; x++){
 	for (var y=0; y<game_size; y++){
-	    if (get_state(x, y) == on_color){
+	    if (get_state(x, y) == on){
 		return false;
 	    }
 	}
-    }
-    for (var a=0; a<initial_state.length; a++) {
-	set_state(initial_state[a][0], initial_state[a][1], cheat_color);
     }
 
     return true;
@@ -136,24 +207,40 @@ function is_over(){
 
 function get_state(x, y){
     var square = document.getElementById(x+"-"+y);
-    return square.getAttribute("fill");
+    return Number(square.getAttribute("state"));
 }
 
 function set_state(x, y, state){
     var square = document.getElementById(x+"-"+y);
-    square.setAttribute("fill", state);
+    var color = off_color;
+    if (state == on) {
+	color = on_color;
+    }
+
+    square.setAttribute("state", state);
+    set_color(x, y, color);
+    return;
+}
+
+function set_color(x, y, color){
+    var square = document.getElementById(x+"-"+y);
+    square.setAttribute("fill", color);
     return;
 }
 
 function invert(x, y){
-    if (get_state(x, y) == off_color){
-	set_state(x, y, on_color);
+    if (get_state(x, y) == off){
+	set_state(x, y, on);
     } else {
-	set_state(x, y, off_color);
+	set_state(x, y, off);
     }
 }
 
 function tap(x, y){
+    var square = document.getElementById(x+"-"+y);
+    var toggles = Number(square.getAttributeNS(null, "toggles"));
+    square.setAttributeNS(null, "toggles", toggles+1);
+
     invert(x, y);
     if (x > 0) {
 	invert(x-1, y);
@@ -169,18 +256,74 @@ function tap(x, y){
     }
 }
 
+function highlight(e){
+    actual_tap = true;
+    var x = Number(e.id.split("-")[0]);
+    var y = Number(e.id.split("-")[1]);
+
+    set_color(x, y, hi_color);
+    if (x > 0) {
+	set_color(x-1, y, hi_color);
+    }
+    if (x < game_size-1) {
+	set_color(x+1, y, hi_color);
+    }
+    if (y > 0) {
+	set_color(x, y-1, hi_color);
+    }
+    if (y < game_size-1) {
+	set_color(x, y+1, hi_color);
+    }
+}
+
 function user_tap(e){
     var x = Number(e.id.split("-")[0]);
     var y = Number(e.id.split("-")[1]);
 
-    tap(x, y);
-
-    moves_taken += 1;
-    document.getElementById("moves_taken").innerHTML = moves_taken;
-
-    if (is_over() == true) {
-	window.alert("You win!");
+    if (actual_tap == true) {
+	tap(x, y);
     }
+    actual_tap = false;
+
+    if (game_started == true) {
+	moves_taken += 1;
+	document.getElementById("moves_taken").innerHTML = moves_taken;
+
+	if (is_over() == true) {
+	    game_started = false;
+	    var alert_string = "You finished in " + moves_taken + " move" + (moves_taken > 1 ? "s" : "") + (peeked == true ? ", but you peeked!" : "!");
+	    window.alert(alert_string);
+	}
+    }
+    return;
+}
+
+function peek(){
+    peeked = true;
+    for (var x=0; x<game_size; x++){
+	for (var y=0; y<game_size; y++){
+	    var square = document.getElementById(x+"-"+y);
+	    var toggles = Number(square.getAttributeNS(null, "toggles"));
+	    if (toggles % 2 == 1){
+		set_color(x, y, peek_color);
+	    }
+	}
+    }
+}
+
+function cleanup(){
+    for (var x=0; x<game_size; x++){
+	for (var y=0; y<game_size; y++){
+	    var square = document.getElementById(x+"-"+y);
+	    var current_state = Number(square.getAttributeNS(null, "state"));
+	    var color = off_color;
+	    if (current_state == on){
+		color = on_color;
+	    }
+	    set_color(x, y, color);
+	}
+    }
+    actual_tap = false;
 }
 
 setup();
