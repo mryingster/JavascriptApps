@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Tetris</title>
+    <meta charset="utf-8"/>
+    <style>
+      body {
+          background:#aaa;
+          color:#000;
+	  font-family:sans-serif;
+      }
+
+      div#content {
+	  background:#fff;
+      }
+
+      h1 {
+	  margin:10px;
+	  font-size:3em;
+      }
+    </style>
+  </head>
+
+  <body style="background:#bbbbbb;">
+
+    <div id="content" style="width:512px; margin: 0 auto 0 auto; padding:15px;">
+      <h1>Tetris</h1>
+      <div id="stats" style="float:right;">
+	<button onclick="start()">Start</button>
+	<input id="myInput" type="text" onkeydown="user_move(event)" style="position:relative; left:-10000px;"></input><br>
+	Lines: <span id="lines">--</span><br>
+	Blocks: <span id="blocks">--</span>
+      </div>
+      <canvas id="canvas" width="512" height="512" onclick="set_focus();" style="border:1px solid black; touch-action: manipulation"></canvas><br>
+    </div>
+
+    <script>
+// Comment
+
+const block_defs = [
+    // Nothing
+    [[0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,0,0]],
+
+    // Nothing
+    [[0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,0,0]],
+
+    // I
+    [[0,0,0,0,0],
+     [0,0,1,0,0],
+     [0,0,1,0,0],
+     [0,0,1,0,0],
+     [0,0,1,0,0]],
+
+    // Z
+    [[0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,1,1,0,0],
+     [0,0,1,1,0]],
+
+    // J
+    [[0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,1,0,0,0],
+     [0,1,1,1,0]],
+
+    // T
+    [[0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,1,0,0],
+     [0,1,1,1,0]],
+
+    // S
+    [[0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,1,1,0],
+     [0,1,1,0,0]],
+
+    // O
+    [[0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,1,1,0,0],
+     [0,1,1,0,0]],
+
+    // L
+    [[0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,0,0],
+     [0,0,0,1,0],
+     [0,1,1,1,0]],
+];
+
+var canvas = document.getElementById("canvas");
+const game_width = 10
+const game_height = 20;
+const square_size = 16;
+var array = [];
+var block_history = [];
+var lines = 0;
+var speed = 1000;
+var game_active = false;
+var game_paused = null;
+
+const LEFT  = 37;
+const UP    = 38;
+const RIGHT = 39;
+const DOWN  = 40;
+const DROP  = 32;
+
+const base_colors = [
+    // Tetrominoes
+    "#000000", // 00 Black, Background
+    "#888888", // 01 Grey,  Walls
+    "#FF0000", // 02 Red,   Straight
+    "#FF8800", // 03 Orange, Z
+    "#FFFF00", // 04 Yellow, J
+    "#00FF00", // 05 Green,  T
+    "#00FFFF", // 06 Cyan,   S
+    "#0000FF", // 07 Blue,   O
+    "#FF00FF", // 08 Purple, L
+
+    // Pentominoes
+    "#ff5700", // 01 Red-Orange
+    "#ff8300", // 02 Dark Orange
+    "#ffda00", // 03 Orange Yellow
+    "#a0ff00", // 04 Yellow Green
+    "#00ff91", // 05 Teal
+    "#00bdff", // 06 Cyan-light blue
+    "#0091ff", // 07 Lighter Blue
+    "#0065ff", // 08 Light BLue
+    "#a000ff", // 09 Purple
+    "#ff0083", // 10 Fuscia
+    "", // 11 Brown
+    "", // 12 Grey
+    "", // 13 Dark Grey
+    "", // 14 Tan
+    "", // 15 Dark Cyan
+    "", // 17 Light Grey
+    "", // 18 Dark Green
+
+    // Triominoes
+    "", // 01 Light Green
+    "", // 02 Pink
+    "", // 03 Dark Red
+
+    // Diominoes
+    "", // 01 Dark Blue
+
+    // Moninoes
+    "", // 01 ???
+];
+
+const colors = [
+    ["#000000","#000000","#000000","#000000","#000000"], // 0 Black, Background
+    ["#444444","#666666","#888888","#AAAAAA","#CCCCCC"], // 1 Grey,  Walls
+    ["#BB0000","#DD0000","#FF0000","#FF4444","#FF8888"], // 2 Red,   Straight
+    ["#BB6600","#DD7700","#FF8800","#FFAA44","#FFCC88"], // 3 Orange, Z
+    ["#BBBB00","#DDDD00","#FFFF00","#FFFF44","#FFFF88"], // 4 Yellow, J
+    ["#00BB00","#00DD00","#00FF00","#44FF44","#88FF88"], // 5 Green,  T
+    ["#00BBBB","#00DDDD","#00FFFF","#44FFFF","#88FFFF"], // 6 Cyan,   S
+    ["#0000BB","#0000DD","#0000FF","#4444FF","#8888FF"], // 7 Blue,   O
+    ["#BB00BB","#DD00DD","#FF00FF","#FF44FF","#FF88FF"]  // 8 Purple, L
+];
+
+function canMove(n, dir){
+    for (var y=0; y<array.length; y++) {
+	for (var x=0; x<array[y].length; x++) {
+	    if (array[y][x] == n){
+		if (dir == UP)   { if (array[y-1][x] != 0 && array[y-1][x] != n) return false; }
+		if (dir == RIGHT){ if (array[y][x+1] != 0 && array[y][x+1] != n) return false; }
+		if (dir == DOWN) { if (array[y+1][x] != 0 && array[y+1][x] != n) return false; }
+		if (dir == LEFT) { if (array[y][x-1] != 0 && array[y][x-1] != n) return false; }
+	    }
+	}
+    }
+
+    return true;
+}
+
+function isGameOver(){
+    for (var y=0; y<5; y++){
+	for (var x=0; x<array[y].length; x++){
+	    if (array[y][x] != 0){
+		return true;
+	    }
+	}
+    }
+
+    return false;
+}
+
+function shiftDown(n){
+    for (var y=array.length-1; y>1; y--){
+	for (var x=0; x<array[y].length; x++){
+	    if (array[y-1][x] == n){
+		array[y-1][x] = 0;
+		array[y][x] = n;
+	    }
+	}
+    }
+    return;
+}
+
+function clear_and_shift(){
+    for (var y=array.length-2; y>5; y--){
+	// Look at line
+	var lineFull = true;
+	for (var x=1; x<array[y].length-1; x++){
+	    if (array[y][x] == 0){
+		lineFull = false;
+		break;
+	    }
+	}
+
+	// If full, shift everything down
+	if (lineFull == true){
+	    for (var y2=y; y2>5; y2--){
+		for (var x=1; x<array[y].length-1; x++){
+		    array[y2][x] = array[y2-1][x];
+		}
+	    }
+	    lines += 1;
+	    y++; // Have to recheck this line!
+	}
+    }
+    return;
+}
+
+function move(n, dir){
+    // Is valid move?
+    if (canMove(n, dir) == false)
+	return;
+
+    // Actually move block
+    if (dir == DOWN){
+	for (var y=array.length-1; y>1; y--){
+	    for (var x=0; x<array[y].length; x++){
+		if (array[y-1][x] == n){
+		    array[y-1][x] = 0;
+		    array[y][x] = n;
+		}
+	    }
+	}
+    }
+
+    if (dir == DROP){
+	while (canMove(n, DOWN) == true)
+	    move(n, DOWN);
+    }
+
+    if (dir == LEFT){
+	for (var y=array.length-1; y>0; y--){
+	    for (var x=0; x<array[y].length; x++){
+		if (array[y][x+1] == n){
+		    array[y][x+1] = 0;
+		    array[y][x] = n;
+		}
+	    }
+	}
+    }
+
+    if (dir == RIGHT){
+	for (var y=array.length-1; y>0; y--){
+	    for (var x=array[y].length-1; x>1; x--){
+		if (array[y][x-1] == n){
+		    array[y][x-1] = 0;
+		    array[y][x] = n;
+		}
+	    }
+	}
+    }
+
+    // Can't rotate yet :(
+    if (dir == UP){
+	;
+    }
+
+    // Redraw
+    redraw();
+}
+
+
+function user_move(e){
+    if (game_active == true) {
+	move(block_history.length-1, e.keyCode);
+    }
+}
+
+
+function main_loop(){
+    // See if a block has been placed
+    if (canMove(block_history.length-1, DOWN) == false){
+	// Look for lines to clear
+	clear_and_shift();
+
+	// See if game is over
+	if (isGameOver() == true){
+	    clearTimeout(timer)
+	    game_active = false
+	    window.alert("Game Over!");
+	    return;
+	}
+
+	// Add a block
+	add_block();
+    }
+
+    // Move current block down
+    move(block_history.length-1, DOWN);
+
+    // Update stats someday like level, speed, etc.
+    document.getElementById("lines").innerHTML  = lines;
+    document.getElementById("blocks").innerHTML = block_history.length - 2;
+
+    // Set timeout for next cycle
+    var timer = setTimeout(function() { main_loop() }, speed);
+}
+
+function add_block(){
+    // Pick a block
+    var new_block = Math.floor(Math.random() * (block_defs.length - 2)) + 2;
+    block_history.push(new_block);
+
+    // Draw it in the first 5 rows
+    var block_def = block_defs[new_block];
+    for (var y=0; y<block_def.length; y++)
+	for (var x=0; x<block_def[y].length; x++)
+	    array[y][x+4] = block_def[y][x] == 1 ? block_history.length-1 : 0;
+}
+
+function clear_screen(){
+    // Setup Game field
+    var total_height = game_height + 6;
+    var total_width  = game_width + 2;
+    canvas.height = square_size * (total_height);
+    canvas.width  = square_size * (total_width);
+
+    // Setup block history
+    lines = 0;
+    block_history = [
+	0, // Background
+	1  // Border
+    ]
+
+
+    // Setup Array
+    array = [];
+    for (var y=1; y<=total_height; y++){
+	var temp = [];
+	for (var x=1; x<=total_width; x++){
+	    if ((x == 1 || x == total_width) && y > 5 || y == total_height)
+		temp.push(1);
+	    else
+		temp.push(0);
+	}
+	array.push(temp);
+    }
+
+    redraw();
+    return;
+}
+
+function set_focus(){
+    document.getElementById("myInput").focus()
+}
+
+function start(){
+    // Start game
+    if (game_active == false) {
+	clear_screen(); // Clear the screen
+        add_block();    // Add a piece
+	redraw();       // Draw the screen
+	game_active = true;
+	main_loop();
+    }
+
+    // Set focus to input box
+    set_focus();
+}
+
+function redraw(){
+    var c = document.getElementById("canvas");
+    var ctx = c.getContext("2d");
+
+    // Redraw each block
+    for (var y=0; y<array.length; y++){
+	for (var x=0; x<array[y].length; x++){
+	    drawBlock(ctx, x*square_size, y*square_size, square_size,
+		      colors[block_history[array[y][x]]],
+		      y > 0                 ? array[y][x] == array[y-1][x] : false,
+		      x < array[0].length-1 ? array[y][x] == array[y][x+1] : false,
+		      y < array.length-1    ? array[y][x] == array[y+1][x] : false,
+		      x > 0                 ? array[y][x] == array[y][x-1] : false,
+		     );
+	}
+    }
+}
+
+function drawBlock(ctx, x, y, l, c, n, e, s, w){
+    const edge = Math.floor(square_size * .25);;
+    
+    // Fill in background color
+    ctx.fillStyle = c[2];
+    ctx.fillRect(x, y, l, l);
+
+    // North Edge
+    if (n == false){
+	ctx.beginPath();
+	ctx.moveTo(x, y);
+	if (w == true)
+	    ctx.lineTo(x, y+edge);
+	else
+	    ctx.lineTo(x+edge, y+edge);
+	if (e == true)
+	    ctx.lineTo(x+l, y+edge);
+	else
+	    ctx.lineTo(x+l-edge, y+edge);
+	ctx.lineTo(x+l, y);
+	ctx.fillStyle = c[4];
+	ctx.fill();
+    }
+
+    // West Edge
+    if (w == false){
+	ctx.beginPath();
+	ctx.moveTo(x, y);
+	if (n == true)
+	    ctx.lineTo(x+edge, y);
+	else
+	    ctx.lineTo(x+edge, y+edge);
+	if (s == true)
+	    ctx.lineTo(x+edge, y+l);
+	else
+	    ctx.lineTo(x+edge, y+l-edge);
+	ctx.lineTo(x, y+l);
+	ctx.fillStyle = c[3];
+	ctx.fill();
+    }
+
+    // East Edge
+    if (e == false){
+	ctx.beginPath();
+	ctx.moveTo(x+l, y);
+	if (n == true)
+	    ctx.lineTo(x+l-edge, y);
+	else
+	    ctx.lineTo(x+l-edge, y+edge);
+	if (s == true)
+	    ctx.lineTo(x+l-edge, y+l);
+	else
+	    ctx.lineTo(x+l-edge, y+l-edge);
+	ctx.lineTo(x+l, y+l);
+	ctx.fillStyle = c[1];
+	ctx.fill();
+    }
+
+    // South Edge
+    if (s == false){
+	ctx.beginPath();
+	ctx.moveTo(x, y+l);
+	if (w == true)
+	    ctx.lineTo(x, y+l-edge);
+	else
+	    ctx.lineTo(x+edge, y+l-edge);
+	if (e == true)
+	    ctx.lineTo(x+l, y+l-edge);
+	else
+	    ctx.lineTo(x+l-edge, y+l-edge);
+	ctx.lineTo(x+l, y+l);
+	ctx.fillStyle = c[0];
+	ctx.fill();
+    }
+
+    // NW Corner
+    if (n == true && w == true){
+	ctx.beginPath();
+	ctx.moveTo(x, y);
+	ctx.lineTo(x+edge, y);
+	ctx.lineTo(x+edge, y+edge);
+	ctx.fillStyle = c[3];
+	ctx.fill();
+	ctx.beginPath();
+	ctx.moveTo(x, y);
+	ctx.lineTo(x, y+edge);
+	ctx.lineTo(x+edge, y+edge);
+	ctx.fillStyle = c[4];
+	ctx.fill();
+    }
+
+    // NE Corner
+    if (n == true && e == true){
+	ctx.beginPath();
+	ctx.moveTo(x+l, y);
+	ctx.lineTo(x+l-edge, y);
+	ctx.lineTo(x+l-edge, y+edge);
+	ctx.fillStyle = c[1];
+	ctx.fill();
+	ctx.beginPath();
+	ctx.moveTo(x+l, y);
+	ctx.lineTo(x+l, y+edge);
+	ctx.lineTo(x+l-edge, y+edge);
+	ctx.fillStyle = c[4];
+	ctx.fill();
+    }
+
+    // SW Corner
+    if (s == true && w == true){
+	ctx.beginPath();
+	ctx.moveTo(x, y+l);
+	ctx.lineTo(x+edge, y+l);
+	ctx.lineTo(x+edge, y+l-edge);
+	ctx.fillStyle = c[3];
+	ctx.fill();
+	ctx.beginPath();
+	ctx.moveTo(x, y+l);
+	ctx.lineTo(x, y+l-edge);
+	ctx.lineTo(x+edge, y+l-edge);
+	ctx.fillStyle = c[0];
+	ctx.fill();
+    }
+
+    // SE Corner
+    if (s == true && e == true){
+	ctx.beginPath();
+	ctx.moveTo(x+l, y+l);
+	ctx.lineTo(x+l-edge, y+l);
+	ctx.lineTo(x+l-edge, y+l-edge);
+	ctx.fillStyle = c[1];
+	ctx.fill();
+	ctx.beginPath();
+	ctx.moveTo(x+l, y+l);
+	ctx.lineTo(x+l, y+l-edge);
+	ctx.lineTo(x+l-edge, y+l-edge);
+	ctx.fillStyle = c[0];
+	ctx.fill();
+    }
+
+}
+
+clear_screen();
+
+    </script>
+  </body>
+</html>
