@@ -2,9 +2,9 @@
 
 <html>
   <head>
-    <title>Tetris</title>
+    <title>N-tris</title>
     <meta charset="utf-8"/>
-    <style>
+    <meta name="viewport" content="width=600px, user-scalable=no" /> <!-- disabled in iOS 10+ -->    <style>
       body {
           background:#aaa;
           color:#000;
@@ -12,188 +12,226 @@
       }
 
       div#content {
-	  background:#fff;
+          #background:#fff;
       }
 
       h1 {
 	  margin:10px;
 	  font-size:3em;
       }
-    </style>
+
+      /*Font Faces*/
+      @font-face {
+	  font-family: "Segmented";
+	  src: url('fonts/Segment7Standard.otf');
+      }
+
+      @font-face {
+	  font-family: "SegmentedAlpha";
+	  src: url('fonts/Digital7Regular.otf');
+      }
+</style>
   </head>
 
-  <body style="background:#bbbbbb;">
+  <body>
 
     <div id="content" style="width:512px; margin: 0 auto 0 auto; padding:15px;">
-      <h1>Tetris</h1>
-      <div id="stats" style="float:right;">
-	<button onclick="start()">Start</button>
-	<input id="myInput" type="text" onkeydown="user_move(event)" style="position:relative; left:-10000px;"></input><br>
-	Lines: <span id="lines">--</span><br>
-	Blocks: <span id="blocks">--</span>
-      </div>
-      <canvas id="canvas" width="512" height="512" onclick="set_focus();" style="border:1px solid black; touch-action: manipulation"></canvas><br>
+      <h1>N-tris</h1>
+      <canvas id="canvas" width="512" height="512" onclick="start();" style="border:1px solid black; touch-action: manipulation"></canvas><br>
+      <input type="checkbox" onclick="setFocus()" id="ghost">Ghost Mode</input>
+      <input type="checkbox" onclick="setFocus()" id="extra">Extra Pieces</input>
+
+      <br>
+      <input id="myInput" type="text" onblur="" onkeydown="user_move(event)" style="width: 0px; position:relative; left:-10000px;"></input>
     </div>
 
     <script>
 // Comment
 
 const block_defs = [
-    // Nothing
-    [[0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,0,0]],
+    [], // Placeholder for walls
 
-    // Nothing
-    [[0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,0,0]],
-
-    // I
-    [[0,0,0,0,0],
-     [0,0,1,0,0],
-     [0,0,1,0,0],
-     [0,0,1,0,0],
-     [0,0,1,0,0]],
-
-    // Z
-    [[0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,1,1,0,0],
-     [0,0,1,1,0]],
-
-    // J
-    [[0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,1,0,0,0],
-     [0,1,1,1,0]],
-
-    // T
-    [[0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,1,0,0],
-     [0,1,1,1,0]],
-
-    // S
-    [[0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,1,1,0],
-     [0,1,1,0,0]],
-
-    // O
-    [[0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,1,1,0,0],
-     [0,1,1,0,0]],
-
-    // L
-    [[0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,0,0],
-     [0,0,0,1,0],
-     [0,1,1,1,0]],
-];
-
-var canvas = document.getElementById("canvas");
-const game_width = 10
-const game_height = 20;
-const square_size = 16;
-var array = [];
-var block_history = [];
-var lines = 0;
-var speed = 1000;
-var game_active = false;
-var game_paused = null;
-
-const LEFT  = 37;
-const UP    = 38;
-const RIGHT = 39;
-const DOWN  = 40;
-const DROP  = 32;
-
-const base_colors = [
     // Tetrominoes
-    "#000000", // 00 Black, Background
-    "#888888", // 01 Grey,  Walls
-    "#FF0000", // 02 Red,   Straight
-    "#FF8800", // 03 Orange, Z
-    "#FFFF00", // 04 Yellow, J
-    "#00FF00", // 05 Green,  T
-    "#00FFFF", // 06 Cyan,   S
-    "#0000FF", // 07 Blue,   O
-    "#FF00FF", // 08 Purple, L
+    [[0,0,0,0], [0,0,0,0], [1,1,1,1], [0,0,0,0]], // I
+    [[1,1,0], [0,1,1], [0,0,0]], // Z
+    [[0,0,0], [1,1,1], [0,0,1]], // J
+    [[0,0,0], [1,1,1], [0,1,0]], // T
+    [[0,1,1], [1,1,0], [0,0,0]], // S
+    [[0,0,0,0], [0,1,1,0], [0,1,1,0], [0,0,0,0]], // O
+    [[0,0,0], [1,1,1], [1,0,0]], // L
 
     // Pentominoes
-    "#ff5700", // 01 Red-Orange
-    "#ff8300", // 02 Dark Orange
-    "#ffda00", // 03 Orange Yellow
-    "#a0ff00", // 04 Yellow Green
-    "#00ff91", // 05 Teal
-    "#00bdff", // 06 Cyan-light blue
-    "#0091ff", // 07 Lighter Blue
-    "#0065ff", // 08 Light BLue
-    "#a000ff", // 09 Purple
-    "#ff0083", // 10 Fuscia
-    "", // 11 Brown
-    "", // 12 Grey
-    "", // 13 Dark Grey
-    "", // 14 Tan
-    "", // 15 Dark Cyan
-    "", // 17 Light Grey
-    "", // 18 Dark Green
+    [[0,0,0,0], [1,0,0,0], [1,1,1,1], [0,0,0,0]], // Long J
+    [[0,0,0,0], [0,0,0,1], [1,1,1,1], [0,0,0,0]], // Long L
+    [[0,0,0,0], [0,0,1,0], [1,1,1,1], [0,0,0,0]], // IL
+    [[0,0,0,0], [0,1,0,0], [1,1,1,1], [0,0,0,0]], // IJ
+    [[1,0,0], [1,1,1], [0,0,1]], // Big S
+    [[0,0,1], [1,1,1], [1,0,0]], // Big Z
+    [[0,1,0], [1,1,1], [0,0,1]], // J-
+    [[0,1,0], [1,1,1], [1,0,0]], // -L
+    [[0,0,0,0], [0,0,1,1], [1,1,1,0], [0,0,0,0]], // Long S
+    [[0,0,0,0], [1,1,0,0], [0,1,1,1], [0,0,0,0]], // Long Z
+    [[0,0,0], [1,1,0], [1,1,1]], // P
+    [[0,0,0], [0,1,1], [1,1,1]], // 6
+    [[1,0,0], [1,0,0], [1,1,1]], // Big L
+    [[0,0,1], [0,1,1], [1,1,0]], // W
+    [[0,1,0], [1,1,1], [0,1,0]], // +
+    [[0,0,0], [1,0,1], [1,1,1]], // U
+    [[0,0,0,0,0], [0,0,0,0,0], [1,1,1,1,1], [0,0,0,0,0], [0,0,0,0,0]], // Big I
+    [[0,1,0], [0,1,0], [1,1,1]], // Big T
+
+    // Triominoes[[0,0,0], [1,1,1], [0,0,0]], //Little I
+    [[0,1], [1,1]], // Little L
+    [[0,0,0], [1,1,1], [0,0,0]], // Little I
+
+    // Diominoe
+    [[0,0], [1,1]], // Tiny I
+
+    // Monominoe
+    [[1]], // .
+];
+
+const base_colors = [
+    "#888888", // Wall Color Gray
+
+    // Tetrominoes
+    "#FF0000", // 01 I 	     Red
+    "#FF9200", // 02 Z 	     Orange
+    "#DBB600", // 03 J 	     Yellow
+    "#49B600", // 04 T 	     Green
+    "#00B6AA", // 05 S 	     Cyan
+    "#0049FF", // 06 O 	     Blue
+    "#DB00FF", // 07 L 	     Purple
+
+    // Pentominoes
+    "#cc8300", // 01 Tall J  Red-Orange
+    "#a000ff", // 02 Tall L  Light BLue
+    "#ffbb00", // 03 IL      Orange Yellow
+    "#986808", // 04 JI      Yellow Green
+    "#00ff91", // 05 Big S   Teal
+    "#00bdff", // 06 Big Z   Cyan-light blue
+    "#0091ff", // 07 J-      Lighter Blue
+    "#ff0083", // 08 -L      Dark Orange
+    "#008080", // 09 Long S  Purple
+    "#ff5700", // 10 Long Z  Fuscia
+    "#4c0099", // 11 P 	     Brown
+    "#6B4904", // 12 6 	     Lime
+    "#5C5C5C", // 13 Big L   Dark Grey
+    "#000099", // 14 W 	     Tan
+    "#a0ff00", // 15 + 	     Dark Cyan
+    "#AADD77", // 17 U 	     Light Grey
+    "#990000", // 18 Long I  Dark Green
+    "#006600", // 19 Long T  Light Green
 
     // Triominoes
-    "", // 01 Light Green
-    "", // 02 Pink
-    "", // 03 Dark Red
+    "#C0C0C0", // 01 L       Pink
+    "#A11212", // 02 Short I Dark Red
 
     // Diominoes
-    "", // 01 Dark Blue
+    "#FF66B2", // 01 Tiny I  Dark Blue
 
     // Moninoes
-    "", // 01 ???
+    "#DABB7E", // 01 *       Dark Purple
 ];
 
-const colors = [
-    ["#000000","#000000","#000000","#000000","#000000"], // 0 Black, Background
-    ["#444444","#666666","#888888","#AAAAAA","#CCCCCC"], // 1 Grey,  Walls
-    ["#BB0000","#DD0000","#FF0000","#FF4444","#FF8888"], // 2 Red,   Straight
-    ["#BB6600","#DD7700","#FF8800","#FFAA44","#FFCC88"], // 3 Orange, Z
-    ["#BBBB00","#DDDD00","#FFFF00","#FFFF44","#FFFF88"], // 4 Yellow, J
-    ["#00BB00","#00DD00","#00FF00","#44FF44","#88FF88"], // 5 Green,  T
-    ["#00BBBB","#00DDDD","#00FFFF","#44FFFF","#88FFFF"], // 6 Cyan,   S
-    ["#0000BB","#0000DD","#0000FF","#4444FF","#8888FF"], // 7 Blue,   O
-    ["#BB00BB","#DD00DD","#FF00FF","#FF44FF","#FF88FF"]  // 8 Purple, L
-];
+// Game dimensions
+const game_width   = 10
+const game_height  = 20;
+const square_size  = 20;
+const top_buffer   = 5; // Space for spawning new blocks
+const left_buffer  = 7; // Space for next block
+const right_buffer = 7; // Space for next block
+const game_border  = 1; // Border width around play area
 
-function canMove(n, dir){
-    for (var y=0; y<array.length; y++) {
-	for (var x=0; x<array[y].length; x++) {
-	    if (array[y][x] == n){
-		if (dir == UP)   { if (array[y-1][x] != 0 && array[y-1][x] != n) return false; }
-		if (dir == RIGHT){ if (array[y][x+1] != 0 && array[y][x+1] != n) return false; }
-		if (dir == DOWN) { if (array[y+1][x] != 0 && array[y+1][x] != n) return false; }
-		if (dir == LEFT) { if (array[y][x-1] != 0 && array[y][x-1] != n) return false; }
-	    }
+const canvas 	   = document.getElementById("canvas");
+const ctx    	   = canvas.getContext("2d");
+
+// Game variables
+var array          = [];                   // Play field
+var game_active    = false;
+var game_paused    = null;
+var lines          = 0;
+var score          = 0;
+var block_upcoming = [];                   // Next chosen blocks
+var block_history  = [];                   // History of blocks chosen
+var block_pos      = [null, null, null, null]; // Block x, y, rotation, points
+var timer          = null;                 // Main loop timer
+var animatimer     = [null, null, null];   // Timer for animations
+
+// Definitions
+const UP    = 1;
+const RIGHT = 2;
+const DOWN  = 3;
+const LEFT  = 4;
+const DROP  = 5;
+
+// Key Codes
+const SPACE  = 32;
+const LARROW = 37;
+const UARROW = 38;
+const RARROW = 39;
+const DARROW = 40;
+const I      = 73;
+const J      = 74;
+const K      = 75;
+const L      = 76;
+
+const EMPTY = -2;
+const WALL  = -1;
+var colors = [];
+gen_colors();
+
+// Rules
+const lineScores = [null, 40, 100, 300, 1200, 2600]; // score value per lines cleared
+const base_speed = 1000;
+const speedup_multiplier = .8;
+
+function hex_to_rgb(h){
+    var rgb = [0, 0, 0]
+    var bigint = parseInt(h.slice(1), 16);
+    rgb[0] = (bigint >> 16) & 255;
+    rgb[1] = (bigint >>  8) & 255;
+    rgb[2] = (bigint >>  0) & 255;
+    return rgb;
+}
+
+function rgb_to_hex(r, g, b){
+    // Make sure values aren't too large or small
+    r = r < 0 ? 0 : r;
+    g = g < 0 ? 0 : g;
+    b = b < 0 ? 0 : b;
+    r = r > 0xff ? 0xff : r;
+    g = g > 0xff ? 0xff : g;
+    b = b > 0xff ? 0xff : b;
+
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function gen_colors(){
+    for (var i=0; i<base_colors.length; i++){
+	// Convert color to RGB
+	const rgb = hex_to_rgb(base_colors[i]);
+
+	// Generate complete set
+	const offset = 0x32;
+	var color_set = [];
+	for (var n=(offset * -2); n<=(offset * 2); n+= offset){
+	    color_set.push(
+		rgb_to_hex(
+		    rgb[0] + n,
+		    rgb[1] + n,
+		    rgb[2] + n,
+		)
+	    );
 	}
+	colors.push(color_set);
     }
-
-    return true;
 }
 
 function isGameOver(){
     for (var y=0; y<5; y++){
 	for (var x=0; x<array[y].length; x++){
-	    if (array[y][x] != 0){
+	    if (array[y][x] != EMPTY){
 		return true;
 	    }
 	}
@@ -202,169 +240,305 @@ function isGameOver(){
     return false;
 }
 
-function shiftDown(n){
-    for (var y=array.length-1; y>1; y--){
-	for (var x=0; x<array[y].length; x++){
-	    if (array[y-1][x] == n){
-		array[y-1][x] = 0;
-		array[y][x] = n;
+function clearAndShift(l){
+    const game_left = left_buffer + game_border;
+    const game_right = game_left + game_width;
+    for (var i=l.length-1; i>=0; i--){
+	var y = l[i];
+	for (var y2=y; y2>top_buffer; y2--){
+	    for (var x=game_left; x<=game_right; x++){
+		array[y2][x] = array[y2-1][x];
 	    }
 	}
     }
-    return;
+
+    redraw();
+    main_loop();
 }
 
-function clear_and_shift(){
-    for (var y=array.length-2; y>5; y--){
+function animateLineClear(l, n){
+    clearTimeout(timer);
+    clearAnimationTimer(1)
+
+    if (n > 0){
+	for (var i=0; i<l.length; i++){
+	    drawBlock(ctx,
+		      [[1,1,1,1,1,1,1,1,1,1]],
+		      left_buffer + game_border,
+		      l[i],
+		      0,
+		      colors[n%2]
+		     )
+	}
+	animatimer[1] = setTimeout(function() { animateLineClear(l, n-1) }, 15);
+    } else {
+	clearAndShift(l);
+    }
+}
+
+function lookForLines(){
+    const game_left = left_buffer + game_border;
+    const game_right = game_left + game_width;
+    var lines_cleared = [];
+    for (var y=array.length-2; y>top_buffer; y--){
 	// Look at line
 	var lineFull = true;
-	for (var x=1; x<array[y].length-1; x++){
-	    if (array[y][x] == 0){
+	for (var x=game_left; x<game_right; x++){
+	    if (array[y][x] == EMPTY){
 		lineFull = false;
 		break;
 	    }
 	}
 
-	// If full, shift everything down
+	// If full lines exist, start animation
 	if (lineFull == true){
-	    for (var y2=y; y2>5; y2--){
-		for (var x=1; x<array[y].length-1; x++){
-		    array[y2][x] = array[y2-1][x];
-		}
-	    }
-	    lines += 1;
-	    y++; // Have to recheck this line!
+	    lines_cleared.push(y);
 	}
     }
-    return;
+
+    if (lines_cleared.length > 0)
+	animateLineClear(lines_cleared, 8);
+
+    return lines_cleared.length;
 }
 
-function move(n, dir){
+function placeBlock(block, pos){
+    var pos_x = pos[0];
+    var pos_y = pos[1];
+    var rot   = pos[2];
+    var color = block_history.length-1;
+
+    block = rotateArray(block, rot);
+    
+    for (var y=0; y<block.length; y++) {
+	for (var x=0; x<block[y].length; x++) {
+	    if (block[y][x] == 1) {
+		array[pos_y + y][pos_x + x] = color;
+	    }
+	}
+    }
+}
+
+function canMove(block, pos, dir){
+    var pos_x = pos[0];
+    var pos_y = pos[1];
+    var rot   = pos[2];
+
+    // Move position
+    if (dir == DOWN)  pos_y++;
+    if (dir == LEFT)  pos_x--;
+    if (dir == RIGHT) pos_x++;
+    if (dir == UP)    rot++;
+
+    // Rotate shape
+    var block_array = rotateArray(block_defs[block], rot);
+
+    // Compare against game array
+    for (var y=0; y<block_array.length; y++) {
+	for (var x=0; x<block_array[y].length; x++) {
+	    if (block_array[y][x] == 1){
+		if (array[pos_y + y][pos_x + x] != EMPTY ||
+		    pos_x+x <  left_buffer + game_border ||
+		    pos_x+x >= left_buffer + game_border + game_width){
+		    return false;
+		}
+	    }
+	}
+    }
+
+    // Can move!
+    return true;
+}
+
+function isAnimating(){
+    for (var i=0; i<animatimer.length; i++)
+	if (animatimer[i] != null) return true;
+    return false;
+}
+
+function clearAnimationTimer(n=-1){
+    // Clear all timers
+    if (n == -1) {
+	for (var i=0; i<animatimer.length; i++){
+	    clearTimeout(animatimer[i]);
+	    animatimer[i] = null;
+	}
+    } else {
+	clearTimeout(animatimer[n]);
+	animatimer[n] = null;
+    }
+}
+
+function animateDrop(block_array){
+    clearTimeout(timer);
+    clearAnimationTimer(3);
+
+    if (canMove(block_array, block_pos, DOWN) == true){
+	move(DOWN);
+	block_pos[3] += 1; // Bonus point per square for dropping fast
+	animatimer[3] = setTimeout(function() { animateDrop(block_array) }, 5);
+    } else {
+	main_loop();
+    }
+}
+
+function move(dir){
+    // Get shape template
+    var block_array = block_history[block_history.length-1]
+
     // Is valid move?
-    if (canMove(n, dir) == false)
+    if (canMove(block_array, block_pos, dir) == false)
 	return;
 
     // Actually move block
     if (dir == DOWN){
-	for (var y=array.length-1; y>1; y--){
-	    for (var x=0; x<array[y].length; x++){
-		if (array[y-1][x] == n){
-		    array[y-1][x] = 0;
-		    array[y][x] = n;
-		}
-	    }
-	}
+	block_pos[1] = block_pos[1] + 1;
+	block_pos[3] += 1 // Get point per step for slow dropping
     }
 
     if (dir == DROP){
-	while (canMove(n, DOWN) == true)
-	    move(n, DOWN);
+	block_pos[3] = 0; // only get points from where it was fast dropped
+	animateDrop(block_array);
     }
 
     if (dir == LEFT){
-	for (var y=array.length-1; y>0; y--){
-	    for (var x=0; x<array[y].length; x++){
-		if (array[y][x+1] == n){
-		    array[y][x+1] = 0;
-		    array[y][x] = n;
-		}
-	    }
-	}
+	block_pos[3] = 0; // only get points for how far it dropped without shifting
+	block_pos[0] = block_pos[0] - 1;
     }
 
     if (dir == RIGHT){
-	for (var y=array.length-1; y>0; y--){
-	    for (var x=array[y].length-1; x>1; x--){
-		if (array[y][x-1] == n){
-		    array[y][x-1] = 0;
-		    array[y][x] = n;
-		}
-	    }
-	}
+	block_pos[3] = 0; // only get points for how far it dropped without shifting
+	block_pos[0] = block_pos[0] + 1;
     }
 
-    // Can't rotate yet :(
     if (dir == UP){
-	;
+	block_pos[3] = 0; // only get points for how far it dropped without shifting
+	block_pos[2] = block_pos[2] + 1;
     }
 
     // Redraw
     redraw();
 }
 
-
 function user_move(e){
-    if (game_active == true) {
-	move(block_history.length-1, e.keyCode);
+    if (game_active == true && isAnimating() == false && game_paused == false) {
+	var direction = null;
+	switch(e.keyCode){
+	case SPACE:
+	    direction = DROP;
+	    break;
+	case LARROW:
+	case J:
+	    direction = LEFT;
+	    break;
+	case UARROW:
+	case I:
+	    direction = UP;
+	    break;
+	case RARROW:
+	case L:
+	    direction = RIGHT;
+	    break;
+	case DARROW:
+	case K:
+	    direction = DOWN;
+	    break;
+	default:
+	    return;
+	}
+	move(direction);
     }
 }
 
+function currentLevel(){
+    return Math.floor(lines/10) + 1;
+}
 
 function main_loop(){
+    // See if we are paused
+    if (game_paused == true) return;
+
+    // See if animations are going, and wait for them to finish
+    if (isAnimating() == true) return;
+
+    // Get shape template
+    var block_array = block_history[block_history.length-1];
+
     // See if a block has been placed
-    if (canMove(block_history.length-1, DOWN) == false){
-	// Look for lines to clear
-	clear_and_shift();
+    if (canMove(block_array, block_pos, DOWN) == false){
+	// Add block array to array
+	placeBlock(block_defs[block_array], block_pos);
+
+	// Look for lines to clear, Update Scores and Counts
+	var lines_cleared = lookForLines();
+	score += lineScores[lines_cleared] * currentLevel();
+	lines += lines_cleared;
+
+	// 1 point per block for distance fallen, double for fast drop
+	score += block_pos[3] > 40 ? 40 : block_pos[3];
 
 	// See if game is over
 	if (isGameOver() == true){
-	    clearTimeout(timer)
-	    game_active = false
-	    window.alert("Game Over!");
+	    clearTimeout(timer);
+	    clearAnimationTimer();
+	    game_active = false;
+	    textOverlay([["40px SegmentedAlpha","GAME OVER"],["20px Arial","Click to play again!"]]);
 	    return;
 	}
 
-	// Add a block
-	add_block();
+	// Animate blocks scrolling up
+	animateUpcomingBlocks(0);
     }
 
     // Move current block down
-    move(block_history.length-1, DOWN);
+    move(DOWN);
 
-    // Update stats someday like level, speed, etc.
-    document.getElementById("lines").innerHTML  = lines;
-    document.getElementById("blocks").innerHTML = block_history.length - 2;
+    // See if window/game lost focus, and pause
+    //if (document.activeElement == document.getElementById('myInput')) // Not working
+    if(!document.hasFocus()) pause();
 
     // Set timeout for next cycle
-    var timer = setTimeout(function() { main_loop() }, speed);
+    speed = base_speed * Math.pow(speedup_multiplier, currentLevel() -1);
+    timer = setTimeout(function() { main_loop() }, speed);
 }
 
 function add_block(){
-    // Pick a block
-    var new_block = Math.floor(Math.random() * (block_defs.length - 2)) + 2;
-    block_history.push(new_block);
+    // Set position of previous 'next' block to top, center
+    block_pos = [left_buffer + (game_width/2) - 1,
+		 top_buffer - block_defs[block_history[block_history.length-1]].length,
+		 0,
+		 0];
 
-    // Draw it in the first 5 rows
-    var block_def = block_defs[new_block];
-    for (var y=0; y<block_def.length; y++)
-	for (var x=0; x<block_def[y].length; x++)
-	    array[y][x+4] = block_def[y][x] == 1 ? block_history.length-1 : 0;
+    // Make sure there are at least 8 next blocks chosen
+    while (block_upcoming.length < 8){
+	var choose_from = document.getElementById('extra').checked ? block_defs.length - 1 : 7;
+	var new_block = Math.floor(Math.random() * choose_from) + 1;
+	block_upcoming.push(new_block);
+    }
+
+    // Move next block from block_upcoming array to block_history array
+    block_history.push(block_upcoming[0]);
+    block_upcoming = block_upcoming.slice(1);
 }
 
 function clear_screen(){
     // Setup Game field
-    var total_height = game_height + 6;
-    var total_width  = game_width + 2;
+    var total_height = game_height + top_buffer + game_border;
+    var total_width  = game_width + left_buffer + right_buffer + (2*game_border);
     canvas.height = square_size * (total_height);
     canvas.width  = square_size * (total_width);
-
-    // Setup block history
-    lines = 0;
-    block_history = [
-	0, // Background
-	1  // Border
-    ]
-
 
     // Setup Array
     array = [];
     for (var y=1; y<=total_height; y++){
 	var temp = [];
 	for (var x=1; x<=total_width; x++){
-	    if ((x == 1 || x == total_width) && y > 5 || y == total_height)
-		temp.push(1);
+	    // All the conditions for drawing our game borders
+	    if ((x == left_buffer + game_border || x == total_width - right_buffer) && y > top_buffer ||
+		(x > left_buffer && x < total_width - right_buffer && y == total_height))
+		temp.push(WALL);
 	    else
-		temp.push(0);
+		temp.push(EMPTY);
 	}
 	array.push(temp);
     }
@@ -373,47 +547,229 @@ function clear_screen(){
     return;
 }
 
-function set_focus(){
+function setFocus(){
     document.getElementById("myInput").focus()
 }
 
-function start(){
-    // Start game
-    if (game_active == false) {
-	clear_screen(); // Clear the screen
-        add_block();    // Add a piece
-	redraw();       // Draw the screen
-	game_active = true;
-	main_loop();
-    }
 
-    // Set focus to input box
-    set_focus();
+function pause(){
+    if (game_active == true && game_paused == false){
+	game_paused = true;
+	textOverlay([["48px SegmentedAlpha","PAUSED"],["20px Arial","Click to resume."]]);
+	clearTimeout(timer);
+    }
 }
 
-function redraw(){
-    var c = document.getElementById("canvas");
-    var ctx = c.getContext("2d");
+function unpause(){
+    if (game_active == true && game_paused == true){
+    	game_paused = false;
+	main_loop();
+    }
+}
 
-    // Redraw each block
-    for (var y=0; y<array.length; y++){
-	for (var x=0; x<array[y].length; x++){
-	    drawBlock(ctx, x*square_size, y*square_size, square_size,
-		      colors[block_history[array[y][x]]],
-		      y > 0                 ? array[y][x] == array[y-1][x] : false,
-		      x < array[0].length-1 ? array[y][x] == array[y][x+1] : false,
-		      y < array.length-1    ? array[y][x] == array[y+1][x] : false,
-		      x > 0                 ? array[y][x] == array[y][x-1] : false,
-		     );
+function togglePause(){
+    if (game_active == true){
+	if (game_paused == false){
+	    pause();
+	} else {
+	    unpause();
 	}
     }
 }
 
-function drawBlock(ctx, x, y, l, c, n, e, s, w){
-    const edge = Math.floor(square_size * .25);;
+function start(){
+    setFocus();    // Set focus to input box
+    togglePause();  // Toggle pause
+
+    // Start game
+    if (game_active == false) {
+	clear_screen();      // Clear the screen
+	lines = 0;
+	score = 0;
+	block_history = [0, 0];
+	block_upcoming = []; // Clear next blocks
+        add_block();         // Populate upcoming blocks
+        add_block();         // Add a piece, push up next to play field
+	redraw();            // Draw the screen
+	game_active = true;
+	game_paused = false;
+	main_loop();
+    }
+}
+
+function drawUpcomingBlocks(offset=0){
+    for (var i=0; i<7; i++){
+	var next_block = block_defs[block_upcoming[i]];
+	var next_block_height = next_block.length;
+	var next_block_width = next_block[0].length;
+	var next_block_left = Math.floor((left_buffer / 2) - (next_block_width / 2));
+	drawBlock(ctx,
+		  next_block,
+		  next_block_left,
+		  top_buffer - next_block_height + (4 * i) + offset,
+		  0,
+		  colors[block_upcoming[i]]);
+    }
+}
+
+function animateUpcomingBlocks(n){
+    clearTimeout(timer);
+    clearAnimationTimer(2);
+
+    // Clear left section
+    ctx.fillStyle = "#222222";
+    ctx.fillRect(0, 0, left_buffer * square_size, canvas.height);
+
+    if (n > -5){
+	drawUpcomingBlocks(n);
+	n--;
+	animatimer[2] = setTimeout(function() { animateUpcomingBlocks(n) }, 20);
+    } else {
+	add_block(); // Add a block
+	main_loop(); // Kickstart loop again 
+    }
+}
+
+function redraw(){
+    // Draw black background
+    ctx.fillStyle = "#222222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#000000";
+    ctx.fillRect((left_buffer + game_border)*square_size, 0, game_width*square_size, canvas.height);
+
+    // Redraw each block in game array
+    for (var y=0; y<array.length; y++){
+	for (var x=0; x<array[y].length; x++){
+	    if (array[y][x] == EMPTY) continue;
+	    var color_set = colors[block_history[array[y][x]]];
+	    if (array[y][x] == WALL) color_set = colors[0];
+	    drawChisledBrick(ctx, x*square_size, y*square_size, square_size,
+			     color_set,
+			     y > 0                 ? array[y][x] == array[y-1][x] : false,
+			     x < array[0].length-1 ? array[y][x] == array[y][x+1] : false,
+			     y < array.length-1    ? array[y][x] == array[y+1][x] : false,
+			     x > 0                 ? array[y][x] == array[y][x-1] : false,
+			    );
+	}
+    }
+
+    if (block_history.length < 4)
+	return;
+
+    // Draw upcoming blocks
+    drawUpcomingBlocks();
+
+    // Draw current block
+    var this_block_index = block_history[block_history.length-1];
+    var this_block = block_defs[this_block_index];
+    var this_block_height = this_block.length;
+    var this_block_width = this_block[0].length;
+
+    // Ghost block
+    if (document.getElementById("ghost").checked == true){
+	// Get lowest it can go
+	var ghost_pos = block_pos.slice();
+	while (canMove(this_block_index, ghost_pos, DOWN) == true)
+	    ghost_pos[1]++;
+	drawBlock(ctx, this_block, block_pos[0], ghost_pos[1], block_pos[2], colors[this_block_index], 2, true);
+    }
+
+    // Draw current block last so it's always on top
+    drawBlock(ctx, this_block, block_pos[0], block_pos[1], block_pos[2], colors[this_block_index]);
+
+    drawGameInformation();
+}
+function drawGameInformation(){
+    // Draw game information
+    var y = canvas.height/2;
+    var ralign = canvas.width - (square_size * 2);
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#CCCCCC";
+    ctx.font = "18px Arial";
+    ctx.fillText("Score",	 ralign, y);
+    ctx.fillText("Lines",	 ralign, y+60);
+    ctx.fillText("Level",	 ralign, y+120);
+    ctx.fillStyle = "#00CC00";
+    ctx.font = "28px Segmented";
+    ctx.fillText(score,		 ralign, y+30);
+    ctx.fillText(lines,		 ralign, y+90);
+    ctx.fillText(currentLevel(), ralign, y+150);
+}
+
+function rotateArray(a, n){
+    rotated = a.slice(); // Copies the array
     
+    for (var rotate=0; rotate<n; rotate++){
+	// Create new array of the same size
+	var tmp = [];
+	for (var y=0; y<a.length; y++){
+	    var t_row = [];
+	    for (var x=0; x<a[y].length; x++){
+		t_row.push(0);
+	    }
+	    tmp.push(t_row);
+	}
+	
+	// Copy data to new, empty array
+	for (var y=0; y<a.length; y++){
+	    for (var x=0; x<a[y].length; x++){
+		tmp[y][x] = rotated[x][a.length-y-1];
+	    }
+	}
+
+	// Overwrite rotated array
+	rotated = tmp.slice();
+    }
+    return rotated;
+}
+
+function drawBlock(ctx, def, bx, by, r, c, edge=-1, outline=false){
+    // rotate block array
+    var block = rotateArray(def, r);;
+    var width = def[0].length;
+    var height = def.length;
+
+    for (var y=0; y<height; y++){
+	for (var x=0; x<width; x++){
+	    if (block[y][x] == 1){
+		drawChisledBrick(ctx,
+				 square_size * (bx + x),
+				 square_size * (by + y),
+				 square_size,
+				 c,
+				 y > 0                 ? block[y][x] == block[y-1][x] : false,
+				 x < block[0].length-1 ? block[y][x] == block[y][x+1] : false,
+				 y < block.length-1    ? block[y][x] == block[y+1][x] : false,
+				 x > 0                 ? block[y][x] == block[y][x-1] : false,
+				 edge,
+				 outline,
+				)
+	    }
+	}
+    }
+    
+}
+
+function drawChisledBrick(ctx, x, y, l, c, n, e, s, w, edge=-1, outline=false){
+    if (edge < 0)
+	edge = Math.floor(square_size * .25);
+
+    // Define colors
+    var c_lightest = c[4];
+    var c_light    = c[3];
+    var c_normal   = c[2];
+    var c_dark     = c[1];
+    var c_darkest  = c[0];
+    if (outline == true){
+	var c_lightest = c[2];
+	var c_light    = c[2];
+	var c_normal   = "rgba(0,0,0,0)";
+	var c_dark     = c[2];
+	var c_darkest  = c[2];
+    }
+
     // Fill in background color
-    ctx.fillStyle = c[2];
+    ctx.fillStyle = c_normal;
     ctx.fillRect(x, y, l, l);
 
     // North Edge
@@ -429,7 +785,7 @@ function drawBlock(ctx, x, y, l, c, n, e, s, w){
 	else
 	    ctx.lineTo(x+l-edge, y+edge);
 	ctx.lineTo(x+l, y);
-	ctx.fillStyle = c[4];
+	ctx.fillStyle = c_lightest;
 	ctx.fill();
     }
 
@@ -446,7 +802,7 @@ function drawBlock(ctx, x, y, l, c, n, e, s, w){
 	else
 	    ctx.lineTo(x+edge, y+l-edge);
 	ctx.lineTo(x, y+l);
-	ctx.fillStyle = c[3];
+	ctx.fillStyle = c_light;
 	ctx.fill();
     }
 
@@ -463,7 +819,7 @@ function drawBlock(ctx, x, y, l, c, n, e, s, w){
 	else
 	    ctx.lineTo(x+l-edge, y+l-edge);
 	ctx.lineTo(x+l, y+l);
-	ctx.fillStyle = c[1];
+	ctx.fillStyle = c_dark;
 	ctx.fill();
     }
 
@@ -480,77 +836,132 @@ function drawBlock(ctx, x, y, l, c, n, e, s, w){
 	else
 	    ctx.lineTo(x+l-edge, y+l-edge);
 	ctx.lineTo(x+l, y+l);
-	ctx.fillStyle = c[0];
+	ctx.fillStyle = c_darkest;
 	ctx.fill();
     }
 
     // NW Corner
     if (n == true && w == true){
-	ctx.beginPath();
-	ctx.moveTo(x, y);
-	ctx.lineTo(x+edge, y);
-	ctx.lineTo(x+edge, y+edge);
-	ctx.fillStyle = c[3];
-	ctx.fill();
-	ctx.beginPath();
-	ctx.moveTo(x, y);
-	ctx.lineTo(x, y+edge);
-	ctx.lineTo(x+edge, y+edge);
-	ctx.fillStyle = c[4];
-	ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x+edge, y);
+        ctx.lineTo(x+edge, y+edge);
+        ctx.fillStyle = c_light;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y+edge);
+        ctx.lineTo(x+edge, y+edge);
+        ctx.fillStyle = c_lightest;
+        ctx.fill();
     }
 
     // NE Corner
     if (n == true && e == true){
-	ctx.beginPath();
-	ctx.moveTo(x+l, y);
-	ctx.lineTo(x+l-edge, y);
-	ctx.lineTo(x+l-edge, y+edge);
-	ctx.fillStyle = c[1];
-	ctx.fill();
-	ctx.beginPath();
-	ctx.moveTo(x+l, y);
-	ctx.lineTo(x+l, y+edge);
-	ctx.lineTo(x+l-edge, y+edge);
-	ctx.fillStyle = c[4];
-	ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x+l, y);
+        ctx.lineTo(x+l-edge, y);
+        ctx.lineTo(x+l-edge, y+edge);
+        ctx.fillStyle = c_dark;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x+l, y);
+        ctx.lineTo(x+l, y+edge);
+        ctx.lineTo(x+l-edge, y+edge);
+        ctx.fillStyle = c_lightest;
+        ctx.fill();
     }
 
     // SW Corner
     if (s == true && w == true){
-	ctx.beginPath();
-	ctx.moveTo(x, y+l);
-	ctx.lineTo(x+edge, y+l);
-	ctx.lineTo(x+edge, y+l-edge);
-	ctx.fillStyle = c[3];
-	ctx.fill();
-	ctx.beginPath();
-	ctx.moveTo(x, y+l);
-	ctx.lineTo(x, y+l-edge);
-	ctx.lineTo(x+edge, y+l-edge);
-	ctx.fillStyle = c[0];
-	ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y+l);
+        ctx.lineTo(x+edge, y+l);
+        ctx.lineTo(x+edge, y+l-edge);
+        ctx.fillStyle = c[3];
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y+l);
+        ctx.lineTo(x, y+l-edge);
+        ctx.lineTo(x+edge, y+l-edge);
+        ctx.fillStyle = c_darkest;
+        ctx.fill();
     }
 
     // SE Corner
     if (s == true && e == true){
-	ctx.beginPath();
-	ctx.moveTo(x+l, y+l);
-	ctx.lineTo(x+l-edge, y+l);
-	ctx.lineTo(x+l-edge, y+l-edge);
-	ctx.fillStyle = c[1];
-	ctx.fill();
-	ctx.beginPath();
-	ctx.moveTo(x+l, y+l);
-	ctx.lineTo(x+l, y+l-edge);
-	ctx.lineTo(x+l-edge, y+l-edge);
-	ctx.fillStyle = c[0];
-	ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x+l, y+l);
+        ctx.lineTo(x+l-edge, y+l);
+        ctx.lineTo(x+l-edge, y+l-edge);
+        ctx.fillStyle = c_dark;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x+l, y+l);
+        ctx.lineTo(x+l, y+l-edge);
+        ctx.lineTo(x+l-edge, y+l-edge);
+        ctx.fillStyle = c_darkest;
+        ctx.fill();
     }
+}
 
+function textOverlay(string_array){
+    ctx.fillStyle = "rgba(0,0,0,.5)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    var y = canvas.height/2;
+    for (var i=0; i<string_array.length; i++){
+	ctx.font = string_array[i][0];
+	ctx.fillText(string_array[i][1], canvas.width/2, y);
+	y += 32;
+    }
+}
+
+function testShapes(){
+    clear_screen();
+    var test=[
+	[-1,-1,-1,-1,15,-1,-1,-1,-1,-1],
+	[-1,-1,11,15,15,-1,-1,-1,22,-1],
+	[-1,-1,11,11,15,15,-1,22,22,22],
+	[-1,10,11,23,23,23,-1,14,22,27],
+	[-1,10,11,23,21,23,14,14,14,27],
+	[-1,10,10,21,21,20,20,20,14,27],
+	[-1,10,21,21,29,20,26,26,19,19],
+	[24,24,24,24,24,20,26,19,19,19],
+	[ 7, 5,25,25,25, 4, 4, 4, 2, 3],
+	[ 7, 5, 5,25,18,18, 4, 2, 2, 3],
+	[ 7, 7, 5,25,18,18,18, 2, 3, 3],
+	[ 9,16,28,28, 1, 1, 1, 1,17, 8],
+	[ 9,16,13,13, 6, 6,12,12,17, 8],
+	[ 9,16,16,13, 6, 6,12,17,17, 8],
+	[ 9, 9,16,13,13,12,12,17, 8, 8],
+    ];
+
+    for (var y=test.length-1; y>=0; y--){
+	for (var x=0; x<test[y].length; x++){
+	    if (test[y][x] == -1) continue;
+	    var color_set = colors[test[y][x]];
+	    drawChisledBrick(ctx,
+			     (x + left_buffer + game_border) * square_size,
+			     (y + top_buffer + 5) * square_size,
+			     square_size,
+			     color_set,
+			     y > 0                ? test[y][x] == test[y-1][x] : false,
+			     x < test[0].length-1 ? test[y][x] == test[y][x+1] : false,
+			     y < test.length-1    ? test[y][x] == test[y+1][x] : false,
+			     x > 0                ? test[y][x] == test[y][x-1] : false,
+			     edge = 2,
+			     true
+			    );
+	}
+    }
 }
 
 clear_screen();
+//testShapes();
+textOverlay([["32px SegmentedAlpha","Click to start!"]]);
 
     </script>
   </body>
