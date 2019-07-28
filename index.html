@@ -191,7 +191,7 @@ var block_defs = {
     // Diominoe
     TinyI : {
 	shape : [[0,0], [1,1]],
-	rotations : 1,
+	rotations : 2,
 	color : { r:0xFF, g:0x66, b:0xB2 }, // Dark Blue
 	
     },
@@ -256,8 +256,6 @@ const g_key  = 71;
 const p_key  = 80;
 
 const EMPTY = -2;
-const WALL  = -1;
-var colors = [];
 
 // Rules
 const lineScores = [null, 40, 100, 300, 1200, 2600]; // score value per lines cleared
@@ -297,12 +295,11 @@ function animateLineClear(l, n){
     if (n > 0){
 	for (var i=0; i<l.length; i++){
 	    drawBlock(ctx,
-		      [[1,1,1,1,1,1,1,1,1,1]],
+		      { shape : [[1,1,1,1,1,1,1,1,1,1]],
+			color : [{r:0xff,g:0,b:0},{r:0,g:0xff,b:0},{r:0,g:0,b:0xff},][n%3]},
 		      left_buffer + game_border,
 		      l[i],
-		      0,
-		      [block_defs.L.color, block_defs.S.color][n%2]
-		     )
+		      0)
 	}
 	animatimer[1] = setTimeout(function() { animateLineClear(l, n-1) }, 15);
     } else {
@@ -351,7 +348,7 @@ function placeBlock(block, pos){
     }
 }
 
-function canMove(block_array, pos, dir){
+function canMove(block, pos, dir){
     var pos_x = pos[0];
     var pos_y = pos[1];
     var rot   = pos[2];
@@ -363,7 +360,7 @@ function canMove(block_array, pos, dir){
     if (dir == UP)    rot++;
 
     // Rotate
-    var block_array = rotateArray(block_array, rot);
+    var block_array = rotateArray(block, rot);
 
     for (var y=0; y<block_array.length; y++) {
 	for (var x=0; x<block_array[y].length; x++) {
@@ -403,14 +400,14 @@ function clearAnimationTimer(n=-1){
     }
 }
 
-function animateDrop(block_array){
+function animateDrop(block){
     clearTimeout(timer);
     clearAnimationTimer(3);
 
-    if (canMove(block_array, block_pos, DOWN) == true){
+    if (canMove(block, block_pos, DOWN) == true){
 	move(DOWN);
 	block_pos[3] += 1; // Bonus point per square for dropping fast
-	animatimer[3] = setTimeout(function() { animateDrop(block_array) }, 5);
+	animatimer[3] = setTimeout(function() { animateDrop(block) }, 5);
     } else {
 	main_loop();
     }
@@ -418,10 +415,10 @@ function animateDrop(block_array){
 
 function move(dir){
     // Get shape template
-    var block_array = block_history[block_history.length-1].shape;
+    var thisBlock = block_history[block_history.length-1];
 
     // Is valid move?
-    if (canMove(block_array, block_pos, dir) == false)
+    if (canMove(thisBlock, block_pos, dir) == false)
 	return;
 
     // Actually move block
@@ -432,7 +429,7 @@ function move(dir){
 
     if (dir == DROP){
 	block_pos[3] = 0; // only get points from where it was fast dropped
-	animateDrop(block_array);
+	animateDrop(thisBlock);
     }
 
     if (dir == LEFT){
@@ -524,12 +521,12 @@ function main_loop(){
     if (isAnimating() == true) return;
 
     // Get shape template
-    var block_array = block_history[block_history.length-1].shape;
+    var block = block_history[block_history.length-1];
 
     // See if a block has been placed
-    if (canMove(block_array, block_pos, DOWN) == false){
+    if (canMove(block, block_pos, DOWN) == false){
 	// Add block array to array
-	placeBlock(block_array, block_pos);
+	placeBlock(block, block_pos);
 
 	// Look for lines to clear, Update Scores and Counts
 	var lines_cleared = lookForLines();
@@ -691,11 +688,10 @@ function drawUpcomingBlocks(offset=0){
 	var next_block_width = next_block.shape[0].length;
 	var next_block_left = Math.floor((left_buffer / 2) - (next_block_width / 2));
 	drawBlock(ctx,
-		  next_block.shape,
+		  next_block,
 		  next_block_left,
 		  top_buffer - next_block_height + (4 * i) + offset,
-		  0,
-		  next_block.color);
+		  0);
     }
 }
 
@@ -766,13 +762,13 @@ function redraw(){
     if (showGhostBlock == true){
 	// Get lowest it can go
 	var ghost_pos = block_pos.slice();
-	while (canMove(this_block.shape, ghost_pos, DOWN) == true)
+	while (canMove(this_block, ghost_pos, DOWN) == true)
 	    ghost_pos[1]++;
-	drawBlockInGameField(ctx, this_block.shape, block_pos[0], ghost_pos[1], block_pos[2], this_block.color, 2, true);
+	drawBlockInGameField(ctx, this_block, block_pos[0], ghost_pos[1], block_pos[2], 2, true);
     }
 
     // Draw current block last so it's always on top
-    drawBlockInGameField(ctx, this_block.shape, block_pos[0], block_pos[1], block_pos[2], this_block.color);
+    drawBlockInGameField(ctx, this_block, block_pos[0], block_pos[1], block_pos[2]);
 
     drawGameInformation();
 }
@@ -821,42 +817,47 @@ function drawGameInformation(){
 }
 
 function rotateArray(a, n){
-    rotated = a.slice(); // Copies the array
-    
-    for (var rotate=0; rotate<n; rotate++){
+    var rotated = a.shape.slice(); // Copies the array
+    const height = rotated[0].length;;
+    const width = rotated.length;
+    const rotation = n % a.rotations;
+
+    for (var rotate=0; rotate<rotation; rotate++){
 	// Create new array of the same size
 	var tmp = [];
-	for (var y=0; y<a.length; y++){
+	for (var y=0; y<height; y++){
 	    var t_row = [];
-	    for (var x=0; x<a[y].length; x++){
+	    for (var x=0; x<width; x++){
 		t_row.push(0);
 	    }
 	    tmp.push(t_row);
 	}
 	
 	// Copy data to new, empty array
-	for (var y=0; y<a.length; y++){
-	    for (var x=0; x<a[y].length; x++){
-		tmp[y][x] = rotated[x][a.length-y-1];
+	for (var y=0; y<height; y++){
+	    for (var x=0; x<width; x++){
+		tmp[y][x] = rotated[x][height-y-1];
 	    }
 	}
 
 	// Overwrite rotated array
 	rotated = tmp.slice();
     }
+
     return rotated;
 }
 
-function drawBlockInGameField(ctx, def, bx, by, r, c, edge=-1, outline=false){
+function drawBlockInGameField(ctx, def, bx, by, r, edge=-1, outline=false){
     // offset so it draws on the game board
-    drawBlock(ctx, def, left_buffer + game_border + bx, by, r, c, edge, outline);
+    drawBlock(ctx, def, left_buffer + game_border + bx, by, r, edge, outline);
 }
 
-function drawBlock(ctx, def, bx, by, r, c, edge=-1, outline=false){
+function drawBlock(ctx, def, bx, by, r, edge=-1, outline=false){
     // rotate block array
     var block = rotateArray(def, r);;
-    var width = def[0].length;
-    var height = def.length;
+    var width = def.shape[0].length;
+    var height = def.shape.length;
+    var color = def.color;
 
     for (var y=0; y<height; y++){
 	for (var x=0; x<width; x++){
@@ -865,7 +866,7 @@ function drawBlock(ctx, def, bx, by, r, c, edge=-1, outline=false){
 				 (bx + x),
 				 (by + y),
 				 square_size,
-				 c,
+				 color,
 				 y > 0                 ? block[y][x] == block[y-1][x] : false,
 				 x < block[0].length-1 ? block[y][x] == block[y][x+1] : false,
 				 y < block.length-1    ? block[y][x] == block[y+1][x] : false,
@@ -1054,8 +1055,11 @@ function drawChisledBrick(ctx, x, y, l, c, n, e, s, w, edge=-1, outline=false){
 }
 
 function textOverlay(string_array){
-    ctx.fillStyle = "rgba(0,0,0,.5)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(0,0,0,.7)";
+    ctx.fillRect((left_buffer + game_border) * square_size,
+		 0,
+		 game_width * square_size,
+		 (top_buffer + game_height) * square_size);
 
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
