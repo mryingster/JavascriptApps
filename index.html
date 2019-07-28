@@ -207,7 +207,7 @@ var block_defs = {
 // Game dimensions
 const game_width   = 10
 const game_height  = 20;
-const square_size  = 20;
+const square_size  = 30;
 const top_buffer   = 5; // Space for spawning new blocks
 const left_buffer  = 7; // Space for next block
 const right_buffer = 7; // Space for next block
@@ -774,45 +774,48 @@ function redraw(){
 }
 
 function drawGameInformation(){
-    // Clear section
-    // Draw black background
+    // Clear section and Draw black background
     ctx.fillStyle = "#222222";
     ctx.fillRect(canvas.width-(right_buffer*square_size), 0, right_buffer*square_size, canvas.height);
-    
+
+    // Set up spacing based on canvas size
     var ralign = canvas.width - (square_size * 1);
+    var label_size = Math.floor(canvas.width / 28);
+    var digit_size = Math.floor(canvas.width / 18);
+    var alpha_size = Math.floor(canvas.width / 21);
+    var line_spacing = Math.floor(canvas.width / 18);
 
     // Draw game information
     var y = top_buffer * square_size + 18;
     ctx.textAlign = "right";
     ctx.fillStyle = "#CCCCCC";
-    ctx.font = "18px Arial";
-    ctx.fillText("Score",	 ralign, y);
-    ctx.fillText("Lines",	 ralign, y+60);
-    ctx.fillText("Level",	 ralign, y+120);
-    ctx.fillText("Extra Pieces",	 ralign, y+180);
-    ctx.fillText("Ghost Block",	 ralign, y+240);
+    ctx.font = label_size + "px Arial";
+    ctx.fillText("Score",	 ralign, y + (0 * line_spacing));
+    ctx.fillText("Lines",	 ralign, y + (2 * line_spacing));
+    ctx.fillText("Level",	 ralign, y + (4 * line_spacing));
+    ctx.fillText("Extra Pieces", ralign, y + (6 * line_spacing));
+    ctx.fillText("Ghost Block",	 ralign, y + (8 * line_spacing));
     ctx.fillStyle = "#00CC00";
-    ctx.font = "28px Segmented";
-    ctx.fillText(score,		 ralign, y+30);
-    ctx.fillText(lines,		 ralign, y+90);
-    ctx.fillText(currentLevel(), ralign, y+150);
-    ctx.font = "24px SegmentedAlpha";
-    ctx.fillText(useExtraPieces== true ? "Enabled" : "Disabled", ralign, y+210);
-    ctx.fillText(showGhostBlock == true ? "Enabled" : "Disabled", ralign, y+270);
-
-    // Draw settings
+    ctx.font = digit_size + "px Segmented";
+    ctx.fillText(score,		 ralign, y + (1 * line_spacing));
+    ctx.fillText(lines,		 ralign, y + (3 * line_spacing));
+    ctx.fillText(currentLevel(), ralign, y + (5 * line_spacing));
+    ctx.font = alpha_size + "px SegmentedAlpha";
+    ctx.fillText(useExtraPieces == true ? "Enabled" : "Disabled", ralign, y + (7 * line_spacing));
+    ctx.fillText(showGhostBlock == true ? "Enabled" : "Disabled", ralign, y + (9 * line_spacing));
 
     // Draw help information
     y = canvas.height - square_size - 10
+    var note_spacing = canvas.width / 43;
     ctx.fillStyle = "#CCCCCC";
-    ctx.font = "Italic 11px Arial";
-    ctx.fillText("(n) New Game",       ralign, y-72);
-    ctx.fillText("(arrows) Move",       ralign, y-60);
-    ctx.fillText("(up arrow) Rotate",   ralign, y-48);
-    ctx.fillText("(space) Drop",        ralign, y-36);
-    ctx.fillText("(p) Pause",           ralign, y-24);
-    ctx.fillText("(e) Extra Pieces",    ralign, y-12);
-    ctx.fillText("(g) Ghost Mode",      ralign, y-0);
+    ctx.font = "Italic " + canvas.width / 50 + "px Arial";
+    ctx.fillText("(n) New Game",        ralign, y - (6 * note_spacing));
+    ctx.fillText("(arrows) Move",       ralign, y - (5 * note_spacing));
+    ctx.fillText("(up arrow) Rotate",   ralign, y - (4 * note_spacing));
+    ctx.fillText("(space) Drop",        ralign, y - (3 * note_spacing));
+    ctx.fillText("(p) Pause",           ralign, y - (2 * note_spacing));
+    ctx.fillText("(e) Extra Pieces",    ralign, y - (1 * note_spacing));
+    ctx.fillText("(g) Ghost Mode",      ralign, y - (0 * note_spacing));
 
 }
 
