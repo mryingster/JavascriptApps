@@ -105,7 +105,7 @@ const block_defs = {
     BigS : {
 	shape : [[1,0,0], [1,1,1], [0,0,1]],
 	rotations : 4,
-	color : { r:0x00, g:0xff, b:0x91 }, // Teal
+	color : { r:0x00, g:0xbb, b:0x88 }, // Teal
     },
     BigZ : {
 	shape : [[0,0,1], [1,1,1], [1,0,0]],
@@ -281,19 +281,15 @@ function clearAndShift(l){
 	    }
 	}
     }
-
-    redraw();
-    main_loop();
 }
 
 function animateLineClear(l, n){
-    clearTimeout(timer);
     clearAnimationTimer(1)
 
     if (n > 0){
 	for (var i=0; i<l.length; i++){
 	    drawBlock(ctx,
-		      { shape : [[1,1,1,1,1,1,1,1,1,1]],
+		      { shape : [[1,2,1,2,1,2,1,2,1,2]],
 			color : [{r:0xff,g:0,b:0},{r:0,g:0xff,b:0},{r:0,g:0,b:0xff},][n%3]},
 		      left_buffer + game_border,
 		      l[i],
@@ -399,15 +395,12 @@ function clearAnimationTimer(n=-1){
 }
 
 function animateDrop(block){
-    clearTimeout(timer);
     clearAnimationTimer(3);
 
     if (canMove(block, block_pos, DOWN) == true){
 	move(DOWN);
 	block_pos[3] += 1; // Bonus point per square for dropping fast
 	animatimer[3] = setTimeout(function() { animateDrop(block) }, 5);
-    } else {
-	main_loop();
     }
 }
 
@@ -428,6 +421,9 @@ function move(dir){
     if (dir == DROP){
 	block_pos[3] = 0; // only get points from where it was fast dropped
 	animateDrop(thisBlock);
+	// Call mainloop now so it registers the block
+	clearTimeout(timer)
+	main_loop();
     }
 
     if (dir == LEFT){
@@ -446,7 +442,8 @@ function move(dir){
     }
 
     // Redraw
-    redraw();
+    redrawGameField();
+    redrawCurrentBlock();
 }
 
 function toggleGhostMode(){
@@ -515,14 +512,29 @@ function main_loop(){
     // See if we are paused
     if (game_paused == true) return;
 
+    ctx.fillStyle = "#222222";
+    ctx.fillRect(canvas.width-(right_buffer*square_size), canvas.height-20, right_buffer*square_size, canvas.height);
     // See if animations are going, and wait for them to finish
-    if (isAnimating() == true) return;
+    if (isAnimating() == true){
+	ctx.font = "12px SegmentedAlpha";
+	ctx.fillStyle = "#ff0000";
+	ctx.fillText("animating", canvas.width - 10, canvas.height-10);
+	clearTimeout(timer);
+	timer = setTimeout(function() { main_loop() }, 10);
+	return;
+    }
 
     // Get shape template
     var block = block_history[block_history.length-1];
 
+    // Set timeout for next cycle
+    speed = base_speed * Math.pow(speedup_multiplier, currentLevel() -1);
+
     // See if a block has been placed
     if (canMove(block, block_pos, DOWN) == false){
+	// Set speed to 0 so we don't wait for an entire cycle to show new block
+	speed = 0;
+
 	// Add block array to array
 	placeBlock(block, block_pos);
 
@@ -533,6 +545,10 @@ function main_loop(){
 
 	// 1 point per block for distance fallen, double for fast drop
 	score += block_pos[3] > 40 ? 40 : block_pos[3];
+	drawGameInformation();
+
+	// Animate blocks scrolling up
+	animateUpcomingBlocks(0);
 
 	// See if game is over
 	if (isGameOver() == true){
@@ -542,9 +558,6 @@ function main_loop(){
 	    textOverlay([["40px SegmentedAlpha","GAME OVER"],["20px Arial","Click to play again!"]]);
 	    return;
 	}
-
-	// Animate blocks scrolling up
-	animateUpcomingBlocks(0);
     }
 
     // Move current block down
@@ -554,8 +567,7 @@ function main_loop(){
     //if (document.activeElement == document.getElementById('myInput')) // Not working
     if(!document.hasFocus()) pause();
 
-    // Set timeout for next cycle
-    speed = base_speed * Math.pow(speedup_multiplier, currentLevel() -1);
+    // Set timer
     timer = setTimeout(function() { main_loop() }, speed);
 }
 
@@ -599,7 +611,7 @@ function add_block(){
     // Set position of previous 'next' block to top, center
     var this_block = block_history[block_history.length-1];
     block_pos = [(game_width/2) - 1,
-		 top_buffer - this_block.shape.length,
+		 top_buffer - this_block.shape.length - 1,
 		 0,
 		 0];
 
@@ -685,6 +697,10 @@ function start(){
 }
 
 function drawUpcomingBlocks(offset=0){
+    // Clear left section
+    ctx.fillStyle = "#222222";
+    ctx.fillRect(0, 0, left_buffer * square_size, canvas.height);
+
     for (var i=0; i<7; i++){
 	var next_block = block_upcoming[i];
 	var next_block_height = next_block.shape.length;
@@ -699,24 +715,29 @@ function drawUpcomingBlocks(offset=0){
 }
 
 function animateUpcomingBlocks(n){
-    clearTimeout(timer);
     clearAnimationTimer(2);
-
-    // Clear left section
-    ctx.fillStyle = "#222222";
-    ctx.fillRect(0, 0, left_buffer * square_size, canvas.height);
 
     if (n > -5){
 	drawUpcomingBlocks(n);
 	n--;
 	animatimer[2] = setTimeout(function() { animateUpcomingBlocks(n) }, 20);
     } else {
-	add_block(); // Add a block
-	main_loop(); // Kickstart loop again 
+	// Finally, add a block
+	add_block();
+	// and redraw to remove the added block from left side
+	drawUpcomingBlocks(0);
     }
 }
 
 function redrawGameField(){
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(
+	square_size * (left_buffer + game_border),
+	0,
+	square_size * (game_width),
+	square_size * (top_buffer + game_height)
+    );
+
     for (var y=0; y<array.length; y++){
 	for (var x=0; x<array[y].length; x++){
 	    if (array[y][x] == EMPTY) continue;
@@ -731,7 +752,23 @@ function redrawGameField(){
     }
 }
 
-function redraw(){
+function redrawCurrentBlock(){
+    var this_block = block_history[block_history.length-1];
+
+    // Ghost block
+    if (showGhostBlock == true){
+	// Get lowest it can go
+	var ghost_pos = block_pos.slice();
+	while (canMove(this_block, ghost_pos, DOWN) == true)
+	    ghost_pos[1]++;
+	drawBlockInGameField(ctx, this_block, block_pos[0], ghost_pos[1], block_pos[2], 2, true);
+    }
+
+    // Draw current block last so it's always on top
+    drawBlockInGameField(ctx, this_block, block_pos[0], block_pos[1], block_pos[2]);
+}
+
+function redrawBackground(){
     // Draw black background
     ctx.fillStyle = "#222222";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -749,11 +786,14 @@ function redraw(){
 				 y == game_height ? false : true,
 				 y < game_height || y == game_height && x == 0 ? false : true,
 				);
+}
+
+function redraw(){
+    // Redraw background
+    redrawBackground();
 
     // Draw each block in game field
     redrawGameField();
-
-    //if (game_active == false) return;
 
     // Draw upcoming blocks
     if (block_upcoming.length > 0)
@@ -761,20 +801,10 @@ function redraw(){
 
     // Draw current block
     if (game_active == true) {
-	var this_block = block_history[block_history.length-1];
-
-	// Ghost block
-	if (showGhostBlock == true){
-	    // Get lowest it can go
-	    var ghost_pos = block_pos.slice();
-	    while (canMove(this_block, ghost_pos, DOWN) == true)
-		ghost_pos[1]++;
-	    drawBlockInGameField(ctx, this_block, block_pos[0], ghost_pos[1], block_pos[2], 2, true);
-	}
-
-	// Draw current block last so it's always on top
-	drawBlockInGameField(ctx, this_block, block_pos[0], block_pos[1], block_pos[2]);
+	redrawCurrentBlock();
     }
+
+    // Draw right hand side
     drawGameInformation();
 }
 
@@ -878,7 +908,7 @@ function drawBlock(ctx, def, bx, by, r, edge=-1, outline=false){
 
     for (var y=0; y<height; y++){
 	for (var x=0; x<width; x++){
-	    if (block[y][x] == 1){
+	    if (block[y][x] > 0){
 		drawChisledBrick(ctx,
 				 (bx + x),
 				 (by + y),
