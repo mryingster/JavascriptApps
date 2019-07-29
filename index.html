@@ -210,7 +210,7 @@ const top_buffer   = 5; // Space for spawning new blocks
 const left_buffer  = 7; // Space for next block
 const right_buffer = 7; // Space for next block
 const game_border  = 1; // Border width around play area
-
+var   debug        = false;
 const startingBlocks = ['I', 'L', 'J', 'T'];
 
 const canvas 	   = document.getElementById("canvas");
@@ -252,8 +252,9 @@ const n_key  = 78;
 const e_key  = 69;
 const g_key  = 71;
 const p_key  = 80;
-
-const EMPTY = -2;
+const d_key  = 68;
+const q_key  = 81;
+const EMPTY  = -2;
 
 // Rules
 const lineScores = [null, 40, 100, 300, 1200, 2600]; // score value per lines cleared
@@ -446,6 +447,13 @@ function move(dir){
     redrawCurrentBlock();
 }
 
+function toggleDebugMode(){
+    if (debug == true)
+	debug = false;
+    else
+	debug = true;
+}
+
 function toggleGhostMode(){
     if (showGhostBlock == true)
 	showGhostBlock = false;
@@ -463,40 +471,64 @@ function toggleExtraPieces(){
 }
 
 function user_move(e){
-    if (game_active == false && e.keyCode == n_key)
-	start();
+    // Switch for general commands
+    switch (e.keyCode){
+    case n_key:
+	if (game_active == false)
+	    start();
+	break;
 
-    if (e.keyCode == g_key)
+    case g_key:
 	toggleGhostMode();
+	break;
 
-    if (game_active == false && e.keyCode == e_key)
-	toggleExtraPieces();
+    case d_key:
+	toggleDebugMode();
+	break
 
-    if (game_active == true && e.keyCode == p_key)
-	togglePause();
+    case e_key:
+	if (game_active == false)
+	    toggleExtraPieces();
+	break;
 
+    case p_key:
+	if (game_active == true)
+	    togglePause();
+	break;
+
+    case q_key:
+	endGame();
+	break;
+    }
+
+    // Switch for movement commands
     if (game_active == true && isAnimating() == false && game_paused == false) {
 	var direction = null;
 	switch(e.keyCode){
 	case SPACE:
 	    direction = DROP;
 	    break;
+
 	case LARROW:
 	case j_key:
 	    direction = LEFT;
 	    break;
+
 	case UARROW:
 	case i_key:
 	    direction = UP;
 	    break;
+
 	case RARROW:
 	case l_key:
 	    direction = RIGHT;
 	    break;
+
 	case DARROW:
 	case k_key:
 	    direction = DOWN;
 	    break;
+
 	default:
 	    return;
 	}
@@ -508,17 +540,28 @@ function currentLevel(){
     return Math.floor(lines/10) + 1;
 }
 
+function endGame(){
+    clearTimeout(timer);
+    clearAnimationTimer();
+    game_active = false;
+    textOverlay([["40px SegmentedAlpha","GAME OVER"],["20px Arial","Click to play again!"]]);
+}
+
 function main_loop(){
     // See if we are paused
     if (game_paused == true) return;
 
-    ctx.fillStyle = "#222222";
-    ctx.fillRect(canvas.width-(right_buffer*square_size), canvas.height-20, right_buffer*square_size, canvas.height);
+    if (debug == true){
+	ctx.fillStyle = "#222222";
+	ctx.fillRect(canvas.width-(right_buffer*square_size), canvas.height-20, right_buffer*square_size, canvas.height);
+    }
     // See if animations are going, and wait for them to finish
     if (isAnimating() == true){
-	ctx.font = "12px SegmentedAlpha";
-	ctx.fillStyle = "#ff0000";
-	ctx.fillText("animating", canvas.width - 10, canvas.height-10);
+	if (debug == true){
+	    ctx.font = "12px SegmentedAlpha";
+	    ctx.fillStyle = "#ff0000";
+	    ctx.fillText("animating", canvas.width - 10, canvas.height-10);
+	}
 	clearTimeout(timer);
 	timer = setTimeout(function() { main_loop() }, 10);
 	return;
@@ -552,10 +595,7 @@ function main_loop(){
 
 	// See if game is over
 	if (isGameOver() == true){
-	    clearTimeout(timer);
-	    clearAnimationTimer();
-	    game_active = false;
-	    textOverlay([["40px SegmentedAlpha","GAME OVER"],["20px Arial","Click to play again!"]]);
+	    endGame();
 	    return;
 	}
     }
