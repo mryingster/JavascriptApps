@@ -890,16 +890,21 @@ function drawGameInformation(){
 
     // Draw help information
     y = canvas.height - square_size - 10
-    var note_spacing = canvas.width / 43;
+    var note_spacing = canvas.width / 45;
     ctx.fillStyle = "#CCCCCC";
     ctx.font = "Italic " + canvas.width / 50 + "px Arial";
-    ctx.fillText("(n) New Game",        ralign, y - (6 * note_spacing));
-    ctx.fillText("(arrows) Move",       ralign, y - (5 * note_spacing));
-    ctx.fillText("(up arrow) Rotate",   ralign, y - (4 * note_spacing));
-    ctx.fillText("(space) Drop",        ralign, y - (3 * note_spacing));
-    ctx.fillText("(p) Pause",           ralign, y - (2 * note_spacing));
-    ctx.fillText("(e) Extra Pieces",    ralign, y - (1 * note_spacing));
-    ctx.fillText("(g) Ghost Mode",      ralign, y - (0 * note_spacing));
+    var notes = [
+	"(n) New Game",
+	"(arrows) Move",
+	"(up arrow) Rotate",
+	"(space) Drop",
+	"(p) Pause",
+	"(q) Quit Game",
+	"(e) Extra Pieces",
+	"(g) Ghost Mode"
+    ];
+    for (var i=0; i<notes.length; i++)
+	ctx.fillText(notes[i], ralign, y - ((notes.length - i) * note_spacing));
 
 }
 
@@ -1183,8 +1188,8 @@ function resizeGame(){
 }
 
 function firstRun(){
-    setFocus();
     clearScreen();
+    resizeGame();
     drawGameInformation();
     textOverlay([["32px SegmentedAlpha","Click to start!"]]);
 }
