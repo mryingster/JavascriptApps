@@ -256,10 +256,20 @@ const d_key  = 68;
 const q_key  = 81;
 const EMPTY  = -2;
 
+// Colors
+const BACKGROUND = "#222222";
+const BLACK      = "#000000";
+const RED        = "#CC0000";
+const AMBER      = "#CCBB00";
+const GREEN      = "#00CC00";
+const LIGHT_GREY = "#CCCCCC";
+const WHITE      = "#FFFFFF";
+      
 // Rules
 const lineScores = [null, 40, 100, 300, 1200, 2600]; // score value per lines cleared
-const base_speed = 1000;
-const speedup_multiplier = .8;
+const base_speed = 890;
+const speedup_multiplier = .86;
+const max_speed  = 50;
 
 function isGameOver(){
     for (var y=0; y<5; y++){
@@ -541,9 +551,11 @@ function currentLevel(){
 }
 
 function endGame(){
+    if (game_active == false) return;
     clearTimeout(timer);
     clearAnimationTimer();
     game_active = false;
+    drawGameInformation();
     textOverlay([["40px SegmentedAlpha","GAME OVER"],["20px Arial","Click to play again!"]]);
 }
 
@@ -552,14 +564,14 @@ function main_loop(){
     if (game_paused == true) return;
 
     if (debug == true){
-	ctx.fillStyle = "#222222";
+	ctx.fillStyle = BACKGROUND;
 	ctx.fillRect(canvas.width-(right_buffer*square_size), canvas.height-20, right_buffer*square_size, canvas.height);
     }
     // See if animations are going, and wait for them to finish
     if (isAnimating() == true){
 	if (debug == true){
 	    ctx.font = "12px SegmentedAlpha";
-	    ctx.fillStyle = "#ff0000";
+	    ctx.fillStyle = RED;
 	    ctx.fillText("animating", canvas.width - 10, canvas.height-10);
 	}
 	clearTimeout(timer);
@@ -572,6 +584,7 @@ function main_loop(){
 
     // Set timeout for next cycle
     speed = base_speed * Math.pow(speedup_multiplier, currentLevel() -1);
+    speed = speed < max_speed ? max_speed : speed;
 
     // See if a block has been placed
     if (canMove(block, block_pos, DOWN) == false){
@@ -729,16 +742,16 @@ function start(){
 	if (useExtraPieces == true)
 	    blockSet = Object.keys(block_defs);
         add_block();         // Populate upcoming blocks
-	redraw();            // Draw the screen
 	game_active = true;
 	game_paused = false;
+	redraw();            // Draw the screen
 	main_loop();
     }
 }
 
 function drawUpcomingBlocks(offset=0){
     // Clear left section
-    ctx.fillStyle = "#222222";
+    ctx.fillStyle = BACKGROUND;
     ctx.fillRect(0, 0, left_buffer * square_size, canvas.height);
 
     for (var i=0; i<7; i++){
@@ -770,7 +783,7 @@ function animateUpcomingBlocks(n){
 }
 
 function redrawGameField(){
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = BLACK;
     ctx.fillRect(
 	square_size * (left_buffer + game_border),
 	0,
@@ -810,9 +823,9 @@ function redrawCurrentBlock(){
 
 function redrawBackground(){
     // Draw black background
-    ctx.fillStyle = "#222222";
+    ctx.fillStyle = BACKGROUND;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = BLACK;
     ctx.fillRect((left_buffer + game_border)*square_size, 0, game_width*square_size, canvas.height);
 
     // Draw border around game field
@@ -850,7 +863,7 @@ function redraw(){
 
 function drawGameInformation(){
     // Clear section and Draw black background
-    ctx.fillStyle = "#222222";
+    ctx.fillStyle = BACKGROUND;
     ctx.fillRect(canvas.width-(right_buffer*square_size), 0, right_buffer*square_size, canvas.height);
 
     // Right align everything
@@ -858,7 +871,7 @@ function drawGameInformation(){
     ctx.textAlign = "right";
 
     // Draw Game Name
-    ctx.fillStyle = "#CCCCCC";
+    ctx.fillStyle = LIGHT_GREY;
     var title_size = Math.floor(canvas.width / 13);
     ctx.font = "Bold " + title_size + "px Arial";
     ctx.fillText("N-tris", ralign, 0 + (title_size * 1.3));
@@ -871,27 +884,29 @@ function drawGameInformation(){
     var line_spacing = Math.floor(canvas.width / 18);
 
     // Draw game information
-    var y = top_buffer * square_size + 18;
-    ctx.fillStyle = "#CCCCCC";
+    var y = top_buffer * square_size + label_size;
+    ctx.fillStyle = LIGHT_GREY;
     ctx.font = label_size + "px Arial";
     ctx.fillText("Score",	 ralign, y + (0 * line_spacing));
     ctx.fillText("Lines",	 ralign, y + (2 * line_spacing));
     ctx.fillText("Level",	 ralign, y + (4 * line_spacing));
     ctx.fillText("Extra Pieces", ralign, y + (6 * line_spacing));
     ctx.fillText("Ghost Block",	 ralign, y + (8 * line_spacing));
-    ctx.fillStyle = "#00CC00";
+    ctx.fillStyle = GREEN;
     ctx.font = digit_size + "px Segmented";
     ctx.fillText(score,		 ralign, y + (1 * line_spacing));
     ctx.fillText(lines,		 ralign, y + (3 * line_spacing));
     ctx.fillText(currentLevel(), ralign, y + (5 * line_spacing));
     ctx.font = alpha_size + "px SegmentedAlpha";
+    ctx.fillStyle = game_active == true ? AMBER : GREEN;
     ctx.fillText(useExtraPieces == true ? "Enabled" : "Disabled", ralign, y + (7 * line_spacing));
+    ctx.fillStyle = GREEN;
     ctx.fillText(showGhostBlock == true ? "Enabled" : "Disabled", ralign, y + (9 * line_spacing));
 
     // Draw help information
-    y = canvas.height - square_size - 10
+    y = canvas.height - square_size;
     var note_spacing = canvas.width / 45;
-    ctx.fillStyle = "#CCCCCC";
+    ctx.fillStyle = LIGHT_GREY;
     ctx.font = "Italic " + canvas.width / 50 + "px Arial";
     var notes = [
 	"(n) New Game",
