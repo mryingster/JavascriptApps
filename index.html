@@ -8,1207 +8,1227 @@
       body {
           background:#aaa;
           color:#000;
-	  font-family:sans-serif;
+          font-family:sans-serif;
       }
 
       div#content {
-	  margin: 0px auto;
+          margin: 0px auto;
       }
 
       h1 {
-	  margin:10px;
-	  font-size:3em;
+          margin:10px;
+          font-size:3em;
       }
 
       /*Font Faces*/
       @font-face {
-	  font-family: "Segmented";
-	  src: url('fonts/Segment7Standard.otf');
+          font-family: "Segmented";
+          src: url('fonts/Segment7Standard.otf');
       }
 
       @font-face {
-	  font-family: "SegmentedAlpha";
-	  src: url('fonts/Digital7Regular.otf');
+          font-family: "SegmentedAlpha";
+          src: url('fonts/Digital7Regular.otf');
       }
-</style>
+    </style>
   </head>
 
-    <body onload="firstRun();" onresize="resizeGame()">
+  <body onload="tetris_instance.firstRun();" onresize="tetris_instance.resizeGame()">
 
     <div id="content" style="margin: 0 auto; width:512px;">
-      <canvas id="canvas" width="512" height="512" onclick="start();" style="border:1px solid black; touch-action: manipulation"></canvas><br>
-      <input id="myInput" type="text" onblur="" onkeydown="user_move(event)" style="width: 0px; position:relative; left:-10000px;"></input>
+      <canvas id="canvas" width="512" height="512" onclick="tetris_instance.start();" style="border:1px solid black; touch-action: manipulation"></canvas><br>
+      <input id="myInput" type="text" onblur="" onkeydown="tetris_instance.user_move(event)" style="width: 0px; position:relative; left:-10000px;"></input>
     </div>
 
     <script>
-// Comment
-
-const block_defs = {
-    // Tetrominoes
-    I : {
-	shape : [[0,0,0,0], [0,0,0,0], [1,1,1,1], [0,0,0,0]],
-	rotations : 2,
-	color : { r:0xFF, g:0x00, b:0x00 }, // Red
-    },
-    Z : {
-	shape : [[1,1,0], [0,1,1], [0,0,0]],
-	rotations : 2,
-	color : { r:0xFF, g:0x92, b:0x00 }, // Orange
-    },
-    J : {
-	shape : [[0,0,0], [1,1,1], [0,0,1]],
-	rotations : 4,
-	color : { r:0xDB, g:0xB6, b:0x00 }, // Yellow
-    },
-    T : {
-	shape : [[0,0,0], [1,1,1], [0,1,0]],
-	rotations : 4,
-	color : { r:0x49, g:0xB6, b:0x00 }, // Green
-    },
-    S : {
-	shape : [[0,1,1], [1,1,0], [0,0,0]],
-	rotations : 2,
-	color : { r:0x00, g:0xB6, b:0xAA }, // Cyan
-    },
-    O: {
-	shape : [[0,0,0,0], [0,1,1,0], [0,1,1,0], [0,0,0,0]],
-	rotations : 1,
-	color : { r:0x00, g:0x49, b:0xFF }, // Blue
-    },
-    L : {
-	shape : [[0,0,0], [1,1,1], [1,0,0]],
-	rotations : 4,
-	color : { r:0xDB, g:0x00, b:0xFF }, // Purple
-    },
-
-    // Pentominoes
-    LongJ : {
-	shape : [[0,0,0,0], [1,0,0,0], [1,1,1,1], [0,0,0,0]],
-	rotations : 4,
-	color : { r:0xcc, g:0x83, b:0x00 }, // Red-Orange
-    },
-    LongL : {
-	shape : [[0,0,0,0], [0,0,0,1], [1,1,1,1], [0,0,0,0]],
-	rotations : 4,
-	color : { r:0xa0, g:0x00, b:0xff }, // Light BLue
-    },
-    IL : {
-	shape : [[0,0,0,0], [0,0,1,0], [1,1,1,1], [0,0,0,0]],
-	rotations : 4,
-	color : { r:0xff, g:0xbb, b:0x00 }, // Orange Yellow
-    },
-    JI : {
-	shape : [[0,0,0,0], [0,1,0,0], [1,1,1,1], [0,0,0,0]],
-	rotations : 4,
-	color : { r:0x98, g:0x68, b:0x08 }, // Yellow Green
-    },
-    BigS : {
-	shape : [[1,0,0], [1,1,1], [0,0,1]],
-	rotations : 4,
-	color : { r:0x00, g:0xbb, b:0x88 }, // Teal
-    },
-    BigZ : {
-	shape : [[0,0,1], [1,1,1], [1,0,0]],
-	rotations : 4,
-	color : { r:0x00, g:0xbd, b:0xff }, // Cyan-light blue
-    },
-    JT : {
-	shape : [[0,1,0], [1,1,1], [0,0,1]],
-	rotations : 4,
-	color : { r:0x00, g:0x91, b:0xff }, // Lighter Blue
-    },
-    TL : {
-	shape : [[0,1,0], [1,1,1], [1,0,0]],
-	rotations : 4,
-	color : { r:0xff, g:0x00, b:0x83 }, // Dark Orange
-    },
-    LongS : {
-	shape : [[0,0,0,0], [0,0,1,1], [1,1,1,0], [0,0,0,0]],
-	rotations : 4,
-	color : { r:0x00, g:0x80, b:0x80 }, // Purple
-    },
-    LongZ : {
-	shape : [[0,0,0,0], [1,1,0,0], [0,1,1,1], [0,0,0,0]],
-	rotations : 4,
-	color : { r:0xff, g:0x57, b:0x00 }, // Fuscia
-    },
-    P : {
-	shape : [[0,0,0], [1,1,0], [1,1,1]],
-	rotations : 4,
-	color : { r:0x4c, g:0x00, b:0x99 }, // Brown
-    },
-    b : {
-	shape : [[0,0,0], [0,1,1], [1,1,1]],
-	rotations : 4,
-	color : { r:0x6B, g:0x49, b:0x04 }, // Lime
-    },
-    BigL : {
-	shape : [[1,0,0], [1,0,0], [1,1,1]],
-	rotations : 4,
-	color : { r:0x5C, g:0x5C, b:0x5C }, // Dark Grey
-    },
-    W : {
-	shape : [[0,0,1], [0,1,1], [1,1,0]],
-	rotations : 4,
-	color : { r:0x00, g:0x00, b:0x99 }, // Tan
-    },
-    Plus : {
-	shape : [[0,1,0], [1,1,1], [0,1,0]],
-	rotations : 1,
-	color : { r:0xa0, g:0xff, b:0x00 }, // Dark Cyan
-    },
-    U : {
-	shape : [[0,0,0], [1,0,1], [1,1,1]],
-	rotations : 4,
-	color : { r:0xAA, g:0xDD, b:0x77 }, // Light Grey
-    },
-    LongI : {
-	shape : [[0,0,0,0,0], [0,0,0,0,0], [1,1,1,1,1], [0,0,0,0,0], [0,0,0,0,0]],
-	rotations : 2,
-	color : { r:0x99, g:0x00, b:0x00 }, // Dark Green
-    },
-    BigT : {
-	shape : [[0,1,0], [0,1,0], [1,1,1]],
-	rotations : 4,
-	color : { r:0x00, g:0x66, b:0x00 }, // Light Green
-    },
-
-    // Triominoes
-    SmallL : {
-	shape : [[0,1], [1,1]],
-	rotations : 4,
-	color : { r:0xC0, g:0xC0, b:0xC0 }, // Pink
-    },
-    SmallI : {
-	shape : [[0,0,0], [1,1,1], [0,0,0]],
-	rotations : 2,
-	color : { r:0xA1, g:0x12, b:0x12 }, // Dark Red
-	
-    },
-
-    // Diominoe
-    TinyI : {
-	shape : [[0,0], [1,1]],
-	rotations : 2,
-	color : { r:0xFF, g:0x66, b:0xB2 }, // Dark Blue
-	
-    },
-
-    // Monominoe
-    Dot : {
-	shape : [[1]],
-	rotations : 1,
-	color : { r:0xDA, g:0xBB, b:0x7E }, // Dark Purple
-    },
-};
-
-// Game dimensions
-const game_width   = 10
-const game_height  = 20;
-var   square_size  = 20;
-const top_buffer   = 5; // Space for spawning new blocks
-const left_buffer  = 7; // Space for next block
-const right_buffer = 7; // Space for next block
-const game_border  = 1; // Border width around play area
-var   debug        = false;
-const startingBlocks = ['I', 'L', 'J', 'T'];
-
-const canvas 	   = document.getElementById("canvas");
-const ctx    	   = canvas.getContext("2d");
-
-// Game variables
-var array          = [];                   // Play field
-var game_active    = false;
-var game_paused    = null;
-var lines          = 0;
-var score          = 0;
-var block_upcoming = [];                   // Next chosen blocks
-var block_history  = [];                   // History of blocks chosen
-var block_pos      = [null, null, null, null]; // Block x, y, rotation, points
-var timer          = null;                 // Main loop timer
-var animatimer     = [null, null, null];   // Timer for animations
-var useExtraPieces = true;
-var showGhostBlock = false;
-var blockSet       = [];
-
-// Definitions
-const UP    = 1;
-const RIGHT = 2;
-const DOWN  = 3;
-const LEFT  = 4;
-const DROP  = 5;
-
-// Key Codes
-const SPACE  = 32;
-const LARROW = 37;
-const UARROW = 38;
-const RARROW = 39;
-const DARROW = 40;
-const i_key  = 73;
-const j_key  = 74;
-const k_key  = 75;
-const l_key  = 76;
-const n_key  = 78;
-const e_key  = 69;
-const g_key  = 71;
-const p_key  = 80;
-const d_key  = 68;
-const q_key  = 81;
-const EMPTY  = -2;
-
-// Colors
-const BACKGROUND = "#222222";
-const BLACK      = "#000000";
-const RED        = "#CC0000";
-const AMBER      = "#CCBB00";
-const GREEN      = "#00CC00";
-const LIGHT_GREY = "#CCCCCC";
-const WHITE      = "#FFFFFF";
-      
-// Rules
-const lineScores = [null, 40, 100, 300, 1200, 2600]; // score value per lines cleared
-const base_speed = 890;
-const speedup_multiplier = .86;
-const max_speed  = 50;
-
-function isGameOver(){
-    for (var y=0; y<5; y++){
-	for (var x=0; x<array[y].length; x++){
-	    if (array[y][x] != EMPTY){
-		return true;
-	    }
-	}
-    }
-
-    return false;
-}
-
-function clearAndShift(l){
-    for (var i=l.length-1; i>=0; i--){
-	var y = l[i];
-	for (var y2=y; y2>=top_buffer; y2--){
-	    for (var x=0; x<game_width; x++){
-		array[y2][x] = array[y2-1][x];
-	    }
-	}
-    }
-}
-
-function animateLineClear(l, n){
-    clearAnimationTimer(1)
-
-    if (n > 0){
-	for (var i=0; i<l.length; i++){
-	    drawBlock(ctx,
-		      { shape : [[1,2,1,2,1,2,1,2,1,2]],
-			color : [{r:0xff,g:0,b:0},{r:0,g:0xff,b:0},{r:0,g:0,b:0xff},][n%3]},
-		      left_buffer + game_border,
-		      l[i],
-		      0)
-	}
-	animatimer[1] = setTimeout(function() { animateLineClear(l, n-1) }, 15);
-    } else {
-	clearAndShift(l);
-    }
-}
-
-function lookForLines(){
-    var lines_cleared = [];
-    for (var y=array.length-1; y>top_buffer; y--){
-	// Look at line
-	var lineFull = true;
-	for (var x=0; x<game_width; x++){
-	    if (array[y][x] == EMPTY){
-		lineFull = false;
-		break;
-	    }
-	}
-
-	// If full lines exist, start animation
-	if (lineFull == true){
-	    lines_cleared.push(y);
-	}
-    }
-
-    if (lines_cleared.length > 0)
-	animateLineClear(lines_cleared, 8);
-
-    return lines_cleared.length;
-}
-
-function placeBlock(block, pos){
-    var pos_x = pos[0];
-    var pos_y = pos[1];
-    var rot   = pos[2];
-    var block_number = block_history.length-1;
-
-    block = rotateArray(block, rot);
-
-    for (var y=0; y<block.length; y++) {
-	for (var x=0; x<block[y].length; x++) {
-	    if (block[y][x] == 1) {
-		array[pos_y + y][pos_x + x] = block_number;
-	    }
-	}
-    }
-}
-
-function canMove(block, pos, dir){
-    var pos_x = pos[0];
-    var pos_y = pos[1];
-    var rot   = pos[2];
-
-    // Move position
-    if (dir == DOWN)  pos_y++;
-    if (dir == LEFT)  pos_x--;
-    if (dir == RIGHT) pos_x++;
-    if (dir == UP)    rot++;
-
-    // Rotate
-    var block_array = rotateArray(block, rot);
-
-    for (var y=0; y<block_array.length; y++) {
-	for (var x=0; x<block_array[y].length; x++) {
-	    if (block_array[y][x] == 1){
-		// Check for out of bounds
-		if (pos_x + x < 0 || pos_x + x >= game_width)
-		    return false;
-		if (pos_y + y >= game_height + top_buffer)
-		    return false;
-		// Compare against game array
-		if (array[pos_y + y][pos_x + x] != EMPTY)
-		    return false;
-	    }
-	}
-    }
-
-    // Can move!
-    return true;
-}
-
-function isAnimating(){
-    for (var i=0; i<animatimer.length; i++)
-	if (animatimer[i] != null) return true;
-    return false;
-}
-
-function clearAnimationTimer(n=-1){
-    // Clear all timers
-    if (n == -1) {
-	for (var i=0; i<animatimer.length; i++){
-	    clearTimeout(animatimer[i]);
-	    animatimer[i] = null;
-	}
-    } else {
-	clearTimeout(animatimer[n]);
-	animatimer[n] = null;
-    }
-}
-
-function animateDrop(block){
-    clearAnimationTimer(3);
-
-    if (canMove(block, block_pos, DOWN) == true){
-	move(DOWN);
-	block_pos[3] += 1; // Bonus point per square for dropping fast
-	animatimer[3] = setTimeout(function() { animateDrop(block) }, 5);
-    }
-}
-
-function move(dir){
-    // Get shape template
-    var thisBlock = block_history[block_history.length-1];
-
-    // Is valid move?
-    if (canMove(thisBlock, block_pos, dir) == false)
-	return;
-
-    // Actually move block
-    if (dir == DOWN){
-	block_pos[1] = block_pos[1] + 1;
-	block_pos[3] += 1 // Get point per step for slow dropping
-    }
-
-    if (dir == DROP){
-	block_pos[3] = 0; // only get points from where it was fast dropped
-	animateDrop(thisBlock);
-	// Call mainloop now so it registers the block
-	clearTimeout(timer)
-	main_loop();
-    }
-
-    if (dir == LEFT){
-	block_pos[3] = 0; // only get points for how far it dropped without shifting
-	block_pos[0] = block_pos[0] - 1;
-    }
-
-    if (dir == RIGHT){
-	block_pos[3] = 0; // only get points for how far it dropped without shifting
-	block_pos[0] = block_pos[0] + 1;
-    }
-
-    if (dir == UP){
-	block_pos[3] = 0; // only get points for how far it dropped without shifting
-	block_pos[2] = block_pos[2] + 1;
-    }
-
-    // Redraw
-    redrawGameField();
-    redrawCurrentBlock();
-}
-
-function toggleDebugMode(){
-    if (debug == true)
-	debug = false;
-    else
-	debug = true;
-}
-
-function toggleGhostMode(){
-    if (showGhostBlock == true)
-	showGhostBlock = false;
-    else
-	showGhostBlock = true;
-    drawGameInformation();
-}
-
-function toggleExtraPieces(){
-    if (useExtraPieces == true)
-	useExtraPieces = false;
-    else
-	useExtraPieces = true;
-    drawGameInformation();
-}
-
-function user_move(e){
-    // Switch for general commands
-    switch (e.keyCode){
-    case n_key:
-	if (game_active == false)
-	    start();
-	break;
-
-    case g_key:
-	toggleGhostMode();
-	break;
-
-    case d_key:
-	toggleDebugMode();
-	break
-
-    case e_key:
-	if (game_active == false)
-	    toggleExtraPieces();
-	break;
-
-    case p_key:
-	if (game_active == true)
-	    togglePause();
-	break;
-
-    case q_key:
-	endGame();
-	break;
-    }
-
-    // Switch for movement commands
-    if (game_active == true && isAnimating() == false && game_paused == false) {
-	var direction = null;
-	switch(e.keyCode){
-	case SPACE:
-	    direction = DROP;
-	    break;
-
-	case LARROW:
-	case j_key:
-	    direction = LEFT;
-	    break;
-
-	case UARROW:
-	case i_key:
-	    direction = UP;
-	    break;
-
-	case RARROW:
-	case l_key:
-	    direction = RIGHT;
-	    break;
-
-	case DARROW:
-	case k_key:
-	    direction = DOWN;
-	    break;
-
-	default:
-	    return;
-	}
-	move(direction);
-    }
-}
-
-function currentLevel(){
-    return Math.floor(lines/10) + 1;
-}
-
-function endGame(){
-    if (game_active == false) return;
-    clearTimeout(timer);
-    clearAnimationTimer();
-    game_active = false;
-    drawGameInformation();
-    textOverlay([["40px SegmentedAlpha","GAME OVER"],["20px Arial","Click to play again!"]]);
-}
-
-function main_loop(){
-    // See if we are paused
-    if (game_paused == true) return;
-
-    if (debug == true){
-	ctx.fillStyle = BACKGROUND;
-	ctx.fillRect(canvas.width-(right_buffer*square_size), canvas.height-20, right_buffer*square_size, canvas.height);
-    }
-    // See if animations are going, and wait for them to finish
-    if (isAnimating() == true){
-	if (debug == true){
-	    ctx.font = "12px SegmentedAlpha";
-	    ctx.fillStyle = RED;
-	    ctx.fillText("animating", canvas.width - 10, canvas.height-10);
-	}
-	clearTimeout(timer);
-	timer = setTimeout(function() { main_loop() }, 10);
-	return;
-    }
-
-    // Get shape template
-    var block = block_history[block_history.length-1];
-
-    // Set timeout for next cycle
-    speed = base_speed * Math.pow(speedup_multiplier, currentLevel() -1);
-    speed = speed < max_speed ? max_speed : speed;
-
-    // See if a block has been placed
-    if (canMove(block, block_pos, DOWN) == false){
-	// Set speed to 0 so we don't wait for an entire cycle to show new block
-	speed = 0;
-
-	// Add block array to array
-	placeBlock(block, block_pos);
-
-	// Look for lines to clear, Update Scores and Counts
-	var lines_cleared = lookForLines();
-	score += lineScores[lines_cleared] * currentLevel();
-	lines += lines_cleared;
-
-	// 1 point per block for distance fallen, double for fast drop
-	score += block_pos[3] > 40 ? 40 : block_pos[3];
-	drawGameInformation();
-
-	// Animate blocks scrolling up
-	animateUpcomingBlocks(0);
-
-	// See if game is over
-	if (isGameOver() == true){
-	    endGame();
-	    return;
-	}
-    }
-
-    // Move current block down
-    move(DOWN);
-
-    // See if window/game lost focus, and pause
-    //if (document.activeElement == document.getElementById('myInput')) // Not working
-    if(!document.hasFocus()) pause();
-
-    // Set timer
-    timer = setTimeout(function() { main_loop() }, speed);
-}
-
-function shuffle(array) {
-    let counter = array.length;
-
-    // While there are elements in the array
-    while (counter > 0) {
-        // Pick a random index
-        let index = Math.floor(Math.random() * counter);
-
-        // Decrease counter by 1
-        counter--;
-
-        // And swap the last element with it
-        let temp = array[counter];
-        array[counter] = array[index];
-        array[index] = temp;
-    }
-
-    return array;
-}
-
-function add_block(){
-    // Make sure first block of game is from more restrictive set
-    if (block_upcoming.length == 0){
-	var t = startingBlocks[Math.floor(Math.random() * startingBlocks.length)];
-	block_upcoming.push(block_defs[t]);
-    }
-
-    // If there are fewer than 8 pieces, add a whole set of pieces in random order
-    while (block_upcoming.length < 8){
-	for (var t of shuffle(blockSet))
-	     block_upcoming.push(block_defs[t]);
-    }
-
-    // Move next block from block_upcoming array to block_history array
-    block_history.push(block_upcoming[0]);
-    block_upcoming = block_upcoming.slice(1);
-
-    // Set position of previous 'next' block to top, center
-    var this_block = block_history[block_history.length-1];
-    block_pos = [(game_width/2) - 1,
-		 top_buffer - this_block.shape.length - 1,
-		 0,
-		 0];
-
-}
-
-function resizeCanvas(width, height){
-    canvas.height = width * square_size;
-    canvas.width  = height * square_size;
-    document.getElementById("content").setAttribute("style", "width: " + canvas.width + "px;");
-}
-
-function clearScreen(){
-    // Setup Game field
-    var total_height = game_height + top_buffer + game_border;
-    var total_width  = game_width + left_buffer + right_buffer + (2*game_border);
-    resizeCanvas(total_width, total_height);
-
-    // Setup Array
-    array = [];
-    for (var y=0; y<game_height+top_buffer; y++){
-	var temp = [];
-	for (var x=0; x<game_width; x++){
-	    temp.push(EMPTY);
-	}
-	array.push(temp);
-    }
-
-    redraw();
-    return;
-}
-
-function setFocus(){
-    document.getElementById("myInput").focus()
-}
-
-
-function pause(){
-    if (game_active == true && game_paused == false){
-	game_paused = true;
-	textOverlay([["48px SegmentedAlpha","PAUSED"],["20px Arial","Click to resume."]]);
-	clearTimeout(timer);
-    }
-}
-
-function unpause(){
-    if (game_active == true && game_paused == true){
-    	game_paused = false;
-	main_loop();
-    }
-}
-
-function togglePause(){
-    if (game_active == true){
-	if (game_paused == false){
-	    pause();
-	} else {
-	    unpause();
-	}
-    }
-}
-
-function start(){
-    setFocus();    // Set focus to input box
-    togglePause();  // Toggle pause
-
-    // Start game
-    if (game_active == false) {
-	clearScreen();      // Clear the screen
-	lines = 0;
-	score = 0;
-	block_history = [];
-	block_upcoming = []; // Clear next blocks
-	// Set which type of blocks for game
-	blockSet = ['I', 'L', 'J', 'T', 'S', 'Z', 'O'];
-	if (useExtraPieces == true)
-	    blockSet = Object.keys(block_defs);
-        add_block();         // Populate upcoming blocks
-	game_active = true;
-	game_paused = false;
-	redraw();            // Draw the screen
-	main_loop();
-    }
-}
-
-function drawUpcomingBlocks(offset=0){
-    // Clear left section
-    ctx.fillStyle = BACKGROUND;
-    ctx.fillRect(0, 0, left_buffer * square_size, canvas.height);
-
-    for (var i=0; i<7; i++){
-	var next_block = block_upcoming[i];
-	var next_block_height = next_block.shape.length;
-	var next_block_width = next_block.shape[0].length;
-	var next_block_left = Math.floor((left_buffer / 2) - (next_block_width / 2));
-	drawBlock(ctx,
-		  next_block,
-		  next_block_left,
-		  top_buffer - next_block_height + (4 * i) + offset,
-		  0);
-    }
-}
-
-function animateUpcomingBlocks(n){
-    clearAnimationTimer(2);
-
-    if (n > -5){
-	drawUpcomingBlocks(n);
-	n--;
-	animatimer[2] = setTimeout(function() { animateUpcomingBlocks(n) }, 20);
-    } else {
-	// Finally, add a block
-	add_block();
-	// and redraw to remove the added block from left side
-	drawUpcomingBlocks(0);
-    }
-}
-
-function redrawGameField(){
-    ctx.fillStyle = BLACK;
-    ctx.fillRect(
-	square_size * (left_buffer + game_border),
-	0,
-	square_size * (game_width),
-	square_size * (top_buffer + game_height)
-    );
-
-    for (var y=0; y<array.length; y++){
-	for (var x=0; x<array[y].length; x++){
-	    if (array[y][x] == EMPTY) continue;
-	    drawChisledBrick(ctx, x + left_buffer + game_border, y, square_size,
-			     block_history[array[y][x]].color,
-			     y > 0                 ? array[y][x] == array[y-1][x] : false,
-			     x < array[0].length-1 ? array[y][x] == array[y][x+1] : false,
-			     y < array.length-1    ? array[y][x] == array[y+1][x] : false,
-			     x > 0                 ? array[y][x] == array[y][x-1] : false,
-			    );
-	}
-    }
-}
-
-function redrawCurrentBlock(){
-    var this_block = block_history[block_history.length-1];
-
-    // Ghost block
-    if (showGhostBlock == true){
-	// Get lowest it can go
-	var ghost_pos = block_pos.slice();
-	while (canMove(this_block, ghost_pos, DOWN) == true)
-	    ghost_pos[1]++;
-	drawBlockInGameField(ctx, this_block, block_pos[0], ghost_pos[1], block_pos[2], 2, true);
-    }
-
-    // Draw current block last so it's always on top
-    drawBlockInGameField(ctx, this_block, block_pos[0], block_pos[1], block_pos[2]);
-}
-
-function redrawBackground(){
-    // Draw black background
-    ctx.fillStyle = BACKGROUND;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = BLACK;
-    ctx.fillRect((left_buffer + game_border)*square_size, 0, game_width*square_size, canvas.height);
-
-    // Draw border around game field
-    for (var y=0; y<=game_height + game_border; y++)
-	for (var x=0; x<game_width + (2 * game_border); x++)
-	    if (y == game_height || (x == 0 || x == game_width + 1))
-		drawChisledBrick(ctx, x + left_buffer, y + top_buffer, square_size,
-				 {r:0x88, g:0x88, b:0x88},
-				 y == 0 || y == game_height && x != 0 && x != game_width + 1 ? false : true,
-				 y < game_height || y == game_height && x == game_width + 1 ? false : true,
-				 y == game_height ? false : true,
-				 y < game_height || y == game_height && x == 0 ? false : true,
-				);
-}
-
-function redraw(){
-    // Redraw background
-    redrawBackground();
-
-    // Draw each block in game field
-    redrawGameField();
-
-    // Draw upcoming blocks
-    if (block_upcoming.length > 0)
-	drawUpcomingBlocks();
-
-    // Draw current block
-    if (game_active == true) {
-	redrawCurrentBlock();
-    }
-
-    // Draw right hand side
-    drawGameInformation();
-}
-
-function drawGameInformation(){
-    // Clear section and Draw black background
-    ctx.fillStyle = BACKGROUND;
-    ctx.fillRect(canvas.width-(right_buffer*square_size), 0, right_buffer*square_size, canvas.height);
-
-    // Right align everything
-    var ralign = canvas.width - (square_size * 1);
-    ctx.textAlign = "right";
-
-    // Draw Game Name
-    ctx.fillStyle = LIGHT_GREY;
-    var title_size = Math.floor(canvas.width / 13);
-    ctx.font = "Bold " + title_size + "px Arial";
-    ctx.fillText("N-tris", ralign, 0 + (title_size * 1.3));
-    
-
-    // Set up spacing based on canvas size
-    var label_size = Math.floor(canvas.width / 28);
-    var digit_size = Math.floor(canvas.width / 18);
-    var alpha_size = Math.floor(canvas.width / 21);
-    var line_spacing = Math.floor(canvas.width / 18);
-
-    // Draw game information
-    var y = top_buffer * square_size + label_size;
-    ctx.fillStyle = LIGHT_GREY;
-    ctx.font = label_size + "px Arial";
-    ctx.fillText("Score",	 ralign, y + (0 * line_spacing));
-    ctx.fillText("Lines",	 ralign, y + (2 * line_spacing));
-    ctx.fillText("Level",	 ralign, y + (4 * line_spacing));
-    ctx.fillText("Extra Pieces", ralign, y + (6 * line_spacing));
-    ctx.fillText("Ghost Block",	 ralign, y + (8 * line_spacing));
-    ctx.fillStyle = GREEN;
-    ctx.font = digit_size + "px Segmented";
-    ctx.fillText(score,		 ralign, y + (1 * line_spacing));
-    ctx.fillText(lines,		 ralign, y + (3 * line_spacing));
-    ctx.fillText(currentLevel(), ralign, y + (5 * line_spacing));
-    ctx.font = alpha_size + "px SegmentedAlpha";
-    ctx.fillStyle = game_active == true ? AMBER : GREEN;
-    ctx.fillText(useExtraPieces == true ? "Enabled" : "Disabled", ralign, y + (7 * line_spacing));
-    ctx.fillStyle = GREEN;
-    ctx.fillText(showGhostBlock == true ? "Enabled" : "Disabled", ralign, y + (9 * line_spacing));
-
-    // Draw help information
-    y = canvas.height - square_size;
-    var note_spacing = canvas.width / 45;
-    ctx.fillStyle = LIGHT_GREY;
-    ctx.font = "Italic " + canvas.width / 50 + "px Arial";
-    var notes = [
-	"(n) New Game",
-	"(arrows) Move",
-	"(up arrow) Rotate",
-	"(space) Drop",
-	"(p) Pause",
-	"(q) Quit Game",
-	"(e) Extra Pieces",
-	"(g) Ghost Mode"
-    ];
-    for (var i=0; i<notes.length; i++)
-	ctx.fillText(notes[i], ralign, y - ((notes.length - i) * note_spacing));
-
-}
-
-function rotateArray(a, n){
-    var rotated = a.shape.slice(); // Copies the array
-    const height = rotated[0].length;;
-    const width = rotated.length;
-    const rotation = n % a.rotations;
-
-    for (var rotate=0; rotate<rotation; rotate++){
-	// Create new array of the same size
-	var tmp = [];
-	for (var y=0; y<height; y++){
-	    var t_row = [];
-	    for (var x=0; x<width; x++){
-		t_row.push(0);
-	    }
-	    tmp.push(t_row);
-	}
-	
-	// Copy data to new, empty array
-	for (var y=0; y<height; y++){
-	    for (var x=0; x<width; x++){
-		tmp[y][x] = rotated[x][height-y-1];
-	    }
-	}
-
-	// Overwrite rotated array
-	rotated = tmp.slice();
-    }
-
-    return rotated;
-}
-
-function drawBlockInGameField(ctx, def, bx, by, r, edge=-1, outline=false){
-    // offset so it draws on the game board
-    drawBlock(ctx, def, left_buffer + game_border + bx, by, r, edge, outline);
-}
-
-function drawBlock(ctx, def, bx, by, r, edge=-1, outline=false){
-    // rotate block array
-    var block = rotateArray(def, r);;
-    var width = def.shape[0].length;
-    var height = def.shape.length;
-    var color = def.color;
-
-    for (var y=0; y<height; y++){
-	for (var x=0; x<width; x++){
-	    if (block[y][x] > 0){
-		drawChisledBrick(ctx,
-				 (bx + x),
-				 (by + y),
-				 square_size,
-				 color,
-				 y > 0                 ? block[y][x] == block[y-1][x] : false,
-				 x < block[0].length-1 ? block[y][x] == block[y][x+1] : false,
-				 y < block.length-1    ? block[y][x] == block[y+1][x] : false,
-				 x > 0                 ? block[y][x] == block[y][x-1] : false,
-				 edge,
-				 outline,
-				)
-	    }
-	}
-    }
-    
-}
-
-function shiftColor(c, d){
-    var r = c.r - d;
-    var g = c.g - d;
-    var b = c.b - d;
-
-    r = r < 0 ? 0 : r;
-    g = g < 0 ? 0 : g;
-    b = b < 0 ? 0 : b;
-    r = r > 0xff ? 0xff : r;
-    g = g > 0xff ? 0xff : g;
-    b = b > 0xff ? 0xff : b;
-
-    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-}
-
-function drawChisledBrick(ctx, x, y, l, c, n, e, s, w, edge=-1, outline=false){
-    if (edge < 0)
-	edge = Math.floor(square_size * .25);
-
-    // Adjust x, y coordinates
-    x *= l;
-    y *= l;
-
-    // Define colors
-    var c_lightest = shiftColor(c, -0x64);;
-    var c_light    = shiftColor(c, -0x32);
-    var c_normal   = shiftColor(c, 0x0);
-    var c_dark     = shiftColor(c, 0x32);
-    var c_darkest  = shiftColor(c, 0x64);
-    if (outline == true){
-	var c_lightest = shiftColor(c, 0x0);
-	var c_light    = shiftColor(c, 0x0);
-	var c_normal   = "rgba(0,0,0,0)";
-	var c_dark     = shiftColor(c, 0x0);
-	var c_darkest  = shiftColor(c, 0x0);
-    }
-
-    // Fill in background color
-    ctx.fillStyle = c_normal;
-    ctx.fillRect(x, y, l, l);
-
-    // North Edge
-    if (n == false){
-	ctx.beginPath();
-	ctx.moveTo(x, y);
-	if (w == true)
-	    ctx.lineTo(x, y+edge);
-	else
-	    ctx.lineTo(x+edge, y+edge);
-	if (e == true)
-	    ctx.lineTo(x+l, y+edge);
-	else
-	    ctx.lineTo(x+l-edge, y+edge);
-	ctx.lineTo(x+l, y);
-	ctx.fillStyle = c_lightest;
-	ctx.fill();
-    }
-
-    // West Edge
-    if (w == false){
-	ctx.beginPath();
-	ctx.moveTo(x, y);
-	if (n == true)
-	    ctx.lineTo(x+edge, y);
-	else
-	    ctx.lineTo(x+edge, y+edge);
-	if (s == true)
-	    ctx.lineTo(x+edge, y+l);
-	else
-	    ctx.lineTo(x+edge, y+l-edge);
-	ctx.lineTo(x, y+l);
-	ctx.fillStyle = c_light;
-	ctx.fill();
-    }
-
-    // East Edge
-    if (e == false){
-	ctx.beginPath();
-	ctx.moveTo(x+l, y);
-	if (n == true)
-	    ctx.lineTo(x+l-edge, y);
-	else
-	    ctx.lineTo(x+l-edge, y+edge);
-	if (s == true)
-	    ctx.lineTo(x+l-edge, y+l);
-	else
-	    ctx.lineTo(x+l-edge, y+l-edge);
-	ctx.lineTo(x+l, y+l);
-	ctx.fillStyle = c_dark;
-	ctx.fill();
-    }
-
-    // South Edge
-    if (s == false){
-	ctx.beginPath();
-	ctx.moveTo(x, y+l);
-	if (w == true)
-	    ctx.lineTo(x, y+l-edge);
-	else
-	    ctx.lineTo(x+edge, y+l-edge);
-	if (e == true)
-	    ctx.lineTo(x+l, y+l-edge);
-	else
-	    ctx.lineTo(x+l-edge, y+l-edge);
-	ctx.lineTo(x+l, y+l);
-	ctx.fillStyle = c_darkest;
-	ctx.fill();
-    }
-
-    // NW Corner
-    if (n == true && w == true){
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x+edge, y);
-        ctx.lineTo(x+edge, y+edge);
-        ctx.fillStyle = c_light;
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x, y+edge);
-        ctx.lineTo(x+edge, y+edge);
-        ctx.fillStyle = c_lightest;
-        ctx.fill();
-    }
-
-    // NE Corner
-    if (n == true && e == true){
-        ctx.beginPath();
-        ctx.moveTo(x+l, y);
-        ctx.lineTo(x+l-edge, y);
-        ctx.lineTo(x+l-edge, y+edge);
-        ctx.fillStyle = c_dark;
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(x+l, y);
-        ctx.lineTo(x+l, y+edge);
-        ctx.lineTo(x+l-edge, y+edge);
-        ctx.fillStyle = c_lightest;
-        ctx.fill();
-    }
-
-    // SW Corner
-    if (s == true && w == true){
-        ctx.beginPath();
-        ctx.moveTo(x, y+l);
-        ctx.lineTo(x+edge, y+l);
-        ctx.lineTo(x+edge, y+l-edge);
-        ctx.fillStyle = c[3];
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(x, y+l);
-        ctx.lineTo(x, y+l-edge);
-        ctx.lineTo(x+edge, y+l-edge);
-        ctx.fillStyle = c_darkest;
-        ctx.fill();
-    }
-
-    // SE Corner
-    if (s == true && e == true){
-        ctx.beginPath();
-        ctx.moveTo(x+l, y+l);
-        ctx.lineTo(x+l-edge, y+l);
-        ctx.lineTo(x+l-edge, y+l-edge);
-        ctx.fillStyle = c_dark;
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(x+l, y+l);
-        ctx.lineTo(x+l, y+l-edge);
-        ctx.lineTo(x+l-edge, y+l-edge);
-        ctx.fillStyle = c_darkest;
-        ctx.fill();
-    }
-}
-
-function textOverlay(string_array){
-    ctx.fillStyle = "rgba(0,0,0,.7)";
-    ctx.fillRect((left_buffer + game_border) * square_size,
-		 0,
-		 game_width * square_size,
-		 (top_buffer + game_height) * square_size);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.textAlign = "center";
-    var y = canvas.height/2;
-    for (var i=0; i<string_array.length; i++){
-	ctx.font = string_array[i][0];
-	ctx.fillText(string_array[i][1], canvas.width/2, y);
-	y += 32;
-    }
-}
-
-function resizeGame(){
-    var windowWidth = window.innerWidth
-	|| document.documentElement.clientWidth
-	|| document.body.clientWidth;
-    var windowHeight = window.innerHeight
-	|| document.documentElement.clientHeight
-	|| document.body.clientHeight;
-    var maxWindowSize = Math.min(windowHeight, windowWidth);
-
-    var gameWidth = left_buffer + right_buffer + game_width + (game_border * 2);
-    var gameHeight = top_buffer + game_height + game_border;
-    var minGameArea = Math.max(gameWidth, gameHeight);
-
-    // Set new square size
-    square_size = Math.floor(maxWindowSize / (minGameArea * 1.1));
-
-    // Redraw everything
-    resizeCanvas(gameWidth, gameHeight);
-    redraw();
-
-    // Set focus so we can keep playing
-    setFocus();
-}
-
-function firstRun(){
-    clearScreen();
-    resizeGame();
-    drawGameInformation();
-    textOverlay([["32px SegmentedAlpha","Click to start!"]]);
-}
+      // Comment
+
+      class tetris {
+          constructor(canvas){
+              this.canvas = canvas;
+              this.ctx = canvas.getContext("2d");
+
+              // Game dimensions
+              this.dimension = {
+                  game_width   : 10,
+                  game_height  : 20,
+                  square_size  : 20,
+                  top_buffer   : 5, // Space for spawning new blocks
+                  left_buffer  : 7, // Space for next block
+                  right_buffer : 7, // Space for next block
+                  game_border  : 1, // Border width around play area
+              }
+
+              // Game variables
+              this.state = {
+                  game_array      : [],                   // Play field
+                  game_active     : false,
+                  game_paused     : null,
+                  lines           : 0,
+                  score           : 0,
+                  block_upcoming  : [],                   // Next chosen blocks
+                  block_history   : [],                   // History of blocks chosen
+                  block_position  : [null, null, null, null], // Block x, y, rotation, points
+                  timer           : null,                 // Main loop timer
+                  animation_timer : [null, null, null],   // Timer for animations
+                  blockset        : [],
+              };
+
+              // Settings/Toggles
+              this.settings = {
+                  useExtraPieces : true,
+                  showGhostBlock : false,
+                  debug          : false,
+              };
+
+              // Definitions
+              this.direction = {
+                  up    : 1,
+                  right : 2,
+                  down  : 3,
+                  left  : 4,
+                  drop  : 5,
+              };
+
+              // Key Codes
+              this.key = {
+                  space       : 32,
+                  left_arrow  : 37,
+                  up_arrow    : 38,
+                  right_arrow : 39,
+                  down_arrow  : 40,
+                  i           : 73,
+                  j           : 74,
+                  k           : 75,
+                  l           : 76,
+                  n           : 78,
+                  e           : 69,
+                  g           : 71,
+                  p           : 80,
+                  d           : 68,
+                  q           : 81,
+              };
+
+              this.EMPTY  = -2;
+
+              this.colors = {
+                  background : "#222222",
+                  black      : "#000000",
+                  red        : "#CC0000",
+                  amber      : "#CCBB00",
+                  green      : "#00CC00",
+                  light_grey : "#CCCCCC",
+                  white      : "#FFFFFF"
+              };
+
+              this.rules = {
+                  startingBlocks     : ['I', 'L', 'J', 'T'],
+                  tetrominoes        : ['I', 'L', 'J', 'T', 'S', 'Z', 'O'],
+                  line_scores        : [null, 40, 100, 300, 1200, 2600], // score value per lines cleared
+                  base_speed         : 890,
+                  speedup_multiplier : .86,
+                  max_speed          : 50,
+              };
+
+              this.block_defs = {
+                  // Tetrominoes
+                  I : {
+                      shape : [[0,0,0,0], [0,0,0,0], [1,1,1,1], [0,0,0,0]],
+                      rotations : 2,
+                      color : { r:0xFF, g:0x00, b:0x00 }, // Red
+                  },
+                  Z : {
+                      shape : [[1,1,0], [0,1,1], [0,0,0]],
+                      rotations : 2,
+                      color : { r:0xFF, g:0x92, b:0x00 }, // Orange
+                  },
+                  J : {
+                      shape : [[0,0,0], [1,1,1], [0,0,1]],
+                      rotations : 4,
+                      color : { r:0xDB, g:0xB6, b:0x00 }, // Yellow
+                  },
+                  T : {
+                      shape : [[0,0,0], [1,1,1], [0,1,0]],
+                      rotations : 4,
+                      color : { r:0x49, g:0xB6, b:0x00 }, // Green
+                  },
+                  S : {
+                      shape : [[0,1,1], [1,1,0], [0,0,0]],
+                      rotations : 2,
+                      color : { r:0x00, g:0xB6, b:0xAA }, // Cyan
+                  },
+                  O: {
+                      shape : [[0,0,0,0], [0,1,1,0], [0,1,1,0], [0,0,0,0]],
+                      rotations : 1,
+                      color : { r:0x00, g:0x49, b:0xFF }, // Blue
+                  },
+                  L : {
+                      shape : [[0,0,0], [1,1,1], [1,0,0]],
+                      rotations : 4,
+                      color : { r:0xDB, g:0x00, b:0xFF }, // Purple
+                  },
+
+                  // Pentominoes
+                  LongJ : {
+                      shape : [[0,0,0,0], [1,0,0,0], [1,1,1,1], [0,0,0,0]],
+                      rotations : 4,
+                      color : { r:0xcc, g:0x83, b:0x00 }, // Red-Orange
+                  },
+                  LongL : {
+                      shape : [[0,0,0,0], [0,0,0,1], [1,1,1,1], [0,0,0,0]],
+                      rotations : 4,
+                      color : { r:0xa0, g:0x00, b:0xff }, // Light BLue
+                  },
+                  IL : {
+                      shape : [[0,0,0,0], [0,0,1,0], [1,1,1,1], [0,0,0,0]],
+                      rotations : 4,
+                      color : { r:0xff, g:0xbb, b:0x00 }, // Orange Yellow
+                  },
+                  JI : {
+                      shape : [[0,0,0,0], [0,1,0,0], [1,1,1,1], [0,0,0,0]],
+                      rotations : 4,
+                      color : { r:0x98, g:0x68, b:0x08 }, // Yellow Green
+                  },
+                  BigS : {
+                      shape : [[1,0,0], [1,1,1], [0,0,1]],
+                      rotations : 4,
+                      color : { r:0x00, g:0xbb, b:0x88 }, // Teal
+                  },
+                  BigZ : {
+                      shape : [[0,0,1], [1,1,1], [1,0,0]],
+                      rotations : 4,
+                      color : { r:0x00, g:0xbd, b:0xff }, // Cyan-light blue
+                  },
+                  JT : {
+                      shape : [[0,1,0], [1,1,1], [0,0,1]],
+                      rotations : 4,
+                      color : { r:0x00, g:0x91, b:0xff }, // Lighter Blue
+                  },
+                  TL : {
+                      shape : [[0,1,0], [1,1,1], [1,0,0]],
+                      rotations : 4,
+                      color : { r:0xff, g:0x00, b:0x83 }, // Dark Orange
+                  },
+                  LongS : {
+                      shape : [[0,0,0,0], [0,0,1,1], [1,1,1,0], [0,0,0,0]],
+                      rotations : 4,
+                      color : { r:0x00, g:0x80, b:0x80 }, // Purple
+                  },
+                  LongZ : {
+                      shape : [[0,0,0,0], [1,1,0,0], [0,1,1,1], [0,0,0,0]],
+                      rotations : 4,
+                      color : { r:0xff, g:0x57, b:0x00 }, // Fuscia
+                  },
+                  P : {
+                      shape : [[0,0,0], [1,1,0], [1,1,1]],
+                      rotations : 4,
+                      color : { r:0x4c, g:0x00, b:0x99 }, // Brown
+                  },
+                  b : {
+                      shape : [[0,0,0], [0,1,1], [1,1,1]],
+                      rotations : 4,
+                      color : { r:0x6B, g:0x49, b:0x04 }, // Lime
+                  },
+                  BigL : {
+                      shape : [[1,0,0], [1,0,0], [1,1,1]],
+                      rotations : 4,
+                      color : { r:0x5C, g:0x5C, b:0x5C }, // Dark Grey
+                  },
+                  W : {
+                      shape : [[0,0,1], [0,1,1], [1,1,0]],
+                      rotations : 4,
+                      color : { r:0x00, g:0x00, b:0x99 }, // Tan
+                  },
+                  Plus : {
+                      shape : [[0,1,0], [1,1,1], [0,1,0]],
+                      rotations : 1,
+                      color : { r:0xa0, g:0xff, b:0x00 }, // Dark Cyan
+                  },
+                  U : {
+                      shape : [[0,0,0], [1,0,1], [1,1,1]],
+                      rotations : 4,
+                      color : { r:0xAA, g:0xDD, b:0x77 }, // Light Grey
+                  },
+                  LongI : {
+                      shape : [[0,0,0,0,0], [0,0,0,0,0], [1,1,1,1,1], [0,0,0,0,0], [0,0,0,0,0]],
+                      rotations : 2,
+                      color : { r:0x99, g:0x00, b:0x00 }, // Dark Green
+                  },
+                  BigT : {
+                      shape : [[0,1,0], [0,1,0], [1,1,1]],
+                      rotations : 4,
+                      color : { r:0x00, g:0x66, b:0x00 }, // Light Green
+                  },
+
+                  // Triominoes
+                  SmallL : {
+                      shape : [[0,1], [1,1]],
+                      rotations : 4,
+                      color : { r:0xC0, g:0xC0, b:0xC0 }, // Pink
+                  },
+                  SmallI : {
+                      shape : [[0,0,0], [1,1,1], [0,0,0]],
+                      rotations : 2,
+                      color : { r:0xA1, g:0x12, b:0x12 }, // Dark Red
+                      
+                  },
+
+                  // Diominoe
+                  TinyI : {
+                      shape : [[0,0], [1,1]],
+                      rotations : 2,
+                      color : { r:0xFF, g:0x66, b:0xB2 }, // Dark Blue
+                      
+                  },
+
+                  // Monominoe
+                  Dot : {
+                      shape : [[1]],
+                      rotations : 1,
+                      color : { r:0xDA, g:0xBB, b:0x7E }, // Dark Purple
+                  },
+              };
+          }
+
+          isGameOver() {
+              for (var y=0; y<5; y++){
+                  for (var x=0; x<this.state.game_array[y].length; x++){
+                      if (this.state.game_array[y][x] != this.EMPTY){
+                          return true;
+                      }
+                  }
+              }
+              return false;
+          }
+
+          clearAndShift(l){
+              for (var i=l.length-1; i>=0; i--){
+                  var y = l[i];
+                  for (var y2=y; y2>=this.dimension.top_buffer; y2--){
+                      for (var x=0; x<this.dimension.game_width; x++){
+                          this.state.game_array[y2][x] = this.state.game_array[y2-1][x];
+                      }
+                  }
+              }
+          }
+          
+          animateLineClear(l, n){
+              this.clearAnimationTimer(1)
+
+              if (n > 0){
+                  for (var i=0; i<l.length; i++){
+                      this.drawBlock(this.ctx,
+                                     { shape : [[1,2,1,2,1,2,1,2,1,2]],
+                                       color : [{r:0xff,g:0,b:0},{r:0,g:0xff,b:0},{r:0,g:0,b:0xff},][n%3]},
+                                     this.dimension.left_buffer + this.dimension.game_border,
+                                     l[i],
+                                     0)
+                  }
+                  this.state.animation_timer[1] = setTimeout(() => this.animateLineClear(l, n-1), 15);
+              } else {
+                  this.clearAndShift(l);
+              }
+          }
+
+          lookForLines(){
+              var lines_cleared = [];
+              for (var y=this.state.game_array.length-1; y>this.dimension.top_buffer; y--){
+                  // Look at line
+                  var lineFull = true;
+                  for (var x=0; x<this.dimension.game_width; x++){
+                      if (this.state.game_array[y][x] == this.EMPTY){
+                          lineFull = false;
+                          break;
+                      }
+                  }
+
+                  // If full lines exist, start animation
+                  if (lineFull == true){
+                      lines_cleared.push(y);
+                  }
+              }
+
+              if (lines_cleared.length > 0)
+                  this.animateLineClear(lines_cleared, 8);
+              
+              return lines_cleared.length;
+          }
+
+          placeBlock(block, pos){
+              var pos_x = pos[0];
+              var pos_y = pos[1];
+              var rot   = pos[2];
+              var block_number = this.state.block_history.length-1;
+
+              block = this.rotateArray(block, rot);
+
+              for (var y=0; y<block.length; y++) {
+                  for (var x=0; x<block[y].length; x++) {
+                      if (block[y][x] == 1) {
+                          this.state.game_array[pos_y + y][pos_x + x] = block_number;
+                      }
+                  }
+              }
+          }
+
+          canMove(block, pos, dir){
+              var pos_x = pos[0];
+              var pos_y = pos[1];
+              var rot   = pos[2];
+
+              // Move position
+              if (dir == this.direction.down)  pos_y++;
+              if (dir == this.direction.left)  pos_x--;
+              if (dir == this.direction.right) pos_x++;
+              if (dir == this.direction.up)    rot++;
+
+              // Rotate
+              var block_array = this.rotateArray(block, rot);
+
+              for (var y=0; y<block_array.length; y++) {
+                  for (var x=0; x<block_array[y].length; x++) {
+                      if (block_array[y][x] == 1){
+                          // Check for out of bounds
+                          if (pos_x + x < 0 || pos_x + x >= this.dimension.game_width)
+                              return false;
+                          if (pos_y + y >= this.dimension.game_height + this.dimension.top_buffer)
+                              return false;
+                          // Compare against game array
+                          if (this.state.game_array[pos_y + y][pos_x + x] != this.EMPTY)
+                              return false;
+                      }
+                  }
+              }
+
+              // Can move!
+              return true;
+          }
+
+          isAnimating(){
+              for (var i=0; i<this.state.animation_timer.length; i++)
+                  if (this.state.animation_timer[i] != null) return true;
+              return false;
+          }
+
+          clearAnimationTimer(n=-1){
+              // Clear all timers
+              if (n == -1) {
+                  for (var i=0; i<this.state.animation_timer.length; i++){
+                      clearTimeout(this.state.animation_timer[i]);
+                      this.state.animation_timer[i] = null;
+                  }
+              } else {
+                  clearTimeout(this.state.animation_timer[n]);
+                  this.state.animation_timer[n] = null;
+              }
+          }
+
+          animateDrop(block){
+              this.clearAnimationTimer(3);
+
+              if (this.canMove(block, this.state.block_position, this.direction.down) == true){
+                  this.move(this.direction.down);
+                  this.state.block_position[3] += 1; // Bonus point per square for dropping fast
+                  this.state.animation_timer[3] = setTimeout(() => this.animateDrop(block), 5);
+              }
+          }
+
+          move(dir){
+              // Get shape template
+              var thisBlock = this.state.block_history[this.state.block_history.length-1];
+              
+              // Is valid move?
+              if (this.canMove(thisBlock, this.state.block_position, dir) == false)
+                  return;
+
+              // Actually move block
+              if (dir == this.direction.down){
+                  this.state.block_position[1] = this.state.block_position[1] + 1;
+                  this.state.block_position[3] += 1 // Get point per step for slow dropping
+              }
+
+              if (dir == this.direction.drop){
+                  this.state.block_position[3] = 0; // only get points from where it was fast dropped
+                  this.animateDrop(thisBlock);
+                  // Call mainloop now so it registers the block
+                  clearTimeout(this.state.timer)
+                  this.main_loop();
+              }
+
+              if (dir == this.direction.left){
+                  this.state.block_position[3] = 0; // only get points for how far it dropped without shifting
+                  this.state.block_position[0] = this.state.block_position[0] - 1;
+              }
+
+              if (dir == this.direction.right){
+                  this.state.block_position[3] = 0; // only get points for how far it dropped without shifting
+                  this.state.block_position[0] = this.state.block_position[0] + 1;
+              }
+
+              if (dir == this.direction.up){
+                  this.state.block_position[3] = 0; // only get points for how far it dropped without shifting
+                  this.state.block_position[2] = this.state.block_position[2] + 1;
+              }
+
+              // Redraw
+              this.redrawGameField();
+              this.redrawCurrentBlock();
+          }
+
+          toggleDebugMode(){
+              if (this.settings.debug == true)
+                  this.settings.debug = false;
+              else
+                  this.settings.debug = true;
+          }
+
+          toggleGhostMode(){
+              if (this.settings.showGhostBlock == true)
+                  this.settings.showGhostBlock = false;
+              else
+                  this.settings.showGhostBlock = true;
+              this.drawGameInformation();
+          }
+
+          toggleExtraPieces(){
+              if (this.settings.useExtraPieces == true)
+                  this.settings.useExtraPieces = false;
+              else
+                  this.settings.useExtraPieces = true;
+              this.drawGameInformation();
+          }
+
+          user_move(e){
+              // Switch for general commands
+              switch (e.keyCode){
+              case this.key.n:
+                  if (this.state.game_active == false)
+                      this.start();
+                  break;
+
+              case this.key.g:
+                  this.toggleGhostMode();
+                  break;
+
+              case this.key.d:
+                  this.toggleDebugMode();
+                  break
+
+              case this.key.e:
+                  if (this.state.game_active == false)
+                      this.toggleExtraPieces();
+                  break;
+
+              case this.key.p:
+                  if (this.state.game_active == true)
+                      this.togglePause();
+                  break;
+
+              case this.key.q:
+                  this.endGame();
+                  break;
+              }
+
+              // Switch for movement commands
+              if (this.state.game_active == true && this.isAnimating() == false && this.state.game_paused == false) {
+                  var direction = null;
+                  switch(e.keyCode){
+                  case this.key.space:
+                      direction = this.direction.drop;
+                      break;
+
+                  case this.key.left_arrow:
+                  case this.key.j:
+                      direction = this.direction.left;
+                      break;
+
+                  case this.key.up_arrow:
+                  case this.key.i:
+                      direction = this.direction.up;
+                      break;
+
+                  case this.key.right_arrow:
+                  case this.key.l:
+                      direction = this.direction.right;
+                      break;
+
+                  case this.key.down_arrow:
+                  case this.key.k:
+                      direction = this.direction.down;
+                      break;
+
+                  default:
+                      return;
+                  }
+                  this.move(direction);
+              }
+          }
+
+          currentLevel(){
+              return Math.floor(this.state.lines/10) + 1;
+          }
+
+          endGame(){
+              if (this.state.game_active == false) return;
+              clearTimeout(this.state.timer);
+              this.clearAnimationTimer();
+              this.state.game_active = false;
+              this.drawGameInformation();
+              this.textOverlay([["40px SegmentedAlpha","GAME OVER"],["20px Arial","Click to play again!"]]);
+          }
+
+          main_loop(){
+              // See if we are paused
+              if (this.state.game_paused == true) return;
+
+              if (this.settings.debug == true){
+                  this.ctx.fillStyle = this.colors.background;
+                  this.ctx.fillRect(this.canvas.width-(this.dimension.right_buffer*this.dimension.square_size), this.canvas.height-20, this.dimension.right_buffer*this.dimension.square_size, this.canvas.height);
+              }
+              // See if animations are going, and wait for them to finish
+              if (this.isAnimating() == true){
+                  if (this.settings.debug == true){
+                      this.ctx.font = "12px SegmentedAlpha";
+                      this.ctx.fillStyle = this.colors.red;
+                      this.ctx.fillText("animating", this.canvas.width - 10, this.canvas.height-10);
+                  }
+                  clearTimeout(this.state.timer);
+                  this.state.timer = setTimeout(() => this.main_loop(), 10);
+                  return;
+              }
+
+              // Get shape template
+              var block = this.state.block_history[this.state.block_history.length-1];
+
+              // Set timeout for next cycle
+              this.speed = this.rules.base_speed * Math.pow(this.rules.speedup_multiplier, this.currentLevel() -1);
+              this.speed = this.speed < this.max_speed ? this.max_speed : this.speed;
+
+              // See if a block has been placed
+              if (this.canMove(block, this.state.block_position, this.direction.down) == false){
+                  // Set speed to 0 so we don't wait for an entire cycle to show new block
+                  this.speed = 0;
+
+                  // Add block array to array
+                  this.placeBlock(block, this.state.block_position);
+
+                  // Look for lines to clear, Update Scores and Counts
+                  var lines_cleared = this.lookForLines();
+                  this.state.score += this.rules.line_scores[lines_cleared] * this.currentLevel();
+                  this.state.lines += lines_cleared;
+
+                  // 1 point per block for distance fallen, double for fast drop
+                  this.state.score += this.state.block_position[3] > 40 ? 40 : this.state.block_position[3];
+                  this.drawGameInformation();
+
+                  // Animate blocks scrolling up
+                  this.animateUpcomingBlocks(0);
+
+                  // See if game is over
+                  if (this.isGameOver() == true){
+                      this.endGame();
+                      return;
+                  }
+              }
+
+              // Move current block down
+              this.move(this.direction.down);
+
+              // See if window/game lost focus, and pause
+              //if (document.activeElement == document.getElementById('myInput')) // Not working
+              if(!document.hasFocus()) this.pause();
+
+              // Set timer
+              this.state.timer = setTimeout(() => this.main_loop(), this.speed);
+          }
+
+          shuffle(array) {
+              let counter = array.length;
+
+              // While there are elements in the array
+              while (counter > 0) {
+                  // Pick a random index
+                  let index = Math.floor(Math.random() * counter);
+
+                  // Decrease counter by 1
+                  counter--;
+
+                  // And swap the last element with it
+                  let temp = array[counter];
+                  array[counter] = array[index];
+                  array[index] = temp;
+              }
+
+              return array;
+          }
+
+          add_block(){
+              // Make sure first block of game is from more restrictive set
+              if (this.state.block_upcoming.length == 0){
+                  var t = this.rules.startingBlocks[Math.floor(Math.random() * this.rules.startingBlocks.length)];
+                  this.state.block_upcoming.push(this.block_defs[t]);
+              }
+
+              // If there are fewer than 8 pieces, add a whole set of pieces in random order
+              while (this.state.block_upcoming.length < 8){
+                  for (var t of this.shuffle(this.state.blockset))
+                      this.state.block_upcoming.push(this.block_defs[t]);
+              }
+
+              // Move next block from block_upcoming array to block_history array
+              this.state.block_history.push(this.state.block_upcoming[0]);
+              this.state.block_upcoming = this.state.block_upcoming.slice(1);
+
+              // Set position of previous 'next' block to top, center
+              var this_block = this.state.block_history[this.state.block_history.length-1];
+              this.state.block_position = [(this.dimension.game_width/2) - 1,
+                                           this.dimension.top_buffer - this_block.shape.length - 1,
+                                           0,
+                                           0];
+          }
+
+          resizeCanvas(width, height){
+              this.canvas.height = width * this.dimension.square_size;
+              this.canvas.width  = height * this.dimension.square_size;
+              document.getElementById("content").setAttribute("style", "width: " + this.canvas.width + "px;");
+          }
+
+          clearScreen(){
+              // Setup Game field
+              var total_height = this.dimension.game_height + this.dimension.top_buffer + this.dimension.game_border;
+              var total_width  = this.dimension.game_width + this.dimension.left_buffer + this.dimension.right_buffer + (2*this.dimension.game_border);
+              this.resizeCanvas(total_width, total_height);
+
+              // Setup Array
+              this.state.game_array = [];
+              for (var y=0; y<this.dimension.game_height+this.dimension.top_buffer; y++){
+                  var temp = [];
+                  for (var x=0; x<this.dimension.game_width; x++){
+                      temp.push(this.EMPTY);
+                  }
+                  this.state.game_array.push(temp);
+              }
+
+              this.redraw();
+              return;
+          }
+
+          setFocus(){
+              document.getElementById("myInput").focus()
+          }
+
+          pause(){
+              if (this.state.game_active == true && this.state.game_paused == false){
+                  this.state.game_paused = true;
+                  this.textOverlay([["48px SegmentedAlpha","PAUSED"],["20px Arial","Click to resume."]]);
+                  clearTimeout(this.state.timer);
+              }
+          }
+
+          unpause(){
+              if (this.state.game_active == true && this.state.game_paused == true){
+                  this.state.game_paused = false;
+                  this.main_loop();
+              }
+          }
+
+          togglePause(){
+              if (this.state.game_active == true){
+                  if (this.state.game_paused == false){
+                      this.pause();
+                  } else {
+                      this.unpause();
+                  }
+              }
+          }
+
+          start(){
+              this.setFocus();    // Set focus to input box
+              this.togglePause();  // Toggle pause
+
+              // Start game
+              if (this.state.game_active == false) {
+                  this.clearScreen();      // Clear the screen
+                  this.state.lines = 0;
+                  this.state.score = 0;
+                  this.state.block_history = [];
+                  this.state.block_upcoming = []; // Clear next blocks
+                  // Set which type of blocks for game
+                  this.state.blockset = this.rules.tetrominoes;
+                  if (this.settings.useExtraPieces == true)
+                      this.state.blockset = Object.keys(this.block_defs);
+                  this.add_block();         // Populate upcoming blocks
+                  this.state.game_active = true;
+                  this.state.game_paused = false;
+                  this.redraw();            // Draw the screen
+                  this.main_loop();
+              }
+          }
+
+          drawUpcomingBlocks(offset=0){
+              // Clear left section
+              this.ctx.fillStyle = this.colors.background;
+              this.ctx.fillRect(0, 0, this.dimension.left_buffer * this.dimension.square_size, this.canvas.height);
+
+              for (var i=0; i<7; i++){
+                  var next_block        = this.state.block_upcoming[i];
+                  var next_block_height = next_block.shape.length;
+                  var next_block_width  = next_block.shape[0].length;
+                  var next_block_left   = Math.floor((this.dimension.left_buffer / 2) - (next_block_width / 2));
+                  this.drawBlock(this.ctx,
+                                 next_block,
+                                 next_block_left,
+                                 this.dimension.top_buffer - next_block_height + (4 * i) + offset,
+                                 0);
+              }
+          }
+
+          animateUpcomingBlocks(n){
+              this.clearAnimationTimer(2);
+
+              if (n > -5){
+                  this.drawUpcomingBlocks(n);
+                  n--;
+                  this.state.animation_timer[2] = setTimeout(() => this.animateUpcomingBlocks(n), 20);
+              } else {
+                  // Finally, add a block
+                  this.add_block();
+                  // and redraw to remove the added block from left side
+                  this.drawUpcomingBlocks(0);
+              }
+          }
+
+          redrawGameField(){
+              this.ctx.fillStyle = this.colors.black;
+              this.ctx.fillRect(
+                  this.dimension.square_size * (this.dimension.left_buffer + this.dimension.game_border),
+                  0,
+                  this.dimension.square_size * (this.dimension.game_width),
+                  this.dimension.square_size * (this.dimension.top_buffer + this.dimension.game_height)
+              );
+
+              for (var y=0; y<this.state.game_array.length; y++){
+                  for (var x=0; x<this.state.game_array[y].length; x++){
+                      if (this.state.game_array[y][x] == this.EMPTY) continue;
+                      this.drawChisledBrick(this.ctx, x + this.dimension.left_buffer + this.dimension.game_border, y, this.dimension.square_size,
+                                            this.state.block_history[this.state.game_array[y][x]].color,
+                                            y > 0                 ? this.state.game_array[y][x] == this.state.game_array[y-1][x] : false,
+                                            x < this.state.game_array[0].length-1 ? this.state.game_array[y][x] == this.state.game_array[y][x+1] : false,
+                                            y < this.state.game_array.length-1    ? this.state.game_array[y][x] == this.state.game_array[y+1][x] : false,
+                                            x > 0                 ? this.state.game_array[y][x] == this.state.game_array[y][x-1] : false,
+                                           );
+                  }
+              }
+          }
+
+          redrawCurrentBlock(){
+              var this_block = this.state.block_history[this.state.block_history.length-1];
+
+              // Ghost block
+              if (this.settings.showGhostBlock == true){
+                  // Get lowest it can go
+                  var ghost_pos = this.state.block_position.slice();
+
+                  while (this.canMove(this_block, ghost_pos, this.direction.down) == true)
+                      ghost_pos[1]++;
+                  this.drawBlockInGameField(this.ctx, this_block, this.state.block_position[0], ghost_pos[1], this.state.block_position[2], 2, true);
+              }
+
+              // Draw current block last so it's always on top
+              this.drawBlockInGameField(this.ctx, this_block, this.state.block_position[0], this.state.block_position[1], this.state.block_position[2]);
+          }
+
+          redrawBackground(){
+              // Draw black background
+              this.ctx.fillStyle = this.colors.background;
+              this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+              this.ctx.fillStyle = this.colors.black;
+              this.ctx.fillRect((this.dimension.left_buffer + this.dimension.game_border)*this.dimension.square_size, 0, this.dimension.game_width*this.dimension.square_size, this.canvas.height);
+
+              // Draw border around game field
+              for (var y=0; y<=this.dimension.game_height + this.dimension.game_border; y++)
+                  for (var x=0; x<this.dimension.game_width + (2 * this.dimension.game_border); x++)
+                      if (y == this.dimension.game_height || (x == 0 || x == this.dimension.game_width + 1))
+                          this.drawChisledBrick(this.ctx, x + this.dimension.left_buffer, y + this.dimension.top_buffer, this.dimension.square_size,
+                                                {r:0x88, g:0x88, b:0x88},
+                                                y == 0 || y == this.dimension.game_height && x != 0 && x != this.dimension.game_width + 1 ? false : true,
+                                                y <  this.dimension.game_height || y == this.dimension.game_height && x == this.dimension.game_width + 1 ? false : true,
+                                                y == this.dimension.game_height ? false : true,
+                                                y <  this.dimension.game_height || y == this.dimension.game_height && x == 0 ? false : true,
+                                               );
+          }
+
+          redraw(){
+              // Redraw background
+              this.redrawBackground();
+
+              // Draw each block in game field
+              this.redrawGameField();
+
+              // Draw upcoming blocks
+              if (this.state.block_upcoming.length > 0)
+                  this.drawUpcomingBlocks();
+
+              // Draw current block
+              if (this.state.game_active == true) {
+                  this.redrawCurrentBlock();
+              }
+
+              // Draw right hand side
+              this.drawGameInformation();
+          }
+
+          drawGameInformation(){
+              // Clear section and Draw black background
+              this.ctx.fillStyle = this.colors.background;
+              this.ctx.fillRect(this.canvas.width-(this.dimension.right_buffer*this.dimension.square_size), 0, this.dimension.right_buffer*this.dimension.square_size, this.canvas.height);
+
+              // Right align everything
+              var ralign = this.canvas.width - (this.dimension.square_size * 1);
+              this.ctx.textAlign = "right";
+
+              // Draw Game Name
+              this.ctx.fillStyle = this.colors.light_grey;
+              var title_size = Math.floor(this.canvas.width / 13);
+              this.ctx.font = "Bold " + title_size + "px Arial";
+              this.ctx.fillText("N-tris", ralign, 0 + (title_size * 1.3));
+              
+              // Set up spacing based on this.canvas size
+              var label_size = Math.floor(this.canvas.width / 28);
+              var digit_size = Math.floor(this.canvas.width / 18);
+              var alpha_size = Math.floor(this.canvas.width / 21);
+              var line_spacing = Math.floor(this.canvas.width / 18);
+
+              // Draw game information
+              var y = this.dimension.top_buffer * this.dimension.square_size + label_size;
+              this.ctx.fillStyle = this.colors.light_grey;
+              this.ctx.font = label_size + "px Arial";
+              this.ctx.fillText("Score",         ralign, y + (0 * line_spacing));
+              this.ctx.fillText("Lines",         ralign, y + (2 * line_spacing));
+              this.ctx.fillText("Level",         ralign, y + (4 * line_spacing));
+              this.ctx.fillText("Extra Pieces", ralign, y + (6 * line_spacing));
+              this.ctx.fillText("Ghost Block",   ralign, y + (8 * line_spacing));
+              this.ctx.fillStyle = this.colors.green;
+              this.ctx.font = digit_size + "px Segmented";
+              this.ctx.fillText(this.state.score,                ralign, y + (1 * line_spacing));
+              this.ctx.fillText(this.state.lines,                ralign, y + (3 * line_spacing));
+              this.ctx.fillText(this.currentLevel(), ralign, y + (5 * line_spacing));
+              this.ctx.font = alpha_size + "px SegmentedAlpha";
+              this.ctx.fillStyle = this.state.game_active == true ? this.colors.amber : this.colors.green;
+              this.ctx.fillText(this.settings.useExtraPieces == true ? "Enabled" : "Disabled", ralign, y + (7 * line_spacing));
+              this.ctx.fillStyle = this.colors.green;
+              this.ctx.fillText(this.settings.showGhostBlock == true ? "Enabled" : "Disabled", ralign, y + (9 * line_spacing));
+
+              // Draw help information
+              y = this.canvas.height - this.dimension.square_size;
+              var note_spacing = this.canvas.width / 45;
+              this.ctx.fillStyle = this.colors.light_grey;
+              this.ctx.font = "Italic " + this.canvas.width / 50 + "px Arial";
+              var notes = [
+                  "(n) New Game",
+                  "(arrows) Move",
+                  "(up arrow) Rotate",
+                  "(space) Drop",
+                  "(p) Pause",
+                  "(q) Quit Game",
+                  "(e) Extra Pieces",
+                  "(g) Ghost Mode"
+              ];
+              for (var i=0; i<notes.length; i++)
+                  this.ctx.fillText(notes[i], ralign, y - ((notes.length - i) * note_spacing));
+          }
+
+          rotateArray(a, n){
+              var rotated = a.shape.slice(); // Copies the array
+              const height = rotated[0].length;;
+              const width = rotated.length;
+              const rotation = n % a.rotations;
+
+              for (var rotate=0; rotate<rotation; rotate++){
+                  // Create new array of the same size
+                  var tmp = [];
+                  for (var y=0; y<height; y++){
+                      var t_row = [];
+                      for (var x=0; x<width; x++){
+                          t_row.push(0);
+                      }
+                      tmp.push(t_row);
+                  }
+                  
+                  // Copy data to new, empty array
+                  for (var y=0; y<height; y++){
+                      for (var x=0; x<width; x++){
+                          tmp[y][x] = rotated[x][height-y-1];
+                      }
+                  }
+
+                  // Overwrite rotated array
+                  rotated = tmp.slice();
+              }
+
+              return rotated;
+          }
+
+          drawBlockInGameField(ctx, def, bx, by, r, edge=-1, outline=false){
+              // offset so it draws on the game board
+              this.drawBlock(ctx, def, this.dimension.left_buffer + this.dimension.game_border + bx, by, r, edge, outline);
+          }
+
+          drawBlock(ctx, def, bx, by, r, edge=-1, outline=false){
+              // rotate block array
+              var block = this.rotateArray(def, r);;
+              var width = def.shape[0].length;
+              var height = def.shape.length;
+              var color = def.color;
+
+              for (var y=0; y<height; y++){
+                  for (var x=0; x<width; x++){
+                      if (block[y][x] > 0){
+                          this.drawChisledBrick(ctx,
+                                                (bx + x),
+                                                (by + y),
+                                                this.dimension.square_size,
+                                                color,
+                                                y > 0                 ? block[y][x] == block[y-1][x] : false,
+                                                x < block[0].length-1 ? block[y][x] == block[y][x+1] : false,
+                                                y < block.length-1    ? block[y][x] == block[y+1][x] : false,
+                                                x > 0                 ? block[y][x] == block[y][x-1] : false,
+                                                edge,
+                                                outline,
+                                               )
+                      }
+                  }
+              }
+              
+          }
+
+          shiftColor(c, d){
+              var r = c.r - d;
+              var g = c.g - d;
+              var b = c.b - d;
+
+              r = r < 0 ? 0 : r;
+              g = g < 0 ? 0 : g;
+              b = b < 0 ? 0 : b;
+              r = r > 0xff ? 0xff : r;
+              g = g > 0xff ? 0xff : g;
+              b = b > 0xff ? 0xff : b;
+
+              return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+          }
+
+          drawChisledBrick(ctx, x, y, l, c, n, e, s, w, edge=-1, outline=false){
+              if (edge < 0)
+                  edge = Math.floor(this.dimension.square_size * .25);
+
+              // Adjust x, y coordinates
+              x *= l;
+              y *= l;
+
+              // Define colors
+              var c_lightest = this.shiftColor(c, -0x64);;
+              var c_light    = this.shiftColor(c, -0x32);
+              var c_normal   = this.shiftColor(c, 0x0);
+              var c_dark     = this.shiftColor(c, 0x32);
+              var c_darkest  = this.shiftColor(c, 0x64);
+              if (outline == true){
+                  var c_lightest = this.shiftColor(c, 0x0);
+                  var c_light    = this.shiftColor(c, 0x0);
+                  var c_normal   = "rgba(0,0,0,0)";
+                  var c_dark     = this.shiftColor(c, 0x0);
+                  var c_darkest  = this.shiftColor(c, 0x0);
+              }
+
+              // Fill in background color
+              ctx.fillStyle = c_normal;
+              ctx.fillRect(x, y, l, l);
+
+              // North Edge
+              if (n == false){
+                  ctx.beginPath();
+                  ctx.moveTo(x, y);
+                  if (w == true)
+                      ctx.lineTo(x, y+edge);
+                  else
+                      ctx.lineTo(x+edge, y+edge);
+                  if (e == true)
+                      ctx.lineTo(x+l, y+edge);
+                  else
+                      ctx.lineTo(x+l-edge, y+edge);
+                  ctx.lineTo(x+l, y);
+                  ctx.fillStyle = c_lightest;
+                  ctx.fill();
+              }
+
+              // West Edge
+              if (w == false){
+                  ctx.beginPath();
+                  ctx.moveTo(x, y);
+                  if (n == true)
+                      ctx.lineTo(x+edge, y);
+                  else
+                      ctx.lineTo(x+edge, y+edge);
+                  if (s == true)
+                      ctx.lineTo(x+edge, y+l);
+                  else
+                      ctx.lineTo(x+edge, y+l-edge);
+                  ctx.lineTo(x, y+l);
+                  ctx.fillStyle = c_light;
+                  ctx.fill();
+              }
+
+              // East Edge
+              if (e == false){
+                  ctx.beginPath();
+                  ctx.moveTo(x+l, y);
+                  if (n == true)
+                      ctx.lineTo(x+l-edge, y);
+                  else
+                      ctx.lineTo(x+l-edge, y+edge);
+                  if (s == true)
+                      ctx.lineTo(x+l-edge, y+l);
+                  else
+                      ctx.lineTo(x+l-edge, y+l-edge);
+                  ctx.lineTo(x+l, y+l);
+                  ctx.fillStyle = c_dark;
+                  ctx.fill();
+              }
+
+              // South Edge
+              if (s == false){
+                  ctx.beginPath();
+                  ctx.moveTo(x, y+l);
+                  if (w == true)
+                      ctx.lineTo(x, y+l-edge);
+                  else
+                      ctx.lineTo(x+edge, y+l-edge);
+                  if (e == true)
+                      ctx.lineTo(x+l, y+l-edge);
+                  else
+                      ctx.lineTo(x+l-edge, y+l-edge);
+                  ctx.lineTo(x+l, y+l);
+                  ctx.fillStyle = c_darkest;
+                  ctx.fill();
+              }
+
+              // NW Corner
+              if (n == true && w == true){
+                  ctx.beginPath();
+                  ctx.moveTo(x, y);
+                  ctx.lineTo(x+edge, y);
+                  ctx.lineTo(x+edge, y+edge);
+                  ctx.fillStyle = c_light;
+                  ctx.fill();
+                  ctx.beginPath();
+                  ctx.moveTo(x, y);
+                  ctx.lineTo(x, y+edge);
+                  ctx.lineTo(x+edge, y+edge);
+                  ctx.fillStyle = c_lightest;
+                  ctx.fill();
+              }
+
+              // NE Corner
+              if (n == true && e == true){
+                  ctx.beginPath();
+                  ctx.moveTo(x+l, y);
+                  ctx.lineTo(x+l-edge, y);
+                  ctx.lineTo(x+l-edge, y+edge);
+                  ctx.fillStyle = c_dark;
+                  ctx.fill();
+                  ctx.beginPath();
+                  ctx.moveTo(x+l, y);
+                  ctx.lineTo(x+l, y+edge);
+                  ctx.lineTo(x+l-edge, y+edge);
+                  ctx.fillStyle = c_lightest;
+                  ctx.fill();
+              }
+
+              // SW Corner
+              if (s == true && w == true){
+                  ctx.beginPath();
+                  ctx.moveTo(x, y+l);
+                  ctx.lineTo(x+edge, y+l);
+                  ctx.lineTo(x+edge, y+l-edge);
+                  ctx.fillStyle = c[3];
+                  ctx.fill();
+                  ctx.beginPath();
+                  ctx.moveTo(x, y+l);
+                  ctx.lineTo(x, y+l-edge);
+                  ctx.lineTo(x+edge, y+l-edge);
+                  ctx.fillStyle = c_darkest;
+                  ctx.fill();
+              }
+
+              // SE Corner
+              if (s == true && e == true){
+                  ctx.beginPath();
+                  ctx.moveTo(x+l, y+l);
+                  ctx.lineTo(x+l-edge, y+l);
+                  ctx.lineTo(x+l-edge, y+l-edge);
+                  ctx.fillStyle = c_dark;
+                  ctx.fill();
+                  ctx.beginPath();
+                  ctx.moveTo(x+l, y+l);
+                  ctx.lineTo(x+l, y+l-edge);
+                  ctx.lineTo(x+l-edge, y+l-edge);
+                  ctx.fillStyle = c_darkest;
+                  ctx.fill();
+              }
+          }
+
+          textOverlay(string_array){
+              this.ctx.fillStyle = "rgba(0,0,0,.7)";
+              this.ctx.fillRect((this.dimension.left_buffer + this.dimension.game_border) * this.dimension.square_size,
+                                0,
+                                this.dimension.game_width * this.dimension.square_size,
+                                (this.dimension.top_buffer + this.dimension.game_height) * this.dimension.square_size);
+
+              this.ctx.fillStyle = this.colors.white;
+              this.ctx.textAlign = "center";
+              var y = this.canvas.height/2;
+              for (var i=0; i<string_array.length; i++){
+                  this.ctx.font = string_array[i][0];
+                  this.ctx.fillText(string_array[i][1], this.canvas.width/2, y);
+                  y += 32;
+              }
+          }
+
+          resizeGame(){
+              var windowWidth = window.innerWidth
+                  || document.documentElement.clientWidth
+                  || document.body.clientWidth;
+              var windowHeight = window.innerHeight
+                  || document.documentElement.clientHeight
+                  || document.body.clientHeight;
+              var maxWindowSize = Math.min(windowHeight, windowWidth);
+
+              var gameWidth = this.dimension.left_buffer + this.dimension.right_buffer + this.dimension.game_width + (this.dimension.game_border * 2);
+              var gameHeight = this.dimension.top_buffer + this.dimension.game_height + this.dimension.game_border;
+              var minGameArea = Math.max(gameWidth, gameHeight);
+
+              // Set new square size
+              this.dimension.square_size = Math.floor(maxWindowSize / (minGameArea * 1.1));
+
+              // Redraw everything
+              this.resizeCanvas(gameWidth, gameHeight);
+              this.redraw();
+
+              // Set focus so we can keep playing
+              this.setFocus();
+          }
+
+          firstRun(){
+              this.clearScreen();
+              this.resizeGame();
+              this.drawGameInformation();
+              this.textOverlay([["32px SegmentedAlpha","Click to start!"]]);
+          }
+
+      }
+
+      var tetris_instance = new tetris(document.getElementById("canvas"));
 
     </script>
   </body>
 </html>
+ 
