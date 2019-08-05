@@ -64,6 +64,7 @@
                   game_array      : [],                   // Play field
                   game_active     : false,
                   game_paused     : null,
+                  game_overlay    : null,
                   lines           : 0,
                   score           : 0,
                   block_upcoming  : [],                   // Next chosen blocks
@@ -120,6 +121,12 @@
                   light_grey : "#CCCCCC",
                   white      : "#FFFFFF"
               };
+
+              this.overlays = {
+                  firstrun : [["32px SegmentedAlpha","Click to start!"]],
+                  paused   : [["48px SegmentedAlpha","PAUSED"],["20px Arial","Click to resume."]],
+                  gameover : [["40px SegmentedAlpha","GAME OVER"],["20px Arial","Click to play again!"]],
+              }
 
               this.rules = {
                   startingBlocks     : ['I', 'L', 'J', 'T'],
@@ -573,8 +580,8 @@
               clearTimeout(this.state.timer);
               this.clearAnimationTimer();
               this.state.game_active = false;
-              this.drawGameInformation();
-              this.textOverlay([["40px SegmentedAlpha","GAME OVER"],["20px Arial","Click to play again!"]]);
+              this.state.game_overlay = this.overlays.gameover;
+              this.redraw();
           }
 
           main_loop(){
@@ -720,7 +727,8 @@
           pause(){
               if (this.state.game_active == true && this.state.game_paused == false){
                   this.state.game_paused = true;
-                  this.textOverlay([["48px SegmentedAlpha","PAUSED"],["20px Arial","Click to resume."]]);
+                  this.state.game_overlay = this.overlays.paused;
+                  this.redraw();
                   clearTimeout(this.state.timer);
               }
           }
@@ -728,6 +736,8 @@
           unpause(){
               if (this.state.game_active == true && this.state.game_paused == true){
                   this.state.game_paused = false;
+                  this.state.game_overlay = null;
+                  this.redraw();
                   this.main_loop();
               }
           }
@@ -743,6 +753,7 @@
           }
 
           start(){
+              this.state.game_overlay = null; // Clear text overlays
               this.setFocus();    // Set focus to input box
               this.togglePause();  // Toggle pause
 
@@ -876,6 +887,11 @@
 
               // Draw right hand side
               this.drawGameInformation();
+
+              // Draw game overlay
+              if (this.state.game_overlay != null){
+                  this.textOverlay(this.state.game_overlay);
+              }
           }
 
           drawGameInformation(){
@@ -1218,10 +1234,8 @@
           }
 
           firstRun(){
-              this.clearScreen();
+              this.state.game_overlay = this.overlays.firstrun;
               this.resizeGame();
-              this.drawGameInformation();
-              this.textOverlay([["32px SegmentedAlpha","Click to start!"]]);
           }
 
       }
