@@ -66,6 +66,7 @@
                   game_paused     : null,
                   game_overlay    : null,
                   lines           : 0,
+                  level           : 0,
                   score           : 0,
                   block_upcoming  : [],                   // Next chosen blocks
                   block_history   : [],                   // History of blocks chosen
@@ -108,6 +109,7 @@
                   p           : 80,
                   d           : 68,
                   q           : 81,
+                  plus        : 61,
               };
 
               this.EMPTY  = -2;
@@ -494,7 +496,7 @@
                   this.settings.showGhostBlock = false;
               else
                   this.settings.showGhostBlock = true;
-              this.drawGameInformation();
+              this.redraw();
           }
 
           toggleExtraPieces(){
@@ -564,6 +566,11 @@
                       direction = this.direction.down;
                       break;
 
+                  case this.key.plus:
+                      this.state.level += 1;
+                      this.drawGameInformation();
+                      break;
+
                   default:
                       return;
                   }
@@ -571,8 +578,35 @@
               }
           }
 
-          currentLevel(){
-              return Math.floor(this.state.lines/10) + 1;
+          check_high_score(){
+              // Retrieve Scores
+              var high_scores = localStorage.getItem("scores");
+
+              // Convert from JSON
+              if (high_scores)
+                  high_scores = JSON.parse(high_scores);
+              else
+                  high_scores = [];
+
+              // Go through each and see if it's in the top ten
+              var i=0;
+              for (i=0; i<high_scores.length; i++){
+                  if (this.state.score > high_scores[i].score)
+                      break;
+              }
+
+              // Record new score
+              if (i<10) {
+                  const nth = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh"]
+                  var user_name = prompt("New high score! You got "+nth[i]+" place. Enter name", "Anonymous");
+                  high_scores.splice(i, 0, {
+                      name  : user_name,
+                      level : this.state.level,
+                      score : this.state.score
+                  });
+
+                  localStorage.scores = JSON.stringify(high_scores);
+              }
           }
 
           endGame(){
@@ -581,6 +615,7 @@
               this.clearAnimationTimer();
               this.state.game_active = false;
               this.state.game_overlay = this.overlays.gameover;
+              this.check_high_score();
               this.redraw();
           }
 
@@ -608,7 +643,7 @@
               var block = this.state.block_history[this.state.block_history.length-1];
 
               // Set timeout for next cycle
-              this.speed = this.rules.base_speed * Math.pow(this.rules.speedup_multiplier, this.currentLevel() -1);
+              this.speed = this.rules.base_speed * Math.pow(this.rules.speedup_multiplier, this.state.level -1);
               this.speed = this.speed < this.max_speed ? this.max_speed : this.speed;
 
               // See if a block has been placed
@@ -621,7 +656,9 @@
 
                   // Look for lines to clear, Update Scores and Counts
                   var lines_cleared = this.lookForLines();
-                  this.state.score += this.rules.line_scores[lines_cleared] * this.currentLevel();
+                  this.state.score += this.rules.line_scores[lines_cleared] * this.state.level;
+                  if (Math.floor(this.state.lines / 10) < Math.floor((this.state.lines + lines_cleared) / 10))
+                      this.state.level += 1;
                   this.state.lines += lines_cleared;
 
                   // 1 point per block for distance fallen, double for fast drop
@@ -761,6 +798,7 @@
               if (this.state.game_active == false) {
                   this.clearScreen();      // Clear the screen
                   this.state.lines = 0;
+                  this.state.level = 1;
                   this.state.score = 0;
                   this.state.block_history = [];
                   this.state.block_upcoming = []; // Clear next blocks
@@ -928,7 +966,7 @@
               this.ctx.font = digit_size + "px Segmented";
               this.ctx.fillText(this.state.score,                ralign, y + (1 * line_spacing));
               this.ctx.fillText(this.state.lines,                ralign, y + (3 * line_spacing));
-              this.ctx.fillText(this.currentLevel(), ralign, y + (5 * line_spacing));
+              this.ctx.fillText(this.state.level, ralign, y + (5 * line_spacing));
               this.ctx.font = alpha_size + "px SegmentedAlpha";
               this.ctx.fillStyle = this.state.game_active == true ? this.colors.amber : this.colors.green;
               this.ctx.fillText(this.settings.useExtraPieces == true ? "Enabled" : "Disabled", ralign, y + (7 * line_spacing));
@@ -1165,7 +1203,7 @@
                   ctx.moveTo(x, y+l);
                   ctx.lineTo(x+edge, y+l);
                   ctx.lineTo(x+edge, y+l-edge);
-                  ctx.fillStyle = c[3];
+                  ctx.fillStyle = c_light;
                   ctx.fill();
                   ctx.beginPath();
                   ctx.moveTo(x, y+l);
@@ -1193,19 +1231,42 @@
           }
 
           textOverlay(string_array){
+              // Black out playing field
               this.ctx.fillStyle = "rgba(0,0,0,.7)";
               this.ctx.fillRect((this.dimension.left_buffer + this.dimension.game_border) * this.dimension.square_size,
                                 0,
                                 this.dimension.game_width * this.dimension.square_size,
                                 (this.dimension.top_buffer + this.dimension.game_height) * this.dimension.square_size);
 
+              // Print desired message in upper section
               this.ctx.fillStyle = this.colors.white;
               this.ctx.textAlign = "center";
-              var y = this.canvas.height/2;
+              var y = this.canvas.height/3;
               for (var i=0; i<string_array.length; i++){
                   this.ctx.font = string_array[i][0];
                   this.ctx.fillText(string_array[i][1], this.canvas.width/2, y);
                   y += 32;
+              }
+
+              // Print high scores in remaining portion
+              var high_scores = localStorage.getItem("scores");
+
+              // Convert from JSON
+              if (high_scores){
+                  high_scores = JSON.parse(high_scores);
+                  y = this.canvas.height/2;
+
+                  for(var i=0; i<Math.min(10, high_scores.length); i++){
+                      var score = high_scores[i];
+                      this.ctx.font = "14px SegmentedAlpha";
+                      this.ctx.textAlign = "left";
+                      this.ctx.fillText(score.name, (this.dimension.left_buffer + 2) * this.dimension.square_size, y);
+                      //this.ctx.textAlign = "center";
+                      //this.ctx.fillText(score.level, this.canvas.width/2, y);
+                      this.ctx.textAlign = "right";
+                      this.ctx.fillText(score.score, (this.dimension.left_buffer + this.dimension.game_width) * this.dimension.square_size, y);
+                      y += 24;
+                  }
               }
           }
 
