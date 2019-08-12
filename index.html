@@ -57,6 +57,7 @@
                   left_buffer  : 7, // Space for next block
                   right_buffer : 7, // Space for next block
                   game_border  : 1, // Border width around play area
+                  em           : 1, // Font scaling constant
               }
 
               // Game variables
@@ -125,9 +126,11 @@
               };
 
               this.overlays = {
-                  firstrun : [["32px SegmentedAlpha","Click to start!"]],
-                  paused   : [["48px SegmentedAlpha","PAUSED"],["20px Arial","Click to resume."]],
-                  gameover : [["40px SegmentedAlpha","GAME OVER"],["20px Arial","Click to play again!"]],
+                  firstrun : [[28, "SegmentedAlpha","Click to start!"]],
+                  paused   : [[48, "SegmentedAlpha","PAUSED"],
+                              [20, "Arial"         ,"Click to resume."]],
+                  gameover : [[40, "SegmentedAlpha","GAME OVER"],
+                              [20, "Arial"         ,"Click to play again!"]],
               }
 
               this.rules = {
@@ -1230,6 +1233,10 @@
               }
           }
 
+          font_sizer(pixels, font){
+              return (pixels * this.dimension.em) + "px " + font;
+          }
+
           textOverlay(string_array){
               // Black out playing field
               this.ctx.fillStyle = "rgba(0,0,0,.7)";
@@ -1243,29 +1250,37 @@
               this.ctx.textAlign = "center";
               var y = this.canvas.height/3;
               for (var i=0; i<string_array.length; i++){
-                  this.ctx.font = string_array[i][0];
-                  this.ctx.fillText(string_array[i][1], this.canvas.width/2, y);
+                  this.ctx.font = this.font_sizer(string_array[i][0], string_array[i][1]);
+                  this.ctx.fillText(string_array[i][2], this.canvas.width/2, y);
                   y += 32;
               }
 
               // Print high scores in remaining portion
               var high_scores = localStorage.getItem("scores");
+              var high_score_size = 14;
+              var high_score_spacing = this.dimension.em * 22;
 
               // Convert from JSON
               if (high_scores){
                   high_scores = JSON.parse(high_scores);
                   y = this.canvas.height/2;
+                  
+                  // Header
+                  this.ctx.font = this.font_sizer(18, "SegmentedAlpha");
+                  this.ctx.textAlign = "center";
+                  this.ctx.fillText("High Scores", this.canvas.width/2, y);
+                  y += high_score_spacing;
 
                   for(var i=0; i<Math.min(10, high_scores.length); i++){
                       var score = high_scores[i];
-                      this.ctx.font = "14px SegmentedAlpha";
+                      this.ctx.font = this.font_sizer(high_score_size, "SegmentedAlpha");
                       this.ctx.textAlign = "left";
                       this.ctx.fillText(score.name, (this.dimension.left_buffer + 2) * this.dimension.square_size, y);
                       //this.ctx.textAlign = "center";
                       //this.ctx.fillText(score.level, this.canvas.width/2, y);
                       this.ctx.textAlign = "right";
                       this.ctx.fillText(score.score, (this.dimension.left_buffer + this.dimension.game_width) * this.dimension.square_size, y);
-                      y += 24;
+                      y += high_score_spacing;
                   }
               }
           }
@@ -1285,6 +1300,9 @@
 
               // Set new square size
               this.dimension.square_size = Math.floor(maxWindowSize / (minGameArea * 1.1));
+
+              // Set new font scaling
+              this.dimension.em = (gameHeight * this.dimension.square_size) / 512;
 
               // Redraw everything
               this.resizeCanvas(gameWidth, gameHeight);
