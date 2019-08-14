@@ -50,14 +50,15 @@
 
               // Game dimensions
               this.dimension = {
-                  game_width   : 10,
-                  game_height  : 20,
-                  square_size  : 20,
-                  top_buffer   : 5, // Space for spawning new blocks
-                  left_buffer  : 7, // Space for next block
-                  right_buffer : 7, // Space for next block
-                  game_border  : 1, // Border width around play area
-                  em           : 1, // Font scaling constant
+                  game_width           : 10,
+                  game_height          : 20,
+                  square_size          : 20,
+                  starting_square_size : 20, // Starting size for scaling fonts/graphics
+                  top_buffer           : 5,  // Space for spawning new blocks
+                  left_buffer          : 7,  // Space for next block
+                  right_buffer         : 7,  // Space for next block
+                  game_border          : 1,  // Border width around play area
+                  em                   : 1,  // Font scaling constant
               }
 
               // Game variables
@@ -126,11 +127,41 @@
               };
 
               this.overlays = {
-                  firstrun : [[28, "SegmentedAlpha","Click to start!"]],
-                  paused   : [[48, "SegmentedAlpha","PAUSED"],
-                              [20, "Arial"         ,"Click to resume."]],
-                  gameover : [[40, "SegmentedAlpha","GAME OVER"],
-                              [20, "Arial"         ,"Click to play again!"]],
+                  firstrun : [{color  : "white",
+                               size   : 28,
+                               font   : "SegmentedAlpha",
+                               align  : "center",
+                               y      : 170,
+                               x      : null,
+                               string : "Click to start!"}],
+                  paused   : [{color  : "white",
+                               size   : 48,
+                               font   : "SegmentedAlpha",
+                               align  : "center",
+                               y      : 170,
+                               x      : null,
+                               string : "PAUSED"},
+                              {color  : "white",
+                               size   : 20,
+                               font   : "Arial"         ,
+                               align  : "center",
+                               y      : 200,
+                               x      : null,
+                               string : "Click to resume."}],
+                  gameover : [{color  : "white",
+                               size   : 40,
+                               font   : "SegmentedAlpha",
+                               align  : "center",
+                               y      : 170,
+                               x      : null,
+                               string : "GAME OVER"},
+                              {color  : "white",
+                               size   : 20,
+                               font   : "Arial"         ,
+                               align  : "center",
+                               y      : 200,
+                               x      : null,
+                               string : "Click to play again!"}],
               }
 
               this.rules = {
@@ -612,14 +643,51 @@
               }
           }
 
+          game_over_overlay(printed_score){
+              var wait = 15; // miliseconds
+              if (printed_score < this.state.score) {
+                  printed_score += 37;
+                  if (printed_score > this.state.score) {
+                      printed_score = this.state.score;
+                      wait = 1000;
+                  }
+                  this.state.game_overlay = [
+                      {color  : "white",
+                       size   : 40,
+                       font   : "SegmentedAlpha",
+                       align  : "center",
+                       y      : 170,
+                       x      : null,
+                       string : "GAME OVER"},
+                      {color  : "white",
+                       size   : 20,
+                       font   : "Arial",
+                       align  : "left",
+                       y      : 200,
+                       x      : (this.dimension.left_buffer + 2) * this.dimension.starting_square_size,
+                       string : "SCORE: "},
+                      {color  : "white",
+                       size   : 20,
+                       font   : "SegmentedAlpha",
+                       align  : "right",
+                       y      : 200,
+                       x      : (this.dimension.left_buffer + this.dimension.game_width) * this.dimension.starting_square_size,
+                       string : printed_score}
+                  ],
+
+                  this.redraw();
+                  this.state.timer = setTimeout(() => this.game_over_overlay(printed_score), wait);
+              } else {
+                  this.check_high_score();
+              }
+          }
+
           endGame(){
               if (this.state.game_active == false) return;
               clearTimeout(this.state.timer);
               this.clearAnimationTimer();
               this.state.game_active = false;
-              this.state.game_overlay = this.overlays.gameover;
-              this.check_high_score();
-              this.redraw();
+              this.game_over_overlay(5);
           }
 
           main_loop(){
@@ -647,7 +715,7 @@
 
               // Set timeout for next cycle
               this.speed = this.rules.base_speed * Math.pow(this.rules.speedup_multiplier, this.state.level -1);
-              this.speed = this.speed < this.max_speed ? this.max_speed : this.speed;
+              this.speed = this.speed < this.rules.max_speed ? this.rules.max_speed : this.speed;
 
               // See if a block has been placed
               if (this.canMove(block, this.state.block_position, this.direction.down) == false){
@@ -931,7 +999,7 @@
 
               // Draw game overlay
               if (this.state.game_overlay != null){
-                  this.textOverlay(this.state.game_overlay);
+                  this.text_overlay(this.state.game_overlay);
               }
           }
 
@@ -1237,7 +1305,7 @@
               return (pixels * this.dimension.em) + "px " + font;
           }
 
-          textOverlay(string_array){
+          text_overlay(string_array){
               // Black out playing field
               this.ctx.fillStyle = "rgba(0,0,0,.7)";
               this.ctx.fillRect((this.dimension.left_buffer + this.dimension.game_border) * this.dimension.square_size,
@@ -1246,13 +1314,15 @@
                                 (this.dimension.top_buffer + this.dimension.game_height) * this.dimension.square_size);
 
               // Print desired message in upper section
-              this.ctx.fillStyle = this.colors.white;
-              this.ctx.textAlign = "center";
-              var y = this.canvas.height/3;
-              for (var i=0; i<string_array.length; i++){
-                  this.ctx.font = this.font_sizer(string_array[i][0], string_array[i][1]);
-                  this.ctx.fillText(string_array[i][2], this.canvas.width/2, y);
-                  y += 32;
+              for (var string of string_array){
+                  this.ctx.fillStyle = this.colors[string.color];
+                  this.ctx.font      = this.font_sizer(string.size, string.font);
+                  this.ctx.textAlign = string.align;
+                  var y              = string.y * this.dimension.em;
+                  if (string.y == null) y = this.canvas.height/2;
+                  var x              = string.x * this.dimension.em;
+                  if (string.x == null) x = this.canvas.width/2;
+                  this.ctx.fillText(string.string, x, y);
               }
 
               // Print high scores in remaining portion
@@ -1263,7 +1333,7 @@
               // Convert from JSON
               if (high_scores){
                   high_scores = JSON.parse(high_scores);
-                  y = this.canvas.height/2;
+                  var y = this.canvas.height/2;
                   
                   // Header
                   this.ctx.font = this.font_sizer(18, "SegmentedAlpha");
@@ -1302,7 +1372,7 @@
               this.dimension.square_size = Math.floor(maxWindowSize / (minGameArea * 1.1));
 
               // Set new font scaling
-              this.dimension.em = (gameHeight * this.dimension.square_size) / 512;
+              this.dimension.em = this.dimension.square_size / this.dimension.starting_square_size;
 
               // Redraw everything
               this.resizeCanvas(gameWidth, gameHeight);
