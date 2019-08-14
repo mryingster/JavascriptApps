@@ -641,6 +641,9 @@
                   });
 
                   localStorage.scores = JSON.stringify(high_scores);
+
+                  // Update overlay with new high score!
+                  this.redraw();
               }
           }
 
