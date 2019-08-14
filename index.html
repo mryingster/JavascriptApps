@@ -633,14 +633,16 @@
               if (i<10) {
                   const nth = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh"]
                   var user_name = prompt("New high score! You got "+nth[i]+" place. Enter name", "Anonymous");
-                  high_scores.splice(i, 0, {
-                      name  : user_name,
-                      level : this.state.level,
-                      score : this.state.score,
-                      extra : this.settings.useExtraPieces,
-                  });
+                  if (user_name != null){
+                      high_scores.splice(i, 0, {
+                          name  : user_name,
+                          level : this.state.level,
+                          score : this.state.score,
+                          extra : this.settings.useExtraPieces,
+                      });
 
-                  localStorage.scores = JSON.stringify(high_scores);
+                      localStorage.scores = JSON.stringify(high_scores);
+                  }
 
                   // Update overlay with new high score!
                   this.redraw();
@@ -672,7 +674,7 @@
                        string : "SCORE: "},
                       {color  : "white",
                        size   : 20,
-                       font   : "SegmentedAlpha",
+                       font   : "Segmented",
                        align  : "right",
                        y      : 200,
                        x      : (this.dimension.left_buffer + this.dimension.game_width) * this.dimension.starting_square_size,
@@ -1347,17 +1349,19 @@
 
                   for(var i=0; i<Math.min(10, high_scores.length); i++){
                       var score = high_scores[i];
-                      this.ctx.font = this.font_sizer(high_score_size, "SegmentedAlpha");
 
                       // Name
+                      this.ctx.font = this.font_sizer(high_score_size, "SegmentedAlpha");
                       this.ctx.textAlign = "left";
                       this.ctx.fillText(score.name, (this.dimension.left_buffer + 2) * this.dimension.square_size, y);
 
                       // Score
+                      this.ctx.font = this.font_sizer(high_score_size, "Segmented");
                       this.ctx.textAlign = "right";
                       this.ctx.fillText(score.score, (this.dimension.left_buffer + this.dimension.game_width - 1) * this.dimension.square_size, y);
 
                       // Level
+                      this.ctx.font = this.font_sizer(high_score_size, "Segmented");
                       this.ctx.textAlign = "right";
                       this.ctx.fillText(score.level, (this.dimension.left_buffer + this.dimension.game_width) * this.dimension.square_size, y);
 
