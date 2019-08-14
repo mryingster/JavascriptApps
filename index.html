@@ -636,7 +636,8 @@
                   high_scores.splice(i, 0, {
                       name  : user_name,
                       level : this.state.level,
-                      score : this.state.score
+                      score : this.state.score,
+                      extra : this.settings.useExtraPieces,
                   });
 
                   localStorage.scores = JSON.stringify(high_scores);
@@ -1344,12 +1345,19 @@
                   for(var i=0; i<Math.min(10, high_scores.length); i++){
                       var score = high_scores[i];
                       this.ctx.font = this.font_sizer(high_score_size, "SegmentedAlpha");
+
+                      // Name
                       this.ctx.textAlign = "left";
                       this.ctx.fillText(score.name, (this.dimension.left_buffer + 2) * this.dimension.square_size, y);
-                      //this.ctx.textAlign = "center";
-                      //this.ctx.fillText(score.level, this.canvas.width/2, y);
+
+                      // Score
                       this.ctx.textAlign = "right";
-                      this.ctx.fillText(score.score, (this.dimension.left_buffer + this.dimension.game_width) * this.dimension.square_size, y);
+                      this.ctx.fillText(score.score, (this.dimension.left_buffer + this.dimension.game_width - 1) * this.dimension.square_size, y);
+
+                      // Level
+                      this.ctx.textAlign = "right";
+                      this.ctx.fillText(score.level, (this.dimension.left_buffer + this.dimension.game_width) * this.dimension.square_size, y);
+
                       y += high_score_spacing;
                   }
               }
