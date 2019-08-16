@@ -7,13 +7,13 @@
   </head>
   <body style="background:#ffffff;">
 
-    <canvas id="myCanvas" width=768px height=256px style="display:block; outline:0px solid #606060; margin:0 auto 0 auto; padding: 0px;"></canvas>
+    <canvas id="barcode_canvas" width="768px" height="256px" style="display:block; outline:0px solid #606060; margin:0 auto 0 auto; padding: 0px;"></canvas>
 
-    <div id="content" style="width:768px; margin: 0 auto 0 auto; padding:15px;haha">
+    <div id="content" style="width:768px; margin: 0 auto 0 auto; padding:15px;">
       <input id="myInput" type="text" onkeyup="updateBarcode(event)" style="">
-      <button id="myButton" onclick="saveImage()">Save Barcode</button>
+      <a id="download" href="#"><button>Download Barcode as PNG</button></a>
       <h2>Barcode 128 Generator</h2>
-      <p>Lorem ipsum dolor</p>
+      <p>This is a simple <a href="https://en.wikipedia.org/wiki/Code_128">Code 128</a> barcode generator written using JavaScript and an HTML canvas. Special characters, like tab and newline, can be used using escapes like '\t' and '\n' respectively.</p>
     </div>
 
     <script>
@@ -141,41 +141,16 @@ const CODEC      = 2;
 
 document.getElementById("myInput").focus()
 
-var canvas       = document.getElementById("myCanvas");
+var canvas       = document.getElementById("barcode_canvas");
 var width        = canvas.width;
 var height       = canvas.height;
 var ctx          = canvas.getContext("2d");
+const maxWidth   = canvas.width;
 
 // Click to start test and reset focus
 function resetScreen() {
     ctx.fillStyle = background;
     ctx.fillRect(0, 0, width, height);
-}
-
-function charcodeLookup(char, code) {
-    for (var i=0; i<barcodeTable.length; i++) {
-        if (barcodeTable[i][code] == char) {
-            console.log(char, i, code)
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-function modeLookup(char, code) {
-    var charcode = charcodeLookup(char, code);
-
-    // If we didn't find a corresponding code, check the other code types
-    if (charcode == -1) {
-        for (code=0; code<3; code++) {
-            charcode = charcodeLookup(char, code);
-            if (charcode != -1)
-                break;
-        }
-    }
-
-    return code;
 }
 
 function calculateCrc(message) {
@@ -195,53 +170,81 @@ function isNumber(string) {
     return true;
 }
 
-function createBarcode(string) {
-    // Determine mode to start with
-    if (/^\d+$/.test(string)) {
-        mode = CODEC;
-    } else if (string == string.toUpperCase()) {
-        mode = CODEA;
-    } else {
-        mode = CODEB;
+function lookup(c, mode) {
+    // Check in the mode they gave us first
+    for (var index=0; index<barcodeTable.length; index++) {
+        if (c == barcodeTable[index][mode]) {
+            return [index, mode];
+        }
     }
 
-    // Start our array to store code values
-    var code = [charcodeLookup(["Start Code A", "Start Code B", "Start Code C"][mode], mode)];
+    // Check all the modes if none in current mode work
+    for (var m=0; m<3; m++) {
+	for (var index=0; index<barcodeTable.length; index++) {
+            if (c == barcodeTable[index][m]) {
+		return [index, m];
+            }
+	}
+    }
 
-    for (var c=0; c<string.length; c++){
-        var char = string[c];
+    // No matching character found
+    return [-1, -1];
+}
 
-        // Handle escape codes for newline/etc
-        if (char == "\\" & ["0", "b", "t", "n", "v", "f", "r"].indexOf(string[c+1]) > -1) {
-            char = string.substr(c,2);
-            c++;
+function createBarcode(string) {
+    // Start fresh
+    var mode = CODEC; //Default
+    var code = [];
+
+    // Look at our string to destermine best mode for starting
+    if (isNumber(string.substr(0,4))) {
+	mode = CODEC;
+	code.push(lookup("Start Code C", mode)[0]);
+    } else if (string == string.toUpperCase()) {
+	mode = CODEA;
+	code.push(lookup("Start Code A", mode)[0]);
+    } else {
+	mode = CODEB;
+	code.push(lookup("Start Code B", mode)[0]);
+    }
+
+    // Process each letter, c, one at a time
+    for (var i=0; i<string.length; i++) {
+        var c = string[i];
+
+        // Handle escape codes for newline, etc
+        if (c == "\\" & ["0", "b", "t", "n", "v", "f", "r"].indexOf(string[i+1]) > -1) {
+            c = string.substr(i,2);
+            i++;
         }
 
         // For number strings, process two digit at a time if possible (CODEC)
-        if (c < string.length) {
-            if (isNumber(string.substr(c,2))) {
-                char = string.substr(c,2);
-                c++;
+        if (i < string.length) {
+            if (isNumber(string.substr(i,2))) {
+                c = string.substr(i,2);
+                i++;
             }
         }
 
-        // See if we have to change modes for next character
-        var newMode = modeLookup(char, mode);
-        if (newMode != mode) {
-            code.push(charcodeLookup(["Start Code A", "Start Code B",  "Start Code C"][newMode], mode));
-            mode = newMode;
-        }
+	// Get next character/code combination
+	var next_char = lookup(c, mode);
 
-        // Finally push char code onto array
-        code.push(charcodeLookup(char, mode));
+	// See if mode is changing, if so, put in correct control character
+	if (next_char[1] != mode) {
+	    code.push(lookup(["Code A","Code B","Code C"][next_char[1]], mode)[0])
+	    mode = next_char[1];
+	}
+	
+	// Save number to array
+        code.push(next_char[0]);
     }
 
-    // Add CRC, close barcode string
+    // Calculate CRC
     code.push(calculateCrc(code));
-    code.push(charcodeLookup("Stop pattern", 0));
-    console.log(code);
 
-    return code
+    // End
+    code.push(lookup("Stop pattern", 0)[0]);
+    return code;
 }
 
 function createBarcodeString(code) {
@@ -261,8 +264,9 @@ function updateBarcode(event=0) {
 
     // Get value from input box
     var string = document.getElementById('myInput').value;
-    var barcode = createBarcode(string);
-    var codeString = createBarcodeString(barcode);
+
+    var barcode      = createBarcode(string);
+    var codeString   = createBarcodeString(barcode);
     var barcodeColor = black;
 
     // See if there are invalid characters
@@ -272,38 +276,47 @@ function updateBarcode(event=0) {
     }
 
     // Decide target line width that will fit in canvas
-    lineWidth = Math.floor(width/codeString.length);
-    offset = Math.floor((width-(lineWidth*codeString.length))/2)
+    var lineWidth = Math.floor(maxWidth/codeString.length);
+
+    // Update canvas to correct width
+    var newWidth  = lineWidth*codeString.length;
+    canvas.width = newWidth;
+    width = newWidth;
+
+    // Draw the barcode
     for (var i=0; i<codeString.length; i++) {
         ctx.fillStyle = white;
         if (codeString[i] == 1)
             ctx.fillStyle = barcodeColor;
-        ctx.fillRect(offset+(i*lineWidth), 0, lineWidth, height);
+        ctx.fillRect(i*lineWidth, 0, lineWidth, height);
     }
 
     // Put on a label
-    labelBoxWidth = (barcode.length-2)*11*lineWidth // Entire length minus start/stop characters
-    fontHeight = 10
-    ctx.font = "10px Arial";
+    var labelBoxWidth = (barcode.length-2)*11*lineWidth; // Entire length minus start/stop characters
+    var fontHeight = 10;
+    ctx.font = "10px Courier";
     ctx.textAlign = "center";
-    //console.log(ctx.measureText(string), labelBoxWidth);
+
+    // Figure out when font label is big enough by increasing size and measuring
     while (ctx.measureText(string).width < labelBoxWidth-10 & fontHeight < height / 4) {
         fontHeight += 1;
-        ctx.font = fontHeight+'px Arial';
+        ctx.font = fontHeight+'px Courier';
     }
 
+    var boxHeight = fontHeight + 15;
     ctx.fillStyle = white;
-    ctx.fillRect(offset+(11*lineWidth), height - fontHeight, labelBoxWidth, fontHeight);
+    ctx.fillRect(11*lineWidth, height - boxHeight, labelBoxWidth, boxHeight);
     ctx.fillStyle = black;
-    ctx.fillText(string, width/2-(lineWidth*2), height);
+    ctx.fillText(string, width/2-(lineWidth*2), height-15);
+
+    // Update download link
+    var download_link = document.getElementById("download");
+    download_link.href = canvas.toDataURL("image/png");
+    download_link.download = string+".png";
     return;
 }
 
-function saveImage() {
-    window.location = canvas.toDataURL("image/png");
-}
-
-// Initialize the screen with instructions
+// Initialize the screen
 resetScreen();
 
     </script>
