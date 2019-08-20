@@ -53,6 +53,10 @@
                   game_width           : 10,
                   game_height          : 20,
                   square_size          : 20,
+                  square_min_size      : 5,  // Minimum size
+                  block_chisled_ratio  : .25,
+                  block_outline_ratio  : .1,
+                  block_min_edge_size  : 1,
                   starting_square_size : 20, // Starting size for scaling fonts/graphics
                   top_buffer           : 5,  // Space for spawning new blocks
                   left_buffer          : 7,  // Space for next block
@@ -969,7 +973,7 @@
 
                   while (this.canMove(this_block, ghost_pos, this.direction.down) == true)
                       ghost_pos[1]++;
-                  this.drawBlockInGameField(this.ctx, this_block, this.state.block_position[0], ghost_pos[1], this.state.block_position[2], 2, true);
+                  this.drawBlockInGameField(this.ctx, this_block, this.state.block_position[0], ghost_pos[1], this.state.block_position[2], true);
               }
 
               // Draw current block last so it's always on top
@@ -1112,12 +1116,12 @@
               return rotated;
           }
 
-          drawBlockInGameField(ctx, def, bx, by, r, edge=-1, outline=false){
+          drawBlockInGameField(ctx, def, bx, by, r, outline=false){
               // offset so it draws on the game board
-              this.drawBlock(ctx, def, this.dimension.left_buffer + this.dimension.game_border + bx, by, r, edge, outline);
+              this.drawBlock(ctx, def, this.dimension.left_buffer + this.dimension.game_border + bx, by, r, outline);
           }
 
-          drawBlock(ctx, def, bx, by, r, edge=-1, outline=false){
+          drawBlock(ctx, def, bx, by, r, outline=false){
               // rotate block array
               var block = this.rotateArray(def, r);;
               var width = def.shape[0].length;
@@ -1136,7 +1140,6 @@
                                                 x < block[0].length-1 ? block[y][x] == block[y][x+1] : false,
                                                 y < block.length-1    ? block[y][x] == block[y+1][x] : false,
                                                 x > 0                 ? block[y][x] == block[y][x-1] : false,
-                                                edge,
                                                 outline,
                                                )
                       }
@@ -1160,9 +1163,13 @@
               return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
           }
 
-          drawChisledBrick(ctx, x, y, l, c, n, e, s, w, edge=-1, outline=false){
-              if (edge < 0)
-                  edge = Math.floor(this.dimension.square_size * .25);
+          drawChisledBrick(ctx, x, y, l, c, n, e, s, w, outline=false){
+              // Define Chisledness
+              var edge = Math.floor(this.dimension.square_size * this.dimension.block_chisled_ratio);
+              if (outline == true)
+                  edge = Math.floor(this.dimension.square_size * this.dimension.block_outline_ratio);
+              if (edge < this.dimension.block_min_edge_size)
+                  edge = this.dimension.block_min_edge_size;
 
               // Adjust x, y coordinates
               x *= l;
@@ -1406,6 +1413,8 @@
 
               // Set new square size
               this.dimension.square_size = Math.floor(maxWindowSize / (minGameArea * 1.1));
+              if (this.dimension.square_size < this.dimension.square_min_size)
+                  this.dimension.square_size = this.dimension.square_min_size;
 
               // Set new font scaling
               this.dimension.em = this.dimension.square_size / this.dimension.starting_square_size;
