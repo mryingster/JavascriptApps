@@ -317,7 +317,7 @@
                       shape : [[0,0,0], [1,1,1], [0,0,0]],
                       rotations : 2,
                       color : { r:0xA1, g:0x12, b:0x12 }, // Dark Red
-                      
+
                   },
 
                   // Diominoe
@@ -325,7 +325,7 @@
                       shape : [[0,0], [1,1]],
                       rotations : 2,
                       color : { r:0xFF, g:0x66, b:0xB2 }, // Dark Blue
-                      
+
                   },
 
                   // Monominoe
@@ -358,7 +358,7 @@
                   }
               }
           }
-          
+
           animateLineClear(l, n){
               this.clearAnimationTimer(1)
 
@@ -397,7 +397,7 @@
 
               if (lines_cleared.length > 0)
                   this.animateLineClear(lines_cleared, 8);
-              
+
               return lines_cleared.length;
           }
 
@@ -483,7 +483,7 @@
           move(dir){
               // Get shape template
               var thisBlock = this.state.block_history[this.state.block_history.length-1];
-              
+
               // Is valid move?
               if (this.canMove(thisBlock, this.state.block_position, dir) == false)
                   return;
@@ -637,7 +637,7 @@
 
                   if (this.settings.useExtraPieces == high_scores[i].extra) {
                       place += 1;
-                      
+
                       if (this.state.score > high_scores[i].score) {
                           break;
                       }
@@ -1039,7 +1039,7 @@
               var title_size = Math.floor(this.canvas.width / 13);
               this.ctx.font = "Bold " + title_size + "px Arial";
               this.ctx.fillText("N-tris", ralign, 0 + (title_size * 1.3));
-              
+
               // Set up spacing based on this.canvas size
               var label_size = Math.floor(this.canvas.width / 28);
               var digit_size = Math.floor(this.canvas.width / 18);
@@ -1101,7 +1101,7 @@
                       }
                       tmp.push(t_row);
                   }
-                  
+
                   // Copy data to new, empty array
                   for (var y=0; y<height; y++){
                       for (var x=0; x<width; x++){
@@ -1145,7 +1145,7 @@
                       }
                   }
               }
-              
+
           }
 
           shiftColor(c, d){
@@ -1359,7 +1359,7 @@
               if (high_scores){
                   high_scores = JSON.parse(high_scores);
                   var y = this.canvas.height/2;
-                  
+
                   // Header
                   this.ctx.font = this.font_sizer(18, "SegmentedAlpha");
                   this.ctx.textAlign = "center";
@@ -1439,4 +1439,3 @@
     </script>
   </body>
 </html>
- 
