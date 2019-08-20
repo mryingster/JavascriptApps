@@ -538,7 +538,7 @@
                   this.settings.useExtraPieces = false;
               else
                   this.settings.useExtraPieces = true;
-              this.drawGameInformation();
+              this.redraw();
           }
 
           user_move(e){
@@ -623,14 +623,25 @@
                   high_scores = [];
 
               // Go through each and see if it's in the top ten
-              var i=0;
+              var i     = 0;
+              var place = 0;
               for (i=0; i<high_scores.length; i++){
-                  if (this.state.score > high_scores[i].score)
-                      break;
+                  // Check to see if extras is there. If not, assume old scores were extras = false
+                  if (! high_scores[i].hasOwnProperty('extra')){
+                      high_scores[i]['extra'] = false;
+                  }
+
+                  if (this.settings.useExtraPieces == high_scores[i].extra) {
+                      place += 1;
+                      
+                      if (this.state.score > high_scores[i].score) {
+                          break;
+                      }
+                  }
               }
 
               // Record new score
-              if (i<10) {
+              if (place < 10) {
                   const nth = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh"]
                   var user_name = prompt("New high score! You got "+nth[i]+" place. Enter name", "Anonymous");
                   if (user_name != null){
@@ -649,10 +660,11 @@
               }
           }
 
-          game_over_overlay(printed_score){
+          game_over_overlay(printed_score=3){
               var wait = 15; // miliseconds
               if (printed_score < this.state.score) {
-                  printed_score += 37;
+                  printed_score *= 2;
+                  printed_score += Math.floor(Math.random() * 5);
                   if (printed_score > this.state.score) {
                       printed_score = this.state.score;
                       wait = 1000;
@@ -693,7 +705,7 @@
               clearTimeout(this.state.timer);
               this.clearAnimationTimer();
               this.state.game_active = false;
-              this.game_over_overlay(5);
+              this.game_over_overlay();
           }
 
           main_loop(){
@@ -1347,8 +1359,17 @@
                   this.ctx.fillText("High Scores", this.canvas.width/2, y);
                   y += high_score_spacing;
 
-                  for(var i=0; i<Math.min(10, high_scores.length); i++){
+                  var scores_printed = 0;
+                  for(var i=0; i<high_scores.length; i++){
                       var score = high_scores[i];
+
+                      if (score.extra != this.settings.useExtraPieces)
+                          continue;
+
+                      if (scores_printed == 10)
+                          break;
+
+                      scores_printed += 1;
 
                       // Name
                       this.ctx.font = this.font_sizer(high_score_size, "SegmentedAlpha");
