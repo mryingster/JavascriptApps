@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>BubbleBurst</title>
+    <meta charset="utf-8"/>
+    <style>
+      body {
+          background:#aaa;
+          color:#000;
+	  font-family:sans-serif;
+      }
+
+      div#content {
+	  background:#fff;
+      }
+
+      h1 {
+	  margin:10px;
+	  font-size:3em;
+      }
+    </style>
+  </head>
+
+  <body style="background:#bbbbbb;">
+
+    <div id="content" style="width:768px; margin: 0 auto 0 auto; padding:15px;">
+      <h1>BubbleBurst</h1>
+      <canvas id="canvas" width="768" height="512" style="border:1px solid black; touch-action: manipulation"></canvas>
+      <button onclick="new_game()">New Game</button>
+      Blocks Left: <span id="blocks">0</span>
+      Moves Taken: <span id="moves">0</span>
+    </div>
+
+    <script>
+// Comment
+
+class bubble {
+    constructor(canvas){
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d");
+
+        // Game dimensions
+        this.dimension = {
+            width           : this.canvas.width,
+            height          : this.canvas.height,
+            bubble_radius   : 35,
+            row_height      : Math.sqrt(3) * 35,
+        }
+
+        this.state = {
+            arena      : [],
+            active     : false,
+            level      : 0,
+            cursor_pos : [0, 0],
+        }
+
+        this.colors = {
+            red    : "#ff0000",
+            orange : "#ff8800",
+            yellow : "#ffff00",
+            green  : "#00ff00",
+            blue   : "#00ffff",
+            purple : "#8800ff",
+            black  : "#000000",
+            grey   : "#aaaaaa",
+            white  : "#ffffff",
+        }
+    }
+
+    new_game() {
+        // reset settings
+        this.state.active = true;
+
+        // Fill arena with bubbles
+        this.state.arena = [];
+        for (var row=0; row<5; row++){
+            var arena_row = [];
+            for (var col=0; col<10; col++){
+                // Pick random color
+                var color = Math.floor(Math.random() * 5);
+                arena_row.push(color);
+            }
+            this.state.arena.push(arena_row)
+        }
+
+        // redraw
+        this.redraw();
+    }
+
+    redraw(){
+        // Clear background
+        this.draw_background();
+        
+        // Draw HUD someday
+
+        // Draw bubbles
+        for (var row=0; row<this.state.arena.length; row++){
+            for (var col=0; col<this.state.arena[row].length; col++){
+                var x = this.dimension.bubble_radius + (col * this.dimension.bubble_radius * 2);
+                var y = this.dimension.bubble_radius + (row * this.dimension.row_height);
+                if (row % 2 == 0) x += this.dimension.bubble_radius
+                var color = Object.keys(this.colors)[this.state.arena[row][col]];
+                this.draw_circle(x, y, this.dimension.bubble_radius, color);
+            }
+        }
+
+        // Draw shooter
+        this.draw_shooter();
+    }
+
+    draw_shooter(){
+        // Find x and y from center bottom to cursor
+        var x = this.state.cursor_pos[0] - this.dimension.width/2;
+        var y = this.dimension.height - this.state.cursor_pos[1];
+        var r = Math.sqrt(x*x + y*y);
+
+        // Find proportion using fixed distance, draw circle there
+        for (var r2 of [0, 10, 20, 30, 40]) {
+            var proportion = r2 / r;
+            var new_x = proportion * x + this.dimension.width/2;
+            var new_y = this.dimension.height - (proportion * y);
+            this.draw_circle(new_x, new_y, 10, this.colors.grey);
+        }
+    }
+    
+    draw_circle(x, y, r, color) {
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, r, 0, 2 * Math.PI, false);
+        //this.ctx.fillStyle = color;
+        // create radial gradient
+        var grdRadial = this.ctx.createRadialGradient(x, y, r, x+30, y+30, r/2);
+        // light red
+        grdRadial.addColorStop(0, color);
+        // dark red
+        grdRadial.addColorStop(1, '#000000');
+        this.ctx.fillStyle = grdRadial;
+        this.ctx.fill();
+    }
+
+    draw_background() {
+        this.ctx.fillStyle = this.colors.black;
+        this.ctx.fillRect(0, 0, this.dimension.width, this.dimension.height);
+    }
+
+    move_cursor(canvas, event){
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        this.state.cursor_pos = [x, y];
+        this.redraw();
+    }
+}
+
+var bubble_instance = new bubble(document.getElementById("canvas"));
+
+const canvas = document.querySelector('canvas')
+canvas.addEventListener('mousemove', function(e){
+    bubble_instance.move_cursor(canvas, e)
+})
+
+bubble_instance.new_game();
+
+    </script>
+  </body>
+</html>
