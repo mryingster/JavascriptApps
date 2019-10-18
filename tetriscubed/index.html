@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>TetrisCubed</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=600px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
+    <style>
+      body {
+          background:#aaa;
+          color:#000;
+          font-family:sans-serif;
+      }
+
+      div#content {
+          margin: 0px auto;
+      }
+
+      h1 {
+          margin:10px;
+          font-size:3em;
+      }
+
+      /*Font Faces*/
+      @font-face {
+          font-family: "Segmented";
+          src: url('fonts/Segment7Standard.otf');
+      }
+
+      @font-face {
+          font-family: "SegmentedAlpha";
+          src: url('fonts/Digital7Regular.otf');
+      }
+    </style>
+  </head>
+
+  <body onload="tetris_instance.firstRun();">
+
+    <div id="content" style="margin: 0 auto; width:900px;">
+      <canvas id="canvas" width="900" height="600" onclick="tetris_instance.start();" style="border:1px solid black; touch-action: manipulation"></canvas><br>
+      <input id="myInput" type="text" onblur="" onkeydown="tetris_instance.user_move(event)" style="width: 0px; position:relative; left:-10000px;"></input>
+    </div>
+
+    <script>
+      // Comment
+
+      class tetris {
+          constructor(canvas){
+              this.canvas = canvas;
+              this.ctx = canvas.getContext("2d");
+
+              // Game dimensions
+              this.dimension = {
+                  game_width        : 5,
+                  game_height       : 5,
+		  game_depth        : 7,
+                  top_buffer        : 7,
+                  game_pixel_width  : 600,
+                  game_pixel_height : 600,
+                  info_pixel_width  : 300,
+                  em                : 1,
+              }
+
+              this.coords = [];
+
+              // Game variables
+              this.state = {
+                  game_array      : [],                   // Play field
+                  game_active     : false,
+                  game_paused     : null,
+                  game_overlay    : null,
+                  lines           : 0,
+                  level           : 0,
+                  score           : 0,
+                  current_block   : null,
+                  block_upcoming  : [],                   // Next chosen blocks
+                  block_history   : [],                   // History of blocks chosen
+                  block_position  : {
+                      x  : null,
+                      y  : null,
+                      z  : null,
+                  },
+                  block_score     : 0,
+                  timer           : null,                 // Main loop timer
+                  animation_timer : [null, null, null],   // Timer for animations
+              };
+
+              // Definitions
+              this.direction = {
+                  up    : 1,
+                  right : 2,
+                  down  : 3,
+                  left  : 4,
+                  drop  : 5,
+                  rzccw : 6,
+                  rzcw  : 7,
+                  rxccw : 8,
+                  rxcw  : 9,
+                  ryccw : 10,
+                  rycw  : 11,
+                  fdrop : 12,
+              };
+
+              // Key Codes
+              this.key = {
+                  space       : 32,
+                  left_arrow  : 37,
+                  up_arrow    : 38,
+                  right_arrow : 39,
+                  down_arrow  : 40,
+                  a           : 65,
+                  d           : 68,
+                  e           : 69,
+                  i           : 73,
+                  j           : 74,
+                  k           : 75,
+                  l           : 76,
+                  n           : 78,
+                  p           : 80,
+                  q           : 81,
+                  s           : 83,
+                  w           : 87,
+              };
+
+              this.EMPTY  = -2;
+
+              this.colors = {
+                  background  : "#222222",
+                  black       : "#000000",
+                  red         : "#CC0000",
+                  amber       : "#CCBB00",
+                  green       : "#00CC00",
+                  light_grey  : "#CCCCCC",
+                  medium_grey : "#666666",
+                  dark_grey   : "#222222",
+                  white       : "#FFFFFF"
+              };
+
+              this.overlays = {
+                  firstrun : [{color  : "white",
+                               size   : 28,
+                               font   : "SegmentedAlpha",
+                               align  : "center",
+                               y      : 170,
+                               x      : null,
+                               string : "Click to start!"}],
+                  paused   : [{color  : "white",
+                               size   : 48,
+                               font   : "SegmentedAlpha",
+                               align  : "center",
+                               y      : 170,
+                               x      : null,
+                               string : "PAUSED"},
+                              {color  : "white",
+                               size   : 20,
+                               font   : "Arial",
+                               align  : "center",
+                               y      : 200,
+                               x      : null,
+                               string : "Click to resume."}],
+                  gameover : [{color  : "white",
+                               size   : 40,
+                               font   : "SegmentedAlpha",
+                               align  : "center",
+                               y      : 170,
+                               x      : null,
+                               string : "GAME OVER"},
+                              {color  : "white",
+                               size   : 20,
+                               font   : "Arial",
+                               align  : "center",
+                               y      : 200,
+                               x      : null,
+                               string : "Click to play again!"}],
+              }
+
+              this.rules = {
+                  tetrominoes        : ['I', 'L', 'T', 'Z', 'O', 'LT', 'RT', 'MT'],
+                  line_scores        : [null, 40, 100, 300, 1200, 2600], // score value per lines cleared
+                  lines_per_level    : 5,
+                  base_speed         : 1300, //890, // Slower than normal tetris
+                  speedup_multiplier : .86,
+                  max_speed          : 50,
+              };
+
+              this.block_defs = {
+                  // Tetrominoes
+                  I : {
+                      shape : [
+                          [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]],
+                          [[0,0,0,0], [0,0,0,0], [1,1,1,1], [0,0,0,0]],
+                          [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]],
+                          [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]]],
+                      color : { r:0xFF, g:0x00, b:0x00 }, // Red
+                  },
+                  Z : {
+                      shape : [
+                          [[0,0,0], [0,0,0], [0,0,0]],
+                          [[1,1,0], [0,1,1], [0,0,0]],
+                          [[0,0,0], [0,0,0], [0,0,0]]],
+                      color : { r:0xFF, g:0x92, b:0x00 }, // Orange
+                  },
+                  T : {
+                      shape : [
+                          [[0,0,0], [0,0,0], [0,0,0]],
+                          [[0,0,0], [1,1,1], [0,1,0]],
+                          [[0,0,0], [0,0,0], [0,0,0]]],
+                      color : { r:0x49, g:0xB6, b:0x00 }, // Green
+                  },
+                  O: {
+                      shape : [
+                          [[1,1], [1,1]],
+                          [[0,0], [0,0]]],
+                      color : { r:0x00, g:0x49, b:0xFF }, // Blue
+                  },
+                  L : {
+                      shape : [
+                          [[0,0,0], [0,0,0], [0,0,0]],
+                          [[0,0,0], [1,1,1], [1,0,0]],
+                          [[0,0,0], [0,0,0], [0,0,0]]],
+                      color : { r:0xDB, g:0x00, b:0xFF }, // Purple
+                  },
+                  LT : {
+                      shape : [
+                          [[1,1], [1,0]],
+                          [[0,1], [0,0]]],
+                      color : { r:0xDB, g:0xB6, b:0x00 }, // Yellow
+                  },
+                  RT : {
+                      shape : [
+                          [[1,1], [0,1]],
+                          [[1,0], [0,0]]],
+                      color : { r:0x00, g:0xB6, b:0xAA }, // Cyan
+                  },
+                  MT : {
+                      shape : [
+                          [[1,1], [0,1]],
+                          [[0,1], [0,0]]],
+                      color : { r:0xDA, g:0xBB, b:0x7E }, // Tan
+                  },
+              };
+          }
+
+          isGameOver() {
+              for (var z=this.dimension.top_buffer + this.dimension.game_depth-1; z>=this.dimension.game_depth; z--){
+                  for (var y=0; y<this.state.game_array[z].length; y++){
+                      for (var x=0; x<this.state.game_array[z][y].length; x++){
+                          if (this.state.game_array[z][y][x] != this.EMPTY){
+                              return true;
+                          }
+                      }
+                  }
+              }
+              return false;
+          }
+
+          clearAndShift(l){
+              for (var i=0; i<l.length; i++){
+                  var z = l[i];
+                  for (var z2=z; z2<this.dimension.game_depth; z2++){
+
+                      for (var y=0; y<this.dimension.game_height; y++){ 
+                          for (var x=0; x<this.dimension.game_width; x++){
+                              this.state.game_array[z2][y][x] = this.state.game_array[z2+1][y][x];
+                          }
+                      }
+                  }
+              }
+          }
+
+          animateLineClear(l, n){
+              this.clearAnimationTimer(1)
+
+              if (n > 0){
+                  for (var i=0; i<l.length; i++){
+                      this.drawBlock(
+                          { shape : [[[1,1,1,1,1],
+                                      [1,1,1,1,1],
+                                      [1,1,1,1,1],
+                                      [1,1,1,1,1],
+                                      [1,1,1,1,1]
+                                     ]],
+                            color : [{r:0xff,g:0,b:0},{r:0,g:0xff,b:0},{r:0,g:0,b:0xff},][n%3]},
+                          { x : 0,
+                            y : 0,
+                            z : l[i]}
+                      );
+                  }
+                  this.state.animation_timer[1] = setTimeout(() => this.animateLineClear(l, n-1), 15);
+              } else {
+                  this.clearAndShift(l);
+              }
+          }
+
+          lookForLines(){
+              var lines_cleared = [];
+              for (var z=0; z<this.dimension.game_depth; z++){
+                  // Look at line
+                  var lineFull = true;
+                  for (var y=0; y<this.dimension.game_height; y++){
+                      for (var x=0; x<this.dimension.game_width; x++){
+                          if (this.state.game_array[z][y][x] == this.EMPTY){
+                              lineFull = false;
+                              break;
+                          }
+                      }
+                  }
+
+                  // If full lines exist, start animation
+                  if (lineFull == true){
+                      lines_cleared.push(z);
+                  }
+              }
+
+              if (lines_cleared.length > 0)
+                  this.animateLineClear(lines_cleared, 8);
+
+              return lines_cleared.length;
+          }
+
+          placeBlock(block, pos){
+              var block_number = this.state.block_history.length-1;
+              block = block.shape;
+
+              for (var z=0; z<block.length; z++) {
+                  for (var y=0; y<block[z].length; y++) {
+                      for (var x=0; x<block[z][y].length; x++) {
+                          if (block[z][y][x] == 1) {
+                              this.state.game_array[pos.z + z][pos.y + y][pos.x + x] = block_number;
+                          }
+                      }
+                  }
+              }
+          }
+
+          canMove(block, pos, dir){
+              var pos_x = pos.x;
+              var pos_y = pos.y;
+              var pos_z = pos.z;
+              var block_array = this.state.current_block.shape;
+
+              // Move position
+              if (dir == this.direction.down)  pos_y++;
+              else if (dir == this.direction.left)  pos_x--;
+              else if (dir == this.direction.right) pos_x++;
+              else if (dir == this.direction.up)    pos_y--;
+              else if (dir == this.direction.drop)  pos_z--;
+              else block_array = this.rotateArray(block_array, dir);
+
+              for (var z=0; z<block_array.length; z++){
+                  for (var y=0; y<block_array[z].length; y++) {
+                      for (var x=0; x<block_array[z][y].length; x++) {
+                          if (block_array[z][y][x] == 1){
+                              // Check for out of bounds
+                              if (pos_x + x < 0 || pos_x + x >= this.dimension.game_width)
+                                  return false;
+                              if (pos_y + y >= this.dimension.game_height + this.dimension.top_buffer)
+                                  return false;
+                              if (pos_z + z < 0)
+                                  return false;
+
+                              // Compare against game array
+                              //console.log(this.state.game_array);
+                              //console.log(pos_z, z, pos_y, y, pos_x, x);
+                              if (this.state.game_array[pos_z + z][pos_y + y][pos_x + x] != this.EMPTY)
+                                  return false;
+                          }
+                      }
+                  }
+              }
+
+              // Can move!
+              return true;
+          }
+
+          isAnimating(){
+              for (var i=0; i<this.state.animation_timer.length; i++)
+                  if (this.state.animation_timer[i] != null) return true;
+              return false;
+          }
+
+          clearAnimationTimer(n=-1){
+              // Clear all timers
+              if (n == -1) {
+                  for (var i=0; i<this.state.animation_timer.length; i++){
+                      clearTimeout(this.state.animation_timer[i]);
+                      this.state.animation_timer[i] = null;
+                  }
+              } else {
+                  clearTimeout(this.state.animation_timer[n]);
+                  this.state.animation_timer[n] = null;
+              }
+          }
+
+          animateDrop(block){
+              this.clearAnimationTimer(3);
+
+              if (this.canMove(block, this.state.block_position, this.direction.drop) == true){
+                  this.move(this.direction.drop);
+                  this.state.block_score += 1; // Bonus point per square for dropping fast
+                  this.state.animation_timer[3] = setTimeout(() => this.animateDrop(block), 5);
+              }
+          }
+
+          move(dir){
+              // Get shape template
+              var thisBlock = this.state.block_history[this.state.block_history.length-1];
+
+              // Is valid move?
+              if (this.canMove(thisBlock, this.state.block_position, dir) == false)
+                  return;
+
+              // Actually move block
+              if (dir == this.direction.drop){
+                  this.state.block_position.z -= 1;
+                  this.state.block_score += 1; // Point for slow dropping
+              }
+
+              if (dir == this.direction.fdrop){
+                  this.state.bloack_score = 0; // only get points from where it was fast dropped
+                  this.animateDrop(thisBlock);
+                  // Call mainloop now so it registers the block
+                  clearTimeout(this.state.timer)
+                  this.main_loop();
+              }
+
+              if (dir == this.direction.down){
+                  this.state.block_score = 0; // only get points for how far it dropped without shifting
+                  this.state.block_position.y += 1;
+              }
+
+              if (dir == this.direction.left){
+                  this.state.block_score = 0; // only get points for how far it dropped without shifting
+                  this.state.block_position.x -= 1;
+              }
+
+              if (dir == this.direction.right){
+                  this.state.block_score = 0; // only get points for how far it dropped without shifting
+                  this.state.block_position.x += 1;
+              }
+
+              if (dir == this.direction.up){
+                  this.state.block_score = 0; // only get points for how far it dropped without shifting
+                  this.state.block_position.y -= 1;
+              }
+
+              if (dir == this.direction.rzcw){
+                  this.state.current_block.shape = this.rotateArray(this.state.current_block.shape, this.direction.rzcw);
+              }
+
+              if (dir == this.direction.rzccw){
+                  this.state.current_block.shape = this.rotateArray(this.state.current_block.shape, this.direction.rzccw);
+              }
+
+              if (dir == this.direction.rycw){
+                  this.state.current_block.shape = this.rotateArray(this.state.current_block.shape, this.direction.rycw);
+              }
+
+              if (dir == this.direction.ryccw){
+                  this.state.current_block.shape = this.rotateArray(this.state.current_block.shape, this.direction.ryccw);
+              }
+
+              if (dir == this.direction.rxcw){
+                  this.state.current_block.shape = this.rotateArray(this.state.current_block.shape, this.direction.rxcw);
+              }
+
+              if (dir == this.direction.rxccw){
+                  this.state.current_block.shape = this.rotateArray(this.state.current_block.shape, this.direction.rxccw);
+              }
+
+              // Redraw
+              this.redraw();
+          }
+
+          user_move(e){
+              // Switch for general commands
+              switch (e.keyCode){
+              case this.key.n:
+                  if (this.state.game_active == false)
+                      this.start();
+                  break;
+
+              case this.key.p:
+                  if (this.state.game_active == true)
+                      this.togglePause();
+                  break;
+
+              case this.key.q:
+                  if (this.state.game_paused == true)
+                      this.endGame();
+                  break;
+              }
+
+              // Switch for movement commands
+              if (this.state.game_active == true && this.isAnimating() == false && this.state.game_paused == false) {
+                  var direction = null;
+                  switch(e.keyCode){
+                  case this.key.space:
+                      direction = this.direction.fdrop;
+                      break;
+
+                  // Translation
+                  case this.key.left_arrow:
+                  case this.key.j:
+                      direction = this.direction.left;
+                      break;
+
+                  case this.key.up_arrow:
+                  case this.key.i:
+                      direction = this.direction.up;
+                      break;
+
+                  case this.key.right_arrow:
+                  case this.key.l:
+                      direction = this.direction.right;
+                      break;
+
+                  case this.key.down_arrow:
+                  case this.key.k:
+                      direction = this.direction.down;
+                      break;
+
+                  // Rotation
+                  case this.key.q:
+                      direction = this.direction.rzccw;
+                      break;
+
+                  case this.key.w:
+                      direction = this.direction.rycw;
+                      break;
+
+                  case this.key.e:
+                      direction = this.direction.rzcw;
+                      break;
+
+                  case this.key.a:
+                      direction = this.direction.rxcw;
+                      break;
+
+                  case this.key.s:
+                      direction = this.direction.ryccw;
+                      break;
+
+                  case this.key.d:
+                      direction = this.direction.rxccw;
+                      break;
+
+                  default:
+                      return;
+                  }
+                  this.move(direction);
+              }
+          }
+
+          check_high_score(){
+              // Retrieve Scores
+              var high_scores = localStorage.getItem("tetriscubed_scores");
+
+              // Convert from JSON
+              if (high_scores)
+                  high_scores = JSON.parse(high_scores);
+              else
+                  high_scores = [];
+
+              // Go through each and see if it's in the top ten
+              var i     = 0;
+              var place = 0;
+              for (i=0; i<high_scores.length; i++){
+                  place += 1;
+                  if (this.state.score > high_scores[i].score) {
+                      break;
+                  }
+              }
+
+              // Record new score
+              if (place < 10) {
+                  const nth = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh"]
+                  var user_name = prompt("New high score! You got "+nth[i]+" place. Enter name", "Anonymous");
+                  if (user_name != null){
+                      high_scores.splice(i, 0, {
+                          name  : user_name,
+                          level : this.state.level,
+                          score : this.state.score,
+                      });
+
+                      localStorage.tetriscubed_scores = JSON.stringify(high_scores);
+                  }
+
+                  // Update overlay with new high score!
+                  this.redraw();
+              }
+          }
+
+          game_over_overlay(printed_score=3){
+              var wait = 15; // miliseconds
+              if (printed_score < this.state.score) {
+                  printed_score *= 2;
+                  printed_score += Math.floor(Math.random() * 5);
+                  if (printed_score > this.state.score) {
+                      printed_score = this.state.score;
+                      wait = 1000;
+                  }
+                  this.state.game_overlay = [
+                      {color  : "white",
+                       size   : 40,
+                       font   : "SegmentedAlpha",
+                       align  : "center",
+                       y      : 170,
+                       x      : null,
+                       string : "GAME OVER"},
+                      {color  : "white",
+                       size   : 20,
+                       font   : "Arial",
+                       align  : "left",
+                       y      : 200,
+                       x      : (this.dimension.left_buffer + 2) * this.dimension.starting_square_size,
+                       string : "SCORE: "},
+                      {color  : "white",
+                       size   : 20,
+                       font   : "Segmented",
+                       align  : "right",
+                       y      : 200,
+                       x      : (this.dimension.left_buffer + this.dimension.game_width) * this.dimension.starting_square_size,
+                       string : printed_score}
+                  ],
+
+                  this.redraw();
+                  this.state.timer = setTimeout(() => this.game_over_overlay(printed_score), wait);
+              } else {
+                  this.check_high_score();
+              }
+          }
+
+          endGame(){
+              if (this.state.game_active == false) return;
+              clearTimeout(this.state.timer);
+              this.clearAnimationTimer();
+              this.state.game_active = false;
+              this.game_over_overlay();
+          }
+
+          main_loop(){
+              // See if we are paused
+              if (this.state.game_paused == true) return;
+
+              // See if animations are going, and wait for them to finish
+              if (this.isAnimating() == true){
+                  clearTimeout(this.state.timer);
+                  this.state.timer = setTimeout(() => this.main_loop(), 10);
+                  return;
+              }
+
+              // Get shape template
+              var block = this.state.current_block;
+
+              // Set timeout for next cycle
+              this.speed = this.rules.base_speed * Math.pow(this.rules.speedup_multiplier, this.state.level -1);
+              this.speed = this.speed < this.rules.max_speed ? this.rules.max_speed : this.speed;
+
+              // See if a block has been placed
+              if (this.canMove(block, this.state.block_position, this.direction.drop) == false){
+                  // Set speed to 0 so we don't wait for an entire cycle to show new block
+                  this.speed = 0;
+
+                  // Add block array to array
+                  this.placeBlock(block, this.state.block_position);
+
+                  // Look for lines to clear, Update Scores and Counts
+                  var lines_cleared = this.lookForLines();
+                  this.state.score += this.rules.line_scores[lines_cleared] * this.state.level;
+                  if (Math.floor(this.state.lines / this.rules.lines_per_level) < Math.floor((this.state.lines + lines_cleared) / this.rules.lines_per_level))
+                      this.state.level += 1;
+                  this.state.lines += lines_cleared;
+
+                  // 1 point per block for distance fallen, double for fast drop
+                  this.state.score += this.state.block_score > 40 ? 40 : this.state.block_score;
+                  this.drawGameInformation();
+
+                  // See if game is over
+                  if (this.isGameOver() == true){
+                      this.endGame();
+                      return;
+                  }
+
+                  this.add_block();
+              }
+
+              // Move current block down
+              this.move(this.direction.drop);
+
+              // See if window/game lost focus, and pause
+              //if (document.activeElement == document.getElementById('myInput')) // Not working
+              if(!document.hasFocus()) this.pause();
+
+              // Set timer
+              this.state.timer = setTimeout(() => this.main_loop(), this.speed);
+          }
+
+          shuffle(array) {
+              let counter = array.length;
+
+              // While there are elements in the array
+              while (counter > 0) {
+                  // Pick a random index
+                  let index = Math.floor(Math.random() * counter);
+
+                  // Decrease counter by 1
+                  counter--;
+
+                  // And swap the last element with it
+                  let temp = array[counter];
+                  array[counter] = array[index];
+                  array[index] = temp;
+              }
+
+              return array;
+          }
+
+          add_block(){
+              // If there are fewer than 10 pieces, add a whole set of pieces in random order
+              while (this.state.block_upcoming.length < 10){
+                  for (var t of this.shuffle(this.rules.tetrominoes))
+                      this.state.block_upcoming.push(this.block_defs[t]);
+              }
+
+              // Move next block from block_upcoming array to block_history array
+              this.state.block_history.push(this.state.block_upcoming[0]);
+              this.state.current_block = { ...this.state.block_upcoming[0]}; // Copy as new dictionary so orientations don't change
+              this.state.block_upcoming = this.state.block_upcoming.slice(1);
+
+              // Set position of previous 'next' block to top, center
+              var this_block = this.state.block_history[this.state.block_history.length-1];
+              this.state.block_position = {
+                  x  : Math.floor(this.dimension.game_width/2) - 1,
+                  y  : Math.floor(this.dimension.game_height/2) - 1,
+                  z  : this.dimension.game_depth + this_block.shape.length,
+              }
+              this.state.block_score = 0;
+          }
+
+          clearScreen(){
+              // Setup Game field
+              var total_height = this.dimension.game_height + this.dimension.top_buffer + this.dimension.game_border;
+              var total_width  = this.dimension.game_width + this.dimension.left_buffer + this.dimension.right_buffer + (2*this.dimension.game_border);
+
+              // Setup Array
+              this.state.game_array = [];
+              for (var z=0; z<this.dimension.game_depth+this.dimension.top_buffer; z++){
+                  var temp_y = [];
+                  for (var y=0; y<this.dimension.game_height; y++){
+                      var temp_x = [];
+                      for (var x=0; x<this.dimension.game_width; x++){
+                          temp_x.push(this.EMPTY);
+                      }
+                      temp_y.push(temp_x);
+                  }
+                  this.state.game_array.push(temp_y);
+              }
+
+              this.redraw();
+              return;
+          }
+
+          setFocus(){
+              document.getElementById("myInput").focus()
+          }
+
+          pause(){
+              if (this.state.game_active == true && this.state.game_paused == false){
+                  this.state.game_paused = true;
+                  this.state.game_overlay = this.overlays.paused;
+                  this.redraw();
+                  clearTimeout(this.state.timer);
+              }
+          }
+
+          unpause(){
+              if (this.state.game_active == true && this.state.game_paused == true){
+                  this.state.game_paused = false;
+                  this.state.game_overlay = null;
+                  this.redraw();
+                  this.main_loop();
+              }
+          }
+
+          togglePause(){
+              if (this.state.game_active == true){
+                  if (this.state.game_paused == false){
+                      this.pause();
+                  } else {
+                      this.unpause();
+                  }
+              }
+          }
+
+          start(){
+              this.state.game_overlay = null; // Clear text overlays
+              this.setFocus();    // Set focus to input box
+              this.togglePause();  // Toggle pause
+
+              // Start game
+              if (this.state.game_active == false) {
+                  this.clearScreen();      // Clear the screen
+                  this.state.lines = 0;
+                  this.state.level = 1;
+                  this.state.score = 0;
+                  this.state.block_history = [];
+                  this.state.block_upcoming = []; // Clear next blocks
+                  this.add_block();         // Populate upcoming blocks
+                  this.state.game_active = true;
+                  this.state.game_paused = false;
+                  this.redraw();            // Draw the screen
+                  this.main_loop();
+              }
+          }
+
+          drawUpcomingBlock(){
+              const next   = this.state.block_upcoming[0].shape;
+              const color  = this.state.block_upcoming[0].color;
+              var   left   = this.dimension.game_pixel_width + 20;
+              var   top    = 150;
+              const square = 25;
+              const offset = 5;
+
+              // Create label/box
+              this.ctx.fillStyle = this.colors.light_grey;
+              this.ctx.font = "20px Arial";
+              this.ctx.textAlign = "left";
+              this.ctx.fillText("Next", left, top);
+              top += 15;
+
+              this.ctx.fillStyle   = this.colors.black;
+              this.ctx.fillRect(left +.5 , top +.5, square * 5 -1, square * 5-1);
+	      this.ctx.strokeStyle = this.colors.light_grey;
+              this.ctx.strokeRect(left-.5, top-.5, square * 5, square * 5);
+
+              top  += square * ((5 - next.length) / 2);
+              left += square * ((5 - next.length) / 2);
+              // Draw 2D shape
+              for (var z=0; z<next.length; z++){
+                  for (var y=0; y<next[z].length; y++){
+                      for (var x=0; x<next[z][y].length; x++){
+                          if (next[z][y][x] != 0){
+                              this.ctx.fillStyle = this.shiftColor(color, z*20);
+                              this.ctx.fillRect(
+                                  left + (x * square) + (z * offset),
+                                  top  + (y * square) + (z * offset),
+                                  square,
+                                  square,
+                              );
+                          }
+                      }
+                  }
+              }
+
+              return;
+          }
+
+          redrawGameField(){
+              this.redrawBackground();
+              for (var z=0; z<this.state.game_array.length; z++){
+                  for (var y=0; y<this.state.game_array[z].length/2; y++){
+                      for (var x=0; x<this.state.game_array[z][y].length/2; x++){
+                          if (this.state.game_array[z][y][x] != this.EMPTY)
+                              this.drawBrick(x, y, z, this.state.block_history[this.state.game_array[z][y][x]].color);
+                          if (this.state.game_array[z][4-y][4-x] != this.EMPTY)
+                              this.drawBrick(4-x, 4-y, z, this.state.block_history[this.state.game_array[z][4-y][4-x]].color);
+                          if (this.state.game_array[z][y][4-x] != this.EMPTY)
+                              this.drawBrick(4-x, y, z, this.state.block_history[this.state.game_array[z][y][4-x]].color);
+                          if (this.state.game_array[z][4-y][x] != this.EMPTY)
+                              this.drawBrick(x, 4-y, z, this.state.block_history[this.state.game_array[z][4-y][x]].color);
+                      }
+                  }
+              }
+          }
+
+          redrawCurrentBlock(){
+              var this_block = this.state.current_block;
+              this.drawBlock(this_block, this.state.block_position);
+          }
+
+          drawBlock(def, pos){
+              var block = def.shape;
+              var color = def.color;
+
+              for (var z=0; z<block.length; z++){
+                  for (var y=0; y<block[z].length; y++){
+                      for (var x=0; x<block[z][y].length; x++){
+                          if (block[z][y][x] > 0){
+                              this.drawBrick(pos.x + x,
+                                             pos.y + y,
+                                             pos.z + z,
+                                             color,
+                                             true);
+                          }
+                      }
+                  }
+              }
+          }
+
+          redraw(){
+              // Redraw background
+              this.redrawBackground();
+
+              // Draw each block in game field
+              this.redrawGameField();
+
+              // Draw current block
+              if (this.state.game_active == true)
+                  this.redrawCurrentBlock();
+
+              // Draw right hand side
+              this.drawGameInformation();
+
+              // Draw upcoming block
+              if (this.state.game_active == true)
+                  this.drawUpcomingBlock();
+
+              // Draw game overlay
+              if (this.state.game_overlay != null)
+                  this.text_overlay(this.state.game_overlay);
+          }
+
+          drawGameInformation(){
+              // Clear section and Draw black background
+              this.ctx.fillStyle = this.colors.dark_grey;
+              this.ctx.fillRect(this.dimension.game_pixel_width, 0, this.dimension.info_pixel_width, this.dimension.game_pixel_height);
+
+              // Right align everything
+              var ralign = this.canvas.width - 15;
+              this.ctx.textAlign = "right";
+
+              // Draw Game Name
+              this.ctx.fillStyle = this.colors.light_grey;
+              var title_size = Math.floor(this.canvas.width / 20);
+              this.ctx.font = "Bold " + title_size + "px Arial";
+              this.ctx.fillText("TetrisCubed", ralign, 0 + (title_size * 1.3));
+
+              // Set up spacing based on this.canvas size
+              var label_size   = Math.floor(this.canvas.width / 28);
+              var digit_size   = Math.floor(this.canvas.width / 18);
+              var alpha_size   = Math.floor(this.canvas.width / 21);
+              var line_spacing = Math.floor(this.canvas.width / 18);
+
+              // Draw game information
+              var y = 100;
+              this.ctx.fillStyle = this.colors.light_grey;
+              this.ctx.font = label_size + "px Arial";
+              this.ctx.fillText("Score",          ralign, y + (0 * line_spacing));
+              this.ctx.fillText("Lines",          ralign, y + (2 * line_spacing));
+              this.ctx.fillText("Level",          ralign, y + (4 * line_spacing));
+              this.ctx.fillStyle = this.colors.green;
+              this.ctx.font = digit_size + "px Segmented";
+              this.ctx.fillText(this.state.score, ralign, y + (1 * line_spacing));
+              this.ctx.fillText(this.state.lines, ralign, y + (3 * line_spacing));
+              this.ctx.fillText(this.state.level, ralign, y + (5 * line_spacing));
+
+              // Draw help information
+              y = 600;
+              var note_spacing = this.canvas.width / 45;
+              this.ctx.fillStyle = this.colors.light_grey;
+              this.ctx.font = "Italic " + this.canvas.width / 50 + "px Arial";
+              var notes = [
+                  "(n) New Game",
+                  "(i, j, k, l) Move",
+                  "(a, d) Rotate about y",
+                  "(q, e) Rotate about z",
+                  "(s, w) Rotate about x",
+                  "(space) Drop",
+                  "(p) Pause",
+              ];
+              for (var i=0; i<notes.length; i++)
+                  this.ctx.fillText(notes[i], ralign, y - ((notes.length - i) * note_spacing));
+          }
+
+          font_sizer(pixels, font){
+              return (pixels * this.dimension.em) + "px " + font;
+          }
+
+          text_overlay(string_array){
+              // Black out playing field
+              this.ctx.fillStyle = "rgba(0,0,0,.7)";
+              this.ctx.fillRect(0, 0,
+                                this.dimension.game_pixel_width,
+                                this.dimension.game_pixel_height);
+
+              // Print desired message in upper section
+              for (var string of string_array){
+                  this.ctx.fillStyle = this.colors[string.color];
+                  this.ctx.font      = this.font_sizer(string.size, string.font);
+                  this.ctx.textAlign = string.align;
+                  var y              = string.y * this.dimension.em;
+                  if (string.y == null)
+                      y = this.dimension.game_pixel_height/2;
+                  var x              = string.x * this.dimension.em;
+                  if (string.x == null)
+                      x = this.dimension.game_pixel_width/2;
+                  this.ctx.fillText(string.string, x, y);
+              }
+
+              // Print high scores in remaining portion
+              var high_scores = localStorage.getItem("tetriscubed_scores");
+              var high_score_size = 22;
+              var high_score_spacing = this.dimension.em * 28;
+
+              // Convert from JSON
+              if (high_scores){
+                  high_scores = JSON.parse(high_scores);
+                  var y = this.canvas.height/2.5;
+
+                  // Header
+                  this.ctx.font = this.font_sizer(28, "SegmentedAlpha");
+                  this.ctx.textAlign = "center";
+                  this.ctx.fillText("High Scores", this.dimension.game_pixel_width/2, y);
+                  y += high_score_spacing;
+
+                  var scores_printed = 0;
+                  for(var i=0; i<high_scores.length; i++){
+                      var score = high_scores[i];
+
+                      if (scores_printed == 10)
+                          break;
+
+                      scores_printed += 1;
+
+                      // Name
+                      this.ctx.font = this.font_sizer(high_score_size, "SegmentedAlpha");
+                      this.ctx.textAlign = "left";
+                      this.ctx.fillText(score.name, 50, y);
+
+                      // Score
+                      this.ctx.font = this.font_sizer(high_score_size, "Segmented");
+                      this.ctx.textAlign = "right";
+                      this.ctx.fillText(score.score, 450, y);
+
+                      // Level
+                      this.ctx.font = this.font_sizer(high_score_size, "Segmented");
+                      this.ctx.textAlign = "right";
+                      this.ctx.fillText(score.level, 550, y);
+
+                      y += high_score_spacing;
+                  }
+              }
+          }
+
+          rotateArray(a, r){
+              var rotated  = a.slice(); // Copies the array
+              const length = rotated.length;
+              var rotate   = 1;
+
+              switch (r) {
+              case this.direction.rzcw:
+                  rotate = 3;
+              case this.direction.rzccw:
+                  while (rotate>0){
+                      rotate -= 1;
+                      // Create new array of the same size
+                      var tmp = [];
+                      for (var z=0; z<length; z++){
+                          var t_col = [];
+                          for (var y=0; y<length; y++){
+                              var t_row = [];
+                              for (var x=0; x<length; x++){
+                                  t_row.push(0);
+                              }
+                              t_col.push(t_row);
+                          }
+                          tmp.push(t_col);
+                      }
+
+                      // Copy data to new, empty array
+                      for (var z=0; z<length; z++){
+                          for (var y=0; y<length; y++){
+                              for (var x=0; x<length; x++){
+                                  tmp[z][y][x] = rotated[z][length-x-1][y]; // Correct
+                              }
+                          }
+                      }
+                      
+                      // Overwrite rotated array
+                      rotated = tmp.slice();
+                  }
+                  break;
+
+              case this.direction.ryccw:
+                  rotate = 3;
+              case this.direction.rycw:
+                  while (rotate>0){
+                      rotate -= 1;
+                      // Create new array of the same size
+                      var tmp = [];
+                      for (var z=0; z<length; z++){
+                          var t_col = [];
+                          for (var y=0; y<length; y++){
+                              var t_row = [];
+                              for (var x=0; x<length; x++){
+                                  t_row.push(0);
+                              }
+                              t_col.push(t_row);
+                          }
+                          tmp.push(t_col);
+                      }
+
+                      // Copy data to new, empty array
+                      for (var z=0; z<length; z++){
+                          for (var y=0; y<length; y++){
+                              for (var x=0; x<length; x++){
+                                  tmp[z][y][x] = rotated[length-y-1][z][x];
+                              }
+                          }
+                      }
+                      
+                      // Overwrite rotated array
+                      rotated = tmp.slice();
+                  }
+                  break;
+
+              case this.direction.rxccw:
+                  rotate = 3;
+              case this.direction.rxcw:
+                  while (rotate>0){
+                      rotate -= 1;
+                      // Create new array of the same size
+                      var tmp = [];
+                      for (var z=0; z<length; z++){
+                          var t_col = [];
+                          for (var y=0; y<length; y++){
+                              var t_row = [];
+                              for (var x=0; x<length; x++){
+                                  t_row.push(0);
+                              }
+                              t_col.push(t_row);
+                          }
+                          tmp.push(t_col);
+                      }
+
+                      // Copy data to new, empty array
+                      for (var z=0; z<length; z++){
+                          for (var y=0; y<length; y++){
+                              for (var x=0; x<length; x++){
+                                  tmp[z][y][x] = rotated[length-x-1][y][z];
+                              }
+                          }
+                      }
+                      
+                      // Overwrite rotated array
+                      rotated = tmp.slice();
+                  }
+                  break;
+              }
+
+              return rotated;
+          }
+
+          shiftColor(c, d){
+              var r = c.r - d;
+              var g = c.g - d;
+              var b = c.b - d;
+
+              r = r < 0 ? 0 : r;
+              g = g < 0 ? 0 : g;
+              b = b < 0 ? 0 : b;
+              r = r > 0xff ? 0xff : r;
+              g = g > 0xff ? 0xff : g;
+              b = b > 0xff ? 0xff : b;
+
+              return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+          }
+
+
+	  redrawBackground() {
+	      var leg = this.dimension.game_pixel_width;
+
+	      this.ctx.fillStyle = this.colors.background;
+              this.ctx.fillRect(0, 0, leg, leg);
+
+	      this.ctx.lineWidth = 1;
+	      this.ctx.strokeStyle = this.colors.white;
+	      // Draw Vertical Lines
+	      for (var x=0; x<leg; x+= leg/5){
+                  this.ctx.beginPath();
+		  this.ctx.moveTo(x, 0);
+		  this.ctx.lineTo(leg - x, leg);
+		  this.ctx.stroke();
+	      }
+	      for (var y=0; y<leg; y+= leg/5) {
+		  this.ctx.moveTo(0, leg - y);
+		  this.ctx.lineTo(leg, y);
+		  this.ctx.stroke();
+	      }
+
+	      // Draw plane lines
+	      var base_leg = leg / 15 * 5;
+
+	      for (var i=0; i<8; i++){
+		  this.ctx.beginPath();
+		  var layer_size   = Math.floor(base_leg * Math.pow(1.17, i)) - 1;
+		  var layer_offset = Math.floor((leg / 2) - (layer_size / 2)) + .5;
+		  this.ctx.rect(layer_offset,
+				layer_offset,
+				layer_size,
+				layer_size);
+		  if (i == 0)
+		      this.ctx.fill();
+		  this.ctx.stroke();
+	      }
+
+	      // Draw Base Grid
+	      for (var i=1; i<5; i++){
+		  var start  = Math.floor((leg / 2) - (base_leg / 2)) + .5;
+		  var stop   = Math.floor((leg / 2) + (base_leg / 2)) + .5;
+		  var offset = Math.floor((leg / 2) - (base_leg / 2) + (i*leg/15)) + .5;
+		  this.ctx.moveTo(offset, start);
+		  this.ctx.lineTo(offset, stop);
+
+		  this.ctx.moveTo(start, offset);
+		  this.ctx.lineTo(stop,  offset);
+		  this.ctx.stroke();
+	      }
+	  }
+
+          precompute_coords(){
+	      const base_unit_leg = this.dimension.game_pixel_width / 15;
+              const center_offset = this.dimension.game_pixel_width / 2;
+              var coords_all = [];
+
+	      for (var z=0; z<=this.dimension.game_depth + this.dimension.top_buffer; z++){
+		  var magnitude_lower = Math.pow(1.17, z);
+		  var magnitude_upper = Math.pow(1.17, z+1);
+                  var coords_y = [];
+
+		  for (var y=0; y<this.dimension.game_height; y++){
+		      var y1 = ((y-2) * 2 - 1) * base_unit_leg / 2;
+		      var y2 = ((y-2) * 2 + 1) * base_unit_leg / 2;
+                      var coords_x = [];
+
+		      for (var x=0; x<this.dimension.game_width; x++){
+			  var x1 = ((x-2) * 2 - 1) * base_unit_leg / 2;
+			  var x2 = ((x-2) * 2 + 1) * base_unit_leg / 2;
+
+			  // Apply magnitude
+			  var x_left_lower   = x1 * magnitude_lower;
+			  var x_right_lower  = x2 * magnitude_lower;
+			  var y_top_lower    = y1 * magnitude_lower;
+			  var y_bottom_lower = y2 * magnitude_lower;
+
+			  var x_left_upper   = x1 * magnitude_upper;
+			  var x_right_upper  = x2 * magnitude_upper;
+			  var y_top_upper    = y1 * magnitude_upper;
+			  var y_bottom_upper = y2 * magnitude_upper;
+
+			  // Recenter
+			  x_left_lower   += center_offset;
+			  x_right_lower  += center_offset;
+			  y_top_lower    += center_offset;
+			  y_bottom_lower += center_offset;
+
+			  x_left_upper   += center_offset;
+			  x_right_upper  += center_offset;
+			  y_top_upper    += center_offset;
+			  y_bottom_upper += center_offset;
+
+			  /* Note about nomenclature and position reference
+
+			    A2------B2
+			    |\       |\
+			    | \      | \    Left---Right
+			    |  A1----|-B1
+			    |  |     |  | Upper      Top
+			    D2------C2  |    \        |
+			     \ |      \ |     \       |
+			      \|       \|    Lower  Bottom
+                               D1------C1
+			   */
+
+			  var box = {
+			      A1 : [x_left_lower,  y_top_lower],
+			      B1 : [x_right_lower, y_top_lower],
+			      C1 : [x_right_lower, y_bottom_lower],
+			      D1 : [x_left_lower,  y_bottom_lower],
+			      A2 : [x_left_upper,  y_top_upper],
+			      B2 : [x_right_upper, y_top_upper],
+			      C2 : [x_right_upper, y_bottom_upper],
+			      D2 : [x_left_upper,  y_bottom_upper],
+			  };
+                          coords_x.push(box);
+                      }
+                      coords_y.push(coords_x);
+                  }
+                  coords_all.push(coords_y);
+              }
+              this.coords = coords_all;
+          }
+
+	  drawBrick(x, y, z, c, outline=false){
+              var box = this.coords[z][y][x];
+              var depth_shading = (this.dimension.game_depth - z) * 10
+
+              this.ctx.strokeStyle = this.shiftColor(c, 0);
+
+	      // Bottom
+              if (outline == true) {
+	          this.ctx.fillStyle = this.shiftColor(c, 10 + depth_shading);
+	          this.ctx.beginPath();
+	          this.ctx.moveTo(box.A1[0], box.A1[1]);
+	          this.ctx.lineTo(box.B1[0], box.B1[1]);
+	          this.ctx.lineTo(box.C1[0], box.C1[1]);
+	          this.ctx.lineTo(box.D1[0], box.D1[1]);
+	          this.ctx.lineTo(box.A1[0], box.A1[1]);
+                  if (outline != true)
+	              this.ctx.fill();
+                  this.ctx.stroke();
+
+              }
+
+	      // North
+              if (outline == true || y > this.dimension.game_height / 2) {
+	          this.ctx.fillStyle = this.shiftColor(c, 10 + depth_shading);
+	          this.ctx.beginPath();
+	          this.ctx.moveTo(box.A2[0], box.A2[1]);
+	          this.ctx.lineTo(box.B2[0], box.B2[1]);
+	          this.ctx.lineTo(box.B1[0], box.B1[1]);
+	          this.ctx.lineTo(box.A1[0], box.A1[1]);
+	          this.ctx.lineTo(box.A2[0], box.A2[1]);
+                  if (outline != true)
+	              this.ctx.fill();
+                  this.ctx.stroke();
+
+              }
+
+	      // East
+              if (outline == true || x < this.dimension.game_width / 2) {
+	          this.ctx.fillStyle = this.shiftColor(c, 30 + depth_shading);
+	          this.ctx.beginPath();
+	          this.ctx.moveTo(box.B2[0], box.B2[1]);
+	          this.ctx.lineTo(box.B1[0], box.B1[1]);
+	          this.ctx.lineTo(box.C1[0], box.C1[1]);
+	          this.ctx.lineTo(box.C2[0], box.C2[1]);
+	          this.ctx.lineTo(box.B2[0], box.B2[1]);
+                  if (outline != true)
+	              this.ctx.fill();
+                  this.ctx.stroke();
+
+              }
+
+	      // South
+              if (outline == true || y < this.dimension.game_height / 2) {
+	          this.ctx.fillStyle = this.shiftColor(c, 100 + depth_shading);
+	          this.ctx.beginPath();
+	          this.ctx.moveTo(box.D2[0], box.D2[1]);
+	          this.ctx.lineTo(box.C2[0], box.C2[1]);
+	          this.ctx.lineTo(box.C1[0], box.C1[1]);
+	          this.ctx.lineTo(box.D1[0], box.D1[1]);
+	          this.ctx.lineTo(box.D2[0], box.D2[1]);
+                  if (outline != true)
+	              this.ctx.fill();
+                  this.ctx.stroke();
+
+              }
+              
+	      // West
+              if (outline == true || x > this.dimension.game_width / 2) {
+	          this.ctx.fillStyle = this.shiftColor(c, 50 + depth_shading);
+	          this.ctx.beginPath();
+	          this.ctx.moveTo(box.A2[0], box.A2[1]);
+	          this.ctx.lineTo(box.A1[0], box.A1[1]);
+	          this.ctx.lineTo(box.D1[0], box.D1[1]);
+	          this.ctx.lineTo(box.D2[0], box.D2[1]);
+	          this.ctx.lineTo(box.A2[0], box.A2[1]);
+                  if (outline != true)
+	              this.ctx.fill();
+                  this.ctx.stroke();
+
+              }
+
+	      //Top
+	      this.ctx.fillStyle = this.shiftColor(c, 0 + depth_shading);
+	      this.ctx.beginPath();
+	      this.ctx.moveTo(box.A2[0], box.A2[1]);
+	      this.ctx.lineTo(box.B2[0], box.B2[1]);
+	      this.ctx.lineTo(box.C2[0], box.C2[1]);
+	      this.ctx.lineTo(box.D2[0], box.D2[1]);
+	      this.ctx.lineTo(box.A2[0], box.A2[1]);
+              if (outline != true)
+	          this.ctx.fill();
+              this.ctx.stroke();
+
+	  }
+
+          firstRun(){
+              this.precompute_coords();
+              this.state.game_overlay = this.overlays.firstrun;
+              this.redraw();
+              this.setFocus();
+          }
+      }
+
+      var tetris_instance = new tetris(document.getElementById("canvas"));
+
+    </script>
+  </body>
+</html>
