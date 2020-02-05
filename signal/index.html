@@ -1,0 +1,250 @@
+<html>
+  <head>
+    <title>Test Webpage</title>
+  </head>
+
+  <body>
+    <h1>Oscillator Test</h1>
+    <canvas id="scope" width="500" height="300" style="border:1px solid black;"></canvas><br>
+    <span id="freq_label"></span><br>
+
+    <button id="freq_toggle" onclick="toggle();">On/Off</button>
+    <input id="vol_select"   oninput="volume();"    type="range" min="0" max="100"   value="20"><span id="vol_label"></span><br>
+
+    <div style="display: inline-block; margin:10px; border:0px red solid">
+      <input type="radio" onchange="shape(0);" name="shape" value="sine" checked> Sine<br>
+      <input type="radio" onchange="shape(1);" name="shape" value="square"> Square<br>
+      <input type="radio" onchange="shape(2);" name="shape" value="triangle"> Triangle<br>
+      <input type="radio" onchange="shape(3);" name="shape" value="sawtooth"> Sawtooth<br>
+    </div>
+    <div style="display: inline-block; margin:10px; border:0px red solid">
+      <input type="radio" onchange="setScale(20);" name="scale" value="20"> x20<br>
+      <input type="radio" onchange="setScale(200);" name="scale" value="200"> x200<br>
+      <input type="radio" onchange="setScale(2000);" name="scale" value="2000" checked> x2K<br>
+      <input type="radio" onchange="setScale(20000);" name="scale" value="20000"> x20K<br>
+    </div>
+
+    <div style="display: inline-block; border:0px red solid">
+      <!-- SVG Spinner -->
+      <svg
+	version="1.1"
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	xml:space="preserve"
+	xmlns:serif="http://www.serif.com/"
+	width="100"
+	height="100"
+	style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;">
+
+	<g id="spinner_2">
+	  <circle cx="50" cy="50" r="50" stroke="black" stroke-width="0" fill="red" />
+	  <circle cx="50" cy="10" r="10" stroke="black" stroke-width="0" fill="blue" />
+	</g>
+
+	<g id="spinner_1">
+          <circle cx="50" cy="50" r="50" stroke="black" stroke-width="0" fill="green" opacity="0.0"/>
+	</g>
+      </svg>
+    <div>
+
+    <script>
+
+var ctx = new AudioContext();
+var oscillator = ctx.createOscillator();
+var gainNode = ctx.createGain();
+var active = -1
+var scale = 10
+var knobPercent = 0
+
+oscillator.connect(gainNode);
+gainNode.connect(ctx.destination);
+
+function toggle(){
+    if (active == -1) {
+	active = 1;
+	volume();
+	oscillator.start(0);
+    } else if (active == 0) {
+	active = 1;
+	volume();
+    } else {
+	gainNode.gain.setValueAtTime(0, ctx.currentTime);
+	active = 0;
+	update_scope();
+    }
+};
+
+function volume(){
+    var volume = Number(document.getElementById("vol_select").value);
+    if (active == 1) {
+	gainNode.gain.setValueAtTime(volume/100, ctx.currentTime);
+    }
+    document.getElementById("vol_label").innerHTML = volume;
+    update_scope();
+};
+
+function frequency(){
+    var freq = knobPercent * scale;
+    oscillator.frequency.setValueAtTime(freq, ctx.currentTime); 
+    document.getElementById("freq_label").innerHTML = freq + " hz"
+    update_scope();
+};
+
+function setScale(s){
+    scale = s;
+    frequency();
+}
+
+function shape(s){
+    switch(s){
+    case 0:
+	oscillator.type = "sine";
+	break;
+    case 1:
+	oscillator.type = "square";
+	break;
+    case 2:
+	oscillator.type = "triangle";
+	break;
+    case 3:
+	oscillator.type = "sawtooth";
+	break;
+    }
+    update_scope();
+}
+
+const canvas = document.getElementById("scope");
+const context = canvas.getContext("2d");
+var can_width = canvas.width;
+var can_height = canvas.height;
+function update_scope(){
+    var h_center  = can_height / 2;
+    var frequency = oscillator.frequency.value / 42000;
+    var amplitude = Number(document.getElementById("vol_select").value) / 100 * h_center;
+    //var amplitude = can_height/2 * gainNode.gain.value;
+    var period = (Math.PI/frequency);
+
+    // Fill in background color
+    context.fillStyle = "#003300";
+    context.fillRect(0, 0, can_width, can_height);
+
+    // If not active... Leave!
+    if (active <= 0) return;
+
+    // Draw left to right
+    context.beginPath();
+    context.moveTo(0, h_center);
+    switch(oscillator.type){
+    case "sine":
+	for (var x=0; x<can_width; x++){
+	    var y = Math.sin(x * frequency) * amplitude;
+	    context.lineTo(x, can_height-y - h_center);
+	}
+	break;
+    case "square":
+	var x = 0;
+	var y = -1 * amplitude;
+	for (x=0; x<can_width+period; x+=period){
+	    context.lineTo(x, can_height-y - h_center);
+	    y *= -1;
+	    context.lineTo(x, can_height-y - h_center);
+	}
+	break;
+    case "triangle":
+	var x = 0;
+	var y = amplitude;
+	for (x=0-(period/2); x<can_width+period; x+=period){
+	    y *= -1;
+	    context.lineTo(x, can_height-y - h_center);
+	}
+	break;
+    case "sawtooth":
+	var x = 0;
+	for (x=0; x<can_width+period; x+=period){
+	    context.lineTo(x, can_height-amplitude - h_center);
+	    context.lineTo(x, can_height+amplitude - h_center);
+	}
+	break;
+    }
+    context.strokeStyle="#ccffcc";
+    context.lineWidth=2;
+    context.stroke();
+}
+
+const spinner = document.getElementById("spinner_1");
+const width  = spinner.width;
+const height = spinner.height;
+var   click  = [null, null];
+var   rotation = null;
+var   this_rotation_start = "none";
+var   this_rotation_total = null;
+
+function getCursorPosition(object, event){
+    // Determine where clicked
+    const rect = object.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    return [x, y];
+}
+
+spinner.addEventListener('mousedown', function(e){
+    click = getCursorPosition(spinner, e);
+    this_rotation_start = "none";
+});
+
+spinner.addEventListener('mousemove', function(e){
+    rotate(click, getCursorPosition(spinner, e));
+    //document.getElementById("pos").innerHTML = getCursorPosition(spinner, e);
+});
+
+spinner.addEventListener('mouseup', function(e){
+    click = [null, null];
+    if (this_rotation_start != "none")
+	rotation += this_rotation_total;
+});
+
+function rotate(start, end){
+    if (start[0] == null) return;
+
+    // Middle of object
+    var mx = 50;
+    var my = 50;
+
+    // Get angle from start position
+    var dx1 = (mx - start[0]);
+    var dy1 = (my - start[1]);
+    var angle1 = Math.atan2(dy1, dx1);
+
+    // Get angle from end position
+    var dx2 = (mx - end[0]);
+    var dy2 = (my - end[1]);
+    var angle2 = Math.atan2(dy2, dx2);
+
+    // Get total rotation, convert to degrees
+    var rot = (angle1+angle2) * 180/Math.PI;
+    if (this_rotation_start == "none"){
+	this_rotation_start = rot;
+    }
+    this_rotation_total = (rot - this_rotation_start);
+    //document.getElementById("rot").innerHTML = rotation + this_rotation_total;
+
+    knobPercent = ((720 + rotation + this_rotation_total) % 360) / 360;
+    frequency();
+
+    //document.getElementById("rot_pretty").innerHTML = (Math.round(720 + rotation + this_rotation_total) % 360);
+    document.getElementById("spinner_2").setAttribute("transform", "rotate("+(rotation + this_rotation_total)+" "+mx+" "+my+")");
+}
+
+function first_run(){
+    scale = Number(document.querySelector('input[name=scale]:checked').value);
+    volume();
+    frequency();
+    update_scope();
+}
+
+first_run();
+
+    </script>
+  </body>
+</html>
