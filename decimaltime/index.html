@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Test</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="height=320" />
+    <style type="text/css">
+body {
+    background-color: #ccc;
+}
+
+@font-face {
+    font-family: "lcars";
+    src: url('fonts/swiss_911.ttf') format('truetype');
+}
+    </style>
+  </head>
+  <body onload=update_clock();>
+
+    <h1>Traditional Date and Time</h1>
+    <span id="old_date"></span><br>
+    <span id="old_time"></span><br>
+    <h1>New Date and Time</h1>
+    <span id="new_date"></span><br>
+    <span id="new_time"></span><br>
+
+    <script type="text/javascript">
+
+var twelve_hour = true;
+
+function wait() {
+    var refresh = 100;
+    mytime = setTimeout('update_clock()', refresh);
+}
+
+function update_clock() {
+    var date_time = new Date();
+    var day   = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][date_time.getDay()]
+    var date  = date_time.getDate();
+    var month = ["January","February","March","April","May","June","July","August","September","October","November","December",][date_time.getMonth()]
+    var year  = date_time.getFullYear();
+
+    document.getElementById('old_date').innerHTML = day+", "+month+" "+date+", "+year;
+
+    var start = new Date(date_time.getFullYear(), 0, 0);
+    var diff = (date_time - start) + ((start.getTimezoneOffset() - date_time.getTimezoneOffset()) * 60 * 1000);
+    var oneDay = 1000 * 60 * 60 * 24;
+    var month = ["January","February","March","April","May","June","July","sol","August","September","October","November","December",][Math.floor(Math.floor(diff / oneDay) / 28)]
+    date = Math.floor(diff / oneDay) % 28;
+
+    document.getElementById('new_date').innerHTML = day+", "+month+" "+date+", "+year;
+    
+    var hours = date_time.getHours();
+    var minutes = date_time.getMinutes();
+    var seconds = date_time.getSeconds();
+    var meridiem = " AM";
+    if (hours > 11)
+        meridiem = " PM";
+
+    if (hours > 12) hours -= 12;
+    if (minutes < 10) minutes = "0"+minutes;
+    if (seconds < 10) seconds = "0"+seconds;
+	
+    document.getElementById('old_time').innerHTML = hours+":"+minutes+":"+seconds+meridiem;
+
+    // 86400 seconds in a normal day, 100000 in new day
+    seconds = Math.floor(((((date_time.getHours() * 60) + Number(minutes)) * 60) + Number(seconds)) / .86400);
+    minutes = Math.floor((seconds / 100) % 100);
+    hours   = Math.floor((seconds / 10000));
+    seconds = seconds % 100;
+
+    if (minutes < 10) minutes = "0"+minutes;
+    if (seconds < 10) seconds = "0"+seconds;
+
+    document.getElementById('new_time').innerHTML = hours+":"+minutes+":"+seconds;
+	
+    wait();
+}
+
+    </script>
+  </body>
+</html>
