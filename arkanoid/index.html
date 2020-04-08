@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Arkanoid Level Editor</title>
+    <meta charset="utf-8"/>
+    <!--<link rel="stylesheet" type="text/css" media="all" href="util.css">-->
+    <style>
+
+    </style>
+  </head>
+
+  <body onload="start();">
+    <div id="content">
+    <h1>Arkanoid 2</h1>
+    <canvas id="canvas" width=208 height=144 style="border: 1px solid grey;"></canvas>
+    <br>
+    <h2>Brick Pallet</h2>
+      <canvas id="pallet" width=316 height=156 style=""></canvas>
+      <img id="pieces" src="pieces.png" style="display:none;">
+      <h2>Level: <span id="levelnum">1</span></h2>
+      <button onclick="switch_level(-1)">Previous</button>
+      <button onclick="switch_level(1)">Next</button>
+    <a href="#" id="download">Download File</a>
+
+      <div id="results" style="min-width:1030px;border:0px red solid;">
+        <h2>Binary Dump</h2>
+        <div style="font-family: monospace; font-size: 1em; margin: 10px 5px;">
+          <span id="input_dump"></span>
+	</div>
+      </div>
+    </div>
+
+    <script>
+// Actual Code for HEX DUMP
+var binary_data      = new Uint8Array();
+var level            = 0;
+var pallet_selection = -1;
+var mouse_down       = false;
+const start_offset   = 0x593E;
+const level_size     = 282;
+const line_width     = 13;
+const level_lines    = 18;
+const block_width    = 16;
+const block_height   = 8;
+
+var canvas  = document.getElementById("canvas");
+var width   = canvas.width;
+var height  = canvas.height;
+var ctx     = canvas.getContext("2d");
+var sprites = document.getElementById("pieces");
+
+var pallet        = document.getElementById("pallet");
+var pallet_width  = pallet.width;
+var pallet_height = pallet.height;
+var pallet_ctx    = pallet.getContext("2d");
+
+function start(){
+    // Load Binary File
+    var req = new XMLHttpRequest();
+    req.onload = function(e) {
+	var arraybuffer = req.response;
+	import_bin_data(arraybuffer);
+    }
+    req.open("GET", 'b08_12.3e');
+    req.responseType = "arraybuffer";
+    req.send();
+
+    // Draw the pallet
+    redraw_pallet([0, 0]);
+}
+
+// Mouse listeners
+function getCursorPosition(canvas, event){
+    // Determine where clicked
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    return [x, y];
+}
+
+canvas.addEventListener('mousedown', function(e){
+    update_blocks(getCursorPosition(canvas, e));
+    mouse_down = true;
+});
+
+canvas.addEventListener('mousemove', function(e){
+    if (mouse_down == true)
+	update_blocks(getCursorPosition(canvas, e));
+});
+
+canvas.addEventListener('mouseup', function(e){
+    mouse_down = false;
+});
+
+pallet.addEventListener('mousedown', function(e){
+    redraw_pallet(getCursorPosition(pallet, e));
+});
+
+
+// Pallet
+function redraw_pallet(pos){
+    // Draw background
+    pallet_ctx.fillStyle = "#0000dd";
+    pallet_ctx.fillRect(0, 0, width, height);
+
+    // Draw Pallet
+    pallet_ctx.drawImage(sprites, 0, 0);
+
+    // Draw selection
+    var x = Math.floor(pos[0] / 16);
+    var y = Math.floor(pos[1] / 8);
+
+    if (x > 15) x = 15;
+    if (y > 15) y = 15;
+
+    pallet_ctx.strokeStyle = "#00ff00";
+    pallet_ctx.beginPath();
+    pallet_ctx.rect(x * block_width, y * block_height, block_width, block_height);
+    pallet_ctx.stroke(); 
+    
+    // Set selection
+    var block_byte = (y << 4) + x;
+    pallet_selection = block_byte;
+}
+
+// Binary manipulation
+function import_bin_data(buffer){
+    binary_data = new Uint8Array(buffer.slice());
+    draw_level();
+    return;
+}
+
+function switch_level(incr){
+    level += incr;
+    if (level < 0) level = 0;
+    if (level > 63) level = 63;
+    document.getElementById("levelnum").innerHTML = level + 1;
+    draw_level();
+}
+
+function update_blocks(pos){
+    // Get brick selection
+    var x = Math.floor(pos[0] / 16);
+    var y = Math.floor(pos[1] / 8);
+
+    // Update binary
+    var level_offset = level * level_size;
+    var block_offset = start_offset + level_offset + (y * 13) + (12 - x);
+    binary_data[block_offset] = pallet_selection;
+
+    // Update checksum
+    update_checksum();
+
+    // Update download link
+    update_download_link();
+
+    // Redraw
+    draw_level();
+}
+
+function get_base64_binary(buffer){
+    var output = "";
+    for (var i of buffer)
+	output += String.fromCharCode(i);
+    return btoa(output);
+}
+
+function update_download_link(){
+    var download_link = document.getElementById('download');
+    var download_file = 'b08_12.3e';
+    download_link.href      = "data:application/octet-stream;base64,"+get_base64_binary(binary_data);
+    download_link.download  = download_file;
+}
+
+function draw_level(){
+    // Isolate data
+    var level_offset = level * level_size;
+    var level_array = new Uint8Array(binary_data.slice(start_offset + level_offset, start_offset + level_offset + level_size));
+
+    // Write out binary dump
+    update_input_dump(level_array, cols=13, start=start_offset + level_offset);
+
+    // Draw to canvas
+    update_canvas(level_array);
+}
+
+function update_canvas(a){
+    // Clear background
+    ctx.fillStyle = "#0000dd";
+    ctx.fillRect(0, 0, width, height);
+
+    //drawImage(image, source-x, source-y, source-width, source-height, dest-x, dest-y, dest-width, dest-height);
+    // Draw blocks
+    for (var line=0; line<level_lines; line++){
+	for (var piece=12; piece>=0; piece--){
+	    // Destination values
+	    var dx = piece * block_width;
+	    var dy = line  * block_height;
+
+	    // Source values
+	    var block_type = a[line * line_width + 12 - piece];
+	    var upper = block_type >> 4;
+	    var lower = block_type & 0xF;
+	    var sx = lower * block_width;
+	    var sy = upper * block_height;
+
+	    // Draw it
+	    ctx.drawImage(sprites, sx, sy, block_width, block_height, dx, dy, block_width, block_height);
+	}
+    }
+}
+
+function update_input_dump(data, cols=16, start=0){
+    var buffer = hex_dump(data, cols, start);
+    document.getElementById('input_dump').innerHTML = buffer;
+    return;
+}
+
+function int_to_padded_hex(i, p){
+    var s = i.toString(16).toUpperCase();
+    while (s.length < p)
+	s = "0" + s;
+    return s;
+}
+
+function hex_dump(buffer, cols=16, start=0){
+    buffer = new Uint8Array(buffer.slice());
+    var line = 0;
+    var output = "";
+    var ascii_string = "";
+    var i=0;
+    
+    for (i=0; i<buffer.length; i++){
+	// Handle new lines
+	if (i % cols == 0){
+	    if (i != 0){
+		output += " "+ascii_string+'<br>'; // stupid Windows
+		ascii_string = "";
+		line += 1;
+	    }
+	    output += "0x"+int_to_padded_hex(i + start, 8)+"  ";
+	}
+
+	// Actual HEX data
+	output += int_to_padded_hex(buffer[i], 2);
+
+	// Insert spaces between bytes
+	if ((i+1)%1 == 0)
+	    output += " ";
+
+	// Convert ASCII
+	if (buffer[i] > "~".charCodeAt(0) || buffer[i] < " ".charCodeAt(0))
+	    ascii_string += "."
+	else
+	    ascii_string += String.fromCharCode(buffer[i]);
+
+	// Sanitize for HTML
+	ascii_string = ascii_string.replace(">", "&gt;");
+	ascii_string = ascii_string.replace("<", "&lt;");
+    }
+    
+    // Pad remaining data
+    while (i%0x10 != 0){
+	output += "  ";
+	if ((i+1)%2 == 0)
+	    output += " ";
+	i++;
+    }
+
+    output += " "+ascii_string+"\n";
+
+    return output;
+}
+
+function update_checksum() {
+    // Zero the checksum area
+    binary_data[0x9F6E] = 0;
+
+    // Calculate the new checksum
+    var checksum = 0;
+    for (var i=0; i<binary_data.length; i++){
+	checksum += binary_data[i];
+    }
+
+    checksum &= 0xFF;
+
+    checksum = 0xCB - checksum;
+
+    // Write to 0x9F6E - This is unused space but gets checksummed
+    binary_data[0x9F6E] = checksum;
+
+    // Read back checksum. Hopefully it comes out to "CB"
+    checksum = 0;
+    for (var i=0; i<binary_data.length; i++){
+	checksum += binary_data[i];
+    }
+
+    checksum %= 0x100;
+    console.log(checksum.toString(16));
+}
+
+    </script>
+  </body>
+</html>
