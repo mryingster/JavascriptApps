@@ -206,6 +206,12 @@ function input_up(e){
     draw_word_overlay(overlay_ctx, []);
 }
 
+function distance(x1, y1, x2, y2){
+    var dx = Math.abs(x1 - x2);
+    var dy = Math.abs(y1 - y2);
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
 function mouse_track_word(coords, first=false){
     if (game_active == false) return;
 
@@ -213,49 +219,30 @@ function mouse_track_word(coords, first=false){
     var mouse_y = coords.y - game_border;
 
     var gridsize = tile_size + spacing;
-    if (first == true){
-        // Give first selection a bigger target
-        var x = Math.floor(mouse_x / (gridsize));
-        var y = Math.floor(mouse_y / (gridsize));
-    } else {
-        // Divide each tile into 9 and only register positions for the middle tile - WIP
-        var x = Math.floor(mouse_x / (gridsize / 3)) - 1;
-        var y = Math.floor(mouse_y / (gridsize / 3)) - 1;
-        if (x % 3 != 0)
-            x = -1;
-        else
-            x /=3;
-        if (y % 3 != 0)
-            y = -1;
-        else
-            y/= 3;
-    }
 
-    // Skip invalid positions
-    if (x < 0 || y < 0 || x >= game_size || y >= game_size)
-        return;
+    var x = Math.floor(mouse_x / (gridsize));
+    var y = Math.floor(mouse_y / (gridsize));
 
-    // If square not in selection
-    if (!contains(mouse_selection, {x:x,y:y})) {
-        // Check if within 1 of last square
-        if (mouse_selection.length > 0){
-            if (Math.abs(mouse_selection[mouse_selection.length-1].x - x) > 1 ||
-                Math.abs(mouse_selection[mouse_selection.length-1].y - y) > 1){
-                return;
+    var cx = x * gridsize + tile_size/2 + game_border;
+    var cy = y * gridsize + tile_size/2 + game_border;
+
+    if (distance(cx, cy, coords.x, coords.y) <= (tile_size / 2) && // Close enough to center
+        (x >= 0 && y >= 0 && x < game_size && y < game_size)){     // Not an invalid position
+        if (contains(mouse_selection, {x:x,y:y})){                 // A tile we've visited?
+            var index = mouse_selection.findIndex(e => e.x == x && e.y == y);
+            if (index < mouse_selection.length-1)
+                mouse_selection = mouse_selection.slice(0, index); // Pop as far as necessary
+        } else {
+            if (mouse_selection.length == 0 ||                     // If first click
+                (Math.abs(mouse_selection[mouse_selection.length-1].x - x) <= 1 && // Or within 1 of last square
+                 Math.abs(mouse_selection[mouse_selection.length-1].y - y) <= 1)){
+                mouse_selection.push({x:x, y:y});                  // Valid move, append and redraw
             }
         }
-
-        // Valid move, append and redraw
-        mouse_selection.push({x:x, y:y});
-        //canvas_draw_game(this_game);
-        real_word = this_dict.includes(word_from_moves(mouse_selection));
-        draw_word_overlay(overlay_ctx, mouse_selection, real_word);
-    } else {
-        // If in selection, roll back path to that letter
-        var index = mouse_selection.findIndex(e => e.x == x && e.y == y);
-        if (index < mouse_selection.length-1)
-            mouse_selection = mouse_selection.slice(0, index);
     }
+
+    let real_word = this_dict.includes(word_from_moves(mouse_selection));
+    draw_word_overlay(overlay_ctx, mouse_selection, real_word, coords);
 }
 
 // Canvas Functions
@@ -328,7 +315,7 @@ function canvas_draw_cover(){
     ctx.fillText("Wordy", width/2, 75+height/2);
 }
 
-function draw_word_overlay(ctx, path, valid=false){
+function draw_word_overlay(ctx, path, valid=false, mouse_position=null){
     ctx.clearRect(0, 0, width, height);
     if (path.length == 0) return;
 
@@ -339,37 +326,29 @@ function draw_word_overlay(ctx, path, valid=false){
     var x = path[0].x;
     var y = path[0].y;
 
-    // If this is the first square, lets give it a big circle
-    if (path.length == 1) {
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(
-            (x * spacing) + (x * tile_size) + game_border + (tile_size / 2),
-            (y * spacing) + (y * tile_size) + game_border + (tile_size / 2),
-            tile_size / 2, 0, 2 * Math.PI);
-        ctx.fill();
-    } else {
-        ctx.beginPath();
-        ctx.moveTo(
+    ctx.beginPath();
+    ctx.moveTo(
+        (x * spacing) + (x * tile_size) + game_border + (tile_size / 2),
+        (y * spacing) + (y * tile_size) + game_border + (tile_size / 2),
+    );
+
+    for (var i=1; i<path.length; i++){
+        x = path[i].x;
+        y = path[i].y;
+        ctx.lineTo(
             (x * spacing) + (x * tile_size) + game_border + (tile_size / 2),
             (y * spacing) + (y * tile_size) + game_border + (tile_size / 2),
         );
-
-        for (var i=1; i<path.length; i++){
-            x = path[i].x;
-            y = path[i].y;
-            ctx.lineTo(
-                (x * spacing) + (x * tile_size) + game_border + (tile_size / 2),
-                (y * spacing) + (y * tile_size) + game_border + (tile_size / 2),
-            );
-        }
-
-        ctx.lineWidth = 85;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.strokeStyle = color;
-        ctx.stroke();
     }
+
+    if (mouse_position)
+        ctx.lineTo(mouse_position.x, mouse_position.y);
+
+    ctx.lineWidth = 85;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = color;
+    ctx.stroke();
 
     return;
 }
