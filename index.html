@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Wordy</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=768px, user-scalable=no" /> <!-- disabled in iOS 10+ -->    <style>
+      body {
+          background:#fff;
+          color:#000;
+          font-family:sans-serif;
+      }
+
+      div#content {
+          margin: 0px auto;
+      }
+
+      h1 {
+          margin:10px;
+          font-size:3em;
+      }
+
+      h1, h2 {
+          color:#00177A;
+      }
+    </style>
+  </head>
+
+  <body onload="first_load()" onresize="">
+    <div id="content" style="margin: 0 auto; width:768px;">
+    <h1>Wordy</h1>
+
+    <div style="position: relative;width: 768px;height: 768px;">
+      <canvas id="canvas"  width="768px" height="768px" style="touch-action: manipulation;position: absolute;top: 0;left: 0;"></canvas>
+      <canvas id="overlay" width="768px" height="768px" style="touch-action: manipulation;position: absolute;top: 0;left: 0;" ></canvas>
+    </div>
+
+<!--
+Size:
+<select id="size">
+  <option>2x2</option>
+  <option>3x3</option>
+  <option>4x4</option>
+  <option selected="selected">5x5</option>
+  <option>6x6</option>
+  <option>7x7</option>
+  <option>8x8</option>
+</select>
+-->
+
+<button onclick="setup_new_game()">Shuffle</button>
+<button onclick="start()">Start Game</button>
+<a id="game_link" href="#">Link to this game</a>
+
+Time Remaining <span id="timer">--:--</span>
+
+    <div id="found">
+      <h2>Words Found</h2>
+      <div id="found_words_div" style="text-align:center; column-count:4;">
+      </div>
+    </div>
+
+    <div id="all_words" style="display:none;">
+      <h2>All Words</h2>
+      <div id="all_words_div" style="text-align:center; column-count:4;">
+      </div>
+    </div>
+
+    </div>
+
+    <script>
+
+const blocks = [
+    ['K', 'I', 'Qu','W', 'L', 'U'],
+    ['L', 'D', 'N', 'O', 'H', 'H'],
+    ['Y', 'R', 'I', 'F', 'A', 'S'],
+    ['M', 'O', 'T', 'T', 'E', 'T'],
+    ['T', 'I', 'T', 'I', 'E', 'I'],
+    ['D', 'L', 'O', 'H', 'R', 'H'],
+    ['M', 'E', 'E', 'E', 'E', 'A'],
+    ['T', 'O', 'O', 'O', 'T', 'U'],
+    ['W', 'R', 'O', 'G', 'R', 'V'],
+    ['T', 'N', 'H', 'D', 'D', 'O'],
+    ['T', 'C', 'L', 'I', 'E', 'I'],
+    ['G', 'E', 'M', 'E', 'A', 'U'],
+    ['N', 'O', 'T', 'W', 'O', 'U'],
+    ['M', 'E', 'G', 'A', 'N', 'N'],
+    ['L', 'I', 'E', 'T', 'C', 'P'],
+    ['F', 'A', 'S', 'A', 'I', 'R'],
+    ['Z', 'K', 'B', 'J', 'X', 'Qu'],
+    ['A', 'E', 'E', 'A', 'E', 'E'],
+    ['T', 'N', 'E', 'S', 'C', 'C'],
+    ['S', 'S', 'E', 'N', 'S', 'U'],
+    ['P', 'S', 'C', 'T', 'I', 'E'],
+    ['F', 'A', 'R', 'S', 'A', 'A'],
+    ['D', 'N', 'E', 'A', 'N', 'N'],
+    ['L', 'R', 'D', 'N', 'O', 'H'],
+    ['Th','An','In','He','Qu','Er']
+];
+
+var dictionary  = [];
+var game_size   = 5;
+var min_word_length = 5;
+var duration    = 3 * 60;
+
+// Game State
+var timer_start = null;
+var timer       = null;
+var this_game   = null;
+var this_dict   = null;
+var words_found = null;
+var game_active = false;
+
+// User input variables
+var mouse_down      = false;
+var mouse_selection = [];
+
+// Canvas
+var canvas  = document.getElementById("canvas");
+var width   = canvas.width;
+var height  = canvas.height;
+var ctx     = canvas.getContext("2d");
+
+//overlay
+var overlay = document.getElementById('overlay');
+var overlay_ctx = overlay.getContext("2d");
+
+// Figure out tile sizes
+var tile_size   = 120;
+var game_border = 30;
+var num_tiles   = game_size;
+var spacing     = (canvas.width - (2 * game_border) - (tile_size * num_tiles))/(num_tiles - 1);
+
+// Touch listeners
+overlay.addEventListener('touchstart', input_down_touch, false);
+overlay.addEventListener('touchmove',  input_move_touch, false);
+overlay.addEventListener('touchend',   input_up, false);
+
+function getTouchPosition(overlay, event){
+    if (!e)
+        var e = event;
+
+    var x = null;
+    var y = null;
+
+    if(e.touches) {
+        if (e.touches.length == 1) { // Only deal with one finger
+            var touch = e.touches[0]; // Get the information for finger #1
+            x = touch.pageX-touch.target.offsetLeft;
+            y = touch.pageY-touch.target.offsetTop;
+        }
+    }
+
+    return {x:x, y:y};
+}
+
+function input_down_touch(e){
+    mouse_down = true;
+    mouse_track_word(getCursorPosition(overlay, e));
+    e.preventDefault();
+}
+
+function input_move_touch(e){
+    if (mouse_down == true)
+	mouse_track_word(getTouchPosition(overlay, e));
+    e.preventDefault();
+}
+
+// Mouse listeners
+overlay.addEventListener('mousedown',  input_down_mouse);
+overlay.addEventListener('mousemove',  input_move_mouse);
+overlay.addEventListener('mouseup',    input_up);
+
+function getCursorPosition(overlay, event){
+    // Determine where clicked
+    const rect = overlay.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    return {x:x, y:y};
+}
+
+function input_down_mouse(e){
+    mouse_down = true;
+    mouse_track_word(getCursorPosition(overlay, e), true);
+}
+
+function input_move_mouse(e){
+    if (mouse_down == true)
+	mouse_track_word(getCursorPosition(overlay, e));
+}
+
+function input_up(e){
+    mouse_down = false;
+
+    // Add word to list
+    var word = word_from_moves(mouse_selection);
+
+    if (this_dict.includes(word) == true && words_found.includes(word) == false){
+        words_found.push(word);
+        document.getElementById('found_words_div').appendChild(create_word_element(word, mouse_selection));
+    }
+
+    // Clear selection
+    mouse_selection = [];
+    draw_word_overlay(overlay_ctx, []);
+}
+
+function mouse_track_word(coords, first=false){
+    if (game_active == false) return;
+
+    var mouse_x = coords.x - game_border;
+    var mouse_y = coords.y - game_border;
+
+    var gridsize = tile_size + spacing;
+    if (first == true){
+        // Give first selection a bigger target
+        var x = Math.floor(mouse_x / (gridsize));
+        var y = Math.floor(mouse_y / (gridsize));
+    } else {
+        // Divide each tile into 9 and only register positions for the middle tile - WIP
+        var x = Math.floor(mouse_x / (gridsize / 3)) - 1;
+        var y = Math.floor(mouse_y / (gridsize / 3)) - 1;
+        if (x % 3 != 0)
+            x = -1;
+        else
+            x /=3;
+        if (y % 3 != 0)
+            y = -1;
+        else
+            y/= 3;
+    }
+
+    // Skip invalid positions
+    if (x < 0 || y < 0 || x >= game_size || y >= game_size)
+        return;
+
+    // If square not in selection
+    if (!contains(mouse_selection, {x:x,y:y})) {
+        // Check if within 1 of last square
+        if (mouse_selection.length > 0){
+            if (Math.abs(mouse_selection[mouse_selection.length-1].x - x) > 1 ||
+                Math.abs(mouse_selection[mouse_selection.length-1].y - y) > 1){
+                return;
+            }
+        }
+
+        // Valid move, append and redraw
+        mouse_selection.push({x:x, y:y});
+        //canvas_draw_game(this_game);
+        real_word = this_dict.includes(word_from_moves(mouse_selection));
+        draw_word_overlay(overlay_ctx, mouse_selection, real_word);
+    } else {
+        // If in selection, roll back path to that letter
+        var index = mouse_selection.findIndex(e => e.x == x && e.y == y);
+        if (index < mouse_selection.length-1)
+            mouse_selection = mouse_selection.slice(0, index);
+    }
+}
+
+// Canvas Functions
+function canvas_draw_rounded_rectangle(x, y, width, height, radius){
+    ctx.beginPath();
+    ctx.moveTo(x, y + radius);
+    ctx.arc(x + radius, y + radius, radius, Math.PI, -1/2 * Math.PI); // Top left
+
+    ctx.lineTo(x + width - radius, y);
+    ctx.arc(x + width - radius, y + radius, radius, -1/2 * Math.PI, 0); // Top Right
+
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.arc(x + width - radius, y + height - radius, radius, 0, 1/2 * Math.PI); // Bottom Right
+
+    ctx.lineTo(x + radius, y + height);
+    ctx.arc(x + radius, y + height - radius, radius, 1/2 * Math.PI, Math.PI); // Bottom Left
+    ctx.lineTo(x, y + radius);
+}
+
+function canvas_draw_background(){
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = "#003294";
+    ctx.fillStyle = "#003FBD";
+    canvas_draw_rounded_rectangle(5, 5, width-10, height-10, 20);
+    ctx.fill();
+    ctx.stroke();
+}
+
+function canvas_draw_tile(x, y, width, text){
+    var size = width/2;
+
+    // Draw tile well
+    border = width * .08;
+    ctx.fillStyle = "#003294";
+    ctx.fillRect(x-border, y-border, width + (2 * border), width + (2 * border));
+
+    // Draw bevels
+    ctx.fillStyle = "#F9F9F9";
+    ctx.fillRect(x, y, size, size);
+    ctx.fillStyle = "#9F9F9F";
+    ctx.fillRect(x+size, y+size, size, size);
+    ctx.fillStyle = "#CbCeD5";
+    ctx.fillRect(x+size, y, size, size);
+    ctx.fillStyle = "#C8C9C9";
+    ctx.fillRect(x, y+size, size, size);
+
+    // Draw center
+    ctx.fillStyle = "#EBEBEB";
+    ctx.beginPath();
+    ctx.arc(x+size, y+size, size, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // Draw Letter
+    ctx.font = "bold "+(1.5*size)+"px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#00177A";
+    ctx.fillText(text, x+size, y+1.5*size);
+}
+
+function canvas_draw_cover(){
+    canvas_draw_background();
+
+    ctx.font = "bold 200px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#003294";
+    ctx.fillText("Wordy", width/2-5, 75+height/2-5);
+    ctx.fillStyle = "#002585";
+    ctx.fillText("Wordy", width/2+5, 75+height/2+5);
+    ctx.fillStyle = "#00177A";
+    ctx.fillText("Wordy", width/2, 75+height/2);
+}
+
+function draw_word_overlay(ctx, path, valid=false){
+    ctx.clearRect(0, 0, width, height);
+    if (path.length == 0) return;
+
+    var color = "rgba(200, 128, 0, 0.6)";
+    if (valid == true)
+        var color = "rgba(50, 200, 0, 0.6)";
+
+    var x = path[0].x;
+    var y = path[0].y;
+
+    // If this is the first square, lets give it a big circle
+    if (path.length == 1) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(
+            (x * spacing) + (x * tile_size) + game_border + (tile_size / 2),
+            (y * spacing) + (y * tile_size) + game_border + (tile_size / 2),
+            tile_size / 2, 0, 2 * Math.PI);
+        ctx.fill();
+    } else {
+        ctx.beginPath();
+        ctx.moveTo(
+            (x * spacing) + (x * tile_size) + game_border + (tile_size / 2),
+            (y * spacing) + (y * tile_size) + game_border + (tile_size / 2),
+        );
+
+        for (var i=1; i<path.length; i++){
+            x = path[i].x;
+            y = path[i].y;
+            ctx.lineTo(
+                (x * spacing) + (x * tile_size) + game_border + (tile_size / 2),
+                (y * spacing) + (y * tile_size) + game_border + (tile_size / 2),
+            );
+        }
+
+        ctx.lineWidth = 85;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = color;
+        ctx.stroke();
+    }
+
+    return;
+}
+
+function first_load(){
+    // Check for URL to see if there is existing game
+    var game_id = window.location.href.split('?')[1];
+    if (game_id)
+        var game_state = decode_game_link(game_id);
+
+    setup_new_game(game_state);
+}
+
+function canvas_draw_game(game){
+    // Clear out any old game
+    canvas_draw_background();
+
+    for (var x=0; x<num_tiles; x++){
+        for (var y=0; y<num_tiles; y++){
+            canvas_draw_tile(
+                (x * spacing) + (x * tile_size) + game_border,
+                (y * spacing) + (y * tile_size) + game_border,
+                tile_size,
+                game[y][x]
+            )
+        }
+    }
+}
+
+function create_game_link(game){
+    var c2 = btoa(game.map(function(a) { return a.join(',') } ).join(' '));
+    console.log("Encoded", c2);
+    document.getElementById("game_link").href = window.location.href.split('?')[0] + "?" + c2;
+}
+
+function decode_game_link(c2){
+    var game = atob(c2).split(" ").map(function(r) { return r.split(',') });
+    return game;
+}
+
+function setup_new_game(state=null){
+    // Load dictionary - First time only, wait for dict to load
+    if (dictionary.length == 0){
+        load_dict(state);
+        return
+    }
+
+    // Clear timer
+    clearTimeout(timer);
+    document.getElementById('timer').innerHTML = "--:--";
+
+    // Clear old game
+    canvas_draw_cover();
+    words_found = [];
+
+    if (state == null) {
+        // Shuffle blocks
+        var this_shuffle = blocks.slice(0);
+
+        this_shuffle = shuffle(this_shuffle);
+
+        this_game = [];
+        var this_row = [];
+        for (var i=0; i<this_shuffle.length; i++){
+            this_row.push(this_shuffle[i][Math.floor(Math.random()*6)]);
+            if (this_row.length == game_size){
+                this_game.push(this_row);
+                this_row = [];
+            }
+        }
+    }
+    else {
+        this_game = state.slice(0);
+    }
+
+    console.log(this_game);
+
+    // Create custom dictionary for this shuffle
+    this_dict = [];
+    var letters = "";
+    for (var i=0; i<this_game.length; i++)
+        letters += this_game[i].join("");
+    letters = set(letters.toUpperCase()).join("");
+    console.log("Letters:", letters);
+
+
+    var pattern = new RegExp("^["+letters+"]{5,}$", "i");
+    for (var i=0; i<dictionary.length; i++){
+        if (dictionary[i].match(pattern)) {
+            this_dict.push(dictionary[i]);
+        }
+    }
+    console.log("Narrowed down to ", this_dict.length, "words");
+
+    // Update URL and create link
+    create_game_link(this_game);
+}
+
+function start(){
+    game_active = true;
+
+    // Draw blocks to screen
+    canvas_draw_game(this_game);
+
+    // Start Timer
+    start_timer();
+
+    // Hide words
+    document.getElementById('found_words_div').innerHTML = "";
+    document.getElementById("all_words").setAttributeNS(null, 'style', "display:none;");
+}
+
+function shuffle(array) {
+    let counter = array.length;
+
+    // While there are elements in the array
+    while (counter > 0) {
+        // Pick a random index
+        let index = Math.floor(Math.random() * counter);
+
+        // Decrease counter by 1
+        counter--;
+
+        // And swap the last element with it
+        let temp = array[counter];
+        array[counter] = array[index];
+        array[index] = temp;
+    }
+
+    return array;
+}
+
+function nextLoop() {
+    var refresh = 250;
+    var time_left = duration - (new Date().getTime() - timer_start) / 1000;
+
+    // keep track of time, update colors, etc.
+    var minutes = Math.floor(time_left/60);
+    var seconds = Math.floor(time_left) % 60;
+    if (seconds < 10) { seconds = "0" + seconds; }
+    if (minutes < 10) { minutes = "0" + minutes; }
+    time_left_string = minutes + ":" + seconds
+    timer = setTimeout(function() { nextLoop() }, refresh);
+
+    if (time_left < 1) {
+        time_left_string = "NONE";
+    }
+
+    if (time_left < 0) {
+        stop_timer();
+    }
+
+    document.getElementById('timer').innerHTML = time_left_string;
+
+}
+
+function start_timer() {
+    timer_start = new Date().getTime();
+    nextLoop();
+}
+
+function stop_timer() {
+    game_active = false;
+
+    // Stop timer
+    clearTimeout(timer);
+
+    // Find and show words
+    find_solutions(this_game, this_dict);
+}
+
+function load_dict(state) {
+    // Load Binary File
+    var req = new XMLHttpRequest();
+    req.onload = function(e) {
+	var dict_input = req.response;
+	parse_dict(dict_input);
+        setup_new_game(state);
+    }
+    req.open("GET", 'words.txt');
+    req.responseType = "text";
+    req.send();
+}
+
+function parse_dict(text){
+    var words = text.split('\r');
+    for (var i=2; i<words.length; i++){
+        var word = words[i];
+        if (word.length > 2)
+            dictionary.push(word);
+    }
+    console.log(dictionary.length + " words loaded.");
+}
+
+function word_from_moves(moves){
+    var word = "";
+    for (var i=0; i<moves.length; i++){
+        word += this_game[moves[i].y][moves[i].x].toUpperCase();
+    }
+    return word
+}
+
+// Custom includes function because built in doesn't work for multidimensional arrays???
+function contains(a, coord){
+    return !!a.find(a => a.x == coord.x && a.y == coord.y);
+}
+
+// Cheap and dirty Set function
+function set(a){
+    var r = [];
+    for (var i=0; i<a.length; i++)
+        if (r.includes(a[i]) == false)
+            r.push(a[i]);
+    return r;
+}
+
+function create_trie(dict){
+    var trie = {};
+
+    for (var i=0; i<dict.length; i++){
+	var word = dict[i];
+	var path = trie;
+	for (var n=0; n<word.length; n++){
+	    var letter = word[n];
+	    if (!(letter in path)){
+                path[letter] = { '_': word.slice(0,n+1)};
+	    }
+	    path = path[letter];
+	    if (n == word.length -1){
+                path[''] = {word:word}
+	    }
+	}
+    }
+    console.log('Trie creation done');
+
+    return trie;
+}
+
+function find_solutions(puzzle, dictionary){
+    var trie = create_trie(dictionary);
+
+    // Main solving function
+    function solve(puzzle, trie){
+        var words = [];
+
+        for (var y in puzzle){
+            var row = puzzle[+y];
+            for (var x in row){
+                var letter = row[+x];
+                if (trie[letter])
+                    words = words.concat(extending(letter, trie[letter], [{x:+x, y:+y}]));
+            }
+        }
+        return words;
+    }
+
+    // Find words from path in dictionary
+    function extending(word, node, path){
+        var words = [];
+        if (node['']){
+            words.push({word:word, path:path})
+        }
+
+        for (let neighbor of neighbors(path[path.length-1])) {
+            if (!contains(path, neighbor)){
+                let letter =  puzzle[neighbor.y][neighbor.x].toUpperCase();
+                if (node[letter]){
+                    var x=extending(word+letter, node[letter], path.concat(neighbor))
+                    words = words.concat(x);
+                }
+            }
+        }
+
+        return words;
+    }
+
+    // Find wordy tile neighbors
+    function neighbors(coord){
+        var neighbors = [];
+        for (var x=Math.max(coord.x-1, 0); x<=Math.min(coord.x+1, game_size-1); x++){
+            for (var y=Math.max(coord.y-1, 0); y<=Math.min(coord.y+1, game_size-1); y++){
+                if (x == coord.x && y == coord.y) continue;
+                neighbors.push({x:x, y:y});
+            }
+        }
+
+        return neighbors;
+    }
+
+    var answers = solve(puzzle, trie);
+
+    // Clear out DIV
+    var page_div = document.getElementById("all_words_div");
+    page_div.innerHTML = "";
+
+    // Add each answer to DIV
+    var words = [];
+    for (var a of answers){
+        if (words.includes(a.word)) continue;
+        words.push(a.word);
+        page_div.appendChild(create_word_element(a.word, a.path));
+    }
+
+    // Unhide DIV
+    document.getElementById("all_words").setAttributeNS(null, 'style', "width:768px; margin:0 auto;");
+}
+
+function create_word_element(word, path){
+    let span = document.createElement('span');
+    span.onclick = () => reveal_word(path);
+    span.appendChild(document.createTextNode(word));
+    span.appendChild(document.createElement('br'));
+    return span;
+}
+
+function reveal_word(path){
+    //canvas_draw_game(this_game);
+    draw_word_overlay(overlay_ctx, path);
+}
+
+    </script>
+  </body>
+</html>
