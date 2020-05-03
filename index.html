@@ -39,13 +39,22 @@ Size:
 <select id="size">
   <option value="4">Normal Wordy</option>
   <option value="5" selected="selected">Large Wordy</option>
-  <option value="6" selected>Super Large Wordy</option>
+  <option value="6">Super Large Wordy</option>
 </select>
 
-<button onclick="setup_new_game()">Shuffle</button>
+Minimum Word Length:
+<select id="minlength">
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5" selected="selected">5</option>
+  <option value="6">6</option>
+</select>
+<br>
+<button id="shuffle" onclick="setup_new_game()">Shuffle</button>
+<a id="game_link" href="#">Link to this game</a>
+
 <button id="start"   onclick="start_game()">Start Game</button>
 <button id="give_up" onclick="end_game()">Give Up</button>
-<a id="game_link" href="#">Link to this game</a>
 
 <span id="timer" style="float:right;">--:--</span>
 
@@ -232,7 +241,7 @@ function input_up(e){
     // Add word to list
     var word = word_from_moves(mouse_selection);
 
-    if (this_dict.includes(word) == true && words_found.includes(word) == false){
+    if (this_dict.includes(word) == true && words_found.includes(word) == false && mouse_selection.length >= min_word_length){
         words_found.push(word);
         document.getElementById('found_words_div').appendChild(create_word_element(word, mouse_selection));
 
@@ -283,7 +292,7 @@ function mouse_track_word(coords, first=false){
         }
     }
 
-    let real_word = this_dict.includes(word_from_moves(mouse_selection));
+    let real_word = this_dict.includes(word_from_moves(mouse_selection)) && mouse_selection.length >= min_word_length;
     let new_word = !words_found.includes(word_from_moves(mouse_selection));
     draw_word_overlay(overlay_ctx, mouse_selection, real_word, new_word, coords);
 }
@@ -523,7 +532,7 @@ function setup_new_game(state=null){
     console.log("Letters:", letters);
 
 
-    var pattern = new RegExp("^["+letters+"]{"+min_word_length+",}$", "i");
+    var pattern = new RegExp("^["+letters+"]{3,}$", "i");
     for (var i=0; i<dictionary.length; i++){
         if (dictionary[i].match(pattern)) {
             this_dict.push(dictionary[i].toUpperCase());
@@ -541,6 +550,9 @@ function start_game(){
     document.getElementById("start").disabled = true;
     this_score = 0;
     words_found = [];
+
+    min_word_length = document.getElementById('minlength').value;
+    console.log(min_word_length);
 
     // Draw dice to screen
     canvas_draw_game(this_game);
