@@ -37,8 +37,9 @@
 
 Size:
 <select id="size">
-  <option value="4">Normal</option>
-  <option value="5" selected="selected">Large</option>
+  <option value="4">Normal Wordy</option>
+  <option value="5" selected="selected">Large Wordy</option>
+  <option value="6" selected>Super Large Wordy</option>
 </select>
 
 <button onclick="setup_new_game()">Shuffle</button>
@@ -55,7 +56,7 @@ Size:
     </div>
 
     <div id="all_words" style="display:none;">
-      <h2>All Words</h2>
+      <h2>Additional Words</h2>
       <div id="all_words_div" style="text-align:center; column-count:4;">
       </div>
     </div>
@@ -64,33 +65,71 @@ Size:
 
     <script>
 
-const blocks = [
-    ['K', 'I', 'Qu','W', 'L', 'U'],
-    ['L', 'D', 'N', 'O', 'H', 'H'],
-    ['Y', 'R', 'I', 'F', 'A', 'S'],
-    ['M', 'O', 'T', 'T', 'E', 'T'],
-    ['T', 'I', 'T', 'I', 'E', 'I'],
-    ['D', 'L', 'O', 'H', 'R', 'H'],
-    ['M', 'E', 'E', 'E', 'E', 'A'],
-    ['T', 'O', 'O', 'O', 'T', 'U'],
-    ['W', 'R', 'O', 'G', 'R', 'V'],
-    ['T', 'N', 'H', 'D', 'D', 'O'],
-    ['T', 'C', 'L', 'I', 'E', 'I'],
-    ['G', 'E', 'M', 'E', 'A', 'U'],
-    ['N', 'O', 'T', 'W', 'O', 'U'],
-    ['M', 'E', 'G', 'A', 'N', 'N'],
-    ['L', 'I', 'E', 'T', 'C', 'P'],
-    ['F', 'A', 'S', 'A', 'I', 'R'],
-    ['Z', 'K', 'B', 'J', 'X', 'Qu'],
-    ['A', 'E', 'E', 'A', 'E', 'E'],
-    ['T', 'N', 'E', 'S', 'C', 'C'],
-    ['S', 'S', 'E', 'N', 'S', 'U'],
-    ['P', 'S', 'C', 'T', 'I', 'E'],
-    ['F', 'A', 'R', 'S', 'A', 'A'],
-    ['D', 'N', 'E', 'A', 'N', 'N'],
-    ['L', 'R', 'D', 'N', 'O', 'H'],
-    ['Th','An','In','He','Qu','Er']
+const dice = [
+    {letters : [ 'A', 'A', 'A', 'F', 'R', 'S'], sizes : [5, 6]},
+    {letters : [ 'A', 'A', 'C', 'I', 'O', 'T'], sizes : [4]},
+    {letters : [ 'A', 'A', 'E', 'E', 'E', 'E'], sizes : [5, 6]},
+    {letters : [ 'A', 'A', 'E', 'E', 'O', 'O'], sizes : [6]},
+    {letters : [ 'A', 'A', 'F', 'I', 'R', 'S'], sizes : [5, 6]},
+    {letters : [ 'A', 'B', 'D', 'E', 'I', 'O'], sizes : [6]},
+    {letters : [ 'A', 'B', 'I', 'L', 'T', 'Y'], sizes : [4]},
+    {letters : [ 'A', 'B', 'J', 'M', 'O','Qu'], sizes : [4]},
+    {letters : [ 'A', 'C', 'E', 'D', 'M', 'P'], sizes : [4]},
+    {letters : [ 'A', 'C', 'E', 'L', 'R', 'S'], sizes : [4]},
+    {letters : [ 'A', 'D', 'E', 'N', 'N', 'N'], sizes : [5, 6]},
+    {letters : [ 'A', 'D', 'E', 'N', 'V', 'Z'], sizes : [4]},
+    {letters : [ 'A', 'E', 'E', 'E', 'E', 'M'], sizes : [5, 6]},
+    {letters : [ 'A', 'E', 'E', 'G', 'M', 'U'], sizes : [5, 6]},
+    {letters : [ 'A', 'E', 'G', 'M', 'N', 'N'], sizes : [5, 6]},
+    {letters : [ 'A', 'E', 'I', 'L', 'M', 'N'], sizes : [6]},
+    {letters : [ 'A', 'E', 'I', 'N', 'O', 'U'], sizes : [6]},
+    {letters : [ 'A', 'F', 'I', 'R', 'S', 'Y'], sizes : [5, 6]},
+    {letters : [ 'A', 'H', 'M', 'O', 'R', 'S'], sizes : [4]},
+    {letters : ['An','Er','He','In','Qu','Th'], sizes : [5, 6]},
+    {letters : [ 'B', 'B', 'J', 'K', 'X', 'Z'], sizes : [6]},
+    {letters : [ 'B', 'F', 'I', 'O', 'R', 'X'], sizes : [4]},
+    {letters : [ 'B', 'J', 'K','Qu', 'X', 'Z'], sizes : [5]},
+    {letters : [ 'C', 'C', 'E', 'N', 'S', 'T'], sizes : [6]},
+    {letters : [ 'C', 'C', 'N', 'S', 'T', 'W'], sizes : [5]},
+    {letters : [ 'C', 'D', 'D', 'L', 'N', 'N'], sizes : [6]},
+    {letters : [ 'C', 'E', 'I', 'I', 'L', 'T'], sizes : [5]},
+    {letters : [ 'C', 'E', 'I', 'I', 'T', 'T'], sizes : [6]},
+    {letters : [ 'C', 'E', 'I', 'L', 'P', 'T'], sizes : [5]},
+    {letters : [ 'C', 'E', 'I', 'P', 'S', 'T'], sizes : [5, 6]},
+    {letters : [ 'C', 'F', 'G', 'N', 'U', 'Y'], sizes : [6]},
+    {letters : [ 'D', 'D', 'H', 'N', 'O', 'T'], sizes : [6]},
+    {letters : [ 'D', 'D', 'L', 'N', 'O', 'R'], sizes : [5]},
+    {letters : [ 'D', 'E', 'N', 'O', 'S', 'W'], sizes : [4]},
+    {letters : [ 'D', 'H', 'H', 'L', 'O', 'R'], sizes : [5, 6]},
+    {letters : [ 'D', 'H', 'H', 'N', 'O', 'T'], sizes : [5]},
+    {letters : [ 'D', 'H', 'H', 'N', 'O', 'W'], sizes : [6]},
+    {letters : [ 'D', 'H', 'L', 'N', 'O', 'R'], sizes : [5, 6]},
+    {letters : [ 'D', 'K', 'N', 'O', 'T', 'U'], sizes : [4]},
+    {letters : [ 'E', 'E', 'F', 'H', 'I', 'Y'], sizes : [4]},
+    {letters : [ 'E', 'G', 'I', 'N', 'T', 'V'], sizes : [4]},
+    {letters : [ 'E', 'G', 'K', 'L', 'U', 'Y'], sizes : [4]},
+    {letters : [ 'E', 'H', 'I', 'L', 'R', 'S'], sizes : [6]},
+    {letters : [ 'E', 'H', 'I', 'N', 'P', 'S'], sizes : [4]},
+    {letters : [ 'E', 'I', 'I', 'I', 'T', 'T'], sizes : [5]},
+    {letters : [ 'E', 'I', 'I', 'L', 'S', 'T'], sizes : [6]},
+    {letters : [ 'E', 'I', 'L', 'P', 'S', 'T'], sizes : [6]},
+    {letters : [ 'E', 'I', 'O', '#', '#', '#'], sizes : [6]},
+    {letters : [ 'E', 'L', 'P', 'S', 'T', 'U'], sizes : [4]},
+    {letters : [ 'E', 'M', 'O', 'T', 'T', 'T'], sizes : [5]},
+    {letters : [ 'E', 'M', 'T', 'T', 'T', 'O'], sizes : [6]},
+    {letters : [ 'E', 'N', 'S', 'S', 'S', 'U'], sizes : [5, 6]},
+    {letters : [ 'F', 'I', 'P', 'R', 'S', 'Y'], sizes : [5]},
+    {letters : [ 'G', 'I', 'L', 'R', 'U', 'W'], sizes : [4]},
+    {letters : [ 'G', 'O', 'R', 'R', 'V', 'W'], sizes : [5, 6]},
+    {letters : [ 'H', 'I', 'P', 'R', 'R', 'Y'], sizes : [5]},
+    {letters : [ 'H', 'I', 'R', 'S', 'T', 'V'], sizes : [6]},
+    {letters : [ 'H', 'O', 'P', 'R', 'S', 'T'], sizes : [6]},
+    {letters : [ 'I', 'P', 'R', 'S', 'Y', 'Y'], sizes : [6]},
+    {letters : [ 'J', 'K','Qu', 'W', 'X', 'Z'], sizes : [6]},
+    {letters : [ 'N', 'O', 'O', 'T', 'U', 'W'], sizes : [5, 6]},
+    {letters : [ 'O', 'O', 'O', 'T', 'T', 'U'], sizes : [5, 6]}
 ];
+
 
 var dictionary  = [];
 var game_size   = 5;
@@ -142,7 +181,7 @@ function getTouchPosition(overlay, event){
         if (e.touches.length == 1) { // Only deal with one finger
             var touch = e.touches[0]; // Get the information for finger #1
             x = touch.pageX-touch.target.offsetLeft;
-            y = touch.pageY-touch.target.offsetTop;
+            y = touch.pageY-touch.target.offsetTop - (tile_size / 2); // Adjust y because apple messes things up!
         }
     }
 
@@ -229,7 +268,8 @@ function mouse_track_word(coords, first=false){
     var cy = y * gridsize + tile_size/2 + game_border;
 
     if (distance(cx, cy, coords.x, coords.y) <= (tile_size / 2) && // Close enough to center
-        (x >= 0 && y >= 0 && x < game_size && y < game_size)){     // Not an invalid position
+        (x >= 0 && y >= 0 && x < game_size && y < game_size) &&    // Not an invalid position
+        !this_game[y][x].includes("#") ){                          // die is not a blocker
         if (contains(mouse_selection, {x:x,y:y})){                 // A tile we've visited?
             var index = mouse_selection.findIndex(e => e.x == x && e.y == y);
             if (index < mouse_selection.length-1)
@@ -302,6 +342,10 @@ function canvas_draw_tile(x, y, width, text){
     ctx.beginPath();
     ctx.arc(x+size, y+size, size, 0, 2 * Math.PI);
     ctx.fill();
+
+    // Modify blank text
+    if (text == "#")
+        text = '\u{25A0}';
 
     // Draw Letter
     ctx.font = "bold "+(1.5*size)+"px Arial";
@@ -440,18 +484,24 @@ function setup_new_game(state=null){
         tile_size = 120;
         spacing   = (canvas.width - (2 * game_border) - (tile_size * num_tiles))/(num_tiles - 1);
         min_word_length = 5;
+    } else if (size == 6) {
+        game_size = 6;
+        num_tiles = 6;
+        tile_size = 100;
+        spacing   = (canvas.width - (2 * game_border) - (tile_size * num_tiles))/(num_tiles - 1);
+        min_word_length = 5;
     }
 
     if (state == null) {
-        // Shuffle blocks
-        var this_shuffle = blocks.slice(0);
+        // Shuffle dice
+        var this_shuffle = dice.slice(0);
 
         this_shuffle = shuffle(this_shuffle);
-
         this_game = [];
         var this_row = [];
-        for (var i=0; i<game_size * game_size; i++){
-            this_row.push(this_shuffle[i][Math.floor(Math.random()*6)]);
+        for (var i=0; i<this_shuffle.length; i++){
+            if (!this_shuffle[i].sizes.includes(game_size)) continue;
+            this_row.push(this_shuffle[i].letters[Math.floor(Math.random()*6)]);
             if (this_row.length == game_size){
                 this_game.push(this_row);
                 this_row = [];
@@ -492,7 +542,7 @@ function start_game(){
     this_score = 0;
     words_found = [];
 
-    // Draw blocks to screen
+    // Draw dice to screen
     canvas_draw_game(this_game);
 
     // Start Timer
