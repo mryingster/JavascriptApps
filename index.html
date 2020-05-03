@@ -31,31 +31,25 @@
     <h1>Wordy</h1>
 
     <div style="position: relative;width: 768px;height: 768px;">
-      <canvas id="canvas"  width="768px" height="768px" style="touch-action: manipulation;position: absolute;top: 0;left: 0;"></canvas>
-      <canvas id="overlay" width="768px" height="768px" style="touch-action: manipulation;position: absolute;top: 0;left: 0;" ></canvas>
+      <canvas id="canvas"  width="768px" height="768px" style="touch-action:manipulation; position:absolute; top:0; left:0;"></canvas>
+      <canvas id="overlay" width="768px" height="768px" style="touch-action:manipulation; position:absolute; top:0; left:0;" ></canvas>
     </div>
 
-<!--
 Size:
 <select id="size">
-  <option>2x2</option>
-  <option>3x3</option>
-  <option>4x4</option>
-  <option selected="selected">5x5</option>
-  <option>6x6</option>
-  <option>7x7</option>
-  <option>8x8</option>
+  <option value="4">Normal</option>
+  <option value="5" selected="selected">Large</option>
 </select>
--->
 
 <button onclick="setup_new_game()">Shuffle</button>
-<button onclick="start()">Start Game</button>
+<button id="start"   onclick="start_game()">Start Game</button>
+<button id="give_up" onclick="end_game()">Give Up</button>
 <a id="game_link" href="#">Link to this game</a>
 
-Time Remaining <span id="timer">--:--</span>
+<span id="timer" style="float:right;">--:--</span>
 
     <div id="found">
-      <h2>Words Found</h2>
+      <h2>Words Found <span id="score"></span></h2>
       <div id="found_words_div" style="text-align:center; column-count:4;">
       </div>
     </div>
@@ -108,6 +102,7 @@ var timer_start = null;
 var timer       = null;
 var this_game   = null;
 var this_dict   = null;
+var this_score  = 0;
 var words_found = null;
 var game_active = false;
 
@@ -155,6 +150,7 @@ function getTouchPosition(overlay, event){
 }
 
 function input_down_touch(e){
+    if (game_active == false) return;
     mouse_down = true;
     mouse_track_word(getCursorPosition(overlay, e));
     e.preventDefault();
@@ -181,6 +177,7 @@ function getCursorPosition(overlay, event){
 }
 
 function input_down_mouse(e){
+    if (game_active == false) return;
     mouse_down = true;
     mouse_track_word(getCursorPosition(overlay, e), true);
 }
@@ -199,6 +196,11 @@ function input_up(e){
     if (this_dict.includes(word) == true && words_found.includes(word) == false){
         words_found.push(word);
         document.getElementById('found_words_div').appendChild(create_word_element(word, mouse_selection));
+
+        // Update score
+        var word_score = [1,2,3,5,11][Math.min(word.length - min_word_length, 4)]
+        this_score += word_score;
+        document.getElementById("score").innerHTML = "(Score: " + this_score + ")";
     }
 
     // Clear selection
@@ -242,10 +244,15 @@ function mouse_track_word(coords, first=false){
     }
 
     let real_word = this_dict.includes(word_from_moves(mouse_selection));
-    draw_word_overlay(overlay_ctx, mouse_selection, real_word, coords);
+    let new_word = !words_found.includes(word_from_moves(mouse_selection));
+    draw_word_overlay(overlay_ctx, mouse_selection, real_word, new_word, coords);
 }
 
 // Canvas Functions
+function clear_canvas(canvas, ctx){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
 function canvas_draw_rounded_rectangle(x, y, width, height, radius){
     ctx.beginPath();
     ctx.moveTo(x, y + radius);
@@ -263,6 +270,7 @@ function canvas_draw_rounded_rectangle(x, y, width, height, radius){
 }
 
 function canvas_draw_background(){
+    clear_canvas(canvas, ctx);
     ctx.lineWidth = 5;
     ctx.strokeStyle = "#003294";
     ctx.fillStyle = "#003FBD";
@@ -315,13 +323,14 @@ function canvas_draw_cover(){
     ctx.fillText("Wordy", width/2, 75+height/2);
 }
 
-function draw_word_overlay(ctx, path, valid=false, mouse_position=null){
-    ctx.clearRect(0, 0, width, height);
+function draw_word_overlay(ctx, path, valid=false, new_word=false, mouse_position=null){
+    clear_canvas(overlay, ctx);
     if (path.length == 0) return;
 
     var color = "rgba(200, 128, 0, 0.6)";
-    if (valid == true)
-        var color = "rgba(50, 200, 0, 0.6)";
+    if (valid)
+        if (new_word)
+            var color = "rgba(50, 200, 0, 0.6)";
 
     var x = path[0].x;
     var y = path[0].y;
@@ -401,8 +410,37 @@ function setup_new_game(state=null){
     document.getElementById('timer').innerHTML = "--:--";
 
     // Clear old game
+    clear_canvas(overlay, overlay_ctx);
     canvas_draw_cover();
+    this_score = 0;
+    document.getElementById("score").innerHTML = "";
+    document.getElementById("all_words").setAttributeNS(null, 'style', "display:none;");
     words_found = [];
+
+    document.getElementById("give_up").disabled = true;
+    document.getElementById("start").disabled = false;
+
+    // Determine Size
+    var size_selector = document.getElementById("size");
+    var size = +size_selector.options[size_selector.selectedIndex].value;
+
+    if (state != null){
+        size = state.length;
+    }
+
+    if (size == 4) {
+        game_size = 4;
+        num_tiles = 4;
+        tile_size = 150;
+        spacing   = (canvas.width - (2 * game_border) - (tile_size * num_tiles))/(num_tiles - 1);
+        min_word_length = 3;
+    } else if (size == 5) {
+        game_size = 5;
+        num_tiles = 5;
+        tile_size = 120;
+        spacing   = (canvas.width - (2 * game_border) - (tile_size * num_tiles))/(num_tiles - 1);
+        min_word_length = 5;
+    }
 
     if (state == null) {
         // Shuffle blocks
@@ -412,7 +450,7 @@ function setup_new_game(state=null){
 
         this_game = [];
         var this_row = [];
-        for (var i=0; i<this_shuffle.length; i++){
+        for (var i=0; i<game_size * game_size; i++){
             this_row.push(this_shuffle[i][Math.floor(Math.random()*6)]);
             if (this_row.length == game_size){
                 this_game.push(this_row);
@@ -435,10 +473,10 @@ function setup_new_game(state=null){
     console.log("Letters:", letters);
 
 
-    var pattern = new RegExp("^["+letters+"]{5,}$", "i");
+    var pattern = new RegExp("^["+letters+"]{"+min_word_length+",}$", "i");
     for (var i=0; i<dictionary.length; i++){
         if (dictionary[i].match(pattern)) {
-            this_dict.push(dictionary[i]);
+            this_dict.push(dictionary[i].toUpperCase());
         }
     }
     console.log("Narrowed down to ", this_dict.length, "words");
@@ -447,8 +485,12 @@ function setup_new_game(state=null){
     create_game_link(this_game);
 }
 
-function start(){
+function start_game(){
     game_active = true;
+    document.getElementById("give_up").disabled = false;
+    document.getElementById("start").disabled = true;
+    this_score = 0;
+    words_found = [];
 
     // Draw blocks to screen
     canvas_draw_game(this_game);
@@ -459,6 +501,22 @@ function start(){
     // Hide words
     document.getElementById('found_words_div').innerHTML = "";
     document.getElementById("all_words").setAttributeNS(null, 'style', "display:none;");
+}
+
+function end_game(){
+    game_active = false;
+    document.getElementById("start").disabled = false;
+    document.getElementById("give_up").disabled = true;
+
+    // Clear time remaining text
+    document.getElementById("timer").innerHTML = "";
+
+    // Stop timer
+    stop_timer();
+
+    // Find and show words
+    find_solutions(this_game, this_dict);
+
 }
 
 function shuffle(array) {
@@ -498,7 +556,7 @@ function nextLoop() {
     }
 
     if (time_left < 0) {
-        stop_timer();
+        end_game();
     }
 
     document.getElementById('timer').innerHTML = time_left_string;
@@ -511,13 +569,7 @@ function start_timer() {
 }
 
 function stop_timer() {
-    game_active = false;
-
-    // Stop timer
     clearTimeout(timer);
-
-    // Find and show words
-    find_solutions(this_game, this_dict);
 }
 
 function load_dict(state) {
@@ -645,7 +697,7 @@ function find_solutions(puzzle, dictionary){
     page_div.innerHTML = "";
 
     // Add each answer to DIV
-    var words = [];
+    var words = words_found.slice(0);
     for (var a of answers){
         if (words.includes(a.word)) continue;
         words.push(a.word);
