@@ -23,6 +23,24 @@
       h1, h2 {
           color:#00177A;
       }
+
+      .button {
+      font-size: 1.5em;
+      padding: 17px;
+      }
+
+    .hidden {
+        display: none;
+    }
+
+    #all_words.visible, #found_words.visible {
+        width:768px;
+        margin:0 auto;
+    }
+
+    .duplicate {
+        text-decoration: line-through;
+    }
     </style>
   </head>
 
@@ -35,36 +53,43 @@
       <canvas id="overlay" width="768px" height="768px" style="touch-action:manipulation; position:absolute; top:0; left:0;" ></canvas>
     </div>
 
-Size:
-<select id="size">
-  <option value="4">Normal Wordy</option>
-  <option value="5" selected="selected">Large Wordy</option>
-  <option value="6">Super Large Wordy</option>
-</select>
+    <div style="height:70px;">
+      <div id="start_controls" style="float:right; text-align:right; margin:5px; border:0px solid red;">
+        <button class="button" id="shuffle" onclick="setup_new_game()">Shuffle</button>
+        <button class="button" id="start_stop"   onclick="start_stop()">Start</button>
+      </div>
 
-Minimum Word Length:
-<select id="minlength">
-  <option value="3">3</option>
-  <option value="4">4</option>
-  <option value="5" selected="selected">5</option>
-  <option value="6">6</option>
-</select>
-<br>
-<button id="shuffle" onclick="setup_new_game()">Shuffle</button>
-<a id="game_link" href="#">Link to this game</a>
+      <div id="settings" style="float:left; margin:5px; border:0px solid red;">
+        Size:
+        <select id="size">
+          <option value="4">Normal Wordy</option>
+          <option value="5" selected="selected">Large Wordy</option>
+          <option value="6">Super Large Wordy</option>
+        </select>
+        <br>
+        Minimum Word Length:
+        <select id="minlength">
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5" selected="selected">5</option>
+          <option value="6">6</option>
+        </select>
+        <br>
+        <a id="game_link" href="#">Link to this game</a>
+      </div>
 
-<button id="start"   onclick="start_game()">Start Game</button>
-<button id="give_up" onclick="end_game()">Give Up</button>
+      <div id="timer_div" style="text-align:center; border:0px solid red;">
+        <span id="timer" style="display:block; font-size:2em; padding:20px;">--:--</span><br>
+      </div>
+    </div>
 
-<span id="timer" style="float:right;">--:--</span>
-
-    <div id="found">
+    <div id="found_words" class="hidden">
       <h2>Words Found <span id="score"></span></h2>
       <div id="found_words_div" style="text-align:center; column-count:4;">
       </div>
     </div>
 
-    <div id="all_words" style="display:none;">
+    <div id="all_words" class="hidden">
       <h2>Additional Words</h2>
       <div id="all_words_div" style="text-align:center; column-count:4;">
       </div>
@@ -241,19 +266,57 @@ function input_up(e){
     // Add word to list
     var word = word_from_moves(mouse_selection);
 
-    if (this_dict.includes(word) == true && words_found.includes(word) == false && mouse_selection.length >= min_word_length){
-        words_found.push(word);
-        document.getElementById('found_words_div').appendChild(create_word_element(word, mouse_selection));
-
+    if (this_dict.includes(word) == true && words_found.includes(word) == false){
         // Update score
-        var word_score = [1,2,3,5,11][Math.min(word.length - min_word_length, 4)]
-        this_score += word_score;
-        document.getElementById("score").innerHTML = "(Score: " + this_score + ")";
+        var word_score = [1,2,3,5,11][Math.min(word.length - min_word_length, 4)];
+
+        // Save word to word found list
+        words_found.push({word:word, score:word_score, duplicate:false, path:mouse_selection});
+        render_found_words(document.getElementById('found_words_div'), words_found);
+
+        render_score(words_found);
     }
 
     // Clear selection
     mouse_selection = [];
     draw_word_overlay(overlay_ctx, []);
+}
+
+function render_score(words) {
+    this_score = 0;
+    for (let w of words) {
+        if (! w.duplicate) {
+            this_score += w.score;
+        }
+    }
+    document.getElementById("score").innerHTML = "(Score: " + this_score + ")";
+}
+
+function render_found_words(div, words) {
+    // Clear out DIV
+    div.innerHTML = "";
+
+    // Add each answer to DIV
+    for (var w of words){
+        div.appendChild(create_word_element(w));
+    }
+}
+
+function create_word_element(word){
+    let span = document.createElement('span');
+    if (word.duplicate)
+        span.className = 'duplicate';
+    if (word.duplicate === undefined)
+        span.onclick = () => reveal_word(word.path);
+    else
+        span.onclick = function() {
+            word.duplicate = ! word.duplicate;
+            render_found_words(document.getElementById('found_words_div'), words_found);
+            render_score(words_found);
+        };
+    span.appendChild(document.createTextNode(word.word + (word.score != undefined ? " ("+word.score+")": "")));
+    span.appendChild(document.createElement('br'));
+    return span;
 }
 
 function distance(x1, y1, x2, y2){
@@ -292,7 +355,7 @@ function mouse_track_word(coords, first=false){
         }
     }
 
-    let real_word = this_dict.includes(word_from_moves(mouse_selection)) && mouse_selection.length >= min_word_length;
+    let real_word = this_dict.includes(word_from_moves(mouse_selection));
     let new_word = !words_found.includes(word_from_moves(mouse_selection));
     draw_word_overlay(overlay_ctx, mouse_selection, real_word, new_word, coords);
 }
@@ -467,11 +530,9 @@ function setup_new_game(state=null){
     canvas_draw_cover();
     this_score = 0;
     document.getElementById("score").innerHTML = "";
-    document.getElementById("all_words").setAttributeNS(null, 'style', "display:none;");
-    words_found = [];
-
-    document.getElementById("give_up").disabled = true;
-    document.getElementById("start").disabled = false;
+    document.getElementById("all_words").className = "hidden";
+    game_active = false;
+    document.getElementById("start_stop").innerHTML = "Start";
 
     // Determine Size
     var size_selector = document.getElementById("size");
@@ -479,27 +540,23 @@ function setup_new_game(state=null){
 
     if (state != null){
         size = state.length;
+        size_selector.selectedIndex = size - 4; // List is 3 options long, starting with 4x4
     }
 
     if (size == 4) {
         game_size = 4;
         num_tiles = 4;
         tile_size = 150;
-        spacing   = (canvas.width - (2 * game_border) - (tile_size * num_tiles))/(num_tiles - 1);
-        min_word_length = 3;
     } else if (size == 5) {
         game_size = 5;
         num_tiles = 5;
         tile_size = 120;
-        spacing   = (canvas.width - (2 * game_border) - (tile_size * num_tiles))/(num_tiles - 1);
-        min_word_length = 5;
     } else if (size == 6) {
         game_size = 6;
         num_tiles = 6;
         tile_size = 100;
-        spacing   = (canvas.width - (2 * game_border) - (tile_size * num_tiles))/(num_tiles - 1);
-        min_word_length = 5;
     }
+    spacing   = (canvas.width - (2 * game_border) - (tile_size * num_tiles))/(num_tiles - 1);
 
     if (state == null) {
         // Shuffle dice
@@ -523,6 +580,26 @@ function setup_new_game(state=null){
 
     console.log(this_game);
 
+    // Update URL and create link
+    create_game_link(this_game);
+}
+
+function start_stop(){
+    if (game_active) {
+        end_game();
+    } else {
+        start_game();
+    }
+}
+
+function start_game(){
+    game_active = true;
+    document.getElementById("start_stop").innerHTML = "Give Up";
+    this_score = 0;
+    words_found = [];
+    words_found.includes = word => !!words_found.find(w => w.word == word);
+    min_word_length = document.getElementById('minlength').value;
+
     // Create custom dictionary for this shuffle
     this_dict = [];
     var letters = "";
@@ -532,27 +609,13 @@ function setup_new_game(state=null){
     console.log("Letters:", letters);
 
 
-    var pattern = new RegExp("^["+letters+"]{3,}$", "i");
+    var pattern = new RegExp("^["+letters+"]{"+min_word_length+",}$", "i");
     for (var i=0; i<dictionary.length; i++){
         if (dictionary[i].match(pattern)) {
             this_dict.push(dictionary[i].toUpperCase());
         }
     }
     console.log("Narrowed down to ", this_dict.length, "words");
-
-    // Update URL and create link
-    create_game_link(this_game);
-}
-
-function start_game(){
-    game_active = true;
-    document.getElementById("give_up").disabled = false;
-    document.getElementById("start").disabled = true;
-    this_score = 0;
-    words_found = [];
-
-    min_word_length = document.getElementById('minlength').value;
-    console.log(min_word_length);
 
     // Draw dice to screen
     canvas_draw_game(this_game);
@@ -561,17 +624,18 @@ function start_game(){
     start_timer();
 
     // Hide words
+    document.getElementById("score").innerHTML = "";
     document.getElementById('found_words_div').innerHTML = "";
-    document.getElementById("all_words").setAttributeNS(null, 'style', "display:none;");
+    document.getElementById("found_words").className = "visible";
+    document.getElementById("all_words").className = "hidden";
 }
 
 function end_game(){
     game_active = false;
-    document.getElementById("start").disabled = false;
-    document.getElementById("give_up").disabled = true;
+    document.getElementById("start_stop").innerHTML = "Start";
 
     // Clear time remaining text
-    document.getElementById("timer").innerHTML = "";
+    document.getElementById('timer').innerHTML = "--:--";
 
     // Stop timer
     stop_timer();
@@ -752,30 +816,18 @@ function find_solutions(puzzle, dictionary){
         return neighbors;
     }
 
+    // Filter answers so no duplicates or words found by user show up
     var answers = solve(puzzle, trie);
+    var answers_filtered = []
+    answers_filtered.includes = word => !!answers_filtered.find(w => w.word == word);
+    for (var w of answers)
+        if (!answers_filtered.includes(w.word) && ! words_found.includes(w.word))
+            answers_filtered.push(w);
 
-    // Clear out DIV
-    var page_div = document.getElementById("all_words_div");
-    page_div.innerHTML = "";
-
-    // Add each answer to DIV
-    var words = words_found.slice(0);
-    for (var a of answers){
-        if (words.includes(a.word)) continue;
-        words.push(a.word);
-        page_div.appendChild(create_word_element(a.word, a.path));
-    }
+    render_found_words(document.getElementById("all_words_div"), answers_filtered);
 
     // Unhide DIV
-    document.getElementById("all_words").setAttributeNS(null, 'style', "width:768px; margin:0 auto;");
-}
-
-function create_word_element(word, path){
-    let span = document.createElement('span');
-    span.onclick = () => reveal_word(path);
-    span.appendChild(document.createTextNode(word));
-    span.appendChild(document.createElement('br'));
-    return span;
+    document.getElementById("all_words").className = "visible";
 }
 
 function reveal_word(path){
