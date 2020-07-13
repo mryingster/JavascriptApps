@@ -1,0 +1,256 @@
+<html>
+  <head>
+    <title>Scattergories</title>
+    <meta name="viewport" content="width=550px, user-scalable=no" />
+    <style>
+      body{
+      font-family: sans-serif;
+      }
+      #die{
+      background: url('die.jpg');
+      width: 300px;
+      height:350px;
+      }
+      #roll{
+      display: inline-block;
+      border: 0px solid red;
+      color:#fff;
+      font-size:6em;
+      width: 300px;
+      text-align: center;
+      margin: 88px 0;
+      }
+      button{
+      width: 100%;
+      height: 75px;
+      font-size: 2em;
+      }
+      #timer{
+      display: block;
+      width: 100%;
+      font-size:3em;
+      text-align: center;
+      }
+    </style>
+  </head>
+  <body style="background:#fff;" onload="switch_list()">
+
+    <div id="content" style="width:300px; margin: 0 auto 0 auto;">
+
+      <div id="die"><span id="roll">A</span></div>
+      <button onclick="roll()">Roll</button>
+
+      <span id="timer">--:--</span><br>
+      <button onclick="start_timer()">Start Timer</button>
+
+      <br>
+      <br>
+
+      <select id="list_select" onchange="switch_list()" style="width:100%;">
+	<option>List 1</option>
+	<option>List 2</option>
+	<option>List 3</option>
+	<option>List 4</option>
+	<option>List 5</option>
+	<option>List 6</option>
+	<option>List 7</option>
+	<option>List 8</option>
+      </select>
+
+      <div class="list" id="List 1">
+	<h2>LIST 1</h2>
+	<ol>
+	  <li>Fictional characters          </li>
+	  <li>Menu items			  </li>
+	  <li>Magazines			  </li>
+	  <li>Capitals			  </li>
+	  <li>Kinds of candy		  </li>
+	  <li>Items you save up to buy	  </li>
+	  <li>Footwear			  </li>
+	  <li>Something you keep hidden	  </li>
+	  <li>Items in a suitcase		  </li>
+	  <li>Things with tails		  </li>
+	  <li>Sports equipment 		  </li>
+	  <li>Crimes			  </li>
+	</ol>
+      </div>
+      <div class="list" id="List 2">
+	<h2>LIST 2</h2>
+	<ol>
+	  <li>A boy’s name		  </li>
+	  <li>A river			  </li>
+	  <li>An animal			  </li>
+	  <li>Things that are cold 	  </li>
+	  <li>Insects			  </li>
+	  <li>TV shows			  </li>
+	  <li>Things that grow		  </li>
+	  <li>Fruits			  </li>
+	  <li>Things that are black 	  </li>
+	  <li>School subjects 		  </li>
+	  <li>Movie titles 		  </li>
+	  <li>Musical instruments		  </li>
+	</ol>
+      </div>
+      <div class="list" id="List 3">
+	<h2>LIST 3</h2>
+	<ol>
+	  <li>Authors			  </li>
+	  <li>Bodies of water		  </li>
+	  <li>A bird			  </li>
+	  <li>Countries			  </li>
+	  <li>Cartoon characters		  </li>
+	  <li>Holidays			  </li>
+	  <li>Things that are square 	  </li>
+	  <li>A girl’s name		  </li>
+	  <li>Clothing			  </li>
+	  <li>A relative			  </li>
+	  <li>Games			  </li>
+	  <li>Sports stars		  </li>
+	</ol>
+      </div>
+      <div class="list" id="List 4">
+	<h2>LIST 4</h2>
+	<ol>
+	  <li>School supplies		  </li>
+	  <li>Things that are hot 	  </li>
+	  <li>Heroes			  </li>
+	  <li>A girl’s name		  </li>
+	  <li>Fears			  </li>
+	  <li>TV stars			  </li>
+	  <li>Colors			  </li>
+	  <li>A fish			  </li>
+	  <li>Fruits			  </li>
+	  <li>Provinces or States 	  </li>
+	  <li>Sports equipment 		  </li>
+	  <li>Tools			  </li>
+	</ol>
+      </div>
+      <div class="list" id="List 5">
+	<h2>LIST 5</h2>
+	<ol>
+	  <li>Breakfast foods 		  </li>
+	  <li>Gifts			  </li>
+	  <li>Flowers			  </li>
+	  <li>Ice cream flavors 		  </li>
+	  <li>A drink			  </li>
+	  <li>Toys			  </li>
+	  <li>Cities			  </li>
+	  <li>Things in the kitchen 	  </li>
+	  <li>Ocean things 		  </li>
+	  <li>Nicknames 			  </li>
+	  <li>Hobbies			  </li>
+	  <li>Parts of the body		  </li>
+	</ol>
+      </div>
+      <div class="list" id="List 6">
+	<h2>LIST 6</h2>
+	<ol>
+	  <li>Sandwiches			  </li>
+	  <li>Items in a catalog		  </li>
+	  <li>World leaders/Politicians 	  </li>
+	  <li>School subjects		  </li>
+	  <li>Excuses for being late	  </li>
+	  <li>Ice cream flavors		  </li>
+	  <li>Things that jump/bounce 	  </li>
+	  <li>Television stars		  </li>
+	  <li>Things in a park 		  </li>
+	  <li>Foreign cities 		  </li>
+	  <li>Stones/Gems 		  </li>
+	  <li>Musical instruments		  </li>
+	</ol>
+      </div>
+      <div class="list" id="List 7">
+	<h2>LIST 7</h2>
+	<ol>
+	  <li>Nicknames			  </li>
+	  <li>Things in the sky		  </li>
+	  <li>Pizza toppings		  </li>
+	  <li>Colleges/Universities	  </li>
+	  <li>Fish			  </li>
+	  <li>Countries			  </li>
+	  <li>Things that have spots	  </li>
+	  <li>Historical figures		  </li>
+	  <li>Something you’re afraid of 	  </li>
+	  <li>Terms of endearment 	  </li>
+	  <li>Items in this room 		  </li>
+	  <li>Drugs that are abused	  </li>
+	</ol>
+      </div>
+      <div class="list" id="List 8">
+	<h2>LIST 8</h2>
+	<ol>
+	  <li>Restaurants			  </li>
+	  <li>Notorious people		  </li>
+	  <li>Fruits			  </li>
+	  <li>Things in a medicine cabinet  </li>
+	  <li>Toys			  </li>
+	  <li>Household chores		  </li>
+	  <li>Bodies of water		  </li>
+	  <li>Authors			  </li>
+	  <li>Halloween costumes 		  </li>
+	  <li>Weapons			  </li>
+	  <li>Things that are round 	  </li>
+	  <li>Words associated with exercise</li>
+	</ol>
+      </div>
+      
+      <br>
+      <a href="Scattergories Sheet.pdf">Download PDF Answer Sheet</a>
+    </div>
+
+    <script>
+var duration    = 3 * 60;
+
+function roll(){
+    var roll = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','R','S','T','U'][Math.floor(Math.random()*20)];
+    document.getElementById('roll').innerHTML = roll;
+}
+
+function nextLoop() {
+    var refresh = 250;
+    var time_left = duration - (new Date().getTime() - timer_start) / 1000;
+
+    // keep track of time, update colors, etc.
+    var minutes = Math.floor(time_left/60);
+    var seconds = Math.floor(time_left) % 60;
+    if (seconds < 10) { seconds = "0" + seconds; }
+    if (minutes < 10) { minutes = "0" + minutes; }
+    time_left_string = minutes + ":" + seconds
+    timer = setTimeout(function() { nextLoop() }, refresh);
+
+    if (time_left < 1) {
+        time_left_string = "NONE";
+    }
+
+    if (time_left < 0) {
+        end_game();
+    }
+
+    document.getElementById('timer').innerHTML = time_left_string;
+
+}
+
+function start_timer() {
+    timer_start = new Date().getTime();
+    nextLoop();
+}
+
+function stop_timer() {
+    clearTimeout(timer);
+}
+
+function switch_list() {
+    // Hide all
+    for (var div of document.getElementsByClassName("list")){
+	div.style = "display:none;";
+    }
+
+    // Get selection
+    var selection = document.getElementById("list_select").value;
+
+    // Make selection visible
+    document.getElementById(selection).style = "display:block;";
+}
+    </script>
+  </body>
+</html>
