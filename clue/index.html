@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="user-scalable=no,width=device-width" />
+    <title>Clue Master Detective</title>
+    <style>
+      p {
+	  margin : 0px;
+      }
+      div#content {
+	  width : 370px;
+      }
+      span.label {
+	  display : inline-block;
+	  width : 120px;
+      }
+      input {
+	  width : 20px;
+      }
+      button {
+          touch-action: manipulation;
+          -webkit-appearance: none;
+      }
+      button.checkbox {
+          width: 60px;
+          height: 30px;
+          font-size: 1em;
+      }
+      #update {
+          width : 100%;
+          height : 40px;
+      }
+    </style>
+  </head>
+
+  <body onload="set_up()">
+    <div id="content">
+      <div id="cluesheet"></div>
+      <button id="update" onclick="update_button()">Update</button>
+    </div>
+
+    <script>
+
+const options    = ["&nbsp;","X","—","&#128269;","?","??"];
+const unknown    = 0;
+const has        = 1;
+const hasnt      = 2;
+const seen       = 3;
+const maybe      = 4;
+const multimaybe = 5;
+
+const cards =
+      [
+	  [
+	      "Col. Mustard",
+	      "Prof. Plum",
+	      "Mr. Green",
+	      "Mrs. Peacock",
+	      "Miss Scarlet",
+	      "Mrs. White",
+	      "Mme. Rose",
+	      "Sgt. Gray",
+	      "M. Brunette",
+	      "Miss Peach",
+	  ],
+	  [
+	      "Knife",
+	      "Candlestick",
+	      "Revolver",
+	      "Rope",
+	      "Lead Pipe",
+	      "Wrench",
+	      "Poison",
+	      "Horseshoe",
+	  ],
+	  [
+	      "Dining Room",
+	      "Kitchen",
+	      "Conservatory",
+	      "Billiard Room",
+	      "Library",
+	      "Courtyard",
+	      "Drawing Room",
+	      "Trophy Room",
+	      "Studio",
+	      "Gazebo",
+	      "Carriage House",
+	      "Fountain",
+	  ]
+      ];
+
+const num_players = 4;
+
+var game_state   = [];
+
+function set_up(){
+    // Create all checkboxes and default game state at once
+    let parent = document.getElementById("cluesheet");
+    for (var section_index=0; section_index<cards.length; section_index++){
+	var game_state_section = [];
+
+	for (var card_index=0; card_index<cards[section_index].length; card_index++){
+	    var card_name = cards[section_index][card_index];
+	    var game_state_item = [];
+
+	    // Create label
+	    let label_name =  section_index + ":" + card_index;
+	    var label = document.createElement('span');
+	    label.innerHTML = card_name;
+	    label.setAttribute("class", "label");
+	    label.setAttribute("id", label_name);
+	    parent.appendChild(label);
+
+	    // New checkbox per player
+	    for (let player_index=0; player_index<num_players; player_index++){
+		let button_name = section_index + ":" + card_index + ":" + player_index;
+		var checkbox = document.createElement('button');
+		checkbox.innerHTML = "&nbsp;";
+		checkbox.setAttribute("onClick", "cycle('"+button_name+"')");
+		checkbox.setAttribute("id", button_name);
+		checkbox.setAttribute("class", "checkbox");
+		parent.appendChild(checkbox);
+
+		game_state_item.push(
+		    {
+			"state" : unknown,
+			"maybe" : [],
+		    }
+		);
+	    }
+	    // New line per item
+	    parent.appendChild(document.createElement("br"));
+	    game_state_section.push(game_state_item);
+	}
+	// Horizontal rule per section
+	parent.appendChild(document.createElement("hr"));
+	game_state.push(game_state_section);
+    }
+
+}
+
+function find_highest_unknown(player){
+    var max_unknown = -1;
+    for (var section in game_state){
+	for (var card in game_state[section]){
+	    var maybes = game_state[section][card][player].maybe;
+	    if (maybes.length > 0){
+		if (maybes[maybes.length - 1] > max_unknown){
+		    max_unknown = maybes[maybes.length - 1];
+		}
+	    }
+	}
+    }
+    return max_unknown;
+}
+
+function update_maybes(){
+    // Iterate through button state and transfer data to game state by player
+    // Look for question marks, and update game state accordingly
+    // possibility of 8 ?'s at a time.
+
+    for (var player=1; player<num_players; player++){
+	// Find new maybe value (just in case) by looking for highest bit used so far
+	var new_maybe_value = find_highest_unknown(player) + 1;
+
+	for (var section in game_state){
+	    for (var card in game_state[section]){
+		var value = game_state[section][card][player].state;
+		if (value == maybe){
+		    game_state[section][card][player].state = multimaybe;
+		    game_state[section][card][player].maybe.push(new_maybe_value);
+		}
+                if (value == hasnt){
+                    game_state[section][card][player].maybe = [];
+                }
+	    }
+	}
+    }
+}
+
+function simplify_data(){
+    var changes_made = false;
+
+    // Do horizontal checks first
+    for (var section in game_state){
+	for (var card in game_state[section]){
+	    // Check if no player has the card
+	    var must_be = true;
+	    for (var player in game_state[section][card]){
+		if (player == 0) {
+		    if (game_state[section][card][player].state == has)
+			must_be = false;
+		} else {
+		    if (game_state[section][card][player].state != hasnt)
+			must_be = false;
+		}
+	    }
+
+	    if (must_be){
+		document.getElementById(section+":"+card).style.fontWeight = "bold";
+	    }
+
+	    // Check if one player has the card, and change rest to 'don't have'
+	    var has_card = false;
+	    for (var player in game_state[section][card])
+		if (game_state[section][card][player].state == has)
+		    has_card = true;
+	    if (has_card == true)
+		for (var player in game_state[section][card])
+		    if (game_state[section][card][player].state != has && game_state[section][card][player].state != hasnt){
+			game_state[section][card][player].state = hasnt;
+			game_state[section][card][player].maybe = [];
+	    		changes_made = true;
+		    }
+	}
+    }
+
+    // Check veritcally for lone guesses remaining
+    for (var player=1; player<num_players; player++){
+	for (var section in game_state){
+	    for (var card in game_state[section]){
+		var value  = game_state[section][card][player].state;
+		var maybes = game_state[section][card][player].maybe;
+
+		for (let maybe_entry of maybes){
+		    var count = 0
+		    for (var section_search in game_state){
+			for (var card_search in game_state[section_search]){
+			    for (var maybe_search of game_state[section_search][card_search][player].maybe){
+				if (maybe_search == maybe_entry){
+				    count += 1;
+				}
+			    }
+			}
+		    }
+		    // Lone entry
+		    if (count == 1) {
+			game_state[section][card][player].state = has;
+			game_state[section][card][player].maybe = [];
+	    		changes_made = true;
+		    }
+		}
+	    }
+	}
+    }
+
+    // If changes were made, run this again
+    if (changes_made == true)
+	simplify_data();
+}
+
+function update_button(){
+    update_maybes();
+    simplify_data();
+    update_checkboxes();
+}
+
+function cycle(id){
+    // Split up id name
+    var indices = id.split(":");
+    var section = Number(indices[0]);
+    var card    = Number(indices[1]);
+    var player  = Number(indices[2]);
+
+    var min = 0;
+    var max = options.length;
+
+    // For first player, only toggle between "x" and "-"
+    if (player == 0){
+	if (game_state[section][card][player].state == has)
+	    game_state[section][card][player].state = hasnt;
+	else
+	    game_state[section][card][player].state = has;
+    } else {
+
+	// Increment value
+	var new_value = game_state[section][card][player].state + 1;
+	new_value %= max;
+
+	// Skip multi maybe if array is empty
+	if (new_value == multimaybe && game_state[section][card][player].maybe.length == 0)
+	    new_value = 0;
+
+	// If first player had the card...
+	if (game_state[section][card][0].state == has)
+	    while(new_value != unknown && new_value != seen){
+		new_value += 1;
+		new_value %= max;
+	    } else {
+		if (new_value == seen)
+		    new_value += 1;
+	    }
+
+	// Set the value
+	game_state[section][card][player].state = new_value;
+    }
+
+    // Update
+    update_checkboxes();
+}
+
+function array_to_unicode(a){
+    var value = 0;
+    for (let b of a){
+	value |= 2 ** b;
+    }
+
+    return "&#" + (0x2800 + value);
+}
+
+function update_checkboxes(){
+    for (var section in game_state){
+	for (var card in game_state[section]){
+	    for (var player in game_state[section][card]){
+		let name   = section + ":" + card + ":" + player;
+		let value  = game_state[section][card][player].state;
+		let maybes = game_state[section][card][player].maybe;
+		let string = "";
+
+		// If value is greater than unknown convert to unicode
+		if (value > maybe && maybes.length > 0){
+		    string = array_to_unicode(maybes);
+		} else {
+		    string = options[value];
+		}
+		// Get the box and set the value
+		document.getElementById(name).innerHTML = string;
+	    }
+	}
+    }
+}
+
+    </script>
+  </body>
+</html>
