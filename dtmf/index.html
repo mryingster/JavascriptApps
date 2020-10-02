@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <title>Test Webpage</title>
+    <style>
+      button {
+          width: 50px;
+          height: 50px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Phone Phreak</h1>
+
+    <button onmousedown="playTone(697,1209);" onmouseup="playTone();" onmouseleave="playTone();">1</button>
+    <button onmousedown="playTone(697,1336);" onmouseup="playTone();" onmouseleave="playTone();">2</button>
+    <button onmousedown="playTone(697,1477);" onmouseup="playTone();" onmouseleave="playTone();">3</button>
+    <button onmousedown="playTone(697,1633);" onmouseup="playTone();" onmouseleave="playTone();">A</button>
+    <br>
+    <button onmousedown="playTone(770,1209);" onmouseup="playTone();" onmouseleave="playTone();">4</button>
+    <button onmousedown="playTone(770,1336);" onmouseup="playTone();" onmouseleave="playTone();">5</button>
+    <button onmousedown="playTone(770,1477);" onmouseup="playTone();" onmouseleave="playTone();">6</button>
+    <button onmousedown="playTone(770,1633);" onmouseup="playTone();" onmouseleave="playTone();">B</button>
+    <br>
+    <button onmousedown="playTone(852,1209);" onmouseup="playTone();" onmouseleave="playTone();">7</button>
+    <button onmousedown="playTone(852,1336);" onmouseup="playTone();" onmouseleave="playTone();">8</button>
+    <button onmousedown="playTone(852,1477);" onmouseup="playTone();" onmouseleave="playTone();">9</button>
+    <button onmousedown="playTone(852,1633);" onmouseup="playTone();" onmouseleave="playTone();">C</button>
+    <br>
+    <button onmousedown="playTone(941,1209);" onmouseup="playTone();" onmouseleave="playTone();">*</button>
+    <button onmousedown="playTone(941,1336);" onmouseup="playTone();" onmouseleave="playTone();">0</button>
+    <button onmousedown="playTone(941,1477);" onmouseup="playTone();" onmouseleave="playTone();">#</button>
+    <button onmousedown="playTone(941,1633);" onmouseup="playTone();" onmouseleave="playTone();">D</button>
+    <br>
+
+    <script>
+
+var ctx = new AudioContext();
+
+var oscillator1 = ctx.createOscillator();
+var gainNode1 = ctx.createGain();
+oscillator1.connect(gainNode1);
+gainNode1.connect(ctx.destination);
+
+var oscillator2 = ctx.createOscillator();
+var gainNode2 = ctx.createGain();
+oscillator2.connect(gainNode2);
+gainNode2.connect(ctx.destination);
+
+playTone();
+oscillator1.start(0);
+oscillator2.start(0);
+
+
+function playTone(a=0, b=0){
+    // Mute oscillators
+    gainNode1.gain.setValueAtTime(0, ctx.currentTime);
+    gainNode2.gain.setValueAtTime(0, ctx.currentTime);
+
+    // Exit here if we don't have values
+    if (a == 0 || b == 0)
+	return;
+
+    // Set up oscillators
+    oscillator1.type = "sine";
+    oscillator1.frequency.setValueAtTime(a, ctx.currentTime);
+
+    oscillator2.type = "sine";
+    oscillator2.frequency.setValueAtTime(b, ctx.currentTime);
+
+    // Volume back up
+    gainNode1.gain.setValueAtTime(.1, ctx.currentTime);
+    gainNode2.gain.setValueAtTime(.1, ctx.currentTime);
+}
+    </script>
+  </body>
+</html>
