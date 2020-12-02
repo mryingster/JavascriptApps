@@ -80,6 +80,7 @@
                   timer           : null,                 // Main loop timer
                   animation_timer : [null, null, null],   // Timer for animations
                   blockset        : [],
+                  imacheater      : false,
               };
 
               // Settings/Toggles
@@ -87,6 +88,7 @@
                   useExtraPieces : true,
                   showGhostBlock : false,
                   debug          : false,
+                  cheat          : false,
               };
 
               // Definitions
@@ -105,6 +107,7 @@
                   up_arrow    : 38,
                   right_arrow : 39,
                   down_arrow  : 40,
+                  c           : 67,
                   i           : 73,
                   j           : 74,
                   k           : 75,
@@ -115,7 +118,9 @@
                   p           : 80,
                   d           : 68,
                   q           : 81,
+                  s           : 83,
                   plus        : 61,
+                  minus       : 173,
               };
 
               this.EMPTY  = -2;
@@ -147,7 +152,7 @@
                                string : "PAUSED"},
                               {color  : "white",
                                size   : 20,
-                               font   : "Arial"         ,
+                               font   : "Arial",
                                align  : "center",
                                y      : 200,
                                x      : null,
@@ -161,7 +166,7 @@
                                string : "GAME OVER"},
                               {color  : "white",
                                size   : 20,
-                               font   : "Arial"         ,
+                               font   : "Arial",
                                align  : "center",
                                y      : 200,
                                x      : null,
@@ -351,7 +356,8 @@
           clearAndShift(l){
               for (var i=l.length-1; i>=0; i--){
                   var y = l[i];
-                  for (var y2=y; y2>=this.dimension.top_buffer; y2--){
+                  for (var y2=y; y2>=1; y2--){
+                      console.log(this.dimension.top_buffer);
                       for (var x=0; x<this.dimension.game_width; x++){
                           this.state.game_array[y2][x] = this.state.game_array[y2-1][x];
                       }
@@ -374,12 +380,16 @@
                   this.state.animation_timer[1] = setTimeout(() => this.animateLineClear(l, n-1), 15);
               } else {
                   this.clearAndShift(l);
+                  // Check if game over because we have a conflict with checking in main loop and animations
+                  if (this.isGameOver() == true && lines_cleared == 0){
+                      this.endGame();
+                  }
               }
           }
 
           lookForLines(){
               var lines_cleared = [];
-              for (var y=this.state.game_array.length-1; y>this.dimension.top_buffer; y--){
+              for (var y=this.state.game_array.length-1; y>=this.dimension.top_buffer; y--){
                   // Look at line
                   var lineFull = true;
                   for (var x=0; x<this.dimension.game_width; x++){
@@ -434,7 +444,7 @@
 
               for (var y=0; y<block_array.length; y++) {
                   for (var x=0; x<block_array[y].length; x++) {
-                      if (block_array[y][x] == 1){
+                      if (block_array[y][x] != 0){
                           // Check for out of bounds
                           if (pos_x + x < 0 || pos_x + x >= this.dimension.game_width)
                               return false;
@@ -480,7 +490,13 @@
               }
           }
 
-          move(dir){
+          resetMainLoopTimeout(){
+              clearTimeout(this.state.timer);
+              this.state.timer = setTimeout(() => this.main_loop(), this.speed);
+              return;
+          }
+
+          move(dir, usermove=false){
               // Get shape template
               var thisBlock = this.state.block_history[this.state.block_history.length-1];
 
@@ -492,6 +508,13 @@
               if (dir == this.direction.down){
                   this.state.block_position[1] = this.state.block_position[1] + 1;
                   this.state.block_position[3] += 1 // Get point per step for slow dropping
+                  /* There's a bug here. The timer should reset when a user pressed the down arrow.
+                     But this code isn't doing the trick. Debug this when you have time...
+                  if (usermove == true) {
+                      this.redraw();
+                      resetMainLoopTimeout;
+                  }
+                  */
               }
 
               if (dir == this.direction.drop){
@@ -529,6 +552,23 @@
                   this.settings.debug = true;
           }
 
+          toggleCheatMode(){
+              if (this.settings.cheat == true) {
+                  this.settings.cheat = false;
+                  this.rules.base_speed = 890;
+                  this.colors.black = "#000000";
+              } else {
+                  this.settings.cheat = true;
+                  this.rules.base_speed = 8900;
+                  this.colors.black = "#AA0000";
+                  this.state.imacheater = true;
+              }
+              if (this.state.game_active == true){
+                  this.redrawGameField();
+                  this.redrawCurrentBlock();
+              }
+          }
+
           toggleGhostMode(){
               if (this.settings.showGhostBlock == true)
                   this.settings.showGhostBlock = false;
@@ -559,6 +599,10 @@
 
               case this.key.d:
                   this.toggleDebugMode();
+                  break
+
+              case this.key.c:
+                  this.toggleCheatMode();
                   break
 
               case this.key.e:
@@ -609,10 +653,30 @@
                       this.drawGameInformation();
                       break;
 
+                  case this.key.minus:
+                      if (this.settings.cheat == true) {
+                          this.state.level -= 1;
+                          this.drawGameInformation();
+                      }
+                      break;
+
+                  case this.key.s:
+                      if (this.settings.cheat == true) {
+                          // Replace current block definition with an empty block
+                          this.state.block_history[this.state.block_history.length-1] = {
+                              shape : [[-1]],
+                              rotations : 1,
+                              color : { r:0x00, g:0x00, b:0x00 },
+                          };
+                          // Drop it like it's hot
+                          direction = this.direction.drop;
+                      }
+                      break;
+
                   default:
                       return;
                   }
-                  this.move(direction);
+                  this.move(direction, true);
               }
           }
 
@@ -645,9 +709,17 @@
               }
 
               // Record new score
-              if (place < 10) {
+              if (place <= 10) {
                   const nth = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh"]
-                  var user_name = prompt("New high score! You got "+nth[i]+" place. Enter name", "Anonymous");
+                  var user_name = null;
+                  
+                  if (this.state.imacheater == true){
+                      alert("You would have gotten a high score, but you're a cheater!");
+                      return;
+                  } else {
+                      user_name = prompt("New high score! You got "+nth[i]+" place. Enter name", "Anonymous");
+                  }
+
                   if (user_name != null){
                       high_scores.splice(i, 0, {
                           name  : user_name,
@@ -762,7 +834,7 @@
                   this.animateUpcomingBlocks(0);
 
                   // See if game is over
-                  if (this.isGameOver() == true){
+                  if (this.isGameOver() == true && lines_cleared == 0){
                       this.endGame();
                       return;
                   }
@@ -895,6 +967,12 @@
                   this.state.score = 0;
                   this.state.block_history = [];
                   this.state.block_upcoming = []; // Clear next blocks
+
+                  // Reset cheating...
+                  this.state.imacheater = false;
+                  if (this.settings.cheat == true)
+                      this.toggleCheatMode();
+
                   // Set which type of blocks for game
                   this.state.blockset = this.rules.tetrominoes;
                   if (this.settings.useExtraPieces == true)
