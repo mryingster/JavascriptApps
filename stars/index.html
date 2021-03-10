@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>TEST</title>
+    <style>
+      body {
+          text-align: center;
+      }
+
+      .controls {
+          display: inline-block;
+          border: 1px solid red;
+          padding: 15px;
+          border-radius: 15px;
+      }
+
+      label {
+          display: inline-block;
+          text-align: right;
+          width: 70px;
+          margin-top:5px;
+      }
+
+      h2 {
+          margin: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="field" onClick="star_field_instance.pause();" width="768" height="512"></canvas>
+    <br>
+
+    <div class="controls">
+      <h2>Stars</h2>
+      <label>Quantity:</label> <input type="range" min="1" max="500"  value="300" class="slider" id="star_max"> <br>
+      <label>Size:</label>     <input type="range" min="1" max="10"  value="2" class="slider" id="star_size"> <br>
+      <label></label>          <input type="checkbox" id="monochrome" name="monochrome" value="monochrome">Monochrome
+    </div>
+
+    <div class="controls">
+      <h2>Movement (Translation)</h2>
+      <label>Speed:</label>     <input type="range" min="1"    max="200"  value="5" class="slider" id="star_speed"> <br>
+      <label>Elevation:</label> <input type="range" min="-100" max="100"  value="0" class="slider" id="elevation"> <br>
+      <label>Sway:</label>      <input type="range" min="-100" max="100"  value="0" class="slider" id="sway"> <br>
+    </div>
+
+    <div class="controls">
+      <h2>Movement (Rotation)</h2>
+      <label>Roll:</label>  <input type="range" min="-100" max="100"  value="0" class="slider" id="roll"> <br>
+      <label>Pitch:</label> <input type="range" min="-100" max="100"  value="0" class="slider" id="pitch"> <br>
+      <label>Yaw:</label>   <input type="range" min="-100" max="100"  value="0" class="slider" id="yaw"> <br>
+    </div>
+
+    <script>
+
+class star {
+    constructor(x, y, z, color){
+	this.x = x;
+	this.y = y;
+	this.z = z;
+	this.color = color;
+    }
+}
+
+class star_field {
+    constructor(canvas){
+	this.canvas	= canvas;
+	this.width	= canvas.width;
+	this.height	= canvas.height;
+	this.ctx	= canvas.getContext("2d");
+	this.timer	= null;
+	this.stars	= [];
+	this.refresh	= 5;
+	this.speed	= 1.09;
+        this.elevation  = 0;
+        this.sway       = 0;
+	this.monochrome = false;
+	this.roll       = 0;
+        this.pitch      = 0;
+        this.yaw        = 0;
+	this.scale      = 1;
+	this.full_rotation = Math.PI * 2;
+
+	this.main_loop();
+    }
+
+    main_loop(){
+	// Add stars
+	while (this.stars.length < this.max_stars) {
+            let new_star = new star(
+		this.random_coord(this.width),
+		this.random_coord(this.height),
+		1,
+		this.random_color(),
+	    )
+            if (!this.is_star_centered(new_star))
+                this.stars.push(new_star);
+	}
+
+	// Move stars
+	for (var i=0; i<this.stars.length; i++) {
+            // Translation
+	    this.stars[i].z *= this.speed;
+            this.stars[i].x += this.sway;
+            this.stars[i].y += this.elevation;
+
+            this.stars[i].x += this.yaw   / this.stars[i].z ** 2;
+            this.stars[i].y += this.pitch / this.stars[i].z ** 2;
+
+            // Rotation
+	    let x1 = this.stars[i].x * Math.cos(this.roll) - this.stars[i].y * Math.sin(this.roll);
+	    let y1 = this.stars[i].y * Math.cos(this.roll) + this.stars[i].x * Math.sin(this.roll);
+            this.stars[i].x = x1;
+            this.stars[i].y = y1;
+
+	    if (this.is_star_gone(this.stars[i])) {
+	        this.stars.splice(i, 1);
+		i--;
+	    }
+	}
+
+	// Get settings from controls
+	this.max_stars  = document.getElementById("star_max").value;
+	this.monochrome = document.getElementById("monochrome").checked;
+	this.scale      = document.getElementById("star_size").value;
+
+        this.elevation  = Number(document.getElementById("elevation").value) / 100;
+	this.speed      = 1 + (document.getElementById("star_speed").value / 1000);
+        this.sway       = Number(document.getElementById("sway").value) / -100;
+
+	this.roll       = Number(document.getElementById("roll").value) / 6000;
+	this.pitch      = Number(document.getElementById("pitch").value) / 50;
+	this.yaw        = Number(document.getElementById("yaw").value) / -50;
+
+	// Redraw all stars
+	this.redraw();
+
+	// Set timer
+        this.timer = setTimeout(() => this.main_loop(), this.refresh);
+    }
+
+    random_coord(max){
+	let coord = Math.random() * max - (max / 2);
+	return coord;
+    }
+
+    random_color(){
+	let r = Math.floor(Math.random() * 255);
+	let g = Math.floor(Math.random() * 255);
+	let b = Math.floor(Math.random() * 255);
+	if (this.monochrome == true)
+	    return "rgb("+r+","+r+","+r+")";
+	return "rgb("+r+","+g+","+b+")";
+    }
+
+    is_star_centered(star){
+	// The goal is to prevent stars from spawning too close to
+	// center because they grow to large by the time they go off screen
+	return (star.x * star.x + star.y * star.y < 500);
+    }
+
+    is_star_gone(star){
+	return Math.abs(Math.min(star.x, star.y)) * star.z > Math.max(this.width, this.height) / 2;
+    }
+
+    draw_star(star){
+	let x = this.width  / 2 + (star.x * star.z);
+	let y = this.height / 2 + (star.y * star.z);
+
+	let radius = star.z / 3 * this.scale;
+
+	this.ctx.fillStyle = star.color;
+	this.ctx.beginPath();
+	this.ctx.arc(x, y, radius, 0, 2 * Math.PI);
+	this.ctx.fill();
+    }
+
+    redraw(){
+	// Clear out the background
+	this.ctx.fillStyle = "#000000";
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+	// Iterate through each star
+	for (var i=0; i<this.stars.length; i++) {
+	    this.draw_star(this.stars[i]);
+	}
+    }
+
+    pause(){
+	if (this.timer == null)
+	    this.main_loop();
+	else {
+	    clearTimeout(this.timer);
+	    this.timer = null;
+	}
+    }
+}
+
+var star_field_instance = new star_field(document.getElementById("field"));
+
+    </script>
+  </body>
+</html>
