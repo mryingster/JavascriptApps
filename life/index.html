@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>The Game of Life</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=768px, user-scalable=no" /> <!-- disabled in iOS 10+ -->    <style>
+      body {
+          background:#fff;
+          color:#000;
+          font-family:sans-serif;
+      }
+
+      div#content {
+          margin: 0px auto;
+      }
+
+      h1 {
+          margin:10px;
+          font-size:3em;
+      }
+
+      h1, h2 {
+          color:#00177A;
+      }
+
+      div#controls {
+      background: rgba(0, 0, 0, 0.50);
+      color: #fff;
+      position: absolute;
+      padding:10px;
+      border-radius: 10px;
+      top: 10px;
+      left: 10px;
+      z-index: 100;
+      align: center;
+      }
+      button {
+      width:100px;
+      }
+    </style>
+  </head>
+
+  <body onload="first_load()" onresize="resize_game()">
+    <div id="content" style="margin: 0 auto; width:768px;">
+
+      <div id="controls">
+        <center><b>Conway&apos;s Game of Life</b></center>
+	<br>
+        <button id="pause"   onclick="pause()">Pause</button>
+        <button id="step"    onclick="nextLoop()">Step</button>
+        <br>
+        <button id="clear"   onclick="cleargame()">Clear</button>
+        <button id="random"  onclick="randomize()">Shuffle</button>
+        <br>
+	<button id="zoomin"  onclick="zoomIn()">Zoom In</button>
+	<button id="zoomout" onclick="zoomOut()">Zoom Out</button>
+	<br>
+	<span>Speed:<input type="range" oninput="changeSpeed()" min="1" max="100" value="6" class="slider" id="speed" style="vertical-align:middle; width:140px;"></span>
+        <br>
+	<span>Cell Shadows: <input type="checkbox" id="grayscale"></span>
+      </div>
+
+      <canvas id="canvas"  width="768px" height="768px" style="touch-action:manipulation; position:absolute; top:0; left:0;"></canvas>
+
+<!--
+Size:
+<select id="size">
+  <option value="4">Normal</option>
+  <option value="5" selected="selected">Large</option>
+</select>
+-->
+
+    <script>
+
+// Game State
+var active  = false;
+var game    = [];
+var refresh = 20; // milliseconds
+
+// User input variables
+var mouse_down = false;
+var tile_placed = true;
+
+// Canvas
+var canvas = document.getElementById("canvas");
+var width  = canvas.width;
+var height = canvas.height;
+var ctx    = canvas.getContext("2d");
+
+// Figure out tile sizes
+var tile_size = 8;
+var game_width = Math.floor(width/tile_size);
+var game_height = Math.floor(height/tile_size);
+
+// Mouse listeners
+canvas.addEventListener('mousedown', input_down_mouse);
+canvas.addEventListener('mousemove', input_move_mouse);
+canvas.addEventListener('mouseup',   input_up);
+
+function getCursorPosition(canvas, event){
+    // Determine where clicked
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    return {x:x, y:y};
+}
+
+function input_down_mouse(e){
+    mouse_down = true;
+    toggle_tile(getCursorPosition(canvas, e));
+}
+
+function input_move_mouse(e){
+    if (mouse_down == true)
+	toggle_tile(getCursorPosition(canvas, e), tile_placed);
+}
+
+function input_up(e){
+    mouse_down = false;
+}
+
+function zoomIn(){
+    tile_size *= 2;
+    if (tile_size > 64)
+	tile_size = 64;
+    resize_game();
+    return;
+}
+
+function zoomOut(){
+    tile_size /= 2;
+    if (tile_size < 4)
+	tile_size = 4;
+    resize_game();
+    return;
+}
+
+// Canvas Functions
+function clear_canvas(canvas, ctx){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function canvas_draw_background(){
+    clear_canvas(canvas, ctx);
+}
+
+function canvas_redraw(){
+    // Clear out any old game
+    canvas_draw_background();
+
+    for (let y=0; y<game.length; y++){
+	for (let x=0; x<game[y].length; x++){
+	    let color = "#ffffff";
+	    if (game[y][x] == true)
+		color = "#000000";
+            if (document.getElementById('grayscale').checked == true){
+                if (game[y][x] == -4)
+                    color = "#bbbbbb";
+                else if (game[y][x] == -3)
+                    color = "#cccccc";
+                else if (game[y][x] == -2)
+                    color = "#dddddd";
+                else if (game[y][x] == -1)
+                    color = "#eeeeee";
+                else if (game[y][x] == 0)
+                    color = "#ffffff";
+            }
+	    ctx.fillStyle = color;
+	    ctx.fillRect(x*tile_size, y*tile_size, tile_size, tile_size);
+	}
+    }
+}
+
+function first_load(){
+    resize_game();
+    randomize();
+    changeSpeed();
+    pause();
+}
+
+function cleargame(){
+    game = [];
+    for (let y=0; y<game_height; y++){
+	let line = [];
+	for (let x=0; x<game_width; x++){
+	    line.push(false);
+	}
+	game.push(line);
+    }
+    canvas_redraw();
+    return;
+}
+
+function randomize(){
+    game = [];
+    for (let y=0; y<game_height; y++){
+	let line = [];
+	for (let x=0; x<game_width; x++){
+	    line.push(Math.round(Math.random()*.75) < 1 ? false : true);
+	}
+	game.push(line);
+    }
+    canvas_redraw();
+    return;
+}
+
+function changeSpeed() {
+    var input = document.getElementById('speed').value;
+    var new_speed = 500 / input * 2;
+    refresh = new_speed;
+}
+
+function resize_game(){
+    var windowWidth = window.innerWidth
+        || document.documentElement.clientWidth
+        || document.body.clientWidth;
+    var windowHeight = window.innerHeight
+        || document.documentElement.clientHeight
+        || document.body.clientHeight;
+
+    // Resize canvas
+    width = windowWidth;
+    canvas.width = windowWidth;
+    height = windowHeight;
+    canvas.height = windowHeight;
+
+    // Resize game size
+    game_width = Math.floor(width/tile_size)
+    game_height = Math.floor(height/tile_size)
+
+    // Resize game array
+    new_game = [];
+    for (let y=0; y<game_height; y++){
+	let line = [];
+	for (let x=0; x<game_width; x++){
+            let value = false;
+            if (y < game.length)
+                if (x < game[y].length)
+                    value = game[y][x];
+	    line.push(value);
+	}
+	new_game.push(line);
+    }
+    game = new_game.slice();
+
+    // Redraw everything
+    canvas_redraw();
+}
+
+function pause(){
+    if (active == true) {
+	active = false;
+	document.getElementById('pause').innerHTML = "Unpause";
+	document.getElementById('step').disabled = false;
+	stop_timer();
+    } else {
+	active = true;
+	document.getElementById('pause').innerHTML = "Pause";
+	document.getElementById('step').disabled = true;
+	start_timer();
+    }
+}
+
+function findNeighbors(x, y) {
+    var count = 0;
+    for (var y2=y-1; y2<=y+1; y2++)
+	for (var x2=x-1; x2<=x+1; x2++){
+            // Skip self!
+	    if (x2 == x && y2 == y) continue;
+
+            // Wrap around from edge to edge
+            let y3 = y2 % game_height;
+            if (y2 < 0) y3 += game_height;
+            let x3 = x2 % game_width;
+            if (x2 < 0) x3 += game_width;
+	    if (game[y3][x3] == true) count += 1;
+
+            // Don't care how much greater it is//
+            if (count > 3) return count;
+	}
+
+    return count;
+}
+
+function toggle_tile(coord, value=null){
+    let x = Math.floor(coord.x / tile_size);
+    let y = Math.floor(coord.y / tile_size);
+    if (value == null){
+        if (game[y][x] == false)
+	    value = true;
+        else
+	    value = false;
+    }
+    game[y][x] = value;
+    tile_placed = value;
+
+    canvas_redraw();
+}
+
+function nextLoop() {
+    // Figure out new board
+    let new_game = [];
+    for (let y=0; y<game.length; y++){
+	new_line = [];
+	for (let x=0; x<game[y].length; x++){
+	    var neighbors = findNeighbors(x, y);
+	    var cell = game[y][x];
+	    //console.log(x, y, cell, neighbors);
+	    if (cell == true) {
+		if (neighbors < 2 || neighbors > 3)
+		    cell = -4;
+	    } else {
+		if (neighbors == 3)
+		    cell = true;
+                else
+                    if (cell < 0)
+                        cell += 1;
+	    }
+	    new_line.push(cell);
+	}
+	new_game.push(new_line);
+    }
+
+    game = new_game.slice();
+
+    // Redraw
+    canvas_redraw();
+
+    // Set Delay
+    if (active == true)
+	timer = setTimeout(function() { nextLoop() }, refresh);
+}
+
+function start_timer() {
+    nextLoop();
+}
+
+function stop_timer() {
+    clearTimeout(timer);
+}
+
+    </script>
+  </body>
+</html>
