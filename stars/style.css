@@ -1,0 +1,67 @@
+body {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: sans-serif;
+}
+
+#hamburger {
+    display: inline-block;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    color: #fff;
+    font-size: 1.5em;
+    background: #333;
+    background: linear-gradient(#666, #333);
+    padding: 3px 10px;
+}
+
+#controls {
+    background: rgba(64, 64, 64, 0.50);
+    /*border: 3px solid #222;*/
+    color: #FFF;
+    display: none;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    padding: 15px 0;
+    /*border-radius: 20px;*/
+    overflow: hidden;
+    width: 100%;
+    height: auto;
+}
+
+#hamburger:hover~#controls{
+    display: inline-block;
+}
+
+#controls:hover{
+    display: inline-block;
+}
+
+input {
+    vertical-align: middle;
+}
+
+.panel {
+    /*background: #111;*/
+    display: inline-block;
+    border: 1px solid #666;
+    padding: 10px;
+    border-radius: 10px;
+    width: 250px;
+}
+
+label {
+    display: inline-block;
+    text-align: right;
+    width: 70px;
+    margin-top:5px;
+}
+
+h2 {
+    margin: 0px;
+    font-size: 1.2em;
+}
