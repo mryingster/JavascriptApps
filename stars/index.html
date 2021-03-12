@@ -1,17 +1,55 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>TEST</title>
     <style>
       body {
           text-align: center;
+	  margin: 0;
+	  padding: 0;
+	  overflow: hidden;
+          font-family: sans-serif;
       }
 
-      .controls {
+      #controls:hover {
+	  width: auto !important;
+	  height: auto;
+      }
+
+      div#controls:hover .panel {
           display: inline-block;
-          border: 1px solid red;
+      }
+
+      span#icon{
+      }
+
+      #controls {
+	  background: rgba(128, 128, 128, 0.50);
+	  border: 3px solid #222;
+          color: #FFF;
+	  display: inline-block;
+	  position: fixed;
+	  bottom: 10px;
+	  left: 10px;
           padding: 15px;
-          border-radius: 15px;
+          border-radius: 20px;
+	  width: 10px;
+	  height: 10px;
+	  overflow: hidden;
+      }
+
+      input {
+          vertical-align: middle;
+      }
+
+      .panel {
+	  /*background: #111;*/
+          /*display: inline-block;*/
+          display: none;
+          border: 1px solid #000;
+          padding: 10px;
+          border-radius: 10px;
+	  width: 250px;
       }
 
       label {
@@ -23,35 +61,116 @@
 
       h2 {
           margin: 0px;
+          font-size: 1.2em;
       }
     </style>
   </head>
-  <body>
-    <canvas id="field" onClick="star_field_instance.pause();" width="768" height="512"></canvas>
-    <br>
+  <body onresize="star_field_instance.resize_field();">
+    <canvas id="field" onclick="star_field_instance.pause();" width="768" height="512"></canvas>
 
-    <div class="controls">
-      <h2>Stars</h2>
-      <label>Quantity:</label> <input type="range" min="1" max="500"  value="300" class="slider" id="star_max"> <br>
-      <label>Size:</label>     <input type="range" min="1" max="10"  value="2" class="slider" id="star_size"> <br>
-      <label></label>          <input type="checkbox" id="monochrome" name="monochrome" value="monochrome">Monochrome
-    </div>
+    <div id="controls">
+      <div class="panel">
+	<h2>Stars</h2>
+	<label>Quantity:</label> <input type="range" min="1"    max="1000" value="300" class="slider" id="star_max"> <br>
+	<label>Size:</label>     <input type="range" min="1"    max="10"   value="3"   class="slider" id="star_size"> <br>
+	<label>Trail:</label>    <input type="range" min="-100" max="100"  value="0"   class="slider" id="star_trail"> <br>
+        <button onClick="document.getElementById('star_size').value = 3;document.getElementById('star_trail').value = 0">Reset Style</button> <br>
+        <br>
+        <input type="checkbox" id="monochrome" name="monochrome" value="monochrome">Monochrome<br>
+        <hr>
+	<button onClick="star_field_instance.fullscreen();">Full Screen</button>
+      </div>
 
-    <div class="controls">
-      <h2>Movement (Translation)</h2>
-      <label>Speed:</label>     <input type="range" min="1"    max="200"  value="5" class="slider" id="star_speed"> <br>
-      <label>Elevation:</label> <input type="range" min="-100" max="100"  value="0" class="slider" id="elevation"> <br>
-      <label>Sway:</label>      <input type="range" min="-100" max="100"  value="0" class="slider" id="sway"> <br>
-    </div>
+      <div class="panel">
+	<h2>Translation</h2>
+	<label>Speed:</label>     <input type="range" min="0"    max="1000" value="100" class="slider" id="star_speed"> <br>
+        <!--
+	<label>Elevation:</label> <input type="range" min="-100" max="100"  value="0" class="slider" id="elevation"> <br>
+	<label>Sway:</label>      <input type="range" min="-100" max="100"  value="0" class="slider" id="sway"> <br>
+        -->
+        <canvas id="translation_canvas" width="250" height="250"></canvas>
+        <button onClick="translation_joystick.reset();">Reset Translation</button>
+      </div>
 
-    <div class="controls">
-      <h2>Movement (Rotation)</h2>
-      <label>Roll:</label>  <input type="range" min="-100" max="100"  value="0" class="slider" id="roll"> <br>
-      <label>Pitch:</label> <input type="range" min="-100" max="100"  value="0" class="slider" id="pitch"> <br>
-      <label>Yaw:</label>   <input type="range" min="-100" max="100"  value="0" class="slider" id="yaw"> <br>
+      <div class="panel">
+	<h2>Rotation</h2>
+	<label>Roll:</label>  <input type="range" min="-100" max="100" value="0" class="slider" id="roll"> <br>
+        <!--
+	<label>Pitch:</label> <input type="range" min="-100" max="100" value="0" class="slider" id="pitch"> <br>
+	<label>Yaw:</label>   <input type="range" min="-100" max="100" value="0" class="slider" id="yaw"> <br>
+        -->
+        <canvas id="rotation_canvas" width="250" height="250"></canvas>
+        <button onClick="document.getElementById('roll').value = 0; rotation_joystick.reset();">Reset Rotation</button>
+      </div>
     </div>
 
     <script>
+
+class joystick {
+    constructor(canvas) {
+	this.canvas	= canvas;
+	this.width	= canvas.width;
+	this.height	= canvas.height;
+	this.ctx	= canvas.getContext("2d");
+        this.x          = 0;
+        this.y          = 0;
+        this.mouse_down = false;
+
+        this.canvas.addEventListener('mousedown',  this.input_down_mouse.bind(this));
+        this.canvas.addEventListener('mousemove',  this.input_move_mouse.bind(this));
+        this.canvas.addEventListener('mouseup',    this.input_up.bind(this));
+
+        this.draw();
+    }
+
+    track_mouse(coords) {
+        this.x = coords.x - this.width/2;
+        this.y = coords.y - this.height/2;
+        this.draw();
+    }
+
+    get_cursor_position(canvas, event) {
+        // Determine where clicked
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        return {x:x, y:y};
+    }
+
+    input_down_mouse(e) {
+        this.mouse_down = true;
+	this.track_mouse(this.get_cursor_position(this.canvas, e));
+    }
+
+    input_move_mouse(e) {
+        if (this.mouse_down == true)
+	    this.track_mouse(this.get_cursor_position(this.canvas, e));
+    }
+
+    input_up(e) {
+        this.mouse_down = false;
+    }
+
+    draw_circle(x, y, r, c) {
+        this.ctx.fillStyle = c;
+	this.ctx.beginPath();
+	this.ctx.arc(x, y, r, 0, 2 * Math.PI);
+	this.ctx.fill();
+    }
+
+    draw() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+        this.draw_circle(this.width / 2, this.height / 2, this.width / 2, "#888888");
+        this.draw_circle(this.width / 2 + this.x, this.height / 2 + this.y, 10, "#FF0000");
+    }
+
+    reset(){
+        this.x = 0;
+        this.y = 0;
+        this.draw();
+    }
+}
 
 class star {
     constructor(x, y, z, color){
@@ -79,33 +198,63 @@ class star_field {
         this.pitch      = 0;
         this.yaw        = 0;
 	this.scale      = 1;
+	this.trail      = 0;
 	this.full_rotation = Math.PI * 2;
 
+        this.resize_field();
 	this.main_loop();
     }
 
+    compare(a, b){
+        if (a.z > b.z) return -1;
+        if (a.z < b.z) return 1;
+        return 0;
+    }
+
     main_loop(){
+	// Get settings from controls
+	this.max_stars  = document.getElementById("star_max").value;
+	this.monochrome = document.getElementById("monochrome").checked;
+	this.scale      = document.getElementById("star_size").value;
+	this.trail      = 1 - document.getElementById("star_trail").value / 100;
+
+	this.speed      = document.getElementById("star_speed").value;
+        //this.elevation  = Number(document.getElementById("elevation").value) / 10;
+        //this.sway       = Number(document.getElementById("sway").value) / -10;
+        this.sway       = translation_joystick.x / -10;
+        this.elevation  = translation_joystick.y / -10;
+
+	this.roll       = Number(document.getElementById("roll").value)  / -1000;
+	//this.pitch      = Number(document.getElementById("pitch").value) /  1000;
+	//this.yaw        = Number(document.getElementById("yaw").value)   / -1000;
+	this.yaw        = rotation_joystick.x / -1000;
+	this.pitch      = rotation_joystick.y / -1000;
+
 	// Add stars
 	while (this.stars.length < this.max_stars) {
             let new_star = new star(
 		this.random_coord(this.width),
 		this.random_coord(this.height),
-		1,
+		this.max_stars - this.stars.length > 5 ? Math.random() * 100 : 100,
 		this.random_color(),
 	    )
-            if (!this.is_star_centered(new_star))
-                this.stars.push(new_star);
+            this.stars.push(new_star);
 	}
 
 	// Move stars
 	for (var i=0; i<this.stars.length; i++) {
+	    // Move star
+	    this.stars[i].z -= this.speed / 100;
+
             // Translation
-	    this.stars[i].z *= this.speed;
             this.stars[i].x += this.sway;
             this.stars[i].y += this.elevation;
+	    // Wrap around the screen
+	    if (this.stars[i].x > this.width/2  || this.stars[i].x < (-1 * this.width/2))  this.stars[i].x *= -1;
+	    if (this.stars[i].y > this.height/2 || this.stars[i].y < (-1 * this.height/2)) this.stars[i].y *= -1;
 
-            this.stars[i].x += this.yaw   / this.stars[i].z ** 2;
-            this.stars[i].y += this.pitch / this.stars[i].z ** 2;
+            this.stars[i].x += this.yaw   * this.stars[i].z;
+            this.stars[i].y += this.pitch * this.stars[i].z;
 
             // Rotation
 	    let x1 = this.stars[i].x * Math.cos(this.roll) - this.stars[i].y * Math.sin(this.roll);
@@ -113,24 +262,15 @@ class star_field {
             this.stars[i].x = x1;
             this.stars[i].y = y1;
 
-	    if (this.is_star_gone(this.stars[i])) {
-	        this.stars.splice(i, 1);
+	    // See if it's past us
+	    if (this.stars[i].z < 0) { // || this.is_star_gone(this.stars[i])){
+		this.stars.splice(i, 1);
 		i--;
 	    }
 	}
 
-	// Get settings from controls
-	this.max_stars  = document.getElementById("star_max").value;
-	this.monochrome = document.getElementById("monochrome").checked;
-	this.scale      = document.getElementById("star_size").value;
-
-        this.elevation  = Number(document.getElementById("elevation").value) / 100;
-	this.speed      = 1 + (document.getElementById("star_speed").value / 1000);
-        this.sway       = Number(document.getElementById("sway").value) / -100;
-
-	this.roll       = Number(document.getElementById("roll").value) / 6000;
-	this.pitch      = Number(document.getElementById("pitch").value) / 50;
-	this.yaw        = Number(document.getElementById("yaw").value) / -50;
+        // Sort stars so closest stars are drawn last
+        this.stars.sort(this.compare);
 
 	// Redraw all stars
 	this.redraw();
@@ -145,11 +285,12 @@ class star_field {
     }
 
     random_color(){
+	if (this.monochrome == true)
+	    return "rgb(255,255,255)";
+
 	let r = Math.floor(Math.random() * 255);
 	let g = Math.floor(Math.random() * 255);
 	let b = Math.floor(Math.random() * 255);
-	if (this.monochrome == true)
-	    return "rgb("+r+","+r+","+r+")";
 	return "rgb("+r+","+g+","+b+")";
     }
 
@@ -163,16 +304,44 @@ class star_field {
 	return Math.abs(Math.min(star.x, star.y)) * star.z > Math.max(this.width, this.height) / 2;
     }
 
+    draw_trail(x, y, s, c){
+	let h = Math.sqrt((x ** 2) + (y ** 2));
+	let scale = this.trail;
+
+	this.ctx.strokeStyle = c; //"#ffffff";
+        this.ctx.lineWidth = s*2;
+        this.ctx.lineCap = "round";
+	this.ctx.beginPath();
+	this.ctx.moveTo(
+	    this.width  / 2 + x,
+	    this.height / 2 + y
+	);
+	this.ctx.lineTo(
+	    this.width  / 2 + (x * scale),
+	    this.height / 2 + (y * scale)
+	);
+	this.ctx.stroke();
+    }
+
     draw_star(star){
-	let x = this.width  / 2 + (star.x * star.z);
-	let y = this.height / 2 + (star.y * star.z);
+	let x = star.x * (100/star.z);
+	let y = star.y * (100/star.z);
 
-	let radius = star.z / 3 * this.scale;
+	//console.log(star.x, star.y, star.z, x, y);
+	let radius = this.scale * ((100-star.z) / 100);
 
+	this.draw_trail(x, y, radius, star.color);
+
+        /* This is not necessary because the trail drawing code will draw stars anyways!
 	this.ctx.fillStyle = star.color;
 	this.ctx.beginPath();
-	this.ctx.arc(x, y, radius, 0, 2 * Math.PI);
+	this.ctx.arc(
+	    this.width  / 2 + x,
+	    this.height / 2 + y,
+	    radius,
+	    0, 2 * Math.PI);
 	this.ctx.fill();
+        */
     }
 
     redraw(){
@@ -194,9 +363,41 @@ class star_field {
 	    this.timer = null;
 	}
     }
+
+    resize_field(){
+	this.width  = window.innerWidth;
+	this.height = window.innerHeight;
+	this.canvas.width  = this.width;
+	this.canvas.height = this.height;
+        this.redraw();
+    }
+
+    fullscreen(){
+	if ((document.fullScreenElement && document.fullScreenElement !== null) ||  // alternative standard method
+	    (!document.mozFullScreen && !document.webkitIsFullScreen)) {            // current working methods
+	    if (document.documentElement.requestFullScreen) {
+		document.documentElement.requestFullScreen();
+	    } else if (document.documentElement.mozRequestFullScreen) {
+		document.documentElement.mozRequestFullScreen();
+	    } else if (document.documentElement.webkitRequestFullScreen) {
+		document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+	    }
+	} else {
+	    if (document.cancelFullScreen) {
+		document.cancelFullScreen();
+	    } else if (document.mozCancelFullScreen) {
+		document.mozCancelFullScreen();
+	    } else if (document.webkitCancelFullScreen) {
+		document.webkitCancelFullScreen();
+	    }
+	}
+    }
 }
 
-var star_field_instance = new star_field(document.getElementById("field"));
+var translation_joystick = new joystick(document.getElementById("translation_canvas"));
+var rotation_joystick    = new joystick(document.getElementById("rotation_canvas"));
+var star_field_instance  = new star_field(document.getElementById("field"));
+
 
     </script>
   </body>
