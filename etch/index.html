@@ -1,0 +1,205 @@
+<html>
+  <head>
+    <title>Test Webpage</title>
+    <style>
+    body {
+    text-align: center;
+}
+#etch-a-sketch {
+    background : #ff0000;
+    display: inline-block;
+    border-radius: 40px;
+    padding: 0px 60 0 60;
+}
+
+#spinner1 {
+    float: left;
+    margin: 10px 0px;
+}
+
+#spinner2 {
+    float: right;
+    margin: 10px 0px;
+}
+    </style>
+  </head>
+
+    <body>
+      <div id="etch-a-sketch">
+	<h1>Etch-A-Sketch</h1>
+	<canvas id="screen" width="500" height="300" style="border:1px solid black;"></canvas><br>
+
+	<canvas id="spinner1" width="100", height="100"></canvas>
+	<canvas id="spinner2" width="100", height="100"></canvas></br>
+      </div>
+
+    <script>
+
+class knob {
+    constructor(canvas, action) {
+        this.canvas      = canvas;
+        this.width       = canvas.width;
+        this.height      = canvas.height;
+        this.ctx         = canvas.getContext("2d");
+
+	this.action      = action;
+	this.value       = 0;
+
+        this.mouse_down  = null;
+	this.current_rotation = 0;
+	this.rotation_total = 0;
+
+        this.canvas.addEventListener('mousedown',  this.input_down_mouse.bind(this));
+        this.canvas.addEventListener('mousemove',  this.input_move_mouse.bind(this));
+        this.canvas.addEventListener('mouseup',    this.input_up.bind(this));
+
+        this.draw();
+    }
+
+    track_mouse(coords) {
+	// Middle of object
+	var mx = this.width/2;
+	var my = this.height/2;
+
+	// Get angle from start position
+	var dx1 = (mx - this.mouse_down.x);
+	var dy1 = (my - this.mouse_down.y);
+	var angle1 = Math.atan2(dy1, dx1);
+
+	// Get angle from end position
+	var dx2 = (mx - coords.x);
+	var dy2 = (my - coords.y);
+	var angle2 = Math.atan2(dy2, dx2);
+
+	// Update rotation
+	this.current_rotation = (angle1 - angle2);
+	console.log(this.current_rotation);
+
+	// Update value
+	this.action(this.current_rotation);
+
+        this.draw();
+    }
+
+    get_cursor_position(canvas, event) {
+        // Determine where clicked
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        return {x:x, y:y};
+    }
+
+    input_down_mouse(e) {
+        this.mouse_down = this.get_cursor_position(this.canvas, e);
+    }
+
+    input_move_mouse(e) {
+        if (this.mouse_down != null)
+            this.track_mouse(this.get_cursor_position(this.canvas, e));
+    }
+
+    input_up(e) {
+        this.mouse_down = null;
+	this.rotation_total += this.current_rotation;
+	this.current_rotation = 0;
+	this.value = 0;
+    }
+
+    draw_circle(x, y, r, c) {
+        this.ctx.fillStyle = c;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, r, 0, 2 * Math.PI);
+        this.ctx.fill();
+    }
+
+    draw_circle_gradient(x, y, r, c1, c2, c3) {
+        //this.ctx.fillStyle = c1;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, r, 0, 2 * Math.PI);
+        let grdRadial = this.ctx.createRadialGradient(x, y, r*.2, x, y, r);
+        grdRadial.addColorStop(0, c1);
+        grdRadial.addColorStop(.5, c2);
+        grdRadial.addColorStop(1, c3);
+        this.ctx.fillStyle = grdRadial;
+        this.ctx.fill();
+    }
+
+    draw() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+
+        let full_radius = this.height / 2;
+        let center_x = this.width / 2;
+        let center_y = this.height / 2;
+
+        // Draw background
+        this.draw_circle(center_x, center_y, full_radius, "#DDDDDD");
+        this.draw_circle_gradient(center_x, center_y, full_radius-3, "#FFFFFF", "#E0E0E0", "#BBBBBB");
+
+        // Draw current position
+	let x = -1 * Math.cos(this.rotation_total + this.current_rotation);
+	let y = Math.sin(this.rotation_total + this.current_rotation);
+
+	let knob_x = center_x + x * 30;
+	let knob_y = center_y + y * 30;
+
+        let knob_radius = 10
+
+        this.draw_circle(knob_x, knob_y, knob_radius, "#883333");
+    }
+
+    reset(){
+        this.x = 0;
+        this.y = 0;
+        this.unit_x = 0;
+        this.unit_y = 0;
+        this.draw();
+    }
+}
+
+const canvas  = document.getElementById("screen");
+const ctx = canvas.getContext("2d");
+var x = 0;
+var y = 0;
+
+function reset(){
+    ctx.fillStyle = "#AAAAAA"
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function draw_horizontal(v){
+    // Find limits
+    let new_x = Math.min(x + v, canvas.width);
+    new_x = Math.max(0, new_x)
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(new_x, y);
+    ctx.stroke();
+
+    x = new_x;
+    return;
+}
+
+function draw_vertical(v){
+    // Find limits
+    let new_y = Math.min(y + v, canvas.height);
+    new_y = Math.max(0, new_y)
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, new_y);
+    ctx.stroke();
+
+    y = new_y;
+    return;
+}
+
+var hor_knob = new knob(document.getElementById("spinner1"), draw_horizontal);
+var ver_knob = new knob(document.getElementById("spinner2"), draw_vertical);
+
+reset();
+
+    </script>
+  </body>
+</html>
