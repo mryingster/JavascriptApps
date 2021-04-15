@@ -28,9 +28,14 @@
       }
 
       .button {
+          touch-action: manipulation;
           font-size: 1.5em;
           padding: 17px;
           color: #991700;
+      }
+
+      .button:disabled {
+          color: #AA7777;
       }
 
       table {
@@ -38,7 +43,21 @@
           margin: 10px;
       }
 
+      td {
+          padding-left: 5px;
+      }
+
+      td.underline {
+          border-bottom : 2px solid #ccc;
+      }
+
+      td.score, td.score button {
+          font-style: italic;
+          color: #666 !important;
+      }
+
       .score_button {
+          touch-action: manipulation;
           width: 150px;
           height: 30px;
           font-size: 1.15em;
@@ -93,16 +112,20 @@
             <td><button class="score_button" onclick="record_score('fives')" id="fives"></button></td>
           </tr>
           <tr>
-            <td>Sixes</td>
-            <td><button class="score_button" onclick="record_score('sixes')" id="sixes"></button></td>
+            <td class="underline">Sixes</td>
+            <td class="underline"><button class="score_button" onclick="record_score('sixes')" id="sixes"></button></td>
           </tr>
           <tr>
-            <td>Left Bonus</td>
-            <td><button class="score_button" id="left_bonus" disabled></button></td>
+            <td class="score">Left Subtotal</td>
+            <td class="score"><button class="score_button" id="left_sub" disabled></button></td>
           </tr>
           <tr>
-            <td>Left Total</td>
-            <td><button class="score_button" id="left_total" disabled></button></td>
+            <td class="score">Left Bonus</td>
+            <td class="score"><button class="score_button" id="left_bonus" disabled></button></td>
+          </tr>
+          <tr>
+            <td class="score">Left Total</td>
+            <td class="score"><button class="score_button" id="left_total" disabled></button></td>
           </tr>
         </table>
 
@@ -132,12 +155,16 @@
             <td><button class="score_button" onclick="record_score('dicey')" id="dicey"></button></td>
           </tr>
           <tr>
-            <td>Chance</td>
-            <td><button class="score_button" onclick="record_score('chance')" id="chance"></button></td>
+            <td class="underline">Chance</td>
+            <td class="underline"><button class="score_button" onclick="record_score('chance')" id="chance"></button></td>
           </tr>
           <tr>
-            <td>Dicey Bonus</td>
-            <td><button class="score_button" id="dicey_bonus" disabled></button></td>
+            <td class="score">Dicey Bonus</td>
+            <td class="score"><button class="score_button" id="dicey_bonus" disabled></button></td>
+          </tr>
+          <tr>
+            <td class="score">Right Total</td>
+            <td class="score"><button class="score_button" id="right_total" disabled></button></td>
           </tr>
         </table>
 
@@ -168,9 +195,9 @@ var dice_left_padding = (dice_spacing - dice_size) / 2;
 
 // Touch listeners
 canvas.addEventListener('touchstart', input_down_touch, false);
-canvas.addEventListener('touchend',   input_up, false);
+canvas.addEventListener('touchend',   input_up_touch, false);
 
-function getTouchPosition(overlay, event){
+function getTouchPosition(canvas, event){
     if (!e)
         var e = event;
 
@@ -181,7 +208,7 @@ function getTouchPosition(overlay, event){
         if (e.touches.length == 1) { // Only deal with one finger
             var touch = e.touches[0]; // Get the information for finger #1
             x = touch.pageX-touch.target.offsetLeft;
-            y = touch.pageY-touch.target.offsetTop - (dice_size / 2); // Adjust y because apple messes things up!
+            y = touch.pageY-touch.target.offsetTop;// - (dice_size / 2); // Adjust y because apple messes things up!
         }
     }
 
@@ -189,12 +216,20 @@ function getTouchPosition(overlay, event){
 }
 
 function input_down_touch(e){
+    var pos = getTouchPosition(canvas, e);
+    var dice_index = Math.floor(pos.x / dice_spacing);
+    selected_dice[dice_index] ^= 1;
+    canvas_draw_game();
+    e.preventDefault();
+}
+
+function input_up_touch(e){
     e.preventDefault();
 }
 
 // Mouse listeners
 canvas.addEventListener('mousedown', input_down_mouse);
-canvas.addEventListener('mouseup',   input_up);
+canvas.addEventListener('mouseup',   input_up_mouse);
 
 function getCursorPosition(canvas, event){
     // Determine where clicked
@@ -209,7 +244,7 @@ function input_down_mouse(e){
     return;
 }
 
-function input_up(e){
+function input_up_mouse(e){
     var pos = getCursorPosition(canvas, e);
     var dice_index = Math.floor(pos.x / dice_spacing);
     selected_dice[dice_index] ^= 1;
@@ -358,8 +393,10 @@ function setup_new_game(state=null){
         'big_str'    : null,
         'dicey'      : null,
         'chance'     : null,
+        'left_sub'   : null,
         'left_bonus' : null,
         'left_total' : null,
+        'right_total': null,
         'dicey_bonus': 0,
     };
 
@@ -381,6 +418,10 @@ function setup_new_game(state=null){
 
 function roll_dice(animation = false){
     if (rolls_left == 0) return;
+
+    // Cheaters add rolls! Punish them
+    if (rolls_left > 3)
+        rolls_left = 1
 
     // If this is first roll, we have to discount any saved dice
     if (rolls_left == 3)
@@ -415,7 +456,9 @@ function roll_dice(animation = false){
 function animate_roll(n){
     let animation = false
     clearTimeout(animation_timer);
+    document.getElementById('roll').disabled = false;
     if (n>0){
+        document.getElementById('roll').disabled = true;
         animation = true
         animation_timer = setTimeout(() => this.animate_roll(n-1), 50);
     }
@@ -468,7 +511,7 @@ function update_score_buttons(show_score_only=false){
             three_of_a_kind = dice_sum;
         if (i > 3)
             four_of_a_kind = dice_sum;
-        if (i != 0 && i != 2 && i != 3)
+        if (i != 0 && i != 2 && i != 3 && i != 5)
             full_house = 0;
         if (i != 0 && i != 5)
             dicey = 0;
@@ -482,25 +525,32 @@ function update_score_buttons(show_score_only=false){
     document.getElementById("big_str").innerHTML    = large_straight;
     document.getElementById("dicey").innerHTML      = dicey;
 
-    // Special buttons
+    // Tabulate left score
     let left_score = 0;
     for (let i of ["aces", "twos", "threes", "fours", "fives", "sixes"])
         if (this_score[i] != null)
             left_score += this_score[i];
-    if (left_score > 63)
+    if (left_score >= 63)
         left_bonus = 35;
     left_total = left_score + left_bonus;
+    document.getElementById("left_sub").innerHTML   = left_score;
     document.getElementById("left_bonus").innerHTML = left_bonus;
     document.getElementById("left_total").innerHTML = left_total;
+    this_score["left_sub"]   = left_score;
     this_score["left_bonus"] = left_bonus;
     this_score["left_total"] = left_total;
 
-    // Tabulate current score
-    let total_score = 0;
-    for (let i in this_score)
+    // Tabulate right score
+    let right_score = 0;
+    for (let i of ['3oak', '4oak', 'full_house', 'small_str', 'big_str', 'dicey', 'chance', 'dicey_bonus'])
         if (this_score[i] != null)
-            total_score += this_score[i];
-    document.getElementById("score").innerHTML = total_score + left_bonus;
+            right_score += this_score[i];
+    document.getElementById("right_total").innerHTML = right_total;
+    this_score["right_total"] = right_score;
+        
+    // Tabulate current score
+    let total_score = left_total + right_score;
+    document.getElementById("score").innerHTML = total_score;
 
     // Overwrite with actual scores if necessary
     if (show_score_only == true){
