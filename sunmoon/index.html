@@ -1,0 +1,265 @@
+<html>
+  <head>
+    <title>Phase Clock</title>
+    <style>
+      body {
+      background: #000;
+      text-align: center;
+      color: #888;
+      }
+    </style>
+  </head>
+    <body>
+    <span id="time"></span>
+    <span id="duration"></span>
+    <b>Sunrise: </b><span id="sunrise"></span>&nbsp;
+    <b>Sunset: </b><span id="sunset"></span>&nbsp;
+    <b>Moonrise: </b><span id="moonrise"></span>&nbsp;
+    <b>Moonset: </b><span id="moonset"></span>
+    <br>
+    <div style="position: relative; width: 1440px; height: 450px; margin:0px auto;">
+      <canvas id="canvas"  width="1440px" height="450px" style="touch-action:manipulation; position:absolute; top:0; left:0;"></canvas>
+      <canvas id="overlay" width="1440px" height="450px" style="touch-action:manipulation; position:absolute; top:0; left:0;" ></canvas>
+    </div>
+  </body>
+  <script>
+
+let canvas         = document.getElementById("canvas");
+let background_ctx = canvas.getContext("2d");
+let overlay        = document.getElementById("overlay");
+let overlay_ctx    = overlay.getContext("2d");
+
+let width          = canvas.width;
+let height         = canvas.height;
+
+var sunrise  =  "6:30";
+var sunset   = "17:30";
+var moonrise =  "4:30";
+var moonset  = "14:30";
+
+var marker   = -1;
+
+//const top    = 0;
+const middle = 200;
+const sway   = 150;
+const bottom = 400;
+
+// Mouse listeners
+overlay.addEventListener('mousedown',  input_down_mouse);
+
+function getCursorPosition(canvas, event){
+    // Determine where clicked
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    return {x:x, y:y};
+}
+
+function input_down_mouse(e){
+    marker = getCursorPosition(overlay, e).x;
+    draw_time(false);
+}
+
+function format_time_from_seconds(s){
+    let sign = "";
+    if (s < 0){
+	sign = "-";
+	s = Math.abs(s);
+    }
+    let h = Math.floor(s/60/60);
+    let m = Math.floor(s/60) % 60;
+    s = s % 60;
+    h = "0" + h;
+    m = "0" + m;
+    s = "0" + s;
+    return sign + h.substr(-2) + ":" + m.substr(-2) + ":" + s.substr(-2);
+}
+
+function draw_background(){
+    // Sunrise/set times
+    var sunrise_minute  = Number(sunrise.split(":")[0])  * 60 + Number(sunrise.split(":")[1]);
+    var sunset_minute   = Number(sunset.split(":")[0])   * 60 + Number(sunset.split(":")[1]);
+    var moonrise_minute = Number(moonrise.split(":")[0]) * 60 + Number(moonrise.split(":")[1]);
+    var moonset_minute  = Number(moonset.split(":")[0])  * 60 + Number(moonset.split(":")[1]);
+
+    //console.log(sunrise, sunset, moonrise, moonset);
+
+    document.getElementById('sunrise').innerHTML  = sunrise;
+    document.getElementById('sunset').innerHTML   = sunset;
+    document.getElementById('moonrise').innerHTML = moonrise;
+    document.getElementById('moonset').innerHTML  = moonset;
+
+    // Draw background
+    background_ctx.clearRect(0, 0, width, height); 
+    background_ctx.fillStyle = "#003388";
+    background_ctx.fillRect(0, 0, width, middle); 
+    background_ctx.fillStyle = "#666666";
+    background_ctx.fillRect(0, middle, width, middle); 
+
+    // draw each column
+    for (var x=0; x<24*60; x++){
+	let minute = x;
+
+	// Draw Sun Path
+	let period = sunset_minute - sunrise_minute;
+	if (x >= sunrise_minute && x <= sunset_minute) {
+	    sun = -1 * Math.sin(minute * (Math.PI * 2) / (period * 2) - (sunrise_minute * (Math.PI * 2) / (period * 2))) * sway + middle
+	
+	    background_ctx.strokeStyle = "#DDCB99";
+    	    background_ctx.lineWidth = 1;
+	    background_ctx.beginPath();
+	    background_ctx.moveTo(x+.5, middle);
+	    background_ctx.lineTo(x+.5, sun);
+	    background_ctx.stroke();
+	}
+
+	// Draw Moon Path
+	period = moonset_minute - moonrise_minute;
+	if (x >= moonrise_minute && x <= moonset_minute) {
+	    moon = Math.sin(minute * (Math.PI * 2) / (period * 2) - (moonrise_minute * (Math.PI * 2) / (period * 2))) * sway + middle
+	
+	    background_ctx.strokeStyle = "#CCCCCC";
+	    background_ctx.beginPath();
+	    background_ctx.moveTo(x+.5, middle);
+	    background_ctx.lineTo(x+.5, moon);
+	    background_ctx.stroke();
+	}
+
+	// Draw hourly ticks
+	if (x % 60 == 0 && x > 0){
+	    background_ctx.strokeStyle = "#000000";
+    	    background_ctx.lineWidth = 1;
+	    background_ctx.beginPath();
+	    background_ctx.moveTo(x+.5, bottom);
+	    background_ctx.lineTo(x+.5, 0);
+	    background_ctx.stroke();
+
+	    background_ctx.font = "15px Arial";
+	    background_ctx.textAlign = "center";
+	    background_ctx.fillText(x / 60, x+.5, bottom + 15)
+	}
+    }
+
+    // Draw median line
+    background_ctx.strokeStyle = "#000000";
+    background_ctx.beginPath();
+    background_ctx.moveTo(0, middle+.5);
+    background_ctx.lineTo(width, middle+.5);
+    background_ctx.stroke();
+}
+
+function draw_time(repeat = true){
+    // Get current date and time
+    var now = new Date();
+
+    document.getElementById('time').innerHTML     = now;
+
+    overlay_ctx.clearRect(0, 0, width, height); 
+
+    // Draw current time
+    overlay_ctx.fillStyle = "rgba(0,0,0,.5)";
+    overlay_ctx.fillRect(0, 0, (now.getHours() * 60 + now.getMinutes()), bottom); 
+
+    // Draw marker
+    if (marker > -1){
+	// Line
+	overlay_ctx.strokeStyle = "#AA0000";
+	overlay_ctx.lineWidth = 2;
+	overlay_ctx.beginPath();
+	overlay_ctx.moveTo(marker, 0);
+	overlay_ctx.lineTo(marker, bottom);
+	overlay_ctx.stroke();
+
+	// Rotated text
+	overlay_ctx.fillStyle = "#ff0000";
+	overlay_ctx.save();
+	overlay_ctx.translate(0, 0);
+	overlay_ctx.rotate(Math.PI/2);
+	overlay_ctx.font = "15px Arial";
+	overlay_ctx.textAlign = "right";
+	overlay_ctx.fillText(format_time_from_seconds(marker * 60), bottom -5, -5 -marker);
+	overlay_ctx.restore();
+
+	// Text
+	let remaining = (marker * 60) - ((now.getHours() * 60 * 60) + (now.getMinutes() * 60) + now.getSeconds());
+	document.getElementById('duration').innerHTML = "<b>Time Remaining:</b> "+format_time_from_seconds(remaining)+"&nbsp;";
+    }
+
+    // Update weather daily
+    if (now.getHours() == 0 && now.getMinutes() == 0 && now.getSeconds() == 1) {
+        getLocation();
+	draw_background();
+    }
+
+    if (repeat == true)
+	wait();
+}
+
+function wait() {
+    var refresh = 1000;
+    mytime = setTimeout('draw_time()', refresh);
+}
+
+function httpGetAsync(theUrl, callback)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.send(null);
+}
+
+function getAstronomy(lat, lon) {
+    var api = "1fc6e7d8b12c4f55804a58db7fdf7b04";
+    var CurrentAstronomyUrl = "https://api.ipgeolocation.io/astronomy?apiKey="+api+"&lat="+lat+"&long="+lon
+    httpGetAsync(CurrentAstronomyUrl, updateWeather);
+}
+
+function getWeather(lat, lon) {
+    var api = "7c0606acc5d2bf023d4188f3233ccf61";
+    var CurrentWeatherURL = "https://api.openweathermap.org/data/2.5/weather?lat="+lat+"&lon="+lon+"&appid="+api+"&units=imperial"
+    httpGetAsync(CurrentWeatherURL, updateWeather);
+}
+
+function getLocation() {
+    navigator.geolocation.getCurrentPosition(geolocate_success, geolocate_fail);
+}
+
+function geolocate_success(pos) {
+    getAstronomy(pos.coords.latitude, pos.coords.longitude);
+}
+
+function geolocate_fail() {
+    console.log("Failed to get geolocation");
+    var LocationURL = "https://json.geoiplookup.io/8.8.8.8"
+    httpGetAsync(LocationURL, updateLocation);
+}
+
+function updateLocation(data_in) {
+    var location_data = JSON.parse(data_in);
+    console.log(location_data);
+    getAstronomy(location_data.latitude, location_data.longitude);
+}
+
+function updateWeather(data_in) {
+    var weather_data = JSON.parse(data_in);
+
+    sunrise  = weather_data.sunrise;
+    sunset   = weather_data.sunset;
+    moonrise = weather_data.moonrise;
+    moonset  = weather_data.moonset;
+}
+
+function first_run(){
+    getLocation();
+    draw_background();
+    draw_time();
+}
+
+first_run();
+
+</script>
+</html>
