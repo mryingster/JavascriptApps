@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Sudoku</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=768px, user-scalable=no" /> <!-- disabled in iOS 10+ -->    <style>
+    body {
+        background:#eee;
+        color:#000;
+        font-family:sans-serif;
+    }
+
+div#content {
+    background :#fff;
+    margin: 0px auto;
+    width: 650px;
+    padding: 10px;
+    text-align: center;
+}
+
+h1 {
+    margin:10px;
+    font-size:3em;
+}
+
+h1, h2 {
+    color:#991700;
+}
+
+button {
+    font-size: 1.5em;
+    padding: 17px;
+    color: #991700;
+    margin:20px 5px;
+}
+
+input{
+    width: 35px;
+    height: 35px;
+    margin: -1px -1px 0 0;
+    padding: 0px;
+    font-size: 1.5em;
+    text-align: center;
+    border:1px solid black;
+    color: #888;
+}
+
+input:disabled{
+    color: #000;
+    background: #fff;
+}
+input:disabled.conflict{
+    color: #f00;
+}
+input:disabled.dark{
+    background: #eee;
+}
+input.conflict {
+    background: #fcc;
+    color: #f66;
+}
+
+input:focus {
+    outline: none;
+    box-shadow: 0px 0 0px 3px rgba(255, 0, 0, 0.5) inset;
+}
+
+input.dark {
+    background: #eee;
+}
+
+input.dark.conflict {
+    background: #fcc;
+}
+
+    </style>
+  </head>
+
+  <body onload="setup()" onresize="">
+    <div id="content">
+      <h1>Sudoku</h1>
+
+      <div id="sudoku">
+      </div>
+      <button onclick="solve_button()">Solve</button>
+      <button onclick="create()">Create</button>
+      <button onclick="clear_game()">Clear</button>
+      <!--<button onclick="debug()">Debug</button>-->
+      <!--<button onclick="debug2()">Debug2</button>-->
+
+    </div>
+
+    <script>
+
+function guess_solution(game, tries=0) {
+    // Prevent too much recursion
+    if (tries > 2) return game;
+
+    // We are done! 
+    if (is_solved(game)) return game;
+
+    for (let x=0; x<size; x++)
+        for (let y=0; y<size; y++)
+	    // Find empty squares
+	    if (game[y][x].value == 0){
+		// Try possible values
+		for (let p of game[y][x].options){
+		    game[y][x].value = p;
+		    // try solving it now
+		    let temp_game = solve(game);
+
+		    // See if solve is valid
+		    if (!is_valid(temp_game))
+			continue;
+
+		    // See if solve is complete
+		    if (is_solved(temp_game))
+			return temp_game;
+		    else
+			guess_solution(temp_game, tries+1);
+		}
+	    }
+    return game;
+}
+
+function find_possible_moves(game){
+    // Go through every position and update the list of possible values
+    for (var row=0; row<size; row++){
+	for (var col=0; col<size; col++){
+
+	    // Non empty squares should have no options
+	    if (game[row][col].value != 0){
+		game[row][col].options = [];
+		continue;
+	    }
+
+	    let options = valid_numbers.slice();
+
+	    // Remove options from row
+	    for (var x=0; x<size; x++){
+		let i = game[row][x].value;
+		if (options.indexOf(i) >= 0)
+		    options.splice(options.indexOf(i), 1);
+	    }
+
+	    // Remove options from column
+	    for (var y=0; y<size; y++){
+		let i = game[y][col].value;
+		if (options.indexOf(i) >= 0)
+		    options.splice(options.indexOf(i), 1);
+	    }
+
+	    // Check to see if it conflicts with square
+	    let start_row = Math.floor(row/square)*square;
+	    let start_col = Math.floor(col/square)*square;
+	    for (var y=start_row; y<start_row+square; y++)
+		for (var x=start_col; x<start_col+square; x++){
+		    let i = game[y][x].value;
+		    if (options.indexOf(i) >= 0)
+			options.splice(options.indexOf(i), 1);
+		}
+
+	    game[row][col].options = options;
+	}
+    }
+
+    return game;
+}
+
+function solve(game){
+    let made_a_move = true;
+
+    while (made_a_move == true) {
+	game = find_possible_moves(game);
+	made_a_move = false;
+
+	// Make a move and recheck
+	for (var y=0; y<size; y++){
+	    for (var x=0; x<size; x++){
+		if (game[y][x].value == 0){
+		    if (game[y][x].options.length == 0){
+			console.log("Unable to solve!");
+			return game;
+		    }
+
+		    if (game[y][x].options.length == 1){
+			game[y][x].value = game[y][x].options[0];
+			game[y][x].value.options = [];
+			made_a_move = true;
+		    }
+		}
+	    }
+	}
+    }
+
+    // check if valid
+    if (!is_valid(game)){
+	console.log("Something bad happened");
+	return game;
+    }
+	
+    // Check if solved
+    if (!is_solved(game)){
+	console.log("Still not solved...");
+	array_to_html(game);
+	game = guess_solution(game);
+    }
+
+    return game;
+}
+
+function clear_game(){
+    // Go through every position
+    for (var row=0; row<size; row++){
+	for (var col=0; col<size; col++){
+	    let cell = document.getElementById(row+":"+col);
+
+	    // Clear conflict class
+	    cell.classList.remove("conflict");
+
+	    // Make all cells editable
+	    cell.disabled = false;
+
+	    // Erase box
+	    cell.value = "";
+	}
+    }
+    return;
+}
+
+function html_to_array(){
+    let game = [];
+
+    // Import data into array
+    for (var row=0; row<size; row++) {
+	var row_array=[];
+	for (var col=0; col<size; col++) {
+	    let cell = document.getElementById(row+":"+col);
+	    let value = Number("0x"+cell.value);
+	    let disabled = cell.disabled;
+	    let options = valid_numbers.slice();
+	    if (cell > 0) options = [];
+	    row_array.push({
+		value:value,
+		disabled:disabled,
+		options:options
+	    });
+	}
+	game.push(row_array);
+    }
+
+    return game;
+}
+
+function array_to_html(game){
+    if (!game){
+	console.log("No valid game data");
+	return;
+    }
+
+    // Write back out to HTML
+    for (var row=0; row<size; row++) {
+	for (var col=0; col<size; col++) {
+	    if (game[row][col].value > 0 ) {
+		let cell = document.getElementById(row+":"+col);
+		cell.value = game[row][col].value.toString(16);
+		cell.disabled = game[row][col].disabled;
+	    }
+	}
+    }
+}
+
+function solve_button() {
+    let game = html_to_array();
+    game = solve(game);
+    array_to_html(game);
+}
+
+function shuffle(array) {
+    let counter = array.length;
+
+    // While there are elements in the array
+    while (counter > 0) {
+        // Pick a random index
+        let index = Math.floor(Math.random() * counter);
+
+        // Decrease counter by 1
+        counter--;
+
+        // And swap the last element with it
+        let temp = array[counter];
+        array[counter] = array[index];
+        array[index] = temp;
+    }
+
+    return array;
+}
+
+function is_solved(game){
+    if (!game) return false;
+
+    for (var row of game)
+	for (var cell of row)
+	    if (cell.value == 0)
+		return false;
+    return true;
+}
+
+function is_valid(game){
+    if (!game) return false;
+
+    // Go through every position
+    for (var row=0; row<size; row++){
+	for (var col=0; col<size; col++){
+
+	    // Skip empty squares
+	    if (game[row][col].value == 0) continue;
+
+	    // Mark conflicts in row
+	    for (var x=0; x<size; x++)
+		if (x != col)
+		    if (game[row][x].value == game[row][col].value)
+			return false;
+
+	    // Check to see if it conflicts with column
+	    for (var y=0; y<size; y++)
+		if (y != row)
+		    if (game[y][col].value == game[row][col].value)
+			return false;
+
+	    // Check to see if it conflicts with square
+	    let start_row = Math.floor(row/square)*square;            // Confine to squarexsquare square
+	    let start_col = Math.floor(col/square)*square;            // Confine to squarexsquare square
+	    for (var y=start_row; y<start_row+square; y++)
+		for (var x=start_col; x<start_col+square; x++)
+		    if (y != row && x != col)
+			if (game[y][x].value == game[row][col].value)
+			    return false;
+	}
+    }
+
+    return true;
+}
+
+function create() {
+    clear_game();
+
+    let game = []
+
+    // Create blank game field
+    while (game.length < size){
+	let row=[]
+	    for (let i=0; i<size; i++)
+		row.push({
+		    value:0,
+		    disabled:true,
+		    options:valid_numbers.slice()
+		});
+	    
+	    game.push(row);
+    }
+
+    // Create a half-solved randomized puzzle
+    for (var i=0; i<size; i+=2){
+	// Create randomized row
+	let new_row = shuffle(valid_numbers.slice());
+
+	// Format it
+	let row = []
+	for (let e of new_row)
+	    row.push({
+		value:e,
+		disabled:true,
+		options:[],
+	    });
+
+	// And add it
+	game[i] = row;
+
+	// redo this row if game isn't valid
+	if (!is_valid(game))
+	    i -= 2;
+    }
+
+    array_to_html(game); // so we can see progress - DELETE
+
+    // Solve it
+    game = solve(game);
+
+    // If not solved, start over
+    if (!is_solved(game)){
+	create();
+	return;
+    }
+
+    // Remove bits to make it a puzzle by removing a percent of the 20 upper left quarter
+    let target = 10; // Number of squares to remove from the corner - Maybe adjust this for difficulty setting
+    let remove = []; // Coords for what to remove
+/*
+    while (target > 0){
+	let x = Math.floor(Math.random() * 8);
+	let y = Math.floor(Math.random() * 8);
+
+	let duplicate = false;
+	for (let r of remove)
+	    if (r.x == x && r.y == y)
+		duplicate = true;
+
+	if (duplicate == false){
+	    remove.push({x:x, y:y});
+	    target--;
+	}
+    }
+
+    // Take the list and remove it from the 4 rotations of the puzzle
+      for (let s of remove){
+	  game[s.y][s.x]               = {value:0, disabled:false, options:valid_numbers.slice()};
+	  game[s.x][size-1-s.y]        = {value:0, disabled:false, options:valid_numbers.slice()};
+	  game[size-1-s.y][size-1-s.x] = {value:0, disabled:false, options:valid_numbers.slice()};
+	  game[size-1-s.x][s.y]        = {value:0, disabled:false, options:valid_numbers.slice()};
+    }
+*/
+    // Put it out to HTML
+    array_to_html(game);
+}
+
+const valid_numbers = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+const valid_characters = {};
+const size = 16;
+const square = Math.floor(Math.sqrt(size));
+
+function setup() {
+    var sudoku=document.getElementById('sudoku');
+
+    // Create text input fields
+    for (var row=0; row<size; row++) {
+	for (var col=0; col<size; col++) {
+	    var input = document.createElement('input');
+
+	    // Color every other macroblock
+	    if (Math.floor(row/square)*square % 2 ^ Math.floor(col/square)*square % 2)
+		input.classList.add("dark");
+
+	    input.id = row + ":" + col;
+	    input.onkeydown = () => validate_input(event);
+	    input.maxLength = 1;
+	    sudoku.appendChild(input);
+	}
+	sudoku.appendChild(document.createElement('br'));
+    }
+}
+
+function highlight_conflicts(){
+    // Import the puzzle to array
+    let game = html_to_array();
+
+    // Go through every position
+    for (var row=0; row<size; row++){
+	for (var col=0; col<size; col++){
+	    // Clear conflict on screen
+	    document.getElementById(row+":"+col).classList.remove("conflict");
+
+	    // Skip empty squares
+	    if (game[row][col].value == 0) continue;
+
+	    let conflicts = false;
+	    
+	    // Mark conflicts in row
+	    for (var x=0; x<size; x++)
+		if (x != col)
+		    if (game[row][x].value == game[row][col].value){
+			conflicts = true;
+			break;
+		    }
+
+	    // Check to see if it conflicts with column
+	    for (var y=0; y<size; y++)
+		if (y != row)
+		    if (game[y][col].value == game[row][col].value){
+			conflicts = true;
+			break;
+		    }
+
+
+	    // Check to see if it conflicts with square
+	    let start_row = Math.floor(row/square)*square;            // Confine to 3x3 square
+	    let start_col = Math.floor(col/square)*square;            // Confine to 3xsquare square
+	    for (var y=start_row; y<start_row+square; y++) {
+		for (var x=start_col; x<start_col+square; x++) {
+		    if (y != row && x != col)
+			if (game[y][x].value == game[row][col].value) {
+			    conflicts = true;
+			    break;
+			}
+		}
+		if (conflicts == true) break;
+	    }
+
+	    if (conflicts == true)
+		document.getElementById(row+":"+col).classList.add("conflict");
+	}
+    }
+
+    return;
+}
+
+function validate_input(e){
+    let cell = document.getElementById(e.target.id);
+    let key  = e.key;
+    let keycode = e.keyCode;
+
+    // Get location
+    let col = Number(e.target.id.split(":")[1]);
+    let row = Number(e.target.id.split(":")[0]);
+
+    // Look for movement commands???
+    if (keycode == 9) return; // Tab
+    if (keycode == 37){ // Left
+	let new_col = col - 1;
+	while (new_col >= 0){
+	    if (!document.getElementById(row + ":" + new_col).disabled){
+		document.getElementById(row + ":" + new_col).focus();
+		break;
+	    }
+	    new_col--;
+	}
+	return;
+    }
+    if (keycode == 38){ // Up
+	let new_row = row - 1;
+	while (new_row >= 0){
+	    if (!document.getElementById(new_row + ":" + col).disabled){
+		document.getElementById(new_row + ":" + col).focus();
+		break;
+	    }
+	    new_row--;
+	}
+	return;
+    }
+    if (keycode == 39){ // Right
+	let new_col = col + 1;
+	while (new_col < size){
+	    if (!document.getElementById(row + ":" + new_col).disabled){
+		document.getElementById(row + ":" + new_col).focus();
+		break;
+	    }
+	    new_col++;
+	}
+	return;
+    }
+    if (keycode == 40){ // Down
+	let new_row = row + 1;
+	while (new_row < size){
+	    if (!document.getElementById(new_row + ":" + col).disabled){
+		document.getElementById(new_row + ":" + col).focus();
+		break;
+	    }
+	    new_row++;
+	}
+	return;
+    }
+    if (keycode == 8 || keycode == 46){ // Delete/Del
+	e.preventDefault();
+	cell.value="";
+	highlight_conflicts();
+	return;
+    }
+    if (keycode == 27){ // Escape
+	document.activeElement.blur()
+	return;
+    }
+    if (keycode == 80){ // p (for peak)
+	console.log("Cheater!");
+	e.preventDefault()
+	debug2();
+	return;
+    }
+
+    // Make sure only valid characters are printed
+    if (["1","2","3","4","5","6","7","8","9","a","b","c","d","e","f"].indexOf(key) >= 0)
+	cell.value = key;
+    else {
+	e.preventDefault()
+    }
+
+    // Mark all conflicts
+    highlight_conflicts();
+
+    // Check if game is solved!
+    let game = html_to_array();
+    if (is_valid(game) && is_solved(game))
+	alert("You solved it!");
+
+    return;
+}
+
+function debug(){
+    clear_game();
+    let game = make_fake_game();
+    array_to_html(game);
+}
+
+
+    </script>
+  </body>
+</html>
