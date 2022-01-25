@@ -1,0 +1,134 @@
+body {
+    background-image: url("images/tile.png");
+    #background:#aaa;
+    color:#000;
+    font-family:sans-serif;
+}
+
+div#content {
+    display: block;
+    margin: auto;
+    width: 496px;
+    height: 304px;
+    background-image: url("images/background.png");
+}
+
+div#tools {
+    border: 0px solid green;
+    background-color: #000000;
+    width: 43px;
+    height: 148px;
+    position: absolute;
+    margin-top: 30px;
+    margin-left: 14px;
+    line-height: 0px;
+    padding: 0px;
+}
+
+button.tool {
+    width: 21px;
+    padding: 0px;
+    margin: 0;
+    display: inline-block;
+    border: 0px solid red;
+    height: 21px;
+}
+
+h1 {
+    margin:10px;
+    font-size:3em;
+}
+
+.hidden {
+    display: none;
+}
+
+canvas.artboard {
+    #border:1px solid white;
+    outline: 1px solid black;
+    touch-action: manipulation;
+    position: absolute;
+    margin-top: 31px;
+    margin-left: 66px;
+}
+
+canvas.thirtytwo {
+    border: 1px solid white;
+    outline: 1px solid black;
+
+    width:32px;
+    height:32px;
+}
+
+canvas.preview {
+    border: 0px solid red;
+    outline: 0px;
+    position: absolute;
+    margin-top: 37px;
+    margin-left: 411px;
+}
+
+canvas.color {
+    position: absolute;
+    margin-top: 32px;
+    margin-left: 333px;
+}
+
+canvas.mask {
+    position: absolute;
+    margin-top: 90px;
+    margin-left: 333px;
+}
+
+canvas.selected {
+    outline: 2px solid black;
+}
+
+.jscolor {
+    border: 1px black solid;
+    box-shadow: black 2px 2px;
+    width: 28px;
+    height: 18px;    
+}
+
+#foreground {
+    position:absolute;
+    margin-top:213px;
+    margin-left:15px;
+}
+
+#background {
+    position:absolute;
+    margin-top:226px;
+    margin-left:28px;
+}
+
+button#lasso                      { background:url(images/tools.png)   0px    0px; }
+button#marquee                    { background:url(images/tools.png) -21px    0px; }
+button#eraser                     { background:url(images/tools.png)   0px  -21px; }
+button#pencil                     { background:url(images/tools.png) -21px  -21px; }
+button#eyedropper                 { background:url(images/tools.png)   0px  -42px; }
+button#paint_bucket               { background:url(images/tools.png) -21px  -42px; }
+button#nothing                    { background:url(images/tools.png)   0px  -63px; }
+button#line                       { background:url(images/tools.png) -21px  -63px; }
+button#filled_rect                { background:url(images/tools.png)   0px  -84px; }
+button#empty_rect                 { background:url(images/tools.png) -21px  -84px; }
+button#filled_round_rect          { background:url(images/tools.png)   0px -105px; }
+button#empty_round_rect           { background:url(images/tools.png) -21px -105px; }
+button#filled_oval                { background:url(images/tools.png)   0px -126px; }
+button#empty_oval                 { background:url(images/tools.png) -21px -126px; }
+
+button#lasso.selected             { background:url(images/tools.png) -43px    0px; }
+button#marquee.selected           { background:url(images/tools.png) -64px    0px; }
+button#eraser.selected            { background:url(images/tools.png) -43px  -21px; }
+button#pencil.selected            { background:url(images/tools.png) -64px  -21px; }
+button#eyedropper.selected        { background:url(images/tools.png) -43px  -42px; }
+button#paint_bucket.selected      { background:url(images/tools.png) -64px  -42px; }
+button#nothing.selected           { background:url(images/tools.png) -43px  -63px; }
+button#line.selected              { background:url(images/tools.png) -64px  -63px; }
+button#filled_rect.selected       { background:url(images/tools.png) -43px  -84px; }
+button#empty_rect.selected        { background:url(images/tools.png) -64px  -84px; }
+button#filled_round_rect.selected { background:url(images/tools.png) -43px -105px; }
+button#empty_round_rect.selected  { background:url(images/tools.png) -64px -105px; }
+button#filled_oval.selected       { background:url(images/tools.png) -43px -126px; }
+button#empty_oval.selected        { background:url(images/tools.png) -64px -126px; }
