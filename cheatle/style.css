@@ -1,0 +1,45 @@
+body {
+    background:#fff;
+    color:#000;
+    font-family:sans-serif;
+}
+
+div#content {
+    margin: 0px auto;
+}
+
+h1 {
+    margin-bottom:-5px;
+    font-size:3em;
+}
+
+span#tagline{
+    display: block;
+    margin-left:15px;
+    margin-bottom:10px;
+    font-style: italic;
+}
+
+h1, h2 {
+    font-family:georgia, serif;
+    margin-top:10px;
+    margin-left:10px;
+    #color:#00177A;
+}
+
+div#canvas_container{
+    position: relative;
+    width: 512px;
+    height: 320px;
+}
+
+canvas {
+    border : 0px solid red;
+}
+
+div#found_words_div {
+    width:512px;
+    margin:0 auto;
+    text-align:center;
+    column-count:5;
+}
