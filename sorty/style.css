@@ -1,0 +1,45 @@
+body {
+    background:#ccc;
+    color:#000;
+    font-family:sans-serif;
+}
+
+div#content {
+    background:#fff;
+    border: 1px solid #aaa;
+    margin: 0px auto;
+    padding: 10px;
+    width: 800px;
+}
+
+h1 {
+    margin:10px;
+    font-size:3em;
+}
+
+h1, h2 {
+    color:#00177A;
+}
+
+.button {
+    font-size: 1.25em;
+    padding: 15px;
+    width: 240px;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+p {
+    display:block;
+    border:0px solid red;
+    min-height: 60px;
+}
+
+span {
+    display: inline-block;
+    font-size: .9em;
+    text-align: left;
+    vertical-align: middle;
+    width: 525px;
+    margin-left:15px;
+}

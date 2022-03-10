@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Sorty</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=800px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
+    <link rel="stylesheet" type="text/css" media="screen" href="style.css">
+  </head>
+
+  <body onload="first_load()" onresize="">
+
+    <div id="content">
+
+      <canvas id="canvas" width="800px" height="200px"></canvas>
+
+      <p>
+	<button class="button" onclick="shuffle()">Shuffle</button>
+      </p>
+
+      <p>
+	<button class="button" onclick="start_comb_sort()">Comb Sort</button>
+	<span>Comb sort iterates through the array comparing elements that are separated by a certain distance. The distance begins with the first and last element, then shrinks on each iteration until neighboring elements are comapred, and the sort is complete.</span>
+      </p>
+      <p>
+	<button class="button" onclick="start_insertion_sort()">Insertion Sort</button>
+	<span>Insertion sort iterates through the array, and removes the selected element, then inserts it into the correct location in the sorted portion of the array.</span>
+      </p>
+      <p>
+	<button class="button" onclick="start_bin_insertion_sort()">Binary Insertion Sort</button>
+	<span>Similar to Insertion Sort, however it finds the correct location for the element by doing a binary search rather than checking every location in the sorted portion of the array.</span>
+      </p>
+      <p>
+	<button class="button" onclick="start_bubble_sort()">Bubble Sort</button>
+	<span>Bubble sort iteratively compares neighboring elements and swaps them if necessary. It then repeats until no swaps are performed. One optimization is realizing that the last checked element on any pass will be in the correct location and therefore can be skipped on the next pass.</span>
+      </p>
+      <p>
+	<button class="button" onclick="start_merge_sort()">Merge Sort</button>
+	<span>Merge Sort breaks the array into smaller units, starting with pairs of elements and sorts them. From there it sorts while merging adjacent units. It repeats this until there is only a single 'unit' left which is the complete, sorted array.</span>
+      </p>
+      <p>
+	<button class="button" onclick="start_quick_sort()">Quick Sort</button>
+	<span>Quicksort works by selecting a 'pivot' element from the array and partitioning the other elements into two sub-arrays, according to whether they are less than or greater than the pivot which are then sorted recursively. This can be done in-place. </span>
+      </p>
+    </div>
+
+    <script>
+
+// Canvas
+var canvas  = document.getElementById("canvas");
+var ctx     = canvas.getContext("2d");
+
+let array   = [];
+let timer   = null;
+let length  = 50;
+
+let padding = 1;
+let cell_width = 15;
+//let cell_width = Math.floor(canvas.width / (array.length + padding));
+
+// Canvas Functions
+function clear_canvas(canvas, ctx){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function draw_element(x, i){
+    // Draw colored box
+    ctx.fillStyle = chooseColor(i);
+    ctx.fillRect(x, 0, cell_width, canvas.height);
+
+    // Draw index number
+    // Rotate canvas 90 degrees, write text, then rotate it back
+    ctx.save();
+    ctx.translate(0, canvas.height);
+    ctx.rotate(Math.PI / -2);
+    ctx.font = "11px sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "left";
+    ctx.fillText(i, 5, x + 10);
+    ctx.restore();
+    
+}
+
+function draw_marker(i){
+    ctx.fillStyle = "rgba(255,255,255,.75)";
+    ctx.fillRect(
+	i * (cell_width + padding),
+	0, //canvas.height-100,
+	cell_width,
+	canvas.height, //100
+    );
+}
+
+function first_load(){
+    reset();
+    draw_array();
+}
+
+function draw_array(){
+    let x = 0;
+    for (let e of array){
+	//console.log(e, chooseColor(e));
+	draw_element(
+	    x,               // x
+	    e,               // Index
+	);
+	x += cell_width + padding;
+    }
+}
+
+function hexString(n) {
+    t = Math.floor(n).toString(16)
+    if (t.length % 2) {
+        t = "0" + t;
+    }
+    return t;
+}
+
+function chooseColor(i) {
+    // Rotate through rainbow in 100 cycles
+
+    var r = 0;
+    var g = 0;
+    var b = 0;
+
+    const band = (length / 5);
+    if (i >= band * 0 & i < band * 1){
+        r = 0xff;
+        g = 0xff * i / band;
+    }
+    if (i >= band * 1 & i < band * 2) {
+        g = 0xff;
+        r = 0xff * ((band - (i % band)) / band);
+    }
+    if (i >= band * 2 & i < band * 3) {
+        g = 0xff;
+        b = 0xff * (i % band) / band;
+    }
+    if (i >= band * 3 & i < band * 4) {
+        b = 0xff;
+        g = 0xff * ((band - (i % band)) / band);
+    }
+    if (i >= band * 4 & i < band * 5) {
+        b = 0xff;
+        r = 0xff * (i % band) / band;
+    }
+    if (i >= band * 5 & i < band * 6) {
+        r = 0xff;
+        b = 0xff * ((band - (i % band)) / band);
+    }
+
+    return "#"+hexString(r)+hexString(g)+hexString(b);
+}
+
+function reset(){
+    // Reset array
+    array = [];
+    for (let i=0; i<length; i++)
+	array.push(i);
+}
+
+function shuffle() {
+    reset();
+    let animation = [];
+    let counter = array.length;
+
+    // While there are elements in the array
+    while (counter > 0) {
+        // Pick a random index
+        let index = Math.floor(Math.random() * counter);
+
+        // Decrease counter by 1
+        counter--;
+
+        // And swap the last element with it
+        let temp = array[counter];
+        array[counter] = array[index];
+        array[index] = temp;
+
+	animation.push({
+	    array   : [...array],
+	    markers : [],
+	});
+    }
+
+    //console.log(JSON.stringify(array));
+    //draw_array();
+    animate_sort(animation, 5);
+}
+
+
+
+function start_comb_sort(){
+    let animation = [];
+    //comb_sort(array.length, 0);
+
+    let pitch = array.length;
+    while (pitch > 0){
+    	for (let i=0; i+pitch<array.length; i++){
+	    animation.push({
+		array   : [...array],
+		markers : [i, i+pitch],
+	    });
+    	    if (array[i] > array[i+pitch]){
+    		let t = array[i];
+    		array[i] = array[i + pitch];
+    		array[i + pitch] = t;
+    		draw_array();
+    	    }
+	}
+    	pitch--;
+    }
+
+    animate_sort(animation, 10);
+}
+
+function start_insertion_sort(){
+    let animation = [];
+
+    for (i=1; i<array.length; i++){
+	// If the element is already bigger that the item on the left, we can skip it.
+	if (array[i] > array[i-1]){
+            animation.push({
+		array   : [...array],
+		markers : [i],
+	    });
+            continue;
+        }
+
+    	for (n=0; n<i; n++){
+	    animation.push({
+		array   : [...array],
+		markers : [i, n],
+	    });
+    	    if (array[i] < array[n]){
+    		let t = array[i];
+    		array.splice(i,1);
+    		array.splice(n,0,t);
+		break;
+    	    }
+	}
+    }
+
+    animation.push({
+	array   : [...array],
+	markers : [],
+    });
+    animate_sort(animation, 10);
+}
+
+function start_bin_insertion_sort(){
+    let animation = [];
+
+    for (i=1; i<array.length; i++){
+        let debug = [];
+    	// Binary search area to left for location
+    	let location = Math.ceil(i/2);
+    	let distance = Math.ceil(i/2);
+
+	// If the element is already bigger that the item on the left, we can skip it.
+	if (array[i] > array[i-1]){
+                        animation.push({
+		array   : [...array],
+		markers : [i],
+	    });
+            continue;
+        }
+
+    	// while no spot found
+    	while (array[location - 1] > array[i] || array[location] < array[i]){
+	    // Animation frame during search
+	    animation.push({
+		array   : [...array],
+		markers : [i, location],
+	    });
+
+    	    distance = Math.ceil(distance / 2);
+    	    // If spot on right is smaller, move to right
+    	    if (array[location] < array[i])
+    		location = Math.min(i, location + distance);
+    	    else
+    		// if spot on left is bigger, move to left
+    		location = Math.max(0, location - distance);
+    	    if (distance == 0) break;
+
+            debug.push(location);
+    	}
+
+    	// The spot must be right, move there
+    	let t = array[i];
+    	array.splice(i,1);
+    	array.splice(location,0,t);
+
+	// Final animation frame aftwer swap
+	animation.push({
+	    array   : [...array],
+	    markers : [i, location],
+	});
+    }
+
+    // Animate the sorting process
+    animate_sort(animation, 10);
+}
+
+function start_bubble_sort(){
+    let animation = [];
+
+    for (let l=array.length; l>0; l--){
+	let made_a_swap = false;
+    	for (let i=0; i<l; i++){
+	    animation.push({
+		array   : [...array],
+		markers : [i, i+1],
+	    });
+
+    	    if (array[i] > array[i+1]){
+		made_a_swap = true;
+    		let t = array[i];
+    		array[i] = array[i+1];
+    		array[i+1] = t;
+    	    }
+	}
+	if (!made_a_swap) break;
+    }
+
+    animate_sort(animation, 10);
+}
+
+function start_merge_sort(){
+    let animation = [];
+
+    // Create groups of sorted pairs
+    let pairs = [];
+    for (let i=0; i<array.length; i+=2){
+	if (array[i] > array[i+1])
+	    pairs.push([array[i+1], array[i]]);
+	else
+	    pairs.push([array[i], array[i+1]]);
+
+	// Combine arrays for animation frame
+	let markers = [];
+	for (let i=(pairs[0].length * pairs.length) -1; i>(pairs[0].length * (pairs.length - 1)) -1; i--)
+	    markers.push(i);
+	let frame = [];
+	for (let p of pairs)
+	    for (let e of p)
+		frame.push(e);
+	animation.push({
+	    array   : frame,
+	    markers : markers,
+	});
+    }
+
+    // Combine arrays for animation frame
+    let frame = [];
+    for (let p of pairs)
+	for (let e of p)
+	    frame.push(e);
+    animation.push({
+	array   : frame,
+	markers : [],
+    });
+
+    // Merge and sort neighboring groups until only one group remains
+    while (pairs.length > 1){
+	// Create a new array to merge into
+	let temp = [];
+
+	// Look at pairs of pairs array
+	for (let i=0; i<pairs.length; i+=2){
+	    let merged_pair = [];
+	    let a = pairs[i];
+	    let b = pairs[i+1];
+
+	    // If we have an odd number, then we leave that last one alone
+	    if (!b){
+		temp.push([...a]);
+		continue;
+	    }
+
+	    // Sort the pair of pairs
+	    while (a.length > 0 && b.length > 0){
+		if (a[0] < b[0]){
+		    merged_pair.push(a[0]);
+		    a.splice(0,1);
+		} else {
+		    merged_pair.push(b[0]);
+		    b.splice(0,1);
+		}
+	    }
+	    // Copy remainder of elements from a and b
+	    while (a.length > 0){
+		merged_pair.push(a[0]);
+		a.splice(0,1);
+	    }
+	    while (b.length > 0){
+		merged_pair.push(b[0]);
+		b.splice(0,1);
+	    }
+
+	    // Add merged list to temp
+	    temp.push(merged_pair);
+
+	    // Combine arrays for animation frame
+	    let markers = [];
+	    for (let i=(temp[0].length * temp.length) -1; i>(temp[0].length * (temp.length - 1)) -1; i--)
+		markers.push(i);
+	    let frame = [];
+	    for (let p of temp)
+		for (let e of p)
+		    frame.push(e);
+	    animation.push({
+		array   : frame,
+		markers : markers,
+	    });
+	}
+
+	// Copy new array to pair array
+	pairs = [...temp];
+
+	// Combine arrays for animation frame
+	let frame = [];
+	for (let p of pairs)
+	    for (let e of p)
+		frame.push(e);
+	animation.push({
+	    array   : frame,
+	    markers : [],
+	});
+    }
+
+    // Copy now sorted array to array
+    array = [...pairs[0]];
+
+    // Animate what we've done
+    animate_sort(animation, 50);
+}
+
+function start_quick_sort(){
+    qs_animation = [];
+    qs_main(0, array.length-1);
+
+    animate_sort(qs_animation, 10);
+    //draw_array();
+}
+
+function qs_main(low, high){
+    if (low >= high || high <= low) return;
+
+    // Get the partition index
+    let p = qs_partition(low, high);
+
+    // Sort left and right of partition
+    qs_main(low, p-1);
+    qs_main(p+1, high);
+
+    return;
+}
+
+let qs_animation = [];
+function qs_partition(low, high){
+    let pivot = array[high];
+    let i = low - 1;
+
+    for (let j=low; j<high; j++){
+	// If the element is less than the pivot element
+	if (array[j] <= pivot) {
+	    i += 1;
+
+	    // Swap element at pivot
+	    let t = array[i];
+	    array[i] = array[j];
+	    array[j] = t;
+
+	    // Create animation frame
+	    qs_animation.push({
+		array   : [...array],
+		markers : [i, j],
+	    });
+	}
+    }
+
+    // Move the pivot between the larger and smaller elements
+    i += 1;
+
+    let t = array[i];
+    array[i] = array[high];
+    array[high] = t;
+
+    // Create animation frame
+    qs_animation.push({
+	array   : [...array],
+	markers : [i, high],
+    });
+
+    // Return the pivot index
+    return i;
+}
+
+function animate_sort(a, t=750, f=0){
+    if (a.length == f){
+	clearTimeout();
+	draw_array();
+	return;
+    }
+
+    // Draw array and markers
+    array = [...a[f].array]
+    draw_array();
+    for (let marker of a[f].markers)
+	draw_marker(marker);
+
+    // Call next step with timer
+    timer = setTimeout(() => animate_sort(a, t, f+1), t);
+}
+
+    </script>
+  </body>
+</html>
