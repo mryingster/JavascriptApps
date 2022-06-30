@@ -106,7 +106,7 @@ var spacing     = (canvas.width - (2 * game_border) - (tile_size * num_tiles))/(
 // Touch listeners
 overlay.addEventListener('touchstart', input_down_touch, false);
 overlay.addEventListener('touchmove',  input_move_touch, false);
-overlay.addEventListener('touchend',   input_up, false);
+overlay.addEventListener('touchend',   input_up_touch, false);
 
 function getTouchPosition(overlay, event){
     if (!e)
@@ -119,7 +119,7 @@ function getTouchPosition(overlay, event){
         if (e.touches.length == 1) { // Only deal with one finger
             var touch = e.touches[0]; // Get the information for finger #1
             x = touch.pageX-touch.target.offsetLeft;
-            y = touch.pageY-touch.target.offsetTop - (tile_size / 2); // Adjust y because apple messes things up!
+            y = touch.pageY-touch.target.offsetTop - (tile_size * 2); // Adjust y because apple messes things up!
         }
     }
 
@@ -137,6 +137,12 @@ function input_move_touch(e){
     if (mouse_down == true)
         highlight_selected_tile(getTouchPosition(overlay, e));
     e.preventDefault();
+}
+
+function input_up_touch(e){
+    if (game_active == false) return;
+    mouse_down = false;
+    type_letter(getTouchPosition(overlay, e));
 }
 
 // Mouse listeners

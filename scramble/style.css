@@ -17,6 +17,18 @@ h1, h2 {
     color:#00177A;
 }
 
+button {
+    touch-action:manipulation;
+}
+
+button.key{
+    width:55px;
+    height:55px;
+    margin:3px;
+    top: -7px;
+    position: relative;
+}
+
 .button {
     font-size: 1.5em;
     padding: 17px;
@@ -104,10 +116,3 @@ span#feedback{
     opacity:0;
 }
 
-button.key{
-    width:55px;
-    height:55px;
-    margin:3px;
-    top: -7px;
-    position: relative;
-}
