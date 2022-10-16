@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Simon Says</title>
+    <style>
+    </style>
+  </head>
+  <body>
+    <center>
+      <canvas id="simon" onclick="" width="768" height="768"></canvas>
+    </center>
+
+    <button onclick="new_game();">New Game</button>
+    <p>Status: <span id="status">--</span></p>
+    <script>
+
+// Canvas
+var canvas = document.getElementById("simon");
+var ctx    = canvas.getContext("2d");
+
+// Touch listeners
+canvas.addEventListener('touchstart', input_down_touch, false);
+canvas.addEventListener('touchmove',  input_move_touch, false);
+canvas.addEventListener('touchend',   input_up, false);
+
+function getTouchPosition(canvas, event){
+    if (!e)
+        var e = event;
+
+    var x = null;
+    var y = null;
+
+    if(e.touches) {
+        if (e.touches.length == 1) { // Only deal with one finger
+            var touch = e.touches[0]; // Get the information for finger #1
+            x = touch.pageX-touch.target.offsetLeft;
+            y = touch.pageY-touch.target.offsetTop - (tile_size / 2); // Adjust y because apple messes things up!
+        }
+    }
+
+    return {x:x, y:y};
+}
+
+function input_down_touch(e){
+    //if (game_active == false) return;
+    mouse_down = true;
+    press_button(getCursorPosition(canvas, e));
+    e.preventDefault();
+}
+
+function input_move_touch(e){
+    //if (mouse_down == true)
+    //mouse_track_word(getTouchPosition(canvas, e));
+    //e.preventDefault();
+}
+
+// Mouse listeners
+canvas.addEventListener('mousedown',  input_down_mouse);
+canvas.addEventListener('mousemove',  input_move_mouse);
+canvas.addEventListener('mouseup',    input_up);
+
+function getCursorPosition(canvas, event){
+    // Determine where clicked
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    return {x:x, y:y};
+}
+
+function input_down_mouse(e){
+    //if (game_active == false) return;
+    mouse_down = true;
+    press_button(getCursorPosition(canvas, e), true);
+}
+
+function input_move_mouse(e){
+    //if (mouse_down == true)
+    //press_button(getCursorPosition(canvas, e), true);
+}
+
+function input_up(e){
+    mouse_down = false;
+
+    // Stop tones
+    stop_sound();
+
+    // Redraw
+    draw_simon();
+
+    // See if user is correct
+    check_sequence();
+}
+
+
+    // draw_circle_gradient(x, y, r, c1, c2, c3) {
+    //     //this.ctx.fillStyle = c1;
+    //     this.ctx.beginPath();
+    //     this.ctx.arc(x, y, r, 0, 2 * Math.PI);
+    //     let grdRadial = this.ctx.createRadialGradient(x, y, r*.2, x, y, r);
+    //     grdRadial.addColorStop(0, c1);
+    //     grdRadial.addColorStop(.5, c2);
+    //     grdRadial.addColorStop(1, c3);
+    //     this.ctx.fillStyle = grdRadial;
+    //     this.ctx.fill();
+    // }
+
+
+// Audio
+function create_audio_context(){
+    audio_ctx = new AudioContext();
+    oscillator = audio_ctx.createOscillator();
+    gainNode = audio_ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audio_ctx.destination);
+    gainNode.gain.setValueAtTime(0, audio_ctx.currentTime);
+    oscillator.start(0);
+}
+
+var audio_ctx;
+var oscillator;
+var gainNode;
+create_audio_context();
+
+// Game
+const buttons = [
+    { color1 : "#00F", color2: "#88F", color3: "#008", tone: 195.998 }, // Blue     G
+    { color1 : "#FF0", color2: "#FF8", color3: "#880", tone: 261.626 }, // Yellow   C
+    { color1 : "#F00", color2: "#F88", color3: "#800", tone: 329.628 }, // Red      E
+    { color1 : "#0F0", color2: "#8F8", color3: "#080", tone: 391.995 }, // Green    G
+    { color1 : "#F0F", color2: "#F8F", color3: "#808", tone: 440.000 }, // Purple   A
+    { color1 : "#0FF", color2: "#8FF", color3: "#088", tone: 523.250 }, // Cyan     C
+]
+
+var animation_timer = null;
+var n_buttons       = 6;
+var simon_sequence  = [];
+var user_sequence   = [];
+var game_over       = true;
+
+function press_button(p){
+    let middle = canvas.width/2;
+
+    // Find angle from center
+    let opposite = p.y - middle;
+    let adjacent = p.x - middle;
+
+    let angle = Math.atan(opposite/adjacent);
+
+    // Left Half
+    if (p.x < middle)
+	angle += Math.PI;
+
+    // Upper right quadrant
+    if (p.y < middle && p.x > middle)
+	angle += 2*Math.PI;    
+
+    var button_position = Math.floor(angle * n_buttons / (2 * Math.PI));
+
+    // Draw button
+    start_animate_button(button_position);
+
+    // Add to user sequence
+    user_sequence.push(button_position);
+}
+
+function check_sequence(){
+    // Check sequence and see how it's going
+    for (var i=0; i<user_sequence.length; i++){
+	if (user_sequence[i] != simon_sequence[i])
+	    game_over = true;
+    }
+
+    // Update status
+    if (game_over == true){
+	document.getElementById("status").innerHTML = "Game Over";
+	return;
+    }
+    else
+	document.getElementById("status").innerHTML = simon_sequence.length;
+
+    // See if it's time to add a new tone to the sequence
+    if (user_sequence.length == simon_sequence.length){
+	user_sequence = [];
+	add_to_sequence();
+    }
+}
+
+function start_sound(f){
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(f, audio_ctx.currentTime);
+    gainNode.gain.setValueAtTime(.1, audio_ctx.currentTime);
+    console.log("should be playing")
+}
+
+function stop_sound(){
+    gainNode.gain.setValueAtTime(0, audio_ctx.currentTime);    
+}
+
+function draw_circle(x, y, r, c) {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fill();
+}
+
+function draw_button(i, c){
+    let width = canvas.width;
+    let middle = width/2;
+
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.moveTo(middle, middle);
+    ctx.arc(middle,				// x (center of arc)
+	    middle,				// y (center of arc)
+	    middle-10,				// Radius
+	    2*Math.PI / n_buttons * i,		// Start position of arc in radians
+	    2*Math.PI / n_buttons * (i + 1)	// End position of arc in radians
+	   );
+    ctx.moveTo(middle, middle);
+    ctx.fill();
+
+    return
+}
+
+function draw_forground(){
+    let width = canvas.width;
+    let middle = width/2;
+
+    // Draw center circle
+    draw_circle(middle, middle, middle/2, "#000");
+
+    // Draw lines
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 20;
+    for (var i=0; i<n_buttons; i++){
+	ctx.beginPath();	
+	ctx.moveTo(middle, middle);
+	let angle = 2*Math.PI / n_buttons * i;
+	let x = Math.cos(angle) * middle;
+	let y = Math.sin(angle) * middle;
+	ctx.lineTo(middle + x, middle + y);
+	ctx.stroke();
+    }
+    
+    // Draw name
+    ctx.font = "bold 50px Helvetica";
+    ctx.fillStyle = "#AAA";
+    ctx.textAlign = "center";
+    ctx.fillText("SIMON", middle, middle); 
+
+    // Other buttons?
+}
+
+function draw_simon(){
+    let width = canvas.width;
+    let middle = width/2;
+
+    // Clear drawing
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw background
+    draw_circle(middle, middle, middle, "#000");
+
+    // Draw colored buttons
+    for (var i=0; i<n_buttons; i++)
+	draw_button(i, buttons[i].color1);
+
+    // Draw forground
+    draw_forground();
+}
+
+function start_animate_button(p){
+    start_sound(buttons[p].tone);
+    draw_button(p, buttons[p].color2);
+    draw_forground();
+}
+
+function end_animate_button(){
+    stop_sound();
+    draw_simon();
+}
+
+function play_silence(sequence){
+    end_animate_button();
+    setTimeout(() => play_sequence(sequence), 100)
+}
+
+function play_sequence(sequence){
+    if (sequence.length > 0){
+	start_animate_button(sequence[0]);
+	setTimeout(() => play_silence(sequence.slice(1)), 500)
+    }
+}
+
+function add_to_sequence(){
+    simon_sequence.push(Math.floor(Math.random() * n_buttons));
+    setTimeout(() => play_sequence(simon_sequence), 500);
+}
+
+function new_game(){
+    create_audio_context();
+    game_over      = false;
+    simon_sequence = [];
+    user_sequence  = [];
+    add_to_sequence();
+}
+
+draw_simon();
+
+    </script>
+  </body>
+</html>
