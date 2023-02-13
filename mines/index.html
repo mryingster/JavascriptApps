@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Minesweeper</title>
+    <meta charset="utf-8"/>
+    <style>
+      body {
+          background:#aaa;
+          color:#000;
+	  font-family:sans-serif;
+      }
+
+      div#content {
+	  background:#fff;
+      }
+
+      h1 {
+	  margin:10px;
+	  font-size:3em;
+      }
+    </style>
+  </head>
+
+  <body style="background:#bbbbbb;">
+
+    <div id="content" style="width:768px; margin: 0 auto 0 auto; padding:15px;">
+    <h1>Minesweeper</h1>
+    <canvas id="canvas" width="768" height="512" style="border:1px solid black; touch-action: manipulation"></canvas>
+    Difficulty:
+    <select id="difficulty">
+    	<option>Easy</option>
+    	<option selected>Medium</option>
+    	<option>Hard</option>
+    	<option>Impossible</option>
+    </select>
+    <button onclick="new_game()">New Game</button>
+    Flags Left: <span id="flags">0</span>
+    </div>
+
+    <script>
+// Comment
+
+function recursiveReveal(x, y){
+    // Shouldn't happen
+    if (array[y][x]["touching"] == -1)
+	return;
+
+    // Mark block as visible
+    array[y][x]["visible"] = true;
+
+    // stop on number
+    if (array[y][x]["touching"] > 0){
+	return;
+    }
+
+    // Reveal all touching 0s
+    for (let y1=-1; y1<=1; y1++)
+	if (y+y1 < height/square_size && y+y1 >= 0)
+	    for (let x1=-1; x1<=1; x1++)
+		if (x+x1 < width/square_size && x+x1 >= 0)
+		    if (array[y+y1][x+x1]["visible"] == false)
+			recursiveReveal(x+x1, y+y1);
+    
+    return;	
+}
+
+function isValidMove(x, y, c){
+    if (y < array.length-1)
+	if (array[y+1][x] == c) return true;
+    if (y > 0)
+	if (array[y-1][x] == c) return true;
+    if (x < array[y].length)
+	if (array[y][x+1] == c) return true;
+    if (x > 0)
+	if (array[y][x-1] == c) return true;
+    return false;
+}
+
+function gameOver(){
+    game_active = false;
+    alert("You lose!");
+}
+
+function gameWon(){
+    let win_by_flag = true;
+    let win_by_uncovering = true;
+
+    for (var y=0; y<array.length; y++)
+	for (var x=0; x<array[y].length; x++){
+	    // Win by placing every flag
+	    if (array[y][x]["touching"] == -1 && array[y][x]["flagged"] != true)
+		win_by_flag = false
+
+	    // Or win by uncovering every block
+	    if(array[y][x]["touching"] >= 0 && array[y][x]["visible"] == false)
+		win_by_uncovering = false;
+	}
+
+    if (win_by_uncovering || win_by_flag)
+	return true;
+
+    return false;
+}
+
+function revealGame(won){
+    game_active = false;
+    for (var y=0; y<array.length; y++)
+	for (var x=0; x<array[y].length; x++){
+	    array[y][x]["visible"] = true;
+	    if (won && array[y][x]["touching"] == -1)
+		array[y][x]["flagged"] = true;
+	}
+
+    redraw();
+}
+
+function makeMove(x, y, flag){
+    if (game_active == false)
+	return;
+
+    if (flag == true && array[y][x]["visible"] == false)
+	array[y][x]["flagged"] = !array[y][x]["flagged"];
+    else {
+	if (array[y][x]["flagged"] == true){
+	    array[y][x]["flagged"] = false;
+	}
+
+	if (array[y][x]["touching"] == -1){
+	    gameOver();
+	    revealGame();
+	}
+	
+	if (array[y][x]["touching"] == 0)
+	    recursiveReveal(x, y);
+
+	if (array[y][x]["touching"] > 0)
+	    array[y][x]["visible"] = true;
+    }
+
+    // Redraw
+    redraw();
+
+    // Check for completion
+    if (gameWon() && game_active){
+	alert("You win!");
+	revealGame(true);
+    }
+
+    return;
+}
+
+function getCursorPosition(canvas, event){
+    // Determine where clicked
+    const rect = canvas.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+
+    // Determine square size
+    var sx = Math.floor(x/square_size);
+    var sy = Math.floor(y/square_size);
+
+    // determine right click
+    rightClick = false;
+    if (event.which == 3)
+	rightClick = true;
+
+    // Proceed with our move
+    makeMove(sx, sy, rightClick);
+}
+
+const canvas = document.querySelector('canvas')
+canvas.addEventListener('mousedown', function(e){
+    getCursorPosition(canvas, e)
+})
+// Diable context menu on canvas
+canvas.addEventListener("contextmenu", (e) => {e.preventDefault()});
+
+const width = canvas.width;
+const height = canvas.height;
+const square_size = 32;
+
+var array = [];
+var flags = 0;
+var mines = 0;
+var difficulty = "";
+var game_active = false;
+
+function new_game(){
+    difficulty = document.getElementById("difficulty").value;
+    flags = 0;
+    game_active = true;
+
+    switch(difficulty){
+    case "Easy":
+	mines = 15;
+	break;
+    case "Medium":
+	mines = 30;
+	break;
+    case "Hard":
+	mines = 50;
+	break;
+    case "Impossible":
+	mines = 100;
+	break;
+    }
+
+    // Create empty array
+    array = [];
+    for (var y=0; y<height/square_size; y++){
+	var temp = [];
+	for (var x=0; x<width/square_size; x++){
+	    temp.push({"touching":0, "visible":false, "flagged":false});
+	}
+	array.push(temp);
+    }
+
+    // Randomly place mines
+    for (let i=0; i<mines; i++){
+	y = Math.floor(Math.random() * (height/square_size));
+	x = Math.floor(Math.random() * (width/square_size));
+
+	if (array[y][x]["touching"] != -1){
+	    array[y][x]["touching"] = -1
+	    // increment all neighbors
+	    for (let y1=-1; y1<=1; y1++)
+		if (y+y1 < height/square_size && y+y1 >= 0)
+		    for (let x1=-1; x1<=1; x1++)
+			if (x+x1 < width/square_size && x+x1 >= 0)
+			    if (array[y+y1][x+x1]["touching"] != -1)
+				array[y+y1][x+x1]["touching"]++;
+		
+	} else {
+	    i--;
+	}
+    }
+
+    // Debug
+    // for (let l of array){
+    // 	let line=""
+    // 	for(let e of l){
+    // 	    if (e["touching"] == -1)
+    // 		line += "+";
+    // 	    else if (e["touching"] == 0)
+    // 		line += " ";
+    // 	    else
+    // 		line += e["touching"];
+    // 	}
+    // 	console.log(line);
+    // }
+
+    // Draw the screen
+    redraw();
+}
+
+function redraw(){
+    var c = document.getElementById("canvas");
+    var ctx = c.getContext("2d");
+
+    // Redraw each block
+    for (var y=0; y<array.length; y++){
+	for (var x=0; x<array[y].length; x++){
+	    // Draw grey square
+	    drawFlatSquare(ctx, x*square_size, y*square_size, square_size,
+			   ["#CCCCCC","#AAAAAA"]
+			  );
+
+	    if (array[y][x]["visible"] == true || array[y][x]["flagged"] == true){
+		drawFlatSquare(ctx, x*square_size, y*square_size, square_size,
+			       ["#AAAAAA","#CCCCCC"]
+			      );
+
+		// Draw raised square
+		if (array[y][x]["flagged"] == true || array[y][x]["touching"] != 0){
+		    drawRaisedSquare(ctx, x*square_size, y*square_size, square_size,
+				     ["#AAAAAA","#BBBBBB","#CCCCCC","#DDDDDD","#EEEEEE"]
+				    );
+		}
+		
+		// Draw flag
+		if (array[y][x]["flagged"] == true){
+		    ctx.font = "20px Arial";
+		    ctx.fillText("🚩", x*square_size + square_size/2 - 9, y*square_size + square_size/2 + 8);
+		}
+		else if (array[y][x]["touching"] == -1){
+		    // Draw mine
+		    ctx.font = "14px Arial";
+		    ctx.fillText("💣", x*square_size + square_size/2 - 9, y*square_size + square_size/2 + 7);
+
+		} else {
+		    // Draw number
+		    ctx.fillStyle = ["#CCCCCC", "#FF0000", "#0000FF", "#00FF00", "#FF00FF", "#00FFFF", "#FFFF00", "#FFFFFF", "#000000"][array[y][x]["touching"]];
+		    ctx.font = "20px Arial";
+		    ctx.fillText(array[y][x]["touching"], x*square_size + square_size/2 - 6, y*square_size + square_size/2 + 8);
+		}
+	    }
+	}
+    }
+
+    // Update flag count
+    let flags = mines;
+    for (var y=0; y<array.length; y++)
+	for (var x=0; x<array[y].length; x++)
+	    if (array[y][x]["flagged"])
+		flags--;
+
+    document.getElementById("flags").innerHTML = flags;
+}
+
+function drawFlatSquare(ctx, x, y, l, c){
+    // Fill in background color
+    ctx.fillStyle = c[0];
+    ctx.fillRect(x, y, l, l);
+
+    // Draw lines on bottom right edges
+    ctx.fillStyle = c[1];
+    ctx.fillRect(x+1, y+1, l-1, l-1);
+}
+
+function drawRaisedSquare(ctx, x, y, l, c){
+    const edge = Math.floor(square_size * .2);;
+    
+    // Fill in background color
+    ctx.fillStyle = c[2];
+    ctx.fillRect(x, y, l, l);
+
+    // North Edge
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x+edge, y+edge);
+    ctx.lineTo(x+l-edge, y+edge);
+    ctx.lineTo(x+l, y);
+    ctx.fillStyle = c[4];
+    ctx.fill();
+
+    // West Edge
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x+edge, y+edge);
+    ctx.lineTo(x+edge, y+l-edge);
+    ctx.lineTo(x, y+l);
+    ctx.fillStyle = c[3];
+    ctx.fill();
+
+    // East Edge
+    ctx.beginPath();
+    ctx.moveTo(x+l, y);
+    ctx.lineTo(x+l-edge, y+edge);
+    ctx.lineTo(x+l-edge, y+l-edge);
+    ctx.lineTo(x+l, y+l);
+    ctx.fillStyle = c[1];
+    ctx.fill();
+
+    // South Edge
+    ctx.beginPath();
+    ctx.moveTo(x, y+l);
+    ctx.lineTo(x+edge, y+l-edge);
+    ctx.lineTo(x+l-edge, y+l-edge);
+    ctx.lineTo(x+l, y+l);
+    ctx.fillStyle = c[0];
+    ctx.fill();
+}
+
+new_game();
+    </script>
+  </body>
+</html>
