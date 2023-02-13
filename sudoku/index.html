@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Sudoku</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=768px, user-scalable=no" /> <!-- disabled in iOS 10+ -->    <style>
+    body {
+        background:#eee;
+        color:#000;
+        font-family:sans-serif;
+    }
+
+div#content {
+    background :#fff;
+    margin: 0px auto;
+    width: 650px;
+    padding: 10px;
+    text-align: center;
+}
+
+h1 {
+    margin:10px;
+    font-size:3em;
+}
+
+h1, h2 {
+    color:#991700;
+}
+
+button {
+    font-size: 1.5em;
+    padding: 17px;
+    color: #991700;
+    margin:20px 5px;
+}
+
+input{
+    width: 70px;
+    height: 70px;
+    margin: -1px -1px 0 0;
+    padding: 0px;
+    font-size: 3em;
+    text-align: center;
+    border:1px solid black;
+    color: #888;
+}
+
+input:disabled{
+    color: #000;
+    background: #fff;
+}
+input:disabled.conflict{
+    color: #f00;
+}
+input:disabled.dark{
+    background: #eee;
+}
+input.conflict {
+    background: #fcc;
+    color: #f66;
+}
+
+input:focus {
+    outline: none;
+    box-shadow: 0px 0 0px 3px rgba(255, 0, 0, 0.5) inset;
+}
+
+input.dark {
+    background: #eee;
+}
+
+input.dark.conflict {
+    background: #fcc;
+}
+
+#mode {
+    background-color: #eee;
+    display: inline-block;
+    padding: 5px;
+    margin: 10px;
+    border-radius: 20px;    
+}
+
+.toggle {
+    border: 0px;
+    border-radius: 15px;
+    margin: 0px;
+    width: 100px;
+}
+
+.on {
+    background-color: #991700;
+    color: #fff;
+}
+
+.off {
+    background-color: #ccc;
+    color: #991700;
+}
+
+#allow_guesses {
+    width: 30px;
+    margin: 7px;
+    height: 30px;
+}
+
+.hidden {
+    display: none;
+}
+
+    </style>
+  </head>
+
+  <body onload="setup()" onresize="">
+    <div id="content">
+      <h1>Sudoku</h1>
+
+      <div id="sudoku">
+      </div>
+
+      <div id="mode">
+	<button id="play"  class="toggle on" onclick="play_mode()">Play</button>
+	<button id="solve" class="toggle off" onclick="solve_mode()">Solve</button>
+      </div>
+
+      <div id="play_controls">
+	Difficulty:
+	<select id="difficulty">
+	  <option>Easy</option>
+	  <option>Medium</option>
+	  <option>Hard</option>
+	</select>
+	<input id="allow_guesses" type="checkbox">Allow Guesses</input>
+	<button onclick="create(1)">Create</button>
+      </div>
+
+      <div id="solve_controls">
+	<button onclick="solve_button(false)">Solve</button>
+	<button onclick="solve_button(true)">Solve w/ Guesses</button>
+	<button onclick="clear_game()">Clear</button>
+      </div>
+
+      <!--<button onclick="debug()">Debug</button>-->
+      <!--<button onclick="debug2()">Debug2</button>-->
+
+      <br><span id="debug"></span>
+
+    </div>
+
+    <script>
+
+function guess_solution(game, tries=0) {
+    // Prevent too much recursion
+    if (tries > 2) return game;
+
+    // We are done! 
+    if (is_solved(game)) return game;
+
+    for (let x=0; x<9; x++)
+        for (let y=0; y<9; y++)
+	    // Find empty squares
+	    if (game[y][x].value == 0){
+		// Try possible values
+		for (let p of game[y][x].options){
+		    game[y][x].value = p;
+		    // try solving it now
+		    let temp_game = solve(game);
+
+		    // See if solve is valid
+		    if (!is_valid(temp_game))
+			continue;
+
+		    // See if solve is complete
+		    if (is_solved(temp_game))
+			return temp_game;
+		    else
+			guess_solution(temp_game, tries+1);
+		}
+	    }
+    return game;
+}
+
+function find_possible_moves(game){
+    // Go through every position and update the list of possible values
+    for (var row=0; row<9; row++){
+	for (var col=0; col<9; col++){
+
+	    // Non empty squares should have no options
+	    if (game[row][col].value != 0){
+		game[row][col].options = [];
+		continue;
+	    }
+
+	    let options = [1,2,3,4,5,6,7,8,9];
+
+	    // Remove options from row
+	    for (var x=0; x<9; x++){
+		let i = game[row][x].value;
+		if (options.indexOf(i) >= 0)
+		    options.splice(options.indexOf(i), 1);
+	    }
+
+	    // Remove options from column
+	    for (var y=0; y<9; y++){
+		let i = game[y][col].value;
+		if (options.indexOf(i) >= 0)
+		    options.splice(options.indexOf(i), 1);
+	    }
+
+	    // Check to see if it conflicts with square
+	    let start_row = Math.floor(row/3)*3;
+	    let start_col = Math.floor(col/3)*3;
+	    for (var y=start_row; y<start_row+3; y++)
+		for (var x=start_col; x<start_col+3; x++){
+		    let i = game[y][x].value;
+		    if (options.indexOf(i) >= 0)
+			options.splice(options.indexOf(i), 1);
+		}
+
+	    game[row][col].options = options;
+	}
+    }
+
+    return game;
+}
+
+function solve(game, guess=true){
+    let made_a_move = true;
+
+    while (made_a_move == true) {
+	game = find_possible_moves(game);
+	made_a_move = false;
+
+	// Make a move and recheck
+	for (var y=0; y<9; y++){
+	    for (var x=0; x<9; x++){
+		if (game[y][x].value == 0){
+		    if (game[y][x].options.length == 0){
+			//console.log("Unable to solve!");
+			return game;
+		    }
+
+		    if (game[y][x].options.length == 1){
+			game[y][x].value = game[y][x].options[0];
+			game[y][x].value.options = [];
+			made_a_move = true;
+		    }
+		}
+	    }
+	}
+    }
+
+    // check if valid
+    if (!is_valid(game)){
+	//console.log("Something bad happened");
+	return game;
+    }
+	
+    // Check if solved
+    if (!is_solved(game)){
+	//console.log("Still not solved...");
+	if (guess == true)
+	    game = guess_solution(game);
+    }
+
+    return game;
+}
+
+function is_solvable(game_in){
+    // Duplicate game so we don't overwrite it
+    let game = JSON.parse(JSON.stringify(game_in));
+
+    // Try without guessing
+    game = solve(game, false);
+    if (is_solved(game))
+	return 1;
+
+    // Try with guessing
+    game = solve(game, true);
+    if (is_solved(game))
+	return 2;
+
+    return -1
+}
+
+function clear_game(){
+    // Go through every position
+    for (var row=0; row<9; row++){
+	for (var col=0; col<9; col++){
+	    let cell = document.getElementById(row+":"+col);
+
+	    // Clear conflict class
+	    cell.classList.remove("conflict");
+
+	    // Make all cells editable
+	    cell.disabled = false;
+
+	    // Erase box
+	    cell.value = "";
+	}
+    }
+    return;
+}
+
+function html_to_array(){
+    let game = [];
+
+    // Import data into array
+    for (var row=0; row<9; row++) {
+	var row_array=[];
+	for (var col=0; col<9; col++) {
+	    let cell = document.getElementById(row+":"+col);
+	    let value = Number(cell.value);
+	    let disabled = cell.disabled;
+	    let options = [0,1,2,3,4,5,6,7,8,9];
+	    if (cell > 0) options = [];
+	    row_array.push({
+		value:value,
+		disabled:disabled,
+		options:options
+	    });
+	}
+	game.push(row_array);
+    }
+
+    return game;
+}
+
+function array_to_html(game){
+    if (!game){
+	console.log("No valid game data");
+	return;
+    }
+
+    // Write back out to HTML
+    for (var row=0; row<9; row++) {
+	for (var col=0; col<9; col++) {
+	    if (game[row][col].value > 0 ) {
+		let cell = document.getElementById(row+":"+col);
+		cell.value = game[row][col].value;
+		cell.disabled = game[row][col].disabled;
+	    }
+	}
+    }
+}
+
+function solve_button(guess) {
+    let game = html_to_array();
+    game = solve(game, guess);
+    array_to_html(game);
+}
+
+function shuffle(array) {
+    let counter = array.length;
+
+    // While there are elements in the array
+    while (counter > 0) {
+        // Pick a random index
+        let index = Math.floor(Math.random() * counter);
+
+        // Decrease counter by 1
+        counter--;
+
+        // And swap the last element with it
+        let temp = array[counter];
+        array[counter] = array[index];
+        array[index] = temp;
+    }
+
+    return array;
+}
+
+function is_solved(game){
+    if (!game) return false;
+
+    for (var row of game)
+	for (var cell of row)
+	    if (cell.value == 0)
+		return false;
+    return true;
+}
+
+function is_valid(game){
+    if (!game) return false;
+
+    // Go through every position
+    for (var row=0; row<9; row++){
+	for (var col=0; col<9; col++){
+
+	    // Skip empty squares
+	    if (game[row][col].value == 0) continue;
+
+	    // Mark conflicts in row
+	    for (var x=0; x<9; x++)
+		if (x != col)
+		    if (game[row][x].value == game[row][col].value)
+			return false;
+
+	    // Check to see if it conflicts with column
+	    for (var y=0; y<9; y++)
+		if (y != row)
+		    if (game[y][col].value == game[row][col].value)
+			return false;
+
+	    // Check to see if it conflicts with square
+	    let start_row = Math.floor(row/3)*3;            // Confine to 3x3 square
+	    let start_col = Math.floor(col/3)*3;            // Confine to 3x3 square
+	    for (var y=start_row; y<start_row+3; y++)
+		for (var x=start_col; x<start_col+3; x++)
+		    if (y != row && x != col)
+			if (game[y][x].value == game[row][col].value)
+			    return false;
+	}
+    }
+
+    return true;
+}
+
+function create(tries) {
+    clear_game();
+
+    let game = []
+
+    // Create blank game field
+    while (game.length < 9){
+	let row=[]
+	    for (let i=0; i<9; i++)
+		row.push({
+		    value:0,
+		    disabled:true,
+		    options:[1,2,3,4,5,6,7,8,9]
+		});
+	    
+	    game.push(row);
+    }
+
+    // Create a half-solved randomized puzzle
+    for (var i=0; i<9; i+=2){
+	// Create randomized row
+	let new_row = shuffle([1,2,3,4,5,6,7,8,9]);
+
+	// Format it
+	let row = []
+	for (let e of new_row)
+	    row.push({
+		value:e,
+		disabled:true,
+		options:[],
+	    });
+
+	// And add it
+	game[i] = row;
+
+	// redo this row if game isn't valid
+	if (!is_valid(game))
+	    i-=2;
+    }
+
+    // Solve it
+    game = solve(game);
+
+    // If not solved, start over
+    if (!is_solved(game)){
+	create(tries + 1);
+	return;
+    }
+
+    let difficulty = document.getElementById("difficulty").value;
+    
+    // Remove bits to make it a puzzle by removing a percent of the 20 upper left quarter
+    let target; // Number of squares to remove from the corner
+    if (difficulty == 'Easy')
+	target = 7;
+    else if (difficulty == 'Hard')
+	target = 13;
+    else
+	target = 10;
+    let remove = []; // Coords for what to remove
+
+    while (target > 0){
+	let x = Math.floor(Math.random() * 5);
+	let y = Math.floor(Math.random() * 4);
+
+	let duplicate = false;
+	for (let r of remove)
+	    if (r.x == x && r.y == y)
+		duplicate = true;
+
+	if (duplicate == false){
+	    remove.push({x:x, y:y});
+	    target--;
+	}
+    }
+
+    // Take the list and remove it from the 4 rotations of the puzzle
+      for (let s of remove){
+	game[s.y][s.x]     = {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]};
+	game[s.x][8-s.y]   = {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]};
+	game[8-s.y][8-s.x] = {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]};
+	game[8-s.x][s.y]   = {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]};
+    }
+
+    // Check if it is solveable
+    let allow_guesses = document.getElementById("allow_guesses").checked;
+    let solvable = is_solvable(game);
+    if (solvable < 1 || solvable == 2 && allow_guesses == false){
+        create(tries + 1);
+        return;
+    }
+
+    // See how many tries it took
+    console.log("Took "+tries+" tries to generate valid game.");
+
+    // Put it out to HTML
+    array_to_html(game);
+
+    // Update status
+    game_status();
+
+    return;
+}
+
+function setup() {
+    var sudoku=document.getElementById('sudoku');
+
+    // Create text input fields
+    for (var row=0; row<9; row++) {
+	for (var col=0; col<9; col++) {
+	    var input = document.createElement('input');
+
+	    // Color every other macroblock
+	    if (Math.floor(row/3)*3 % 2 ^ Math.floor(col/3)*3 % 2)
+		input.classList.add("dark");
+
+	    input.id = row + ":" + col;
+	    input.onkeydown = () => validate_input(event);
+	    input.maxLength = 1;
+	    sudoku.appendChild(input);
+	}
+	sudoku.appendChild(document.createElement('br'));
+    }
+
+    // Select Play Mode
+    play_mode();
+}
+
+function highlight_conflicts(){
+    // Import the puzzle to array
+    let game = html_to_array();
+
+    // Go through every position
+    for (var row=0; row<9; row++){
+	for (var col=0; col<9; col++){
+	    // Clear conflict on screen
+	    document.getElementById(row+":"+col).classList.remove("conflict");
+
+	    // Skip empty squares
+	    if (game[row][col].value == 0) continue;
+
+	    let conflicts = false;
+	    
+	    // Mark conflicts in row
+	    for (var x=0; x<9; x++)
+		if (x != col)
+		    if (game[row][x].value == game[row][col].value){
+			conflicts = true;
+			break;
+		    }
+
+	    // Check to see if it conflicts with column
+	    for (var y=0; y<9; y++)
+		if (y != row)
+		    if (game[y][col].value == game[row][col].value){
+			conflicts = true;
+			break;
+		    }
+
+
+	    // Check to see if it conflicts with square
+	    let start_row = Math.floor(row/3)*3;            // Confine to 3x3 square
+	    let start_col = Math.floor(col/3)*3;            // Confine to 3x3 square
+	    for (var y=start_row; y<start_row+3; y++) {
+		for (var x=start_col; x<start_col+3; x++) {
+		    if (y != row && x != col)
+			if (game[y][x].value == game[row][col].value) {
+			    conflicts = true;
+			    break;
+			}
+		}
+		if (conflicts == true) break;
+	    }
+
+	    if (conflicts == true)
+		document.getElementById(row+":"+col).classList.add("conflict");
+	}
+    }
+
+    return;
+}
+
+function game_status() {
+    // Check if game is solved!
+    let game = html_to_array();
+    let status = document.getElementById("debug");
+
+    // Label all squares with possible moves
+    game = find_possible_moves(game);
+    //console.log(game);
+    for (var row=0; row<9; row++)
+	for (var col=0; col<9; col++)
+	    document.getElementById(row+":"+col).title = game[row][col].options;
+
+    if (is_valid(game)){
+	if (is_solved(game)) {
+	    status.innerHTML = "Solved";
+
+	} else {
+	    // Check if game is solvable
+	    let solvability = is_solvable(game);
+	    if (solvability == 1)
+		status.innerHTML = "Solvable";
+	    else if (solvability == 2)
+		status.innerHTML = "Requires guessing";
+	    else
+		status.innerHTML = "Not solvable";
+	}
+    } else {
+	status.innerHTML = "Invalid";
+    }
+
+    return;
+}
+
+function validate_input(e){
+    let cell = document.getElementById(e.target.id);
+    let key  = e.key;
+    let keycode = e.keyCode;
+
+    // Get location
+    let col = Number(e.target.id.split(":")[1]);
+    let row = Number(e.target.id.split(":")[0]);
+
+    // Look for movement commands???
+    if (keycode == 9) return; // Tab
+    if (keycode == 37){ // Left
+	let new_col = col - 1;
+	while (new_col >= 0){
+	    if (!document.getElementById(row + ":" + new_col).disabled){
+		document.getElementById(row + ":" + new_col).focus();
+		break;
+	    }
+	    new_col--;
+	}
+	return;
+    }
+    if (keycode == 38){ // Up
+	let new_row = row - 1;
+	while (new_row >= 0){
+	    if (!document.getElementById(new_row + ":" + col).disabled){
+		document.getElementById(new_row + ":" + col).focus();
+		break;
+	    }
+	    new_row--;
+	}
+	return;
+    }
+    if (keycode == 39){ // Right
+	let new_col = col + 1;
+	while (new_col < 9){
+	    if (!document.getElementById(row + ":" + new_col).disabled){
+		document.getElementById(row + ":" + new_col).focus();
+		break;
+	    }
+	    new_col++;
+	}
+	return;
+    }
+    if (keycode == 40){ // Down
+	let new_row = row + 1;
+	while (new_row < 9){
+	    if (!document.getElementById(new_row + ":" + col).disabled){
+		document.getElementById(new_row + ":" + col).focus();
+		break;
+	    }
+	    new_row++;
+	}
+	return;
+    }
+    if (keycode == 8 || keycode == 46){ // Delete/Del
+	e.preventDefault();
+	cell.value="";
+	highlight_conflicts();
+	game_status();
+	return;
+    }
+    if (keycode == 27){ // Escape
+	document.activeElement.blur()
+	return;
+    }
+    if (keycode == 80){ // p (for peak)
+	console.log("Cheater!");
+	e.preventDefault()
+	debug2();
+	return;
+    }
+
+    // Make sure only valid characters are printed
+    if (["1","2","3","4","5","6","7","8","9"].indexOf(key) >= 0)
+	cell.value = key;
+    else {
+	e.preventDefault()
+    }
+
+    // Mark all conflicts
+    highlight_conflicts();
+
+    // Check game status
+    game_status();
+    
+    return;
+}
+
+function play_mode(){
+    document.getElementById("play").classList.add("on");
+    document.getElementById("play").classList.remove("off");
+    document.getElementById("solve").classList.remove("on");
+    document.getElementById("solve").classList.add("off");
+
+    document.getElementById("play_controls").classList.remove("hidden");
+    document.getElementById("solve_controls").classList.add("hidden");
+}
+
+function solve_mode(){
+    document.getElementById("play").classList.add("off");
+    document.getElementById("play").classList.remove("on");
+    document.getElementById("solve").classList.remove("off");
+    document.getElementById("solve").classList.add("on");
+
+    document.getElementById("play_controls").classList.add("hidden");
+    document.getElementById("solve_controls").classList.remove("hidden");
+}
+
+function debug2(){
+    let game = html_to_array();
+
+    game = find_possible_moves(game);
+
+    // Go through every position
+    for (var row=0; row<9; row++) {
+	for (var col=0; col<9; col++) {
+	    let cell = document.getElementById(row+":"+col);
+	    cell.title = game[row][col].options;
+	}
+    }
+
+    return;
+}
+
+function debug(){
+    clear_game();
+    let game = make_fake_game();
+    array_to_html(game);
+}
+
+function make_fake_game() {
+    return [
+	[
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:6, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:1, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:7, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:2, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:5, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:4, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:8, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:1, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:2, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:5, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:2, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:4, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:3, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:6, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:1, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:5, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:9, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:4, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:7, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:9, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:9, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:8, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:7, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:4, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:4, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:8, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:7, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:2, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:3, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:6, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:9, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:4, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:2, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:5, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:9, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:8, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:6, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:7, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:1, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	]
+    ];
+}
+
+    </script>
+  </body>
+</html>
