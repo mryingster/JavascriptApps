@@ -14,7 +14,7 @@
 div#content {
     background :#fff;
     margin: 0px auto;
-    width: 650px;
+    width: fit-content;
     padding: 10px;
     text-align: center;
 }
@@ -36,11 +36,11 @@ button {
 }
 
 input{
-    width: 35px;
-    height: 35px;
+    width: 70px;
+    height: 70px;
     margin: -1px -1px 0 0;
     padding: 0px;
-    font-size: 1.5em;
+    font-size: 3em;
     text-align: center;
     border:1px solid black;
     color: #888;
@@ -74,6 +74,41 @@ input.dark.conflict {
     background: #fcc;
 }
 
+#mode {
+    background-color: #eee;
+    display: inline-block;
+    padding: 5px;
+    margin: 10px;
+    border-radius: 20px;
+}
+
+.toggle {
+    border: 0px;
+    border-radius: 15px;
+    margin: 0px;
+    width: 100px;
+}
+
+.on {
+    background-color: #991700;
+    color: #fff;
+}
+
+.off {
+    background-color: #ccc;
+    color: #991700;
+}
+
+#allow_guesses {
+    width: 30px;
+    margin: 7px;
+    height: 30px;
+}
+
+.hidden {
+    display: none;
+}
+
     </style>
   </head>
 
@@ -83,11 +118,38 @@ input.dark.conflict {
 
       <div id="sudoku">
       </div>
-      <button onclick="solve_button()">Solve</button>
-      <button onclick="create()">Create</button>
-      <button onclick="clear_game()">Clear</button>
+
+      <div id="mode">
+	<button id="play"  class="toggle on" onclick="play_mode()">Play</button>
+	<button id="solve" class="toggle off" onclick="solve_mode()">Solve</button>
+      </div>
+
+      <div id="play_controls">
+	Difficulty:
+	<select id="difficulty">
+	  <option>Easy</option>
+	  <option>Medium</option>
+	  <option>Hard</option>
+	</select>
+	Size: <select id="size">
+	  <option>Small</option>
+	  <option selected>Medium</option>
+	  <option>Large</option>
+	</select>
+	<input id="allow_guesses" type="checkbox">Allow Guesses</input>
+	<button onclick="create(1)">Create</button>
+      </div>
+
+      <div id="solve_controls">
+	<button onclick="solve_button(false)">Solve</button>
+	<button onclick="solve_button(true)">Solve w/ Guesses</button>
+	<button onclick="clear_game()">Clear</button>
+      </div>
+
       <!--<button onclick="debug()">Debug</button>-->
       <!--<button onclick="debug2()">Debug2</button>-->
+
+      <br><span id="debug"></span>
 
     </div>
 
@@ -97,7 +159,7 @@ function guess_solution(game, tries=0) {
     // Prevent too much recursion
     if (tries > 2) return game;
 
-    // We are done! 
+    // We are done!
     if (is_solved(game)) return game;
 
     for (let x=0; x<size; x++)
@@ -135,7 +197,7 @@ function find_possible_moves(game){
 		continue;
 	    }
 
-	    let options = valid_numbers.slice();
+	    let options = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
 
 	    // Remove options from row
 	    for (var x=0; x<size; x++){
@@ -152,10 +214,10 @@ function find_possible_moves(game){
 	    }
 
 	    // Check to see if it conflicts with square
-	    let start_row = Math.floor(row/square)*square;
-	    let start_col = Math.floor(col/square)*square;
-	    for (var y=start_row; y<start_row+square; y++)
-		for (var x=start_col; x<start_col+square; x++){
+	    let start_row = Math.floor(row/sqrt_size)*sqrt_size;
+	    let start_col = Math.floor(col/sqrt_size)*sqrt_size;
+	    for (var y=start_row; y<start_row+sqrt_size; y++)
+		for (var x=start_col; x<start_col+sqrt_size; x++){
 		    let i = game[y][x].value;
 		    if (options.indexOf(i) >= 0)
 			options.splice(options.indexOf(i), 1);
@@ -168,7 +230,7 @@ function find_possible_moves(game){
     return game;
 }
 
-function solve(game){
+function solve(game, guess=true){
     let made_a_move = true;
 
     while (made_a_move == true) {
@@ -180,7 +242,7 @@ function solve(game){
 	    for (var x=0; x<size; x++){
 		if (game[y][x].value == 0){
 		    if (game[y][x].options.length == 0){
-			console.log("Unable to solve!");
+			//console.log("Unable to solve!");
 			return game;
 		    }
 
@@ -196,18 +258,35 @@ function solve(game){
 
     // check if valid
     if (!is_valid(game)){
-	console.log("Something bad happened");
+	//console.log("Something bad happened");
 	return game;
     }
-	
+
     // Check if solved
     if (!is_solved(game)){
-	console.log("Still not solved...");
-	array_to_html(game);
-	game = guess_solution(game);
+	//console.log("Still not solved...");
+	if (guess == true)
+	    game = guess_solution(game);
     }
 
     return game;
+}
+
+function is_solvable(game_in){
+    // Duplicate game so we don't overwrite it
+    let game = JSON.parse(JSON.stringify(game_in));
+
+    // Try without guessing
+    game = solve(game, false);
+    if (is_solved(game))
+	return 1;
+
+    // Try with guessing
+    game = solve(game, true);
+    if (is_solved(game))
+	return 2;
+
+    return -1
 }
 
 function clear_game(){
@@ -237,9 +316,9 @@ function html_to_array(){
 	var row_array=[];
 	for (var col=0; col<size; col++) {
 	    let cell = document.getElementById(row+":"+col);
-	    let value = Number("0x"+cell.value);
+	    let value = Number(cell.value);
 	    let disabled = cell.disabled;
-	    let options = valid_numbers.slice();
+	    let options = [0,1,2,3,4,5,6,7,8,9];
 	    if (cell > 0) options = [];
 	    row_array.push({
 		value:value,
@@ -264,16 +343,16 @@ function array_to_html(game){
 	for (var col=0; col<size; col++) {
 	    if (game[row][col].value > 0 ) {
 		let cell = document.getElementById(row+":"+col);
-		cell.value = game[row][col].value.toString(16);
+		cell.value = game[row][col].value;
 		cell.disabled = game[row][col].disabled;
 	    }
 	}
     }
 }
 
-function solve_button() {
+function solve_button(guess) {
     let game = html_to_array();
-    game = solve(game);
+    game = solve(game, guess);
     array_to_html(game);
 }
 
@@ -316,7 +395,7 @@ function is_valid(game){
 
 	    // Skip empty squares
 	    if (game[row][col].value == 0) continue;
-
+            //console.log(game);
 	    // Mark conflicts in row
 	    for (var x=0; x<size; x++)
 		if (x != col)
@@ -330,10 +409,10 @@ function is_valid(game){
 			return false;
 
 	    // Check to see if it conflicts with square
-	    let start_row = Math.floor(row/square)*square;            // Confine to squarexsquare square
-	    let start_col = Math.floor(col/square)*square;            // Confine to squarexsquare square
-	    for (var y=start_row; y<start_row+square; y++)
-		for (var x=start_col; x<start_col+square; x++)
+	    let start_row = Math.floor(row/sqrt_size)*sqrt_size;            // Confine to 3x3 square
+	    let start_col = Math.floor(col/sqrt_size)*sqrt_size;            // Confine to 3x3 square
+	    for (var y=start_row; y<start_row+sqrt_size; y++)
+		for (var x=start_col; x<start_col+sqrt_size; x++)
 		    if (y != row && x != col)
 			if (game[y][x].value == game[row][col].value)
 			    return false;
@@ -343,7 +422,7 @@ function is_valid(game){
     return true;
 }
 
-function create() {
+function create(tries) {
     clear_game();
 
     let game = []
@@ -355,16 +434,16 @@ function create() {
 		row.push({
 		    value:0,
 		    disabled:true,
-		    options:valid_numbers.slice()
+		    options:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
 		});
-	    
+
 	    game.push(row);
     }
 
     // Create a half-solved randomized puzzle
     for (var i=0; i<size; i+=2){
 	// Create randomized row
-	let new_row = shuffle(valid_numbers.slice());
+	let new_row = shuffle([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]);
 
 	// Format it
 	let row = []
@@ -379,28 +458,37 @@ function create() {
 	game[i] = row;
 
 	// redo this row if game isn't valid
-	if (!is_valid(game))
-	    i -= 2;
+	if (!is_valid(game)){
+            console.log("Trying row %d again", i);
+	    i-=2;
+        }
     }
 
-    array_to_html(game); // so we can see progress - DELETE
-
     // Solve it
-    game = solve(game);
+    //game = solve(game);
 
     // If not solved, start over
     if (!is_solved(game)){
-	create();
-	return;
+        console.log("Couldn't solve");
+    	//create(tries + 1);
+        //return;
     }
 
+    let difficulty = document.getElementById("difficulty").value;
+
     // Remove bits to make it a puzzle by removing a percent of the 20 upper left quarter
-    let target = 10; // Number of squares to remove from the corner - Maybe adjust this for difficulty setting
+    let target; // Number of squares to remove from the corner
+    if (difficulty == 'Easy')
+	target = 7;
+    else if (difficulty == 'Hard')
+	target = 13;
+    else
+	target = 10;
     let remove = []; // Coords for what to remove
-/*
+
     while (target > 0){
-	let x = Math.floor(Math.random() * 8);
-	let y = Math.floor(Math.random() * 8);
+	let x = Math.floor(Math.random() * Math.ceil(size/2));
+	let y = Math.floor(Math.random() * Math.floor(size/2));
 
 	let duplicate = false;
 	for (let r of remove)
@@ -415,23 +503,38 @@ function create() {
 
     // Take the list and remove it from the 4 rotations of the puzzle
       for (let s of remove){
-	  game[s.y][s.x]               = {value:0, disabled:false, options:valid_numbers.slice()};
-	  game[s.x][size-1-s.y]        = {value:0, disabled:false, options:valid_numbers.slice()};
-	  game[size-1-s.y][size-1-s.x] = {value:0, disabled:false, options:valid_numbers.slice()};
-	  game[size-1-s.x][s.y]        = {value:0, disabled:false, options:valid_numbers.slice()};
+	game[s.y][s.x]               = {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]};
+	game[s.x][size-1-s.y]        = {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]};
+	game[size-1-s.y][size-1-s.x] = {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]};
+	game[size-1-s.x][s.y]        = {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]};
     }
-*/
+
+    // Check if it is solveable
+    //let allow_guesses = document.getElementById("allow_guesses").checked;
+    //let solvable = is_solvable(game);
+    //if (solvable < 1 || solvable == 2 && allow_guesses == false){
+    //    create(tries + 1);
+    //    return;
+    //}
+
+    // See how many tries it took
+    console.log("Took "+tries+" tries to generate valid game.");
+
     // Put it out to HTML
     array_to_html(game);
+
+    // Update status
+    game_status();
+
+    return;
 }
 
-const valid_numbers = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
-const valid_characters = {};
-const size = 16;
-const square = Math.floor(Math.sqrt(size));
+let size = 16;
+let sqrt_size = Math.floor(Math.sqrt(size));
+let valid_input = ["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"];
 
 function setup() {
-    var sudoku=document.getElementById('sudoku');
+    var sudoku = document.getElementById('sudoku');
 
     // Create text input fields
     for (var row=0; row<size; row++) {
@@ -439,7 +542,7 @@ function setup() {
 	    var input = document.createElement('input');
 
 	    // Color every other macroblock
-	    if (Math.floor(row/square)*square % 2 ^ Math.floor(col/square)*square % 2)
+	    if (Math.floor(row/sqrt_size)*sqrt_size % 2 ^ Math.floor(col/sqrt_size)*sqrt_size % 2)
 		input.classList.add("dark");
 
 	    input.id = row + ":" + col;
@@ -449,6 +552,9 @@ function setup() {
 	}
 	sudoku.appendChild(document.createElement('br'));
     }
+
+    // Select Play Mode
+    play_mode();
 }
 
 function highlight_conflicts(){
@@ -465,7 +571,7 @@ function highlight_conflicts(){
 	    if (game[row][col].value == 0) continue;
 
 	    let conflicts = false;
-	    
+
 	    // Mark conflicts in row
 	    for (var x=0; x<size; x++)
 		if (x != col)
@@ -484,10 +590,10 @@ function highlight_conflicts(){
 
 
 	    // Check to see if it conflicts with square
-	    let start_row = Math.floor(row/square)*square;            // Confine to 3x3 square
-	    let start_col = Math.floor(col/square)*square;            // Confine to 3xsquare square
-	    for (var y=start_row; y<start_row+square; y++) {
-		for (var x=start_col; x<start_col+square; x++) {
+	    let start_row = Math.floor(row/sqrt_size)*sqrt_size;            // Confine to 3x3 square
+	    let start_col = Math.floor(col/sqrt_size)*sqrt_size;            // Confine to 3x3 square
+	    for (var y=start_row; y<start_row+sqrt_size; y++) {
+		for (var x=start_col; x<start_col+sqrt_size; x++) {
 		    if (y != row && x != col)
 			if (game[y][x].value == game[row][col].value) {
 			    conflicts = true;
@@ -500,6 +606,39 @@ function highlight_conflicts(){
 	    if (conflicts == true)
 		document.getElementById(row+":"+col).classList.add("conflict");
 	}
+    }
+
+    return;
+}
+
+function game_status() {
+    // Check if game is solved!
+    let game = html_to_array();
+    let status = document.getElementById("debug");
+
+    // Label all squares with possible moves
+    game = find_possible_moves(game);
+    //console.log(game);
+    for (var row=0; row<size; row++)
+	for (var col=0; col<size; col++)
+	    document.getElementById(row+":"+col).title = game[row][col].options;
+
+    if (is_valid(game)){
+	if (is_solved(game)) {
+	    status.innerHTML = "Solved";
+
+	} else {
+	    // Check if game is solvable
+	    let solvability = is_solvable(game);
+	    if (solvability == 1)
+		status.innerHTML = "Solvable";
+	    else if (solvability == 2)
+		status.innerHTML = "Requires guessing";
+	    else
+		status.innerHTML = "Not solvable";
+	}
+    } else {
+	status.innerHTML = "Invalid";
     }
 
     return;
@@ -564,6 +703,7 @@ function validate_input(e){
 	e.preventDefault();
 	cell.value="";
 	highlight_conflicts();
+	game_status();
 	return;
     }
     if (keycode == 27){ // Escape
@@ -578,7 +718,7 @@ function validate_input(e){
     }
 
     // Make sure only valid characters are printed
-    if (["1","2","3","4","5","6","7","8","9","a","b","c","d","e","f"].indexOf(key) >= 0)
+    if (valid_input.indexOf(key) >= 0)
 	cell.value = key;
     else {
 	e.preventDefault()
@@ -587,10 +727,44 @@ function validate_input(e){
     // Mark all conflicts
     highlight_conflicts();
 
-    // Check if game is solved!
+    // Check game status
+    game_status();
+
+    return;
+}
+
+function play_mode(){
+    document.getElementById("play").classList.add("on");
+    document.getElementById("play").classList.remove("off");
+    document.getElementById("solve").classList.remove("on");
+    document.getElementById("solve").classList.add("off");
+
+    document.getElementById("play_controls").classList.remove("hidden");
+    document.getElementById("solve_controls").classList.add("hidden");
+}
+
+function solve_mode(){
+    document.getElementById("play").classList.add("off");
+    document.getElementById("play").classList.remove("on");
+    document.getElementById("solve").classList.remove("off");
+    document.getElementById("solve").classList.add("on");
+
+    document.getElementById("play_controls").classList.add("hidden");
+    document.getElementById("solve_controls").classList.remove("hidden");
+}
+
+function debug2(){
     let game = html_to_array();
-    if (is_valid(game) && is_solved(game))
-	alert("You solved it!");
+
+    game = find_possible_moves(game);
+
+    // Go through every position
+    for (var row=0; row<size; row++) {
+	for (var col=0; col<size; col++) {
+	    let cell = document.getElementById(row+":"+col);
+	    cell.title = game[row][col].options;
+	}
+    }
 
     return;
 }
@@ -601,6 +775,109 @@ function debug(){
     array_to_html(game);
 }
 
+function make_fake_game() {
+    return [
+	[
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:6, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:1, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:7, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:2, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:5, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:4, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:8, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:1, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:2, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:5, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:2, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:4, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:3, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:6, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:1, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:5, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:9, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:4, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:7, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:9, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:9, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:8, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:7, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:4, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:4, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:8, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:7, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:2, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:3, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:6, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:9, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:4, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	],
+	[
+    	    {value:2, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:5, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:9, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:8, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:6, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:7, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:1, disabled:true, options:[1,2,3,4,5,6,7,8,9]},
+	    {value:0, disabled:false, options:[1,2,3,4,5,6,7,8,9]},
+	]
+    ];
+}
 
     </script>
   </body>
