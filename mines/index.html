@@ -8,34 +8,109 @@
       body {
           background:#aaa;
           color:#000;
-	  font-family:sans-serif;
+          font-family:sans-serif;
       }
 
       div#content {
-	  background:#fff;
+          width: fit-content;
+          background:#fff;
+          margin: 0 auto 0 auto;
+          padding:15px 15px 30px 15px;
+          text-align: center;
       }
 
       h1 {
-	  margin:10px;
-	  font-size:3em;
+          margin:10px;
+          font-size:3em;
+      }
+
+      #result {
+          position: absolute;
+          background: #eee;
+          padding: 10px 15px;
+          border-radius: 15px;
+          border: 1px solid #ddd;
+          display: block;
+          width: 300px;
+          text-align: center;
+          box-shadow: 0px 5px 20px gray;
+          left: calc(50% - 165px);
+          top: 150px;
+      }
+
+      #result_content {
+          font-size: 50px;
+      }
+
+      .hidden {
+          display: none !important;
+      }
+
+      #elapsed {
+          float:right;
+      }
+
+      #flags_container {
+          float:left;
+      }
+
+      #canvas{
+          margin: 0 auto 0 auto;
+          border:1px solid black;
+          touch-action: manipulation;
+      }
+
+      input {
+          width: 50px;
+      }
+
+      #settings{
+          margin-bottom:10px;
+      }
+
+      #header {
+          text-align:left;
       }
     </style>
   </head>
 
-  <body style="background:#bbbbbb;">
+  <body style="background:#ddd;">
 
-    <div id="content" style="width:768px; margin: 0 auto 0 auto; padding:15px;">
-    <h1>Minesweeper</h1>
-    <canvas id="canvas" width="768" height="512" style="border:1px solid black; touch-action: manipulation"></canvas>
-    Difficulty:
-    <select id="difficulty">
-    	<option>Easy</option>
-    	<option selected>Medium</option>
-    	<option>Hard</option>
-    	<option>Impossible</option>
-    </select>
-    <button onclick="new_game()">New Game</button>
-    Flags Left: <span id="flags">0</span>
+    <div id="result" onclick="this.classList.add('hidden');">
+      <a href="#" style="float:right;">[X]</a>
+      <p id="result_content"></p>
+    </div>
+
+    <div id="content">
+      <div id="header">
+        <h1>Minesweeper</h1>
+      </div>
+
+      <div id="settings">
+        Difficulty:
+        <select id="difficulty" onchange="revealCustom();">
+          <option>Beginner</option>
+          <option selected>Intermediate</option>
+          <option>Expert</option>
+          <option>Impossible</option>
+          <option>Custom</option>
+        </select>
+        <button id="newgame_btn" onclick="new_game()">New Game</button>
+        <span id='custom' class="hidden">
+          <p style="">
+            Width:  <input id="custom_width"  value="30"></input>
+            Height: <input id="custom_height" value="24"></input>
+            Mines:  <input id="custom_mines"  value="120"></input>
+          </p>
+        </span>
+      </div>
+
+      <canvas id="canvas" width="768" height="512"></canvas>
+
+      <p>
+        <span id="flags_container"><span id="emoji">🙂</span> Flags Left: <span id="flags">0</span></span>
+        <span id='elapsed'>--:--</span>
+      </p>
     </div>
 
     <script>
@@ -44,42 +119,48 @@
 function recursiveReveal(x, y){
     // Shouldn't happen
     if (array[y][x]["touching"] == -1)
-	return;
+        return;
 
     // Mark block as visible
     array[y][x]["visible"] = true;
 
     // stop on number
     if (array[y][x]["touching"] > 0){
-	return;
+        return;
     }
 
     // Reveal all touching 0s
     for (let y1=-1; y1<=1; y1++)
-	if (y+y1 < height/square_size && y+y1 >= 0)
-	    for (let x1=-1; x1<=1; x1++)
-		if (x+x1 < width/square_size && x+x1 >= 0)
-		    if (array[y+y1][x+x1]["visible"] == false)
-			recursiveReveal(x+x1, y+y1);
-    
-    return;	
+        if (y+y1 < game_height && y+y1 >= 0)
+            for (let x1=-1; x1<=1; x1++)
+                if (x+x1 < game_width && x+x1 >= 0)
+                    if (array[y+y1][x+x1]["visible"] == false)
+                        recursiveReveal(x+x1, y+y1);
+
+    return;
 }
 
 function isValidMove(x, y, c){
     if (y < array.length-1)
-	if (array[y+1][x] == c) return true;
+        if (array[y+1][x] == c) return true;
     if (y > 0)
-	if (array[y-1][x] == c) return true;
+        if (array[y-1][x] == c) return true;
     if (x < array[y].length)
-	if (array[y][x+1] == c) return true;
+        if (array[y][x+1] == c) return true;
     if (x > 0)
-	if (array[y][x-1] == c) return true;
+        if (array[y][x-1] == c) return true;
     return false;
 }
 
+function updateAlert(m){
+    document.getElementById("result_content").innerHTML = m;
+    document.getElementById("result").classList.remove("hidden");
+}
+
 function gameOver(){
+    document.getElementById("emoji").innerHTML = "😵";
     game_active = false;
-    alert("You lose!");
+    updateAlert("You lose!");
 }
 
 function gameWon(){
@@ -87,55 +168,84 @@ function gameWon(){
     let win_by_uncovering = true;
 
     for (var y=0; y<array.length; y++)
-	for (var x=0; x<array[y].length; x++){
-	    // Win by placing every flag
-	    if (array[y][x]["touching"] == -1 && array[y][x]["flagged"] != true)
-		win_by_flag = false
+        for (var x=0; x<array[y].length; x++){
+            // Win by placing every flag
+            if (array[y][x]["touching"] == -1 && array[y][x]["flagged"] != true ||
+                array[y][x]["touching"] != -1 && array[y][x]["flagged"] == true)
+                win_by_flag = false
 
-	    // Or win by uncovering every block
-	    if(array[y][x]["touching"] >= 0 && array[y][x]["visible"] == false)
-		win_by_uncovering = false;
-	}
+            // Or win by uncovering every block
+            if(array[y][x]["touching"] >= 0 && array[y][x]["visible"] == false)
+                win_by_uncovering = false;
+        }
 
     if (win_by_uncovering || win_by_flag)
-	return true;
+        return true;
 
     return false;
 }
 
 function revealGame(won){
     game_active = false;
+    document.getElementById("newgame_btn").disabled = false;
+
     for (var y=0; y<array.length; y++)
-	for (var x=0; x<array[y].length; x++){
-	    array[y][x]["visible"] = true;
-	    if (won && array[y][x]["touching"] == -1)
-		array[y][x]["flagged"] = true;
-	}
+        for (var x=0; x<array[y].length; x++){
+            if (array[y][x]["touching"] != -1 &&  array[y][x]["flagged"])
+                array[y][x]["incorrect"] = true;
+            array[y][x]["visible"] = true;
+            if (won && array[y][x]["touching"] == -1)
+                array[y][x]["flagged"] = true;
+        }
 
     redraw();
 }
 
 function makeMove(x, y, flag){
     if (game_active == false)
-	return;
+        return;
 
+    // If we are placing a flag, flag it
     if (flag == true && array[y][x]["visible"] == false)
-	array[y][x]["flagged"] = !array[y][x]["flagged"];
-    else {
-	if (array[y][x]["flagged"] == true){
-	    array[y][x]["flagged"] = false;
-	}
+        array[y][x]["flagged"] = !array[y][x]["flagged"];
 
-	if (array[y][x]["touching"] == -1){
-	    gameOver();
-	    revealGame();
-	}
-	
-	if (array[y][x]["touching"] == 0)
-	    recursiveReveal(x, y);
+    // If we are clicking on a flag, unflag it
+    else if (array[y][x]["flagged"] == true)
+        array[y][x]["flagged"] = false;
+    else if (array[y][x]["visible"] == true && flag == false && array[y][x]["touching"] > 0){
+        // If you click on a number that's visible,
+        // Count the number of flags and see if it matches
+        let flags = 0;
+        for (let y1=-1; y1<2; y1++)
+            if (y+y1 >= 0 && y+y1 < array.length)
+                for (let x1=-1; x1<2; x1++)
+                    if (x+x1 >= 0 && x+x1 < array[0].length)
+                        if (array[y+y1][x+x1]["flagged"] == true)
+                            flags += 1;
+        // If the number of mines and flags equal, toggle them all!
+        if (flags == array[y][x]["touching"])
+            for (let y1=-1; y1<2; y1++)
+                if (y+y1 >= 0 && y+y1 < array.length)
+                    for (let x1=-1; x1<2; x1++)
+                        if (x+x1 >= 0 && x+x1 < array[0].length)
+                            if (array[y+y1][x+x1]["visible"] == false && array[y+y1][x+x1]["flagged"] == false)
+                                makeMove(x+x1, y+y1, false);
+            
+    } else {
+        // If you click on a bomb, it's all over
+        if (array[y][x]["touching"] == -1){
+            array[y][x]["incorrect"] = true;
+            gameOver();
+            revealGame();
+        }
 
-	if (array[y][x]["touching"] > 0)
-	    array[y][x]["visible"] = true;
+        // Recursively reveal blank squares
+        if (array[y][x]["touching"] == 0)
+            recursiveReveal(x, y);
+
+        // Reveal numbered square
+        if (array[y][x]["touching"] > 0)
+            array[y][x]["visible"] = true;
     }
 
     // Redraw
@@ -143,8 +253,8 @@ function makeMove(x, y, flag){
 
     // Check for completion
     if (gameWon() && game_active){
-	alert("You win!");
-	revealGame(true);
+        updateAlert("You win!");
+        revealGame(true);
     }
 
     return;
@@ -160,21 +270,75 @@ function getCursorPosition(canvas, event){
     var sx = Math.floor(x/square_size);
     var sy = Math.floor(y/square_size);
 
-    // determine right click
-    rightClick = false;
-    if (event.which == 3)
-	rightClick = true;
-
-    // Proceed with our move
-    makeMove(sx, sy, rightClick);
+    return {x:sx, y:sy};
 }
 
-const canvas = document.querySelector('canvas')
-canvas.addEventListener('mousedown', function(e){
-    getCursorPosition(canvas, e)
-})
-// Diable context menu on canvas
-canvas.addEventListener("contextmenu", (e) => {e.preventDefault()});
+
+// Mouse listeners
+canvas.addEventListener("contextmenu", (e) => {e.preventDefault()}); // Disable context menu on canvas
+canvas.addEventListener('mousedown',  input_down_mouse);
+canvas.addEventListener('mousemove',  input_move_mouse);
+canvas.addEventListener('mouseup',    input_up);
+
+function input_down_mouse(e){
+    if (game_active == false) return;
+
+    document.getElementById("emoji").innerHTML = "😬"; //😬🙂😵
+    mouse_down = true;
+
+    let coords = getCursorPosition(canvas, e);
+
+    highlight_square(coords.x, coords.y);
+}
+
+function input_move_mouse(e){
+    if (game_active == false) return;
+    if (mouse_down == true){
+        let coords = getCursorPosition(canvas, e);
+        highlight_square(coords.x, coords.y);
+    }
+}
+
+function input_up(e){
+    document.getElementById("emoji").innerHTML = "🙂";
+    mouse_down = false;
+    let coords = getCursorPosition(canvas, e);
+
+    // first click start the game
+    if (timer == -1)
+        first_click(coords);
+
+    // determine right click
+    let rightClick = false;
+    if (e.which == 3)
+        rightClick = true;
+
+    // Proceed with our move
+    makeMove(coords.x, coords.y, rightClick);
+}
+
+function timeLoop() {
+    var refresh = 1000;
+    var duration = (new Date().getTime() - start) / 1000;
+
+    minutes = Math.floor(duration/60);
+    seconds = Math.floor(duration) % 60;
+    if (seconds < 10) { seconds = "0" + seconds; }
+    if (minutes < 10) { minutes = "0" + minutes; }
+    dur = minutes + ":" + seconds
+    document.getElementById('elapsed').innerHTML = dur;
+
+    if (game_active == false)
+        return;
+
+    timer = setTimeout(function() { timeLoop() }, refresh);
+}
+
+function revealCustom(){
+    document.getElementById("custom").classList.add("hidden");
+    if (document.getElementById('difficulty').value == "Custom")
+        document.getElementById("custom").classList.remove("hidden");
+}
 
 const width = canvas.width;
 const height = canvas.height;
@@ -183,71 +347,118 @@ const square_size = 32;
 var array = [];
 var flags = 0;
 var mines = 0;
+var game_width;
+var game_height;
 var difficulty = "";
 var game_active = false;
+var mouse_down = false;
+var timer;
+var start;
 
 function new_game(){
+    document.getElementById("emoji").innerHTML = "🙂";
+
     difficulty = document.getElementById("difficulty").value;
     flags = 0;
+    timer = -1;
     game_active = true;
+    document.getElementById('result').classList.add('hidden');
+    document.getElementById('elapsed').innerHTML = "--:--";
 
     switch(difficulty){
-    case "Easy":
-	mines = 15;
-	break;
-    case "Medium":
-	mines = 30;
-	break;
-    case "Hard":
-	mines = 50;
-	break;
+    case "Beginner":
+        game_width = 8;
+        game_height = 8;
+        mines = 10;
+        break;
+    case "Intermediate":
+        game_width = 16;
+        game_height = 16;
+        mines = 40;
+        break;
+    case "Expert":
+        game_width = 24;
+        game_height = 24;
+        mines = 99;
+        break;
     case "Impossible":
-	mines = 100;
-	break;
+        game_width = 30;
+        game_height = 24;
+        mines = 120;
+        break;
+    case "Custom":
+        game_width = Number(document.getElementById("custom_width").value);
+        game_height = Number(document.getElementById("custom_height").value);
+        mines = Number(document.getElementById("custom_mines").value);
+        let max_mines = game_height * game_width;
+        if (mines >= max_mines)
+            mines = max_mines-1;
+        break;
     }
+
+    // Resize canvas
+    document.getElementById("canvas").width = game_width * square_size;
+    document.getElementById("canvas").height = game_height * square_size;
 
     // Create empty array
     array = [];
-    for (var y=0; y<height/square_size; y++){
-	var temp = [];
-	for (var x=0; x<width/square_size; x++){
-	    temp.push({"touching":0, "visible":false, "flagged":false});
-	}
-	array.push(temp);
+    for (var y=0; y<game_height; y++){
+        var temp = [];
+        for (var x=0; x<game_width; x++){
+            temp.push({"touching":0, "visible":false, "flagged":false, "incorrect":false});
+        }
+        array.push(temp);
     }
 
+    redraw();
+}
+
+function first_click(coords){
     // Randomly place mines
     for (let i=0; i<mines; i++){
-	y = Math.floor(Math.random() * (height/square_size));
-	x = Math.floor(Math.random() * (width/square_size));
+        y = Math.floor(Math.random() * (game_height));
+        x = Math.floor(Math.random() * (game_width));
 
-	if (array[y][x]["touching"] != -1){
-	    array[y][x]["touching"] = -1
-	    // increment all neighbors
-	    for (let y1=-1; y1<=1; y1++)
-		if (y+y1 < height/square_size && y+y1 >= 0)
-		    for (let x1=-1; x1<=1; x1++)
-			if (x+x1 < width/square_size && x+x1 >= 0)
-			    if (array[y+y1][x+x1]["touching"] != -1)
-				array[y+y1][x+x1]["touching"]++;
-		
-	} else {
-	    i--;
-	}
+        // Prevent first click from being a bomb
+        if (y == coords.y && x == coords.x){
+            i--;
+            continue;
+        }
+
+        if (array[y][x]["touching"] != -1){
+            array[y][x]["touching"] = -1
+            // increment all neighbors
+            for (let y1=-1; y1<=1; y1++)
+                if (y+y1 < game_height && y+y1 >= 0)
+                    for (let x1=-1; x1<=1; x1++)
+                        if (x+x1 < game_width && x+x1 >= 0)
+                            if (array[y+y1][x+x1]["touching"] != -1)
+                                array[y+y1][x+x1]["touching"]++;
+
+        } else {
+            i--;
+        }
     }
+
+    // Start timer
+    start = new Date().getTime();
+    timeLoop();
+
+    // Disable start button
+    document.getElementById("newgame_btn").disabled = true;
 
     // Debug
     // for (let l of array){
-    // 	let line=""
-    // 	for(let e of l){
-    // 	    if (e["touching"] == -1)
-    // 		line += "+";
-    // 	    else if (e["touching"] == 0)
-    // 		line += " ";
-    // 	    else
-    // 		line += e["touching"];
-    // 	}
-    // 	console.log(line);
+    //  let line=""
+    //  for(let e of l){
+    //      if (e["touching"] == -1)
+    //          line += "+";
+    //      else if (e["touching"] == 0)
+    //          line += " ";
+    //      else
+    //          line += e["touching"];
+    //  }
+    //  console.log(line);
     // }
 
     // Draw the screen
@@ -260,52 +471,69 @@ function redraw(){
 
     // Redraw each block
     for (var y=0; y<array.length; y++){
-	for (var x=0; x<array[y].length; x++){
-	    // Draw grey square
-	    drawFlatSquare(ctx, x*square_size, y*square_size, square_size,
-			   ["#CCCCCC","#AAAAAA"]
-			  );
+        for (var x=0; x<array[y].length; x++){
 
-	    if (array[y][x]["visible"] == true || array[y][x]["flagged"] == true){
-		drawFlatSquare(ctx, x*square_size, y*square_size, square_size,
-			       ["#AAAAAA","#CCCCCC"]
-			      );
+            // Default; draw raised square
+            let color = ["#AAAAAA","#BBBBBB","#CCCCCC","#DDDDDD","#EEEEEE"];
+            if (array[y][x]["incorrect"]) // Red color for incorrect cells
+                color = ["#AA0000","#BB0000","#CC0000","#DD0000","#EE0000"];
+            drawRaisedSquare(ctx, x*square_size, y*square_size, square_size, color);
 
-		// Draw raised square
-		if (array[y][x]["flagged"] == true || array[y][x]["touching"] != 0){
-		    drawRaisedSquare(ctx, x*square_size, y*square_size, square_size,
-				     ["#AAAAAA","#BBBBBB","#CCCCCC","#DDDDDD","#EEEEEE"]
-				    );
-		}
-		
-		// Draw flag
-		if (array[y][x]["flagged"] == true){
-		    ctx.font = "20px Arial";
-		    ctx.fillText("🚩", x*square_size + square_size/2 - 9, y*square_size + square_size/2 + 8);
-		}
-		else if (array[y][x]["touching"] == -1){
-		    // Draw mine
-		    ctx.font = "14px Arial";
-		    ctx.fillText("💣", x*square_size + square_size/2 - 9, y*square_size + square_size/2 + 7);
-
-		} else {
-		    // Draw number
-		    ctx.fillStyle = ["#CCCCCC", "#FF0000", "#0000FF", "#00FF00", "#FF00FF", "#00FFFF", "#FFFF00", "#FFFFFF", "#000000"][array[y][x]["touching"]];
-		    ctx.font = "20px Arial";
-		    ctx.fillText(array[y][x]["touching"], x*square_size + square_size/2 - 6, y*square_size + square_size/2 + 8);
-		}
-	    }
-	}
+            if (array[y][x]["flagged"] == true){
+                ctx.font = "20px Arial";
+                ctx.fillText("🚩", x*square_size + square_size/2 - 9, y*square_size + square_size/2 + 8);
+            } else {
+                // Draw visible tiles
+                if (array[y][x]["visible"] == true){
+                    if (array[y][x]["touching"] == -1){
+                        // Draw mine
+                        ctx.font = "14px Arial";
+                        ctx.fillText("💣", x*square_size + square_size/2 - 9, y*square_size + square_size/2 + 7);
+                    } else {
+                        // Draw blank spaces
+                        drawFlatSquare(ctx, x*square_size, y*square_size, square_size, ["#AAAAAA","#CCCCCC"]);
+                        // Draw number
+                        if (array[y][x]["touching"] != 0) {
+                            ctx.fillStyle = ["#CCCCCC", "#0000FF", "#00AA00", "#FF0000", "#FF00FF", "#00FFFF", "#FFFF00", "#FFFFFF", "#000000"][array[y][x]["touching"]];
+                            ctx.font = "20px Arial";
+                            ctx.fillText(array[y][x]["touching"], x*square_size + square_size/2 - 6, y*square_size + square_size/2 + 8);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Update flag count
     let flags = mines;
     for (var y=0; y<array.length; y++)
-	for (var x=0; x<array[y].length; x++)
-	    if (array[y][x]["flagged"])
-		flags--;
+        for (var x=0; x<array[y].length; x++)
+            if (array[y][x]["flagged"])
+                flags--;
 
     document.getElementById("flags").innerHTML = flags;
+}
+
+function highlight_square(x, y){
+    redraw();
+
+    var c = document.getElementById("canvas");
+    var ctx = c.getContext("2d");
+
+    if (array[y][x]["visible"] == true && array[y][x]["touching"] > 0)
+        for (let y1=-1; y1<2; y1++)
+            if (y+y1 >= 0 && y+y1 < array.length)
+                for (let x1=-1; x1<2; x1++)
+                    if (x+x1 >= 0 && x+x1 < array[0].length)
+                        if (array[y+y1][x+x1]["visible"] == false && array[y+y1][x+x1]["flagged"] == false)
+                            drawFlatSquare(ctx, (x+x1)*square_size, (y+y1)*square_size, square_size,
+                                           ["#BBBBBB","#CCCCCC"]
+                                          );
+
+    if (array[y][x]["visible"] == false)
+        drawFlatSquare(ctx, x*square_size, y*square_size, square_size,
+                       ["#BBBBBB","#CCCCCC"]
+                      );
 }
 
 function drawFlatSquare(ctx, x, y, l, c){
@@ -320,7 +548,7 @@ function drawFlatSquare(ctx, x, y, l, c){
 
 function drawRaisedSquare(ctx, x, y, l, c){
     const edge = Math.floor(square_size * .2);;
-    
+
     // Fill in background color
     ctx.fillStyle = c[2];
     ctx.fillRect(x, y, l, l);
@@ -362,6 +590,7 @@ function drawRaisedSquare(ctx, x, y, l, c){
     ctx.fill();
 }
 
+revealCustom();
 new_game();
     </script>
   </body>
