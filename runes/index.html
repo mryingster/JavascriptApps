@@ -1,0 +1,181 @@
+<html>
+  <head>
+    <title>Phasmophobia Runes</title>
+    <style>
+      body {
+          font-family: sans-serif;
+          color:#fff;
+      background:#000 url('images/tanglewood.jpg');
+      background-repeat: no-repeat;
+      background-position: center top;
+      }
+          
+      @font-face {
+          font-family: "October-Crow";
+          src: url('fonts/october_crow.ttf') format('truetype');
+      }
+          
+      .header {
+          font-weight: bold;
+          color:#888;
+      }
+          
+      h1 {
+          font-family: "October-Crow";
+          font-size:70px;
+          margin: 50 auto 0 auto;
+      }
+          
+      h2 {
+          color:#888;
+          font-style:italic;
+          font-weight:light;
+          font-weight: lighter;
+          margin: 0 auto 50px auto;
+      }
+          
+      .rune {
+          width: 50px;
+          filter: invert(24%) sepia(100%) saturate(2578%) hue-rotate(98deg) brightness(95%) contrast(106%);
+          <!--filter computed here: https://codepen.io/sosuke/pen/Pjoqqp-->
+      }
+
+      .rune:hover {
+          filter: invert(45%) sepia(79%) saturate(1215%) hue-rotate(86deg) brightness(123%) contrast(121%);
+      }
+
+      .obscured {
+          animation: blur 0.25s linear forwards;
+      }
+
+      @keyframes blur {
+          to {
+              -webkit-filter: blur(5px);
+              -moz-filter: blur(5px);
+              filter: blur(5px);
+          }
+      }
+      
+      td {
+          width: 121px;
+          text-align: center;
+          border-bottom: 1px solid #333;
+      }
+
+      .rune, .header, .rune1, .rune2, .rune3, .rune4, .rune5, .rune6, .rune7 {
+          cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <center>
+      <h1>Phasmophobia Rune Hints</h1>
+      <h2>Spoiler-Free Hints for Finding Runes</h2>
+    <table>
+      <tr>
+        <td class="header">Rune</td>
+        <td><img class="rune" src="svgs/rune_1.svg" onclick="toggle_class('rune1');" title="Eye with vertical line"></td>
+        <td><img class="rune" src="svgs/rune_2.svg" onclick="toggle_class('rune2');" title="Crossed pick axes"></td>
+        <td><img class="rune" src="svgs/rune_3.svg" onclick="toggle_class('rune3');" title="Devil with long tail"></td>
+        <td><img class="rune" src="svgs/rune_4.svg" onclick="toggle_class('rune4');" title="Circle with shwoops"></td>
+        <td><img class="rune" src="svgs/rune_5.svg" onclick="toggle_class('rune5');" title="Down arrow between hills"></td>
+        <td><img class="rune" src="svgs/rune_6.svg" onclick="toggle_class('rune6');" title="Perpendicular lines"></td>
+        <td><img class="rune" src="svgs/rune_7.svg" onclick="toggle_class('rune7');" title="Man with curved arm"></td>
+      </tr>
+      <tr>
+        <td class="header" onclick="toggle_class('hint1');">Clue Map</td>
+        <td><span class="rune1 hint1 obscured" onclick="toggle(this);">Prison</span></td>
+        <td><span class="rune2 hint1 obscured" onclick="toggle(this);">13 Willow Street</span></td>
+        <td><span class="rune3 hint1 obscured" onclick="toggle(this);">Camp Woodwind</span></td>
+        <td><span class="rune4 hint1 obscured" onclick="toggle(this);">6 Tanglewood Drive</span></td>
+        <td><span class="rune5 hint1 obscured" onclick="toggle(this);">10 Ridgeview Court</span></td>
+        <td><span class="rune6 hint1 obscured" onclick="toggle(this);">42 Edgefield Road</span></td>
+        <td><span class="rune7 hint1 obscured" onclick="toggle(this);">Bleasdale Farmhouse</span></td>
+      </tr>
+      <tr>
+        <td class="header" onclick="toggle_class('hint2');">Clue Location Hint</td>
+        <td><span class="rune1 hint2 obscured" onclick="toggle(this);">Explore outside</span></td>
+        <td><span class="rune2 hint2 obscured" onclick="toggle(this);">Explore the bedrooms</span></td>
+        <td><span class="rune3 hint2 obscured" onclick="toggle(this);">Explore tents near the fire</span></td>
+        <td><span class="rune4 hint2 obscured" onclick="toggle(this);">Explore the bedrooms</span></td>
+        <td><span class="rune5 hint2 obscured" onclick="toggle(this);">Examine the house exterior</span></td>
+        <td><span class="rune6 hint2 obscured" onclick="toggle(this);">Examine the house exterior</span></td>
+        <td><span class="rune7 hint2 obscured" onclick="toggle(this);">Explore near the attic</span></td>
+      </tr>
+      <tr>
+        <td class="header" onclick="toggle_class('hint3');">Clue Location</td>
+        <td><span class="rune1 hint3 obscured" onclick="toggle(this);">On the side of the investigation truck</span></td>
+        <td><span class="rune2 hint3 obscured" onclick="toggle(this);">On the whiteboard in boy's room</span></td>
+        <td><span class="rune3 hint3 obscured" onclick="toggle(this);">On the wall of the food tent by the coolers</span></td>
+        <td><span class="rune4 hint3 obscured" onclick="toggle(this);">In the closet of the master bedroom</span></td>
+        <td><span class="rune5 hint3 obscured" onclick="toggle(this);">On exterior, to the right of the front window</span></td>
+        <td><span class="rune6 hint3 obscured" onclick="toggle(this);">On the barrier to the right of the garage</span></td>
+        <td><span class="rune7 hint3 obscured" onclick="toggle(this);">On the stairs leading to the attic</span></td>
+      </tr>
+      <tr>
+        <td class="header" onclick="toggle_class('hint4');">Clue Text</td>
+        <td><span class="rune1 hint4 obscured" onclick="toggle(this);">Exit the building where learning occurs, to find the start of a maze outside</span></td>
+        <td><span class="rune2 hint4 obscured" onclick="toggle(this);">Feed me black stones and the fire will grow, in return I will heat this snowed in hell and home</span></td>
+        <td><span class="rune3 hint4 obscured" onclick="toggle(this);">Peer out from a bedroom window onto a wall, in fog above the basement reveals all</span></td>
+        <td><span class="rune4 hint4 obscured" onclick="toggle(this);">Emerging from a watery grave, a quiet spot to watch the sunrise</span></td>
+        <td><span class="rune5 hint4 obscured" onclick="toggle(this);">In a place where hands must be seen at all times, I hide where water falls on command</span></td>
+        <td><span class="rune6 hint4 obscured" onclick="toggle(this);">Down the stairs to a chair that rocks, I support the house above</span></td>
+        <td><span class="rune7 hint4 obscured" onclick="toggle(this);">In light rain and snow I never rest, defending fruit from my foes above, bring me light that keeps me warm</span></td>
+      </tr>
+      <tr>
+        <td class="header" onclick="toggle_class('hint5');">Rune Map</td>
+        <td><span class="rune1 hint5 obscured" onclick="toggle(this);">Brownstone High School</span></td>
+        <td><span class="rune2 hint5 obscured" onclick="toggle(this);">Sunny Meadows Mental Institution</span></td>
+        <td><span class="rune3 hint5 obscured" onclick="toggle(this);">13 Willow Street</span></td>
+        <td><span class="rune4 hint5 obscured" onclick="toggle(this);">Maple Lodge Campsite</span></td>
+        <td><span class="rune5 hint5 obscured" onclick="toggle(this);">Prison</span></td>
+        <td><span class="rune6 hint5 obscured" onclick="toggle(this);">6 Tanglewood Drive</span></td>
+        <td><span class="rune7 hint5 obscured" onclick="toggle(this);">Grafton Farmhouse</span></td>
+      </tr>
+      <tr>
+        <td class="header" onclick="toggle_class('hint6');">Rune Location Hint</td>
+        <td><span class="rune1 hint6 obscured" onclick="toggle(this);">Explore the back of the school</span></td>
+        <td><span class="rune2 hint6 obscured" onclick="toggle(this);">Explore the north-most section of the map</span></td>
+        <td><span class="rune3 hint6 obscured" onclick="toggle(this);">Explore the bedrooms</span></td>
+        <td><span class="rune4 hint6 obscured" onclick="toggle(this);">Explore near the lake</span></td>
+        <td><span class="rune5 hint6 obscured" onclick="toggle(this);">Check in the showers</span></td>
+        <td><span class="rune6 hint6 obscured" onclick="toggle(this);">Explore the basement</span></td>
+        <td><span class="rune7 hint6 obscured" onclick="toggle(this);">Explore the back of the house</span></td>
+      </tr>
+      <tr>
+        <td class="header" onclick="toggle_class('hint7');">Rune Location</td>
+        <td><span class="rune1 hint7 obscured" onclick="toggle(this);">Follow the arrows on the ground starting at the east back door<br>(UV light)</span></td>
+        <td><span class="rune2 hint7 obscured" onclick="toggle(this);">On the bottom of the right boiler in the boiler room<br>(UV light)</span></td>
+        <td><span class="rune3 hint7 obscured" onclick="toggle(this);">On the wall when looking out the master bedroom west wall during fog<br>(UV light)</span></td>
+        <td><span class="rune4 hint7 obscured" onclick="toggle(this);">On the end of the pier, but only during the sunrise time<br>(UV light)</span></td>
+        <td><span class="rune5 hint7 obscured" onclick="toggle(this);">East shower, last stall, upper right<br>(UV light)</span></td>
+        <td><span class="rune6 hint7 obscured" onclick="toggle(this);">In the rafters above the rocking chair<br>(UV light)</span></td>
+        <td><span class="rune7 hint7 obscured" onclick="toggle(this);">On the scarecrow in the pumpkin patch behind the house<br>(Candle)</span></td>
+      </tr>
+      <tr>
+        <td class="header" onclick="toggle_class('hint8');">Rune Letter</td>
+        <td><span class="rune1 hint8 obscured" onclick="toggle(this);">E</span></td>
+        <td><span class="rune2 hint8 obscured" onclick="toggle(this);">P</span></td>
+        <td><span class="rune3 hint8 obscured" onclick="toggle(this);">H</span></td>
+        <td><span class="rune4 hint8 obscured" onclick="toggle(this);">O</span></td>
+        <td><span class="rune5 hint8 obscured" onclick="toggle(this);">T</span></td>
+        <td><span class="rune6 hint8 obscured" onclick="toggle(this);">I</span></td>
+        <td><span class="rune7 hint8 obscured" onclick="toggle(this);">N</span></td>
+      </tr>
+    </table>
+    </center>
+  </body>
+  <script>
+
+function toggle(e){
+    e.classList.toggle("obscured");
+}
+
+function toggle_class(class_name){
+    for (let e of document.getElementsByClassName(class_name)){
+	toggle(e);
+    }
+}
+
+  </script>
+</html>
