@@ -5,27 +5,32 @@
       body {
           font-family: sans-serif;
           color:#fff;
-      background:#000 url('images/tanglewood.jpg');
-      background-repeat: no-repeat;
-      background-position: center top;
+          background:#000 url('images/tanglewood.jpg');
+          background-repeat: no-repeat;
+          background-position: center top;
       }
-          
+
       @font-face {
           font-family: "October-Crow";
           src: url('fonts/october_crow.ttf') format('truetype');
       }
-          
+
       .header {
           font-weight: bold;
           color:#888;
+          transition: color ease-in .1s;
       }
-          
+
+      .header:hover {
+          color:#ccc;
+      }
+      
       h1 {
           font-family: "October-Crow";
           font-size:70px;
           margin: 50 auto 0 auto;
       }
-          
+
       h2 {
           color:#888;
           font-style:italic;
@@ -33,14 +38,15 @@
           font-weight: lighter;
           margin: 0 auto 50px auto;
       }
-          
+
       .rune {
           width: 50px;
           filter: invert(24%) sepia(100%) saturate(2578%) hue-rotate(98deg) brightness(95%) contrast(106%);
+          transition: filter ease-in .1s;
           <!--filter computed here: https://codepen.io/sosuke/pen/Pjoqqp-->
       }
 
-      .rune:hover {
+      td:hover .rune{
           filter: invert(45%) sepia(79%) saturate(1215%) hue-rotate(86deg) brightness(123%) contrast(121%);
       }
 
@@ -65,9 +71,15 @@
       .rune, .header, .rune1, .rune2, .rune3, .rune4, .rune5, .rune6, .rune7 {
           cursor: pointer;
       }
+
+      #orb {
+          position: absolute;
+          opacity: 0.0;
+      }
     </style>
   </head>
   <body>
+    <img id="orb" src="images/orb.png">
     <center>
       <h1>Phasmophobia Rune Hints</h1>
       <h2>Spoiler-Free Hints for Finding Runes</h2>
@@ -173,9 +185,72 @@ function toggle(e){
 
 function toggle_class(class_name){
     for (let e of document.getElementsByClassName(class_name)){
-	toggle(e);
+        toggle(e);
     }
 }
 
+    let timer;
+    let c;
+    let max_frames = 120;
+
+    function start_orb_animation(){
+        let x = Math.random() * window.innerWidth;
+        let y = Math.random() * window.innerHeight;
+        let d = Math.random() * (Math.PI * 2);
+
+        // Reset the frame counter and make a new animation length;
+        c = 0;
+        max_frames = Math.round(Math.random() * 300 + 20);
+        animate_orb(x, y, d, 35, 0, c);
+    }
+
+    function animate_orb(x, y, d, s, o, c){
+        // Ramp up opacity for first 20 frames
+        if (c <= 20)
+            o = c / 20;
+
+        // Ramp down opacity for last 20 frames
+        if (c > (max_frames-20))
+            o = (max_frames-c) / 20;
+
+        // End animation
+        if (c == max_frames || y < 0 || x < 0 || y > window.innerHeight || x > window.innerWidth){
+            clearTimeout(timer);
+            move_orb(0,0,0,0);
+
+            // Plan new animation in a while
+            timer = setTimeout(() => start_orb_animation(), Math.random() * 15000);
+            return;
+        }
+
+        // Fluctuate the size
+        //s += (Math.random() * 2) - 1;
+
+        // Move the coords
+        let delta_x = Math.sin(d) / Math.sin(Math.PI/2);
+        let delta_y = Math.sin((Math.PI/2)-d) / Math.sin(Math.PI/2);
+        x += delta_x;
+        y += delta_y;
+
+        // Update the orb
+        move_orb(x, y, s, o);
+
+        // Plan next animation
+        timer = setTimeout(() => animate_orb(x, y, d, s, o, c+1), 1000/60);
+    }
+    
+    function move_orb(x, y, s, o){
+        //console.log(x, y, s, o);
+
+        let orb = document.getElementById("orb");
+        orb.style.left = x;
+        orb.style.top = y;
+        orb.style.opacity = o;
+        orb.width = s;
+        orb.height = s;
+    }
+
+    // Start animation sometime in the next 15 seconds
+    timer = setTimeout(() => start_orb_animation(), Math.random() * 15000);
   </script>
 </html>
