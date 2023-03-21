@@ -1,0 +1,340 @@
+<html>
+  <head>
+    <title>Snake</title>
+    <style>
+      body {
+          background:#aaa;
+          color:#000;
+          font-family:sans-serif;
+      }
+
+      div#content {
+          width: fit-content;
+          background:#fff;
+          margin: 0 auto 0 auto;
+          padding:15px 15px 30px 15px;
+          text-align: center;
+      }
+
+      #canvas_wrapper {
+      position: relative;
+      width: 360px;
+      height: 360px;
+      }
+
+      canvas {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      }
+
+      h1 {
+          margin:10px;
+          font-size:3em;
+      }
+
+      #header {
+          text-align:left;
+      }
+
+
+      #debug {
+      display: none;
+      background: #eee;
+      text-align: left;
+      border-radius: 15px;
+      margin: 10px;
+      width: fit-content;
+      padding: 5px 30px;      
+      }
+
+      input {
+      max-width: 40px;
+      }
+
+      #speed {
+      max-width: 250px;
+      }
+
+      #score_container{
+      float: right;
+      margin-top: -30px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <div id="header">
+	<h1>Snake</h1>
+	<span id="score_container">Score:<span id="score">-</span></span>
+      </div>
+
+      <div id="canvas_wrapper">
+	<canvas id="background" style="border:1px solid black;"></canvas>
+	<canvas id="canvas" style="border:1px solid black;"></canvas>
+      </div>
+
+      <p>Color: <select id="color">
+	  <option value="0" selected>Green</option>
+	  <option value="1">Blue</option>
+	  <option value="2">Grey</option>
+	  <option value="3">Red</option>
+	  <option value="4">Yellow</option>
+	</select>
+	<button onclick="start();">Start</button></p>
+
+      <div id="debug">
+	<h2>DEBUG</h2>
+	<p>Pixel Pos x:<span id="pix_x">-</span>, y:<span id="pix_y">-</span><br>
+	  Grid Pos x:<span id="grid_x">-</span>, y:<span id="grid_y">-</span><br>
+	  <button onclick="next_frame(true);">Advance Frame</button><button onclick="next_frame();">Continue</button><br>
+	  Width:<input id="width" value="15"/></input>Height:<input id="height" value="15"/><br>
+	  Speed:<input id="speed" oninput="change_speed();" type="range" min="1" max="500" value="10">
+	</p>
+      </div>
+
+    </div>
+  </body>
+  <script>
+
+const WEST  = 0;
+const NORTH = 1;
+const EAST  = 2;
+const SOUTH = 3;
+
+const HEAD = 0;
+const BODY = 1;
+
+const sprite = new Image();
+sprite.src = "sprites.png";
+const apple = new Image();
+apple.src = "apple.png";
+
+let direction;
+let snake;
+let snack;
+let speed;
+let timer;
+let new_segment = null;
+let frame;
+let color;
+
+let gridsize = 24;
+let width = 15;
+let height = 15;
+
+// Keyboard listeners
+document.addEventListener('keydown', function(e) {
+    if (e.keyCode == 38) direction = NORTH;
+    if (e.keyCode == 39) direction = EAST;
+    if (e.keyCode == 40) direction = SOUTH;
+    if (e.keyCode == 37) direction = WEST;
+});
+
+function new_snack(){
+    let valid = false;
+    let x;
+    let y;
+    while (valid == false){
+	valid = true;
+        x = Math.floor(Math.random() * width);
+        y = Math.floor(Math.random() * height);
+
+	for (let segment of snake){
+	    if (x == Math.round(segment.x/gridsize) && y == Math.round(segment.y/gridsize)){
+		valid = false;
+		break;
+	    }
+	}
+    }
+    return {x:x, y:y};
+}
+
+function generate_background(c){
+    let ctx = c.getContext("2d");
+
+    // Draw random brown to represent dirt
+    for (let x=0; x<c.width; x++)
+	for (let y=0; y<c.height; y++){
+	    ctx.fillStyle = "hsla(24,100%,"+(Math.floor(Math.random()*8)+13)+"%,1)";
+	    ctx.fillRect(x, y, 1, 1);
+	}
+
+    // Draw Gridlines
+    ctx.strokeStyle = "hsla(24,100%,13%,1)";
+    for (let x=0; x<gridsize; x++){
+        ctx.beginPath();
+        ctx.moveTo(x*gridsize, 0);
+        ctx.lineTo(x*gridsize, height*gridsize);
+        ctx.stroke();
+    }
+    for (let y=0; y<gridsize; y++){
+        ctx.beginPath();
+        ctx.moveTo(0, y*gridsize);
+        ctx.lineTo(height*gridsize, y*gridsize);
+        ctx.stroke();
+    }
+    
+}
+
+function setup_canvas(){
+    width = Number(document.getElementById("width").value);
+    height = Number(document.getElementById("height").value);
+
+    let c = document.getElementById("canvas");
+    c.width = gridsize * width;
+    c.height = gridsize * height;
+
+    let b = document.getElementById("background");
+    b.width = gridsize * width;
+    b.height = gridsize * height;
+
+    generate_background(b);
+}
+
+    function start(){
+	setup_canvas();
+
+        direction = EAST;
+        snake = [
+            {x:48, y:0, d:EAST, c:"#ff0000", t:HEAD},
+            {x:24, y:0, d:EAST, c:"#00ff00", t:BODY},
+            //{x:0, y:0, d:EAST, c:"#00ff00"}
+        ];
+
+        new_segment = null;
+	frame = 0;
+        snack = new_snack();
+        speed = Number(document.getElementById("speed").value);
+        clearTimeout(timer);
+	color = Number(document.getElementById("color").value);
+
+        document.getElementById("score").innerHTML = "0";
+        next_frame();
+    }
+
+function change_speed(){
+    let input = 500-Number(document.getElementById("speed").value);
+    speed = Math.sqrt(input) * Math.pow(.9, snake.length-2);
+}
+
+    function next_frame(manual=false){
+        // Process each segment
+        for (let s=snake.length-1; s>=0; s--){
+            // Can change directions when in the center of grids
+            if (snake[s].x % gridsize == 0 && snake[s].y % gridsize == 0){
+                // Other segments move towards the segments in front of them
+                if (s != 0)
+                    snake[s].d = snake[s-1].d;
+
+                // Element 0 is head and changes based on user input
+                if (s == 0){
+                    if (snake[0].x / gridsize == snack.x && snake[0].y / gridsize == snack.y){
+                        // Eat. Yum.
+                        document.getElementById("score").innerHTML = snake.length - 1;
+                        new_segment = {x:snake[snake.length-1].x, y:snake[snake.length-1].y, c:"#00ff00", d:snake[snake.length-1].d, t:BODY};
+			speed *= .975;
+                        snack = new_snack();
+                    } else if (new_segment != null){
+                        // Add new segment if necessary
+                        snake.push(new_segment);
+                        new_segment = null;
+                    }
+
+                    // Change direction
+                    if (snake[s].d % 2 != direction %2)
+                        snake[s].d = direction;
+                }
+
+            }
+
+            // Move snake
+            switch(snake[s].d){
+            case NORTH:
+                snake[s].y--;
+                break;
+            case EAST:
+                snake[s].x++;
+                break;
+            case SOUTH:
+                snake[s].y++;
+                break;
+            case WEST:
+                snake[s].x--;
+                break;
+            }
+        }
+
+        // Look for intersections with boundaries
+        if (snake[0].x < 0 || snake[0].y < 0 || snake[0].x+gridsize > width*gridsize || snake[0].y+gridsize > height*gridsize){
+            game_over();
+            return;
+        }
+
+        // Look for self intersection
+        for (let s=1; s<snake.length; s++){
+            if (snake[0].x == snake[s].x && snake[0].y == snake[s].y){
+                game_over();
+                return;
+            }
+        }
+
+        document.getElementById("pix_x").innerHTML = snake[0].x;
+        document.getElementById("pix_y").innerHTML = snake[0].y;
+        document.getElementById("grid_x").innerHTML = Math.round(snake[0].x / gridsize);
+        document.getElementById("grid_y").innerHTML = Math.round(snake[0].y / gridsize);
+
+	frame += .25;
+        redraw();
+
+        // Setup next animation
+        if (manual == false)
+            timer = setTimeout(() => next_frame(), speed);
+        else
+            clearTimeout(timer);
+    }
+
+    function redraw(){
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext("2d");
+
+	let color_offset = color * 20 * 25;
+
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw snake snack
+	ctx.drawImage(apple, 0, 0, 24, 24, snack.x * gridsize, snack.y * gridsize, 24, 24);
+        //ctx.beginPath();
+        //ctx.fillStyle = "#ff00ff";
+        //ctx.rect(snack.x * gridsize, snack.y * gridsize, gridsize, gridsize);
+        //ctx.fill();
+
+	// Draw the snake
+	let animation_offset = 0;
+        for (let s=snake.length-1; s>=0; s--){
+	    let sx = (Math.floor(frame+animation_offset) % 14)
+	    if (sx >= 7) sx = 13-sx;
+	    sx *= 25;
+	    let sy = color_offset;
+	    if (snake[s].t == HEAD)
+		sy += (0  + snake[s].d) * 25;
+	    if (snake[s].t == BODY)
+		sy += (12 + snake[s].d) * 25;
+	    ctx.drawImage(sprite, sx, sy, 24, 24, snake[s].x, snake[s].y, 24, 24);
+            // Snake is a square right now
+            //ctx.beginPath();
+            //ctx.fillStyle = snake[s].c;
+            //ctx.rect(snake[s].x, snake[s].y, gridsize, gridsize);
+            //ctx.fill();
+	    animation_offset += 1;
+        }
+    }
+
+    function game_over(){
+        clearTimeout(timer);
+    }
+
+setup_canvas();
+  </script>
+</html>
