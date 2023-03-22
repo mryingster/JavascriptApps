@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+  <head>
+    <title>Bezier Curve Demo</title>
+    <style>
+      #controls {
+          display: block;
+          position: absolute;
+          top: 10px;
+          left: 10px;
+      }
+
+      body{
+          margin: 0px;
+          padding: 0px;
+          overflow: clip;
+      }
+
+      canvas {
+          outline: 0px solid green;
+          margin: 0px;
+          padding: 0px;
+      }
+    </style>
+  </head>
+  <body onresize="resize_canvas();">
+    <canvas id="canvas"></canvas>
+    <div id="controls">
+      <input id="show_handles" onchange="draw_bezier_curve();" type="checkbox" checked>Show Handles</input><br>
+      <input id="show_splines_1" onchange="draw_bezier_curve();" type="checkbox">Show First Order Splines</input><br>
+      <input id="show_splines_2" onchange="draw_bezier_curve();" type="checkbox">Show Second Order Splines</input><br>
+      <input id="resolution"   oninput="draw_bezier_curve();" type="range" min="3" max="100"></input>
+    </div>
+  </body>
+  <script>
+
+    let mouse_down = false;
+let clicked_point = -1;
+let point_start = -1;
+let handle_start = -1;
+    let bezier;
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
+
+    // Mouse listeners
+    canvas.addEventListener("contextmenu", (e) => {e.preventDefault()}); // Disable context menu on canvas
+    canvas.addEventListener('mousedown',  input_down_mouse);
+    canvas.addEventListener('mousemove',  input_move_mouse);
+    canvas.addEventListener('mouseup',    input_up);
+
+    function input_down_mouse(e){
+        mouse_down = true;
+        let coords = getCursorPosition(canvas, e);
+        click_point(coords);
+    }
+
+    function input_move_mouse(e){
+        if (mouse_down == true && clicked_point != -1){
+            let coords = getCursorPosition(canvas, e);
+	    if (clicked_point == 0 || clicked_point == 3){
+		let diffx = coords.x - point_start.x;
+		let diffy = coords.y - point_start.y;
+		if (clicked_point == 0){
+		    bezier[1].x = handle_start.x + diffx;
+		    bezier[1].y = handle_start.y + diffy;
+		}
+		if(clicked_point == 3){
+		    bezier[2].x = handle_start.x + diffx;
+		    bezier[2].y = handle_start.y + diffy;
+		}
+	    }
+            bezier[clicked_point] = coords;
+            draw_bezier_curve();
+        }
+    }
+
+    function input_up(e){
+        mouse_down = false;
+        clicked_point = -1;
+	point_start = -1;
+	handle_start = -1;
+    }
+
+    function getCursorPosition(canvas, event){
+        // Determine where clicked
+        const rect = canvas.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
+
+        return {x:x, y:y};
+    }
+
+    function click_point(coords){
+        let tolerance = 10;
+        for (let i=0; i<bezier.length; i++){
+            if (Math.abs(coords.x - bezier[i].x) < tolerance &&
+                Math.abs(coords.y - bezier[i].y) < tolerance){
+                clicked_point = i;
+		point_start = bezier[i];
+		if (i==0 || i==3)
+		    handle_start = {x:bezier[1].x, y:bezier[1].y};
+		if (i==3)
+		    handle_start = {x:bezier[2].x, y:bezier[2].y};
+	    }
+        }
+    }
+
+    function find_point_on_line(p1, p2, percent){
+        let p3 = {
+            "x" : ((p2.x - p1.x) * percent) + p1.x,
+            "y" : ((p2.y - p1.y) * percent) + p1.y,
+        }
+        return p3;
+    }
+
+    function draw_circle(coord, r, c){
+        ctx.beginPath();
+        ctx.fillStyle = c;
+        ctx.arc(coord.x, coord.y, r, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+
+    function draw_bezier_curve(){
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+	let points = [[],[],[],[],[],[]];
+        let increment = 1.0 / document.getElementById("resolution").value;//.05;
+
+        // split up curve into segments based on percent and record the points
+        for (let i=0; i<=1.01; i+=increment){
+            let p1 = find_point_on_line(bezier[0], bezier[1], i);
+            let p2 = find_point_on_line(bezier[1], bezier[2], i);
+            let p3 = find_point_on_line(bezier[2], bezier[3], i);
+            let p4 = find_point_on_line(p1, p2, i);
+            let p5 = find_point_on_line(p2, p3, i);
+            let p6 = find_point_on_line(p4, p5, i);
+
+	    points[0].push(p1);
+	    points[1].push(p2);
+	    points[2].push(p3);
+	    points[3].push(p4);
+	    points[4].push(p5);
+	    points[5].push(p6);
+        }
+
+        //Draw splines that are used to make curve
+        if (document.getElementById("show_splines_1").checked == true) {
+            ctx.strokeStyle = "#dddddd"
+            for (let i=0; i<points[0].length; i++){
+                ctx.beginPath();
+                ctx.moveTo(points[0][i].x, points[0][i].y);
+                ctx.lineTo(points[1][i].x, points[1][i].y);
+                ctx.lineTo(points[2][i].x, points[2][i].y);
+                ctx.stroke();
+            }
+        }
+	
+        if (document.getElementById("show_splines_2").checked == true) {
+            ctx.strokeStyle = "#dddddd"
+            for (let i=0; i<points[0].length; i++){
+                ctx.beginPath();
+                ctx.moveTo(points[3][i].x, points[3][i].y);
+                ctx.lineTo(points[4][i].x, points[4][i].y);
+                ctx.stroke();
+            }
+        }
+
+	if (document.getElementById("show_splines_2").checked == true ||
+	   document.getElementById("show_splines_1").checked == true) {
+	    ctx.strokeStyle = "#00FF00"
+            ctx.beginPath();
+            ctx.moveTo(points[3][0].x, points[3][0].y);
+	    for (let p of points[3])
+		ctx.lineTo(p.x, p.y);
+            ctx.stroke();
+            ctx.moveTo(points[4][0].x, points[4][0].y);
+	    for (let p of points[4])
+		ctx.lineTo(p.x, p.y);
+            ctx.stroke();
+	}
+
+	// Draw main curve
+        ctx.strokeStyle = "#FF0000"
+        ctx.beginPath();
+        ctx.moveTo(points[5][0].x, points[5][0].y);
+	for (let p of points[5])
+            ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+
+	// Draw handles
+        if (document.getElementById("show_handles").checked == true) {
+            ctx.strokeStyle = "#0000FF"
+            ctx.beginPath();
+            ctx.moveTo(bezier[0].x, bezier[0].y);
+            ctx.lineTo(bezier[1].x, bezier[1].y);
+            ctx.moveTo(bezier[2].x, bezier[2].y);
+            ctx.lineTo(bezier[3].x, bezier[3].y);
+            ctx.stroke();
+
+            draw_circle(bezier[0], 3, "#000000");
+            draw_circle(bezier[1], 3, "#000000");
+            draw_circle(bezier[2], 3, "#000000");
+            draw_circle(bezier[3], 3, "#000000");
+        }
+    }
+
+    function set_up_bezier_curve(){
+        bezier = [];
+        // Pick 3 points for bezier curve
+        for (let i in [0, 1, 2, 3])
+            bezier.push(
+                {
+                    "x" : Math.random() * canvas.width,
+                    "y" : Math.random() * canvas.height,
+                }
+            );
+
+        draw_bezier_curve();
+    }
+
+    function resize_canvas(){
+        var windowWidth = window.innerWidth
+            || document.documentElement.clientWidth
+            || document.body.clientWidth;
+        var windowHeight = window.innerHeight
+            || document.documentElement.clientHeight
+            || document.body.clientHeight;
+
+        canvas.height = windowHeight;
+        canvas.width  = windowWidth;
+
+        if (bezier)
+            draw_bezier_curve();
+    }
+
+    resize_canvas();
+    set_up_bezier_curve();
+  </script>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+  <head>
+    <title>Bezier Curve Demo</title>
+    <style>
+      body{
+          background:#000;
+          color:#888;
+          margin: 0px;
+          padding: 0px;
+      }
+      #orb1, #orb2 {
+          position: absolute;
+          opacity: 0.0;
+      }
+
+      .orb-bounds {
+          position: fixed;
+          display: block;
+          width: 100%;
+          height: 100%;
+          overflow: clip;
+          top: 0;
+          left: 0;
+          z-index: -1;
+      }
+      #divider{
+          border-right: 2px solid #888;
+          width: 50%;
+          height: 100%;
+      }
+      #linear, #bezier {
+          position: fixed;
+          font-size: 2em;
+          bottom:10px;
+      }
+      #linear {
+          left:20%;
+      }
+      #bezier {
+          right:20%;
+      }
+      .marker {
+          position: absolute;
+          width:10px;
+          height:10px;
+      }
+    </style>
+  </head>
+  <body>
+    <span id="linear">Linear</span>
+    <span id="bezier">B&eacute;zier</span>
+    <div id="divider"></div>
+    <div class="orb-bounds">
+      <img class="marker" id="p1_linear_marker" src="images/x.png">
+      <img class="marker" id="p3_linear_marker" src="images/x.png">
+      <img class="marker" id="p1_bezier_marker" src="images/x.png">
+      <img class="marker" id="p2_bezier_marker" src="images/x.png">
+      <img class="marker" id="p3_bezier_marker" src="images/x.png">
+      <img id="orb1" src="images/orb.png">
+      <img id="orb2" src="images/orb.png">
+    </div>
+  </body>
+  <script>
+
+let timer;
+let bezier;
+
+function start_orb_animation(){
+    bezier = [];
+    // Pick 3 points for bezier curve
+    for (let i in [0, 1, 2])
+        bezier.push(
+            {
+                "x" : Math.random() * window.innerWidth * .45,
+                "y" : Math.random() * window.innerHeight * .95,
+            }
+        );
+
+    // Place markers
+    move_orb(document.getElementById("p1_linear_marker"), bezier[0].x + 5,                       bezier[0].y + 5, .5);
+    move_orb(document.getElementById("p3_linear_marker"), bezier[2].x + 5,                       bezier[2].y + 5, .5);
+    move_orb(document.getElementById("p1_bezier_marker"), bezier[0].x + 5 + window.innerWidth/2, bezier[0].y + 5, .5);
+    move_orb(document.getElementById("p2_bezier_marker"), bezier[1].x + 5 + window.innerWidth/2, bezier[1].y + 5, .5);
+    move_orb(document.getElementById("p3_bezier_marker"), bezier[2].x + 5 + window.innerWidth/2, bezier[2].y + 5, .5);
+    animate_orb(0, 0, 0);
+}
+
+function find_point_on_line(p1, p2, percent){
+    let p3 = {
+        "x" : ((p2.x - p1.x) * percent) + p1.x,
+        "y" : ((p2.y - p1.y) * percent) + p1.y,
+    }
+    return p3;
+}
+
+function animate_orb(percent, o, r){
+    // Ramp up opacity for first 25 percent
+    if (percent <= .25)
+        o = percent * 4;
+
+    else if (percent >= .75)
+        // Ramp down opacity for last 25 percent
+        o = (1 - percent) * 4;
+
+    else {
+        // Flicker a bit
+        //o += ((Math.random() * .05) - .025);
+    }
+
+
+    // Start rotation
+    if (percent == 0)
+        r = Math.random() * 360;
+    r += .25;
+
+    // End animation
+    if (percent >= 1) {
+        clearTimeout(timer);
+
+        // Plan new animation in one second
+        timer = setTimeout(() => start_orb_animation(), 1000);
+        return;
+    }
+
+    // find the coords
+    let p1 = find_point_on_line(bezier[0], bezier[1], percent);
+    let p2 = find_point_on_line(bezier[1], bezier[2], percent);
+    let p3 = find_point_on_line(p1, p2, percent);
+    let p4 = find_point_on_line(bezier[0], bezier[2], percent);
+
+    // Update the orb
+    move_orb(document.getElementById("orb1"), p3.x + window.innerWidth/2, p3.y, o, r);
+    move_orb(document.getElementById("orb2"), p4.x, p4.y, o, r);
+
+    // Plan next animation
+    timer = setTimeout(() => animate_orb(percent+.001, o, r), 1000/60);
+}
+    
+function move_orb(orb, x, y, o, r){
+    orb.style.left = `${x}px`;
+    orb.style.top = `${y}px`;
+    orb.style.rotate = `${r}deg`;
+    orb.style.opacity = o;
+}
+
+    // Start animation sometime in the next 15 seconds
+    timer = setTimeout(() => start_orb_animation(), 0);
+  </script>
+</html>

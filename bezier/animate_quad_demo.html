@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+  <head>
+    <title>Bezier Curve Demo</title>
+    <style>
+      body{
+          margin: 0px;
+          padding: 0px;
+          overflow: clip;
+      }
+
+      canvas {
+          outline: 0px solid green;
+          margin: 0px;
+          padding: 0px;
+      }
+    </style>
+  </head>
+  <body onresize="resize_canvas();">
+    <canvas id="canvas"></canvas>
+  </body>
+  <script>
+
+    let mouse_down = false;
+    let clicked_point = -1;
+    let point_start = -1;
+    let handle_start = -1;
+    let bezier;
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
+    let timer;
+
+    // Mouse listeners
+    canvas.addEventListener("contextmenu", (e) => {e.preventDefault()}); // Disable context menu on canvas
+    canvas.addEventListener('mousedown',  input_down_mouse);
+    canvas.addEventListener('mousemove',  input_move_mouse);
+    canvas.addEventListener('mouseup',    input_up);
+
+    function input_down_mouse(e){
+        mouse_down = true;
+        let coords = getCursorPosition(canvas, e);
+        click_point(coords);
+    }
+
+    function input_move_mouse(e){
+        if (mouse_down == true && clicked_point != -1){
+            let coords = getCursorPosition(canvas, e);
+            bezier[clicked_point] = coords;
+        }
+    }
+
+    function input_up(e){
+        mouse_down = false;
+        clicked_point = -1;
+	point_start = -1;
+	handle_start = -1;
+    }
+
+    function getCursorPosition(canvas, event){
+        // Determine where clicked
+        const rect = canvas.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
+
+        return {x:x, y:y};
+    }
+
+    function click_point(coords){
+        let tolerance = 10;
+        for (let i=0; i<bezier.length; i++){
+            if (Math.abs(coords.x - bezier[i].x) < tolerance &&
+                Math.abs(coords.y - bezier[i].y) < tolerance){
+                clicked_point = i;
+		point_start = bezier[i];
+		if (i==0 || i==3)
+		    handle_start = {x:bezier[1].x, y:bezier[1].y};
+		if (i==3)
+		    handle_start = {x:bezier[2].x, y:bezier[2].y};
+	    }
+        }
+    }
+
+    function find_point_on_line(p1, p2, percent){
+        if (percent > 1) percent = 1;
+        let p3 = {
+            "x" : ((p2.x - p1.x) * percent) + p1.x,
+            "y" : ((p2.y - p1.y) * percent) + p1.y,
+        }
+        return p3;
+    }
+
+    function draw_node(coord, l, c){
+        ctx.beginPath();
+        ctx.fillStyle = "#ffffff";
+        ctx.rect(coord.x-(l/2), coord.y-(l/2), l, l);
+        ctx.fill();
+        ctx.strokeStyle = c;
+        ctx.stroke();
+    }
+
+    function draw_circle(coord, r, c){
+        ctx.beginPath();
+        ctx.fillStyle = c;
+        ctx.arc(coord.x, coord.y, r, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+
+    function animate_bezier_curve(percent){
+        // If animation is finished. reset
+        if (percent > 2){
+            percent = 0
+        }
+
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw lines between points
+        ctx.strokeStyle = "#0000FF"
+        ctx.beginPath();
+        ctx.moveTo(bezier[0].x, bezier[0].y);
+        ctx.lineTo(bezier[1].x, bezier[1].y);
+        ctx.lineTo(bezier[2].x, bezier[2].y);
+        ctx.stroke();
+
+        // Draw the secondary line at this percent
+        let p1 = find_point_on_line(bezier[0], bezier[1], percent);
+        let p2 = find_point_on_line(bezier[1], bezier[2], percent);
+        if (percent < 1) {
+            ctx.strokeStyle = "#00FF00"
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+            draw_circle(p1, 3, "#000000");
+            draw_circle(p2, 3, "#000000");
+        }
+
+        // Draw The curve up to this percent
+        ctx.strokeStyle = "#FF0000"
+        ctx.beginPath();
+        ctx.moveTo(bezier[0].x, bezier[0].y);
+        for (let i=0; i<=percent; i+=.01){
+            let p1 = find_point_on_line(bezier[0], bezier[1], i);
+            let p2 = find_point_on_line(bezier[1], bezier[2], i);
+            let p3 = find_point_on_line(p1, p2, i);
+            ctx.lineTo(p3.x, p3.y);
+        }
+        ctx.stroke();
+        let p3 = find_point_on_line(p1, p2, percent);
+        draw_circle(p3, 3, "#000000");
+
+        // Draw the nodes
+        for (let i=0; i<3; i++)
+            draw_node(bezier[i], 8, "#000000");
+
+        // Setup next frame
+        timer = setTimeout(() => animate_bezier_curve(percent+.01), 1000/30);
+    }
+
+    function set_up_bezier_curve(){
+        // Pick 3 points for bezier curve
+        bezier = [
+            {
+                x:canvas.width * .05,
+                y:canvas.height * .95,
+            },
+            {
+                x:canvas.width * .5,
+                y:canvas.height * .05,
+            },
+            {
+                x:canvas.width * .95,
+                y:canvas.height * .95,
+            },
+        ];
+
+        animate_bezier_curve(0);
+    }
+
+    function resize_canvas(){
+        var windowWidth = window.innerWidth
+            || document.documentElement.clientWidth
+            || document.body.clientWidth;
+        var windowHeight = window.innerHeight
+            || document.documentElement.clientHeight
+            || document.body.clientHeight;
+
+        canvas.height = windowHeight;
+        canvas.width  = windowWidth;
+    }
+
+    resize_canvas();
+    set_up_bezier_curve();
+  </script>
+</html>
