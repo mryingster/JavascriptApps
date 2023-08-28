@@ -105,9 +105,8 @@
       </div>
 
       <h2>Instructions</h2>
+      <p>Use the arrows to move, or the i, j, k, and l keys. Collect as many apples as you can!</p>
       <dl>
-	<dt>n:</dt>
-	<dd>New game</dd>
 	<dt>p:</dt>
 	<dd>Pause</dd>
 	<dt>space:</dt>
@@ -115,7 +114,7 @@
       </dl>
 
       <h2>Options</h2>
-      <p>Snake Color: <select id="color">
+      <p>Snake Color: <select id="color" onchange="update_color();">
 	  <option value="0" selected>Green</option>
 	  <option value="1">Blue</option>
 	  <option value="2">Grey</option>
@@ -177,10 +176,10 @@ let fast = false;
 // Keyboard listeners
 document.addEventListener('keydown', function(e) {
     //console.log(e);
-    if (e.keyCode == 38 || e.keyCode == 73) {e.preventDefault(); direction = NORTH};
-    if (e.keyCode == 39 || e.keyCode == 76) {e.preventDefault(); direction = EAST};
-    if (e.keyCode == 40 || e.keyCode == 75) {e.preventDefault(); direction = SOUTH};
-    if (e.keyCode == 37 || e.keyCode == 74) {e.preventDefault(); direction = WEST};
+    if (e.keyCode == 38 || e.keyCode == 73) {e.preventDefault(); paused = false; direction = NORTH};
+    if (e.keyCode == 39 || e.keyCode == 76) {e.preventDefault(); paused = false; direction = EAST};
+    if (e.keyCode == 40 || e.keyCode == 75) {e.preventDefault(); paused = false; direction = SOUTH};
+    if (e.keyCode == 37 || e.keyCode == 74) {e.preventDefault(); paused = false; direction = WEST};
     if (e.keyCode == 78) start();            // n
     if (e.keyCode == 80) toggle_pause();     // p
     if (e.keyCode == 32) {e.preventDefault(); fast = true;} // shift
@@ -255,10 +254,14 @@ function setup_canvas(){
     generate_background(b);
 }
 
+function update_color(){
+    color = Number(document.getElementById("color").value);
+}
+
 function start(){
     if (active) return; // Only allow new game when game over
 
-    setup_canvas();
+    //setup_canvas();
 
     direction = EAST;
     snake = [
@@ -272,21 +275,20 @@ function start(){
 	snack = new_snack();
     moves = [];
     speed = Number(document.getElementById("speed").value);
-    paused = false;
+    paused = true;
     clearTimeout(timer);
-    color = Number(document.getElementById("color").value);
-
+    update_color();
     document.getElementById("score").innerHTML = "0";
     next_frame();
 }
 
 function toggle_pause(){
     if (paused){
-	timer = setTimeout(() => next_frame(), speed);
+	//timer = setTimeout(() => next_frame(), speed);
 	paused = false;
     } else {
 	paused = true;
-	clearTimeout(timer);
+	//clearTimeout(timer);
     }
 }
 
@@ -309,7 +311,6 @@ function next_frame(manual=false){
 
     // Eat. Yum.
     if (collided(snake[0], snack, 10)){
-        document.getElementById("score").innerHTML = snake.length;
 	snake[0].e = 11.75; // Setup 11 frames of eating animation
         snake.push(
 	    {
@@ -323,6 +324,7 @@ function next_frame(manual=false){
 	    });
 	speed *= .975;
         snack = new_snack();
+        document.getElementById("score").innerHTML = snake.length - 2;
     }
 
     // Change direction of head
@@ -347,34 +349,35 @@ function next_frame(manual=false){
         }
     }
 
-    // Actually move all the positions
-    for (let s=0; s<snake.length; s++){
-        if (snake[s].p > 0)
-            snake[s].p--;
-        else {
-            switch(snake[s].d){
-            case NORTH:
-                snake[s].y--;
-                break;
-            case EAST:
-                snake[s].x++;
-                break;
-            case SOUTH:
-                snake[s].y++;
-                break;
-            case WEST:
-                snake[s].x--;
-                break;
+    // Actually move all the positions if we aren't paused
+    if (paused == false) {
+        for (let s=0; s<snake.length; s++){
+            if (snake[s].p > 0)
+                snake[s].p--;
+            else {
+                switch(snake[s].d){
+                case NORTH:
+                    snake[s].y--;
+                    break;
+                case EAST:
+                    snake[s].x++;
+                    break;
+                case SOUTH:
+                    snake[s].y++;
+                    break;
+                case WEST:
+                    snake[s].x--;
+                    break;
+                }
             }
         }
     }
 
     // Look for intersections with boundaries
-    for (let s=0; s<snake.length; s++){
-        if (snake[s].x < 0 || snake[s].y < 0 || snake[s].x+gridsize > width*gridsize || snake[s].y+gridsize > height*gridsize){
-	    die();
-            return;
-        }
+    if (snake[0].x < 0 || snake[0].y < 0 ||
+        snake[0].x+gridsize > width*gridsize || snake[0].y+gridsize > height*gridsize){
+	die();
+        return;
     }
 
     // Look for self intersection
@@ -448,7 +451,6 @@ function die(f=0){
     // Mark game as inactive and reset our frame counter
     if (f == 0){
 	clearTimeout(timer);
-	active = false;
 	color = 5;
 	frame = 0;
     }
@@ -487,12 +489,14 @@ function die(f=0){
 	}
 
 	// Draw next death animation
-	timer = setTimeout(() => die(f+1), 150);
+	timer = setTimeout(() => die(f+1), 125);
     }
 }
 
 function game_over(){
+    active = false;
     check_high_score();
+    start();
 }
 
 function get_high_scores(){
@@ -551,7 +555,7 @@ function update_high_scores(){
 
 function check_high_score(){
     let high_scores = get_high_scores();
-    let score = snake.length - 1;
+    let score = snake.length - 2;
 
     // Go through each and see if it's in the top ten
     var i     = 0;
@@ -589,5 +593,6 @@ function check_high_score(){
 
 setup_canvas();
 update_high_scores();
+start();
 </script>
 </html>
