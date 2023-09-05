@@ -1,0 +1,574 @@
+<html>
+  <head>
+    <title>Hue're Adorable</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=555px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
+      <style>
+      body {
+          background:#aaa;
+          color:#000;
+          font-family:sans-serif;
+      }
+
+      div#content {
+          width: 512px;
+          background:#fff;
+          margin: 0 auto 0 auto;
+          padding:15px 15px 15px 15px;
+      }
+
+      #canvas_wrapper {
+	  position: relative;
+	  width: 512px;
+	  height: 512px;
+      }
+
+      canvas {
+	  position: absolute;
+	  top: 0px;
+      left: 0px;
+      touch-action: manipulation;
+      }
+
+      h1 {
+          margin:10px;
+          font-size:3em;
+      }
+
+      #header {
+          text-align:left;
+      }
+
+      #score_container{
+	  float: right;
+	  margin-top: -30px;
+      }
+
+      #controls{
+          margin-top:10px;
+      }
+
+      #debug{
+          display: none;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <div id="header">
+	<h1>Hue're Adorable</h1>
+	<span id="score_container">Moves:<span id="moves">-</span></span>
+      </div>
+      <div id="canvas_wrapper">
+	<canvas id="buffer"  width="512px" height="512px"></canvas>
+	<canvas id="canvas"  width="512px" height="512px"></canvas>
+	<canvas id="overlay" width="512px" height="512px"></canvas>
+      </div>
+      <div id="controls">
+	<button onclick="new_game();">New Game</button>
+	Width:
+	<select id="width">
+          <option>4</option>
+          <option selected>5</option>
+          <option>6</option>
+          <option>7</option>
+          <option>8</option>
+          <option>9</option>
+          <option>10</option>
+	</select>
+	Height:
+	<select id="height">
+          <option>4</option>
+          <option selected>5</option>
+          <option>6</option>
+          <option>7</option>
+          <option>8</option>
+          <option>9</option>
+          <option>10</option>
+	</select>
+	<span id="sharespan"><a href="#" id="share">Share</a></span>
+      </div>
+      <div id="debug">
+	<h2>Debug</h2>
+	<button onclick="create_tiles();">Create</button>
+	<button onclick="shuffle_tiles(50);">Shuffle</button>
+	<input type="checkbox" id="subgradient", value="subgradient">Create Subgradient
+	<p>DEBUG:<span id="debug_msg"></span></p>
+      </div>
+    </div>
+  </body>
+  <script>
+
+let buffer = document.getElementById("buffer");
+let bctx = buffer.getContext("2d");
+
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+
+let overlay = document.getElementById("overlay");
+let octx = overlay.getContext("2d");
+
+let width = canvas.width;
+let height = canvas.height;
+
+let tiles_wide = 7;
+let tiles_high = 7;
+let tile_width = Math.floor(width / tiles_wide);
+let tile_height = Math.floor(height / tiles_high);
+
+let mouse_down = null;
+let selected_tile = null;
+let last_touch = null;
+let tiles = [];
+let moves = 0;
+let timer = null;
+let inactive = false;
+
+// Touch listeners
+overlay.addEventListener('touchstart', input_down_touch, false);
+overlay.addEventListener('touchmove',  input_move_touch, false);
+overlay.addEventListener('touchend',   input_up_touch, false);
+
+function getTouchPosition(overlay, event){
+    if (!e){
+        var e = event;
+    }
+
+    var x = null;
+    var y = null;
+
+    if(e.touches) {
+        if (e.touches.length == 1) { // Only deal with one finger
+            var touch = e.touches[0]; // Get the information for finger #1
+            x = touch.pageX-touch.target.offsetLeft;
+            y = touch.pageY-touch.target.offsetTop - 100; // Adjust y because apple messes things up!
+        }
+    }
+
+    return {x:x, y:y};
+}
+
+function input_down_touch(e){
+    // Don't do anything if we are inactive
+    if (inactive) return;
+    last_touch = getTouchPosition(overlay, e)
+    input_down(last_touch);
+    e.preventDefault();
+}
+
+function input_move_touch(e){
+    if (mouse_down != null){
+	last_touch = getTouchPosition(overlay, e)
+        move_tile(last_touch);
+    }
+    e.preventDefault();
+}
+
+function input_up_touch(e){
+    if (mouse_down == null) return;
+    input_up(last_touch);
+    e.preventDefault();
+}
+
+// Mouse listeners
+overlay.addEventListener('mousedown',  input_down_mouse);
+overlay.addEventListener('mousemove',  input_move_mouse);
+overlay.addEventListener('mouseup',    input_up_mouse);
+
+function getCursorPosition(overlay, event){
+    // Determine where clicked
+    const rect = overlay.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    return {x:x, y:y};
+}
+
+function input_down_mouse(e){
+    // Don't do anything if we are inactive
+    if (inactive) return;
+
+    input_down(getCursorPosition(overlay, e));
+}
+
+function input_move_mouse(e){
+    if (mouse_down != null)
+        move_tile(getCursorPosition(overlay, e));
+}
+
+function input_up_mouse(e){
+    if (mouse_down == null) return;
+
+    input_up(getCursorPosition(overlay, e));
+}
+
+// Actual input code here
+
+function input_down(p){
+    // Determine which tile is selected
+    let grid_x = Math.floor(p.x / tile_width);
+    let grid_y = Math.floor(p.y / tile_height);
+    for (let i=0; i<tiles.length; i++)
+        if (tiles[i].current_grid_coords.x == grid_x &&
+            tiles[i].current_grid_coords.y == grid_y) {
+            selected_tile = i;
+            break;
+        }
+
+    // If selected tile is stationary, ignore
+    if (tiles[selected_tile].stationary == true){
+        return;
+    }
+
+    mouse_down = {
+        x: tiles[selected_tile].current_pix_coords.x - p.x,
+        y: tiles[selected_tile].current_pix_coords.y - p.y,
+    };
+}
+
+function input_up(p){
+    // find nearest slot for dragged tile
+    let new_position = 0;
+    let grid_x = Math.floor(p.x / tile_width);
+    let grid_y = Math.floor(p.y / tile_height);
+    console.log(p);
+    console.log(grid_x, grid_y);
+    for (let i=0; i<tiles.length; i++)
+        if (tiles[i].current_grid_coords.x == grid_x &&
+            tiles[i].current_grid_coords.y == grid_y) {
+            new_position = i;
+            break;
+        }
+
+    // Switch tile positions
+    if (selected_tile != new_position) {
+        let valid = switch_tiles(selected_tile, new_position);
+
+        // Check for winning condition
+        if (is_solved() && valid){
+            alert("You solved it!");
+        }
+    }
+
+    // Clear out variables
+    mouse_down = null;
+    selected_tile = null;
+
+    // Rerender
+    normalize_tiles();
+    clear_canvas(octx);
+    clear_canvas(ctx);
+    draw_tiles(ctx, true);
+}
+
+function calc_gradient(c1, c2, s, l){
+    let color = {r:0, g:0, b:0};
+    for (let component of ["r", "g", "b"]){
+        let d = c1[component] - c2[component];
+        color[component] = c1[component] - (d / l * s);
+    }
+    return color;
+}
+
+function create_gradient(w, h, c1, c2, c3, c4){
+    let gradient = [];
+    for (let y=0; y<h; y++){
+        let row = [];
+        // Figure out left and right gradients
+        let left = calc_gradient(c1, c3, y, h);
+        let right = calc_gradient(c2, c4, y, h);
+        // Fill in all the horizontal gradients
+        for (let x=0; x<w; x++){
+            row.push(calc_gradient(left, right, x, w));
+        }
+        gradient.push(row);
+    }
+    return gradient;
+}
+
+function random_color(){
+    return {
+        r: Math.floor(Math.random() * 255),
+        g: Math.floor(Math.random() * 255),
+        b: Math.floor(Math.random() * 255),
+    }
+}
+
+function format_rgb(c){
+    return "rgb("+c.r+","+c.g+","+c.b+")";
+}
+
+function clear_canvas(ctx){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function draw_circle(ctx, x, y, radius, color){
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.fill();
+}
+
+function draw_tile_to_buffer(ctx, x, y, g, s){
+    for (let yp=0; yp<g.length; yp++){
+        for (let xp=0; xp<g[0].length; xp++){
+            ctx.fillStyle = format_rgb(g[yp][xp]);
+            ctx.fillRect(x + xp, y + yp, 1, 1);
+        }
+    }
+
+    //If tile is stationary, draw black circle on it
+    if (s){
+        draw_circle(
+            ctx,
+            x + (tile_width/2),
+            y + (tile_height/2),
+            3,
+            "rgb(0,0,0)"
+        );
+    }
+
+}
+
+function draw_tile(ctx, t){
+    ctx.putImageData(t.image, t.current_pix_coords.x, t.current_pix_coords.y);
+}
+
+function draw_tiles(ctx){
+    for (tile of tiles)
+        draw_tile(ctx, tile);
+}
+
+function draw_blank(ctx, t){
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "rgb(0,0,0)";
+    ctx.fillRect(t.last_grid_coords.x * tile_width, t.last_grid_coords.y * tile_height, tile_width, tile_height);
+}
+
+function create_tiles(gs=null){
+    reset_moves();
+
+    if (gs != null){
+	Number(document.getElementById("width").value = gs.w);
+	Number(document.getElementById("height").value = gs.h);
+    }
+
+    tiles_wide = Number(document.getElementById("width").value);
+    tiles_high = Number(document.getElementById("height").value);
+    tile_width = Math.floor(canvas.width / tiles_wide);
+    tile_height = Math.floor(canvas.height / tiles_high);
+
+    let gradient_width = tiles_wide + 1;
+    let gradient_height = tiles_high + 1;
+    let gradient_offset = 1
+
+    if (document.getElementById("subgradient").checked){
+        gradient_height += 1;
+        gradient_width += 1;
+        gradient_offset += 1;
+    }
+
+    // If we were not provided a game state, make a new one
+    if (gs == null)
+	gs = {
+	    c1:random_color(),
+	    c2:random_color(),
+	    c3:random_color(),
+	    c4:random_color(),
+	    w:tiles_wide,
+	    h:tiles_high
+	};
+
+    create_game_link(gs);
+
+    // calculate gradient for overall puzzle
+    let g = create_gradient(
+    	gradient_width,
+	gradient_height,
+	gs.c1,
+	gs.c2,
+	gs.c3,
+	gs.c4,
+    );
+
+    // Create tile with gradient for each pair here
+    // Draw gradient to "buffer" canvas, then reference that canvas with the tile data
+    clear_canvas(bctx);
+    tiles = [];
+    for (let x=0; x<g[0].length-gradient_offset; x++)
+        for (let y=0; y<g.length-gradient_offset; y++){
+            let stationary = false
+            if ((x==0 || x==g[0].length-1-gradient_offset) &&
+                (y==0 || y==g.length-1-gradient_offset))
+                stationary = true;
+
+            // Draw gradient to buffer
+            draw_tile_to_buffer(
+                bctx,
+                x * tile_width,
+                y * tile_height,
+                create_gradient(
+                    tile_width,
+                    tile_height,
+                    g[y][x],
+                    g[y][x+gradient_offset],
+                    g[y+gradient_offset][x],
+                    g[y+gradient_offset][x+gradient_offset],
+                ),
+                stationary
+            );
+
+            // Create tile data
+            tiles.push({
+                image : bctx.getImageData(x * tile_width, y * tile_height, tile_width, tile_height),
+                stationary: stationary,
+                correct_grid_coords: {x:x, y:y},
+                last_grid_coords: {x:x, y:y},
+                current_grid_coords: {x:x, y:y},
+                current_pix_coords: {x:x * tile_width, y:y * tile_height}
+            })
+        }
+
+    clear_canvas(ctx);
+    draw_tiles(ctx);
+}
+
+function new_game(gs=null){
+    clearTimeout(timer);
+    create_tiles(gs);
+    inactive = true;
+
+    timer = setTimeout(() => animate_shuffle(octx, 100), 1000);
+}
+
+function animate_shuffle(ctx, f){
+    if (f==0){
+	clear_canvas(ctx);
+	inactive = false;
+	clearTimeout(timer);
+	return;
+    }
+
+    // for 100-50, white out board
+    if (f >= 50)
+	ctx.globalAlpha = ((100-f)/50.0);
+
+    // shuffle
+    if (f == 50)
+	shuffle_tiles(50);
+
+    // for 50-0, reveal shuffled board
+    if (f < 50)
+	ctx.globalAlpha = (f/50.0);
+
+    clear_canvas(ctx);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw stationary tiles though
+    for (let tile of tiles)
+	if (tile.stationary)
+	    draw_tile(ctx, tile);
+    timer = setTimeout(() => animate_shuffle(ctx, f-1), 10);
+}
+
+function reset_moves(){
+    moves = 0;
+    document.getElementById("moves").innerHTML = "0";
+}
+
+function increment_moves(){
+    document.getElementById("moves").innerHTML = ++moves;
+}
+
+function switch_tiles(a, b){
+    if (tiles[a].stationary || tiles[b].stationary) return false;
+    tiles[a].current_grid_coords = tiles[b].last_grid_coords;
+    tiles[b].current_grid_coords = tiles[a].last_grid_coords;
+    increment_moves();
+    return true;
+}
+
+function normalize_tiles(){
+    for (let i=0; i<tiles.length; i++){
+        // Reset pixel positions
+        tiles[i].current_pix_coords = {
+            x:tiles[i].current_grid_coords.x * tile_width,
+            y:tiles[i].current_grid_coords.y * tile_height
+        };
+
+        // Reset last positions
+        tiles[i].last_grid_coords = {
+            x:tiles[i].current_grid_coords.x,
+            y:tiles[i].current_grid_coords.y
+        };
+    }
+}
+
+function shuffle_tiles(s){
+    while (s > 0){
+        let a = Math.floor(Math.random() * tiles.length);
+        let b = Math.floor(Math.random() * tiles.length);
+        if (a == b) continue;
+        switch_tiles(a, b);
+        normalize_tiles();
+        s--;
+    }
+    reset_moves();
+    draw_tiles(ctx);
+}
+
+function move_tile(p, e){
+    // Update position on tile
+    tiles[selected_tile].current_pix_coords.x = p.x + mouse_down.x;
+    tiles[selected_tile].current_pix_coords.y = p.y + mouse_down.y;
+
+    // redraw
+    clear_canvas(octx);
+
+    // Draw black tile where the tile once was
+    draw_blank(octx, tiles[selected_tile]);
+
+    // Draw moving block
+    draw_tile(octx, tiles[selected_tile]);
+}
+
+function is_solved(){
+    for (let i=0; i<tiles.length; i++){
+        if (tiles[i].current_grid_coords.x != tiles[i].correct_grid_coords.x ||
+            tiles[i].current_grid_coords.y != tiles[i].correct_grid_coords.y)
+            return false;
+    }
+    inactive = true;
+    return true;
+}
+
+
+function first_load(){
+    // Check for URL to see if there is existing game
+    var game_id = window.location.href.split('?')[1];
+    if (game_id)
+        var game_state = decode_game_link(game_id);
+
+    new_game(game_state);
+}
+
+function create_game_link(game){
+    var c2 = btoa(JSON.stringify(game));
+    //console.log("Encoded", c2);
+    document.getElementById("share").href = window.location.href.split('?')[0] + "?" + c2;
+}
+
+function decode_game_link(c2){
+    var game = JSON.parse(atob(c2));
+    return game;
+}
+
+function debug(m){
+    document.getElementById("debug_msg").innerHTML += "<br>"+m;
+}
+
+first_load();
+  </script>
+</html>
