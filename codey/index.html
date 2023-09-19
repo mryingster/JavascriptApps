@@ -1,0 +1,121 @@
+<html>
+  <head>
+    <title>Temp</title>
+    <style>
+      #content{
+      }
+
+      canvas {
+          border:1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <canvas id="canvas" width="768px" height="1024px"></canvas>
+      <canvas id="overlay" width="768px" height="1024px"></canvas>
+    </div>
+  </body>
+  <script>
+// comment
+
+// Canvas
+var canvas  = document.getElementById("canvas");
+var ctx     = canvas.getContext("2d");
+
+var overlay  = document.getElementById("overlay");
+var octx     = overlay.getContext("2d");
+
+var width   = canvas.width;
+var height  = canvas.height;
+
+let num_guesses = 10;
+let num_combination = 4;
+
+const colors = [
+    "#FF0000",
+    "#FFFF00",
+    "#00FF00",
+    "#0044FF",
+    "#FFFFFF",
+    "#000000",
+];
+
+function draw_board(ctx){
+    // Draw tray
+    draw_rounded_rect(ctx, 512-32, 32, 256+32, 1024-64, 16, "#444444", "#000000", 1);
+    let spacing = 8
+    let height = (1024-121)/colors.length
+    let y = 32;
+    for (let i=0; i<colors.length; i++){
+        draw_rounded_rect(ctx, 512+spacing, y+spacing, 256-(spacing * 2), height, 16, "#000000", "#888888", 1);
+        y += height + spacing;
+    }
+
+    // Draw background
+    draw_rounded_rect(ctx, 0, 0, 512, 1024, 16, "#BBBBBB", "#888888", 1);
+    draw_rounded_rect(ctx, 32, 128, 450, 870, 16, "#BBBBBB", "#888888", 1);
+    spacing = 870/(num_guesses);
+    y = 128 + spacing;
+    for (let i=1; i<num_guesses; i++){
+        draw_rounded_rect(ctx, 64, y, 385, 3, 1, "#888888", "#000000", 0);
+        y += spacing;
+    }
+
+    // Draw area for guesses
+    y = 175;
+    for (let i=0; i<num_guesses; i++){
+        let x = 100;
+        for (let j=0; j<num_combination; j++){
+            draw_circle(ctx, x, y, 10, "#000000", "#CCCCCC", 5);
+            x += 65;
+        }
+        y += spacing;
+    }
+
+    // Draw area for responses
+
+    // Draw area for answer
+}
+
+function draw_rounded_rect(ctx, x, y, w, h, r, c1, c2, l=0){
+    ctx.fillStyle = c1;
+    ctx.lineWidth = l;
+    ctx.strokeStyle = c2;
+
+    ctx.beginPath();
+    ctx.moveTo(x, y + r);
+    ctx.arc(x + r, y + r, r, Math.PI, -1/2 * Math.PI); // Top left
+
+    ctx.lineTo(x + w - r, y);
+    ctx.arc(x + w - r, y + r, r, -1/2 * Math.PI, 0); // Top Right
+
+    ctx.lineTo(x + w, y + h - r);
+    ctx.arc(x + w - r, y + h - r, r, 0, 1/2 * Math.PI); // Bottom Right
+
+    ctx.lineTo(x + r, y + h);
+    ctx.arc(x + r, y + h - r, r, 1/2 * Math.PI, Math.PI); // Bottom Left
+    ctx.lineTo(x, y + r);
+
+    ctx.fill();
+    if (l>0)
+        ctx.stroke();
+}
+
+function draw_circle(ctx, x, y, r, c1, c2, l=0){
+    ctx.fillStyle = c1;
+    ctx.lineWidth = l;
+    ctx.strokeStyle = c2;
+
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+
+    ctx.fill();
+    if (l>0)
+        ctx.stroke();
+}
+
+draw_board(ctx);
+
+  </script>
+</html>
