@@ -16,15 +16,15 @@
       }
 
       #canvas_wrapper {
-	  position: relative;
-	  width: 360px;
-	  height: 360px;
+          position: relative;
+          width: 360px;
+          height: 360px;
       }
 
       canvas {
-	  position: absolute;
-	  top: 0px;
-	  left: 0px;
+          position: absolute;
+          top: 0px;
+          left: 0px;
       }
 
       h1 {
@@ -38,139 +38,158 @@
 
 
       #debug {
-	  display: none;
-	  background: #eee;
-	  text-align: left;
-	  border-radius: 15px;
-	  margin: 10px;
-	  width: fit-content;
-	  padding: 5px 30px;      
+          background: #eee;
+          text-align: left;
+          border-radius: 15px;
+          margin: 10px;
+          width: fit-content;
+          padding: 5px 30px;
       }
 
       input {
-	  max-width: 40px;
+          max-width: 40px;
       }
 
       #speed {
-	  max-width: 250px;
+          max-width: 250px;
       }
 
       #score_container{
-	  float: right;
-	  margin-top: -30px;
+          float: right;
+          margin-top: -30px;
       }
 
       dl {
-	  display:flex;
-	  flex-flow: row wrap;
-	  width:300px;
+          display:flex;
+          flex-flow: row wrap;
+          width:300px;
       }
 
       dt{
-	  flex-basis:40%;
-	  text-align: right;
+          flex-basis:40%;
+          text-align: right;
       }
 
       dd {
-	  flex-basis:40%;
-	  flex-grow: 1;
-	  text-align: left;
-	  margin: 2px 5px;
+          flex-basis:40%;
+          flex-grow: 1;
+          text-align: left;
+          margin: 2px 5px;
       }
 
       table {
-	  border: 0px;
+          border: 0px;
       }
 
       .score {
-	  text-align: right;
+          text-align: right;
       }
 
       .date {
-	  font-style: italic;
-	  font-size: .8em;
+          font-style: italic;
+          font-size: .8em;
+      }
+
+      .hidden {
+          display:none;
       }
     </style>
   </head>
   <body>
     <div id="content">
       <div id="header">
-	<h1>Snake</h1>
+        <h1>Snake</h1>
       </div>
 
       <div id="canvas_wrapper">
-	<canvas id="background" style="border:1px solid black;" width="360" height="360"></canvas>
-	<canvas id="canvas" style="border:1px solid black;" width="360" height="360"></canvas>
+        <canvas id="background" style="border:1px solid black;" width="360" height="360"></canvas>
+        <canvas id="canvas" style="border:1px solid black;" width="360" height="360"></canvas>
       </div>
 
     <p><button onclick="new_game();">New Game</button>
-    <select id="numplayers">
-	  <option value="1">One Player</option>
-	  <option value="2" selected="selected">Two Player</option>
-	  <option value="3">Three Player</option>
-	  <option value="4">Four Player</option>
+    <select id="numplayers" onchange="show_controls();">
+          <option value="1" selected="selected">One Player</option>
+          <option value="2">Two Player</option>
+          <option value="3">Three Player</option>
+          <option value="4">Four Player</option>
       </select></p>
 
+    <div id="debug" class="hidden">
+        <h2>DEBUG</h2>
+        <h3>Frame Controls</h3>
+        <button onclick="stop_animation();">Stop</button><button onclick="next_frame(true);">Advance Frame</button><button onclick="next_frame();">Continue</button><br>
+        Tick Speed: <input type="range" min="1" max="500" value="1" class="slider" id="speed" onchange="update_tick_speed();">
+        <h3>Canvas Settings</h3>
+        Width:<input id="width" value="360"><br>
+        Height:<input id="height" value="360"><br>
+        <h3>Settings</h3>
+        <input type="checkbox" id="wraparound" onchange="toggle_walls();"><label for="wraparound">Snake wrapsaround</label><br>
+        Number of snacks:<input id="snacks" value="2">
+        </p>
+      </div>
+
+    <div id="p1">
       <h2>Player 1</h2>
       <p>
         Score: <span id="score1">0</span><br>
         Controls: Arrows<br>
         Player 1 Color: <select id="color1">
-	  <option value="0" selected="selected">Green</option>
-	  <option value="1">Blue</option>
-	  <option value="2">Grey</option>
-	  <option value="3">Red</option>
-	  <option value="4">Yellow</option>
+          <option value="0" selected="selected">Green</option>
+          <option value="1">Blue</option>
+          <option value="2">Grey</option>
+          <option value="3">Red</option>
+          <option value="4">Yellow</option>
       </select></p>
+    </div>
+    <div id="p2">
       <h2>Player 2</h2>
       <p>
         Score: <span id="score2">0</span><br>
         Controls: I, J, K, and L<br>
         Player 2 Color: <select id="color2">
-	  <option value="0">Green</option>
-	  <option value="1" selected="selected">Blue</option>
-	  <option value="2">Grey</option>
-	  <option value="3">Red</option>
-	  <option value="4">Yellow</option>
+          <option value="0">Green</option>
+          <option value="1" selected="selected">Blue</option>
+          <option value="2">Grey</option>
+          <option value="3">Red</option>
+          <option value="4">Yellow</option>
       </select></p>
+    </div>
+    <div id="p3">
       <h2>Player 3</h2>
       <p>
         Score: <span id="score3">0</span><br>
         Controls: W, A, S, and D<br>
         Player 3 Color: <select id="color3">
-	  <option value="0">Green</option>
-	  <option value="1">Blue</option>
-	  <option value="2">Grey</option>
-	  <option value="3">Red</option>
-	  <option value="4" selected="selected">Yellow</option>
+          <option value="0">Green</option>
+          <option value="1">Blue</option>
+          <option value="2">Grey</option>
+          <option value="3">Red</option>
+          <option value="4" selected="selected">Yellow</option>
       </select></p>
+    </div>
+    <div id="p4">
       <h2>Player 4</h2>
       <p>
         Score: <span id="score4">0</span><br>
         Controls: Number Pad (8, 4, 5, and 6)<br>
         Player 4 Color: <select id="color4">
-	  <option value="0">Green</option>
-	  <option value="1">Blue</option>
-	  <option value="2">Grey</option>
-	  <option value="3" selected="selected">Red</option>
-	  <option value="4">Yellow</option>
+          <option value="0">Green</option>
+          <option value="1">Blue</option>
+          <option value="2">Grey</option>
+          <option value="3" selected="selected">Red</option>
+          <option value="4">Yellow</option>
       </select></p>
+    </div>
+
+      <h2>High Scores</h2>
+      <div id="scores">
+      </div>
 
       <h2>Credits</h2>
       <p>The snake sprites were created by <a href="http://www.sledd.com/">John Sledd</a> for a video game called Slithereens, by the now-defunct <a href="https://en.wikipedia.org/wiki/Ambrosia_Software">Ambrosia Software</a>. I am using these graphics without express permission from the original IP holder. You can read about decoding the sprites on <a href="https://porkrind.org/missives/decoding-the-sprite-format-of-a-25-year-old-game/">my bother's blog</a>.</p><!--'-->
 
-    <div id="debug">
-	<h2>DEBUG</h2>
-	<p>Pixel Pos x:<span id="pix_x">48</span>, y:<span id="pix_y">0</span><br>
-	  Grid Pos x:<span id="grid_x">2</span>, y:<span id="grid_y">0</span><br>
-	  <button onclick="next_frame(true);">Advance Frame</button><button onclick="next_frame();">Continue</button><br>
-	  Width:<input id="width" value="15">Height:<input id="height" value="15"><br>
-	  Speed:<input id="speed" oninput="change_speed();" type="range" min="1" max="500" value="10">
-	</p>
-      </div>
-
     </div>
-  
+
   <script>
 
 const WEST  = 0;
@@ -187,20 +206,47 @@ const DEAD  = 0;
 
 const sprite = new Image();
 sprite.src = "sprites.png";
-const apple = new Image();
-apple.src = "apple.png";
+const food = new Image();
+food.src = "food.png";
 
 let direction;
 let active;
 let snack = null;
-let speed;
+let snacks = [];
+
+let max_snacks = 2;
+let snack_table = [
+    {name: "hamburger"  , sx: 0 * 24, sy:0, w: 24, h: 24, max_duration:30, segments_added:1},
+    {name: "hotdog"     , sx: 1 * 24, sy:0, w: 24, h: 24, max_duration:30, segments_added:1},
+    {name: "taco"       , sx: 2 * 24, sy:0, w: 24, h: 24, max_duration:30, segments_added:1},
+    {name: "drumstick"  , sx: 3 * 24, sy:0, w: 24, h: 24, max_duration:30, segments_added:1},
+    {name: "pizza"      , sx: 4 * 24, sy:0, w: 24, h: 24, max_duration:30, segments_added:1},
+    {name: "cookie"     , sx: 5 * 24, sy:0, w: 24, h: 24, max_duration:30, segments_added:1},
+    {name: "apricot"    , sx: 6 * 24, sy:0, w: 24, h: 24, max_duration:30, segments_added:1},
+    {name: "strawberry" , sx: 7 * 24, sy:0, w: 24, h: 24, max_duration:30, segments_added:1},
+    {name: "cherry"     , sx: 8 * 24, sy:0, w: 24, h: 24, max_duration:30, segments_added:1},
+    {name: "avacado"    , sx: 9 * 24, sy:0, w: 24, h: 24, max_duration:30, segments_added:1},
+    {name: "apple"      , sx:10 * 24, sy:0, w: 24, h: 24, max_duration:30, segments_added:1},
+    {name: "orange"     , sx:11 * 24, sy:0, w: 24, h: 24, max_duration:30, segments_added:1},
+    {name: "steak"      , sx:12 * 24, sy:0, w: 24, h: 24, max_duration:20, segments_added:2},
+    {name: "poison"     , sx:13 * 24, sy:0, w: 24, h: 24, max_duration:45, segments_added:-2},
+    {name: "golden"     , sx:14 * 24, sy:0, w: 24, h: 24, max_duration:10, segments_added:3},
+];
+
 let timer;
+let tick_interval = 1;
 let paused = true;
-let gridsize = 24;
-let width = 15;
-let height = 15;
+let spritesize = 24;
+let width = 0;
+let height = 0;
 let fast = false;
-let players = 2;
+let players = 1;
+let ignore_walls = true;
+
+let player_1;
+let player_2;
+let player_3;
+let player_4;
 
 // Keyboard listeners
 document.addEventListener('keydown', function(e) {
@@ -230,8 +276,9 @@ document.addEventListener('keydown', function(e) {
     if (e.keyCode == 101) {e.preventDefault(); paused = false; player_4.direction = SOUTH};
     if (e.keyCode == 100) {e.preventDefault(); paused = false; player_4.direction = WEST};
 
-    if (e.keyCode == 78) start();            // n
+    if (e.keyCode == 78) new_game();         // n
     if (e.keyCode == 80) toggle_pause();     // p
+    if (e.keyCode == 46) toggle_debug();     // forward delete
     if (e.keyCode == 32) {e.preventDefault(); fast = true;} // shift
 });
 
@@ -239,45 +286,67 @@ document.addEventListener('keyup', function(e) {
     if (e.keyCode == 32) fast = false;
 });
 
+function remove_snack(n){
+    snacks.splice(n,1);
+}
+
 function new_snack(){
-    let valid = false;
-    let x;
-    let y;
+    while (snacks.length < max_snacks){
+        let valid = false;
+        let x;
+        let y;
 
-    // Cheat
-    /*
-    x = snake[0].x;
-    y = snake[0].y;
-    if (snake[0].d == NORTH)
-	y -= 30;
-    if (snake[0].d == EAST)
-	x += 30;
-    if (snake[0].d == SOUTH)
-	y += 30;
-    if (snake[0].d == WEST)
-	x -= 30;
+        // choose coordinates
+        while (valid == false){
+            valid = true;
+            x = Math.floor(Math.random() * (width  - spritesize));
+            y = Math.floor(Math.random() * (height - spritesize));
 
-    if (x > (width-1) * gridsize || y > (height-1) * gridsize || x < 5 || y < 5)
-	valid = false;
-    else
-	valid = true;
-    */
-
-    while (valid == false){
-	valid = true;
-        x = Math.floor(Math.random() * (width-1) * gridsize);
-        y = Math.floor(Math.random() * (height-1) * gridsize);
-
-        /*
-	for (let segment of snake){
-	    if (collided({x:x, y:y}, segment, 15)){
-		valid = false;
-		break;
-	    }
-	    }
+            /*
+              for (let segment of snake){
+              if (collided({x:x, y:y}, segment, 15)){
+              valid = false;
+              break;
+              }
+              }
             */
+            for (let snack of snacks){
+                if (collided({x:x, y:y}, snack, 20)){
+                    valid = false;
+                    break;
+                }
+            }
+        }
+
+        // Choose snack type
+        let type = Math.floor(Math.random() * snack_table.length);
+
+        // Choose snack duration (multiply by 150 since we are nominally going 150 fps
+        let duration = Math.random() * snack_table[type].max_duration * 150;
+
+        snacks.push({
+            duration: duration,
+            segments: snack_table[type].segments_added,
+            sx: snack_table[type].sx,
+            sy: snack_table[type].sy,
+            x: x,
+            y: y,
+            w: snack_table[type].w,
+            h: snack_table[type].h,
+        });
     }
-    return {x:x, y:y};
+}
+
+function update_snacks(){
+    for (let i=0; i<snacks.length; i++){
+        if (!paused)
+            snacks[i].duration--;
+
+        if (snacks[i].duration < 0){
+            remove_snack(i);
+            new_snack();
+        }
+    }
 }
 
 function generate_background(c){
@@ -285,25 +354,30 @@ function generate_background(c){
 
     // Draw random brown to represent dirt
     for (let x=0; x<c.width; x++)
-	for (let y=0; y<c.height; y++){
-	    ctx.fillStyle = "hsla(24,100%,"+(Math.floor(Math.random()*8)+13)+"%,1)";
-	    ctx.fillRect(x, y, 1, 1);
-	}
+        for (let y=0; y<c.height; y++){
+            ctx.fillStyle = "hsla(24,100%,"+(Math.floor(Math.random()*8)+13)+"%,1)";
+            ctx.fillRect(x, y, 1, 1);
+        }
 }
 
 function setup_canvas(){
-    width = Number(document.getElementById("width").value);
-    height = Number(document.getElementById("height").value);
+    let new_width = Number(document.getElementById("width").value);
+    let new_height = Number(document.getElementById("height").value);
 
-    let c = document.getElementById("canvas");
-    c.width = gridsize * width;
-    c.height = gridsize * height;
+    if (height != new_height || width != new_width) {
+        width = new_width;
+        height = new_height;
 
-    let b = document.getElementById("background");
-    b.width = gridsize * width;
-    b.height = gridsize * height;
+        let c = document.getElementById("canvas");
+        c.width = width;
+        c.height = height;
 
-    generate_background(b);
+        let b = document.getElementById("background");
+        b.width = width;
+        b.height = height;
+
+        generate_background(b);
+    }
 }
 
 function update_color(){
@@ -312,32 +386,44 @@ function update_color(){
 
 function toggle_pause(){
     if (paused){
-	paused = false;
+        paused = false;
     } else {
-	paused = true;
+        paused = true;
     }
 }
 
-function change_speed(){
-    let input = 500-Number(document.getElementById("speed").value);
-    speed = Math.sqrt(input) * Math.pow(.9, snake.length-2);
-}
-
 function collided(a, b, tolerance){
-    if (a.x > b.x - tolerance && a.x < b.x + tolerance &&
-        a.y > b.y - tolerance && a.y < b.y + tolerance)
+    // Old way using a tolerance
+    //if (a.x > b.x - tolerance && a.x < b.x + tolerance &&
+    //a.y > b.y - tolerance && a.y < b.y + tolerance)
+
+    // Find center of "a"
+    let acx = a.x + (a.w / 2);
+    let acy = a.y + (a.h / 2);
+
+    // See if a-center is within bounds of b
+    if (acx > b.x && acx < b.x + b.w &&
+        acy > b.y && acy < b.y + b.h)
         return true;
     return false;
+}
+
+function toggle_walls(){
+    ignore_walls = false;
+    if (document.getElementById("wraparound").checked)
+        ignore_walls = true;
 }
 
 function intersected(snake){
     let head = snake.snake[0];
 
     // Look for intersections with boundaries
-    if (head.x < 0 || head.y < 0 ||
-        head.x+gridsize > width*gridsize || head.y+gridsize > height*gridsize){
-        return true;
-    }
+    if (ignore_walls == false)
+        if (head.x < 0 || head.y < 0 ||
+            head.x+spritesize > width || head.y+spritesize > height){
+            return true;
+        }
+
 
     // Look for intersections with snakes
     if (player_1.status != DEAD)
@@ -347,24 +433,24 @@ function intersected(snake){
                     return true;
 
     if (players > 1 && player_2.status != DEAD){
-    for (let s=0; s<player_2.snake.length; s++)
-        if (s!=0 || snake.player != player_2.player)
-            if (collided(head, player_2.snake[s], 8))
-                return true;
+        for (let s=0; s<player_2.snake.length; s++)
+            if (s!=0 || snake.player != player_2.player)
+                if (collided(head, player_2.snake[s], 8))
+                    return true;
     }
 
     if (players > 2 && player_3.status != DEAD) {
-    for (let s=0; s<player_3.snake.length; s++)
-        if (s!=0 || snake.player != player_3.player)
-            if (collided(head, player_3.snake[s], 8))
-                return true;
+        for (let s=0; s<player_3.snake.length; s++)
+            if (s!=0 || snake.player != player_3.player)
+                if (collided(head, player_3.snake[s], 8))
+                    return true;
     }
 
     if (players > 3 && player_4.status != DEAD) {
-    for (let s=0; s<player_4.snake.length; s++)
-        if (s!=0 || snake.player != player_4.player)
-            if (collided(head, player_4.snake[s], 8))
-                return true;
+        for (let s=0; s<player_4.snake.length; s++)
+            if (s!=0 || snake.player != player_4.player)
+                if (collided(head, player_4.snake[s], 8))
+                    return true;
     }
 
     return false;
@@ -407,18 +493,55 @@ class snake {
 
     start() {
         this.snake = [
-            {x:this.default_head_pos.x, y:this.default_head_pos.y, d:this.default_dir, c:"#ff0000", t:HEAD, m:[], e:0, f:0},
-            {x:this.default_body_pos.x, y:this.default_body_pos.y, d:this.default_dir, c:"#00ff00", t:BODY, m:[], p:0, f:1},
+            {x:this.default_head_pos.x, y:this.default_head_pos.y, d:this.default_dir, w:spritesize, h:spritesize, t:HEAD, p:0, m:[], e:0, f:0},
+            {x:this.default_body_pos.x, y:this.default_body_pos.y, d:this.default_dir, w:spritesize, h:spritesize, t:BODY, p:0, f:1},
         ];
 
         this.direction = this.default_dir;
         this.status = ALIVE;
         this.frame = 0;
-        this.speed = .5;
+        this.update_speed();
         this.score_div.innerHTML = "0";
     }
 
+    update_speed(){
+        this.speed = Math.pow(1.05, this.score()) * .5;
+    }
+
+    add_segment(n){
+        // Check for too much subtraction!
+        if (this.score() + n < 0){
+            this.die();
+            return;
+        }
+
+        // Subtract
+        if (n < 0) {
+            for (let i=n; i<0; i++){
+                this.snake.splice(this.snake.length-2, 1);
+            }
+        } else {
+            // Add
+            for (let i=0; i<n; i++){
+                this.snake.push(
+                    {
+                        x:this.snake[this.snake.length-1].x,              // X Pos
+                        y:this.snake[this.snake.length-1].y,              // Y Pos
+                        w:spritesize,                                     // Width
+                        h:spritesize,                                     // Height
+                        d:this.snake[this.snake.length-1].d,              // Direction
+                        t:BODY,                                           // Segment Type
+                        p:this.snake[this.snake.length-1].p + spritesize, // Pause value
+                        f:this.snake[this.snake.length-1].f + 1,          // Frame
+                    });
+            }
+        }
+    }
+
     move() {
+        if (this.status == DEAD)
+            return;
+
         // Every time we move, the frame advances one. Need to have it reset every million or so...
         this.frame++;
         if (this.frame > 1000000) this.frame = 1;
@@ -430,43 +553,36 @@ class snake {
                     this.snake[s].f++
 
             // Move from dying to dead once skeleton animation is complete
-            if (this.snake[0].f > 10)
+            if (this.snake[0].f > 11){
                 this.status = DEAD;
+                active -= 1;
+            }
             return;
         }
 
         // Process head eating animation frame
         if (this.snake[0].e > 0)
-	    this.snake[0].e-=.25;
+            this.snake[0].e-=.25;
 
         // Eat. Yum.
-        if (collided(this.snake[0], snack, 10)){
-	    this.snake[0].e = 11.75; // Setup 11 frames of eating animation
-            this.snake.push(
-	        {
-		    x:this.snake[this.snake.length-1].x,  	    // X Pos
-		    y:this.snake[this.snake.length-1].y,  	    // Y Pos
-		    c:"#00ff00",                	            // Debug
-		    d:this.snake[this.snake.length-1].d,  	    // Direction
-		    t:BODY,                     	            // Segment Type
-		    p:this.snake[this.snake.length-1].p + gridsize, // Pause value
-		    m:this.snake[this.snake.length-1].m.slice(),    // Moves
-                    f:this.snake[this.snake.length-1].f + 1,        // Frame
-	        });
+        for (let i=0; i<snacks.length; i++){
+            if (collided(this.snake[0], snacks[i], 15)){
+                this.snake[0].e = 11.75; // Setup 11 frames of eating animation
+                this.add_segment(snacks[i].segments);
+                this.update_speed();
+                if (this.speed > 2) this.speed = 2; // Max Speed
 
-            this.speed += .125
-            if (this.speed > 2) this.speed = 2; // Max Speed
-
-            snack = new_snack();
-            this.score_div.innerHTML = this.snake.length - 2;
+                remove_snack(i);
+                new_snack();
+                this.score_div.innerHTML = this.score();
+            }
         }
 
         // Change direction of head
         if (this.snake[0].d % 2 != this.direction %2){
-	    // Round the direction that we are traveling so we are on a pixel after turning
-	    /*
-	    switch (this.snake[0].d){
-	    case NORTH:
+            // Round the direction that we are traveling so we are on a pixel after turning
+            switch (this.snake[0].d){
+            case NORTH:
                 this.snake[0].y = Math.floor(this.snake[0].y);
                 break;
             case EAST:
@@ -478,66 +594,131 @@ class snake {
             case WEST:
                 this.snake[0].x = Math.floor(this.snake[0].x);
                 break;
-	    }
-	    */
+            }
 
-	    // Update the head's direction
+            // Add direction instructions for subsequent segments
+            this.snake[0].m.push({x:this.snake[0].x, y:this.snake[0].y, d:this.snake[0].d});
+
+            // Update the head's direction
             this.snake[0].d = this.direction;
-
-	    // Add direction instructions for each subsequent segment
-	    for (let s=1; s<this.snake.length; s++){
-                this.snake[s].m.push({x:this.snake[0].x, y:this.snake[0].y, d:this.direction});
-	    }
         }
 
-
-        // Process subsequent segment
-        for (let s=this.snake.length-1; s>0; s--){
-            // Can change directions when segment get's to next turn
-            // Other segments move towards the segments in front of them
-	    if (this.snake[s].m.length > 0){
-		if (
-		    this.snake[s].d == NORTH && this.snake[s].x == this.snake[s].m[0].x && this.snake[s].y <= this.snake[s].m[0].y ||
-		    this.snake[s].d == EAST  && this.snake[s].y == this.snake[s].m[0].y && this.snake[s].x >= this.snake[s].m[0].x ||
-		    this.snake[s].d == SOUTH && this.snake[s].x == this.snake[s].m[0].x && this.snake[s].y >= this.snake[s].m[0].y ||
-		    this.snake[s].d == WEST  && this.snake[s].y == this.snake[s].m[0].y && this.snake[s].x <= this.snake[s].m[0].x){
-
-		    // Change direction
-                    this.snake[s].d = this.snake[s].m[0].d;
-
-		    // Realign to pixel grid
-		    this.snake[s].y = this.snake[s].m[0].y;
-		    this.snake[s].x = this.snake[s].m[0].x;
-
-		    // Remove from history
-		    this.snake[s].m.splice(0, 1);
-                }
-            }
-        }
-
-        // Actually move all the positions if we aren't paused
+        // Move the head forward if we aren't paused
         if (paused == false && this.status == ALIVE) {
+            switch(this.snake[0].d){
+            case NORTH:
+                this.snake[0].y -= this.speed;
+                break;
+            case EAST:
+                this.snake[0].x += this.speed;
+                break;
+            case SOUTH:
+                this.snake[0].y += this.speed;
+                break;
+            case WEST:
+                this.snake[0].x -= this.speed;
+                break;
+            }
+        }
+
+        // Process subsequent segments and place them at correct coordinates using head as reference
+        let coords = {x:this.snake[0].x, y:this.snake[0].y, d:this.snake[0].d};
+        let segment_index = 0;
+        let move_index = this.snake[0].m.length-1;
+        let pixel_walkback = 0;
+        while (segment_index < this.snake.length-1){
+
+            switch (coords.d){
+            case NORTH:
+                coords.y += 1;
+                if (move_index >=0 &&
+                    coords.y >= this.snake[0].m[move_index].y){
+                    coords.d = this.snake[0].m[move_index].d;
+                    move_index--;
+                }
+                break;
+            case EAST:
+                coords.x -= 1;
+                if (move_index >=0 &&
+                    coords.x <= this.snake[0].m[move_index].x){
+                    coords.d = this.snake[0].m[move_index].d;
+                    move_index--;
+                }
+                break;
+            case SOUTH:
+                coords.y -= 1;
+                if (move_index >= 0 &&
+                    coords.y <= this.snake[0].m[move_index].y){
+                    coords.d = this.snake[0].m[move_index].d;
+                    move_index--;
+                }
+                break;
+            case WEST:
+                coords.x += 1;
+                if (move_index >= 0 &&
+                    coords.x >= this.snake[0].m[move_index].x){
+                    coords.d = this.snake[0].m[move_index].d;
+                    move_index--;
+                }
+                break;
+            }
+            pixel_walkback++;
+
+            if (pixel_walkback >= spritesize - this.snake[segment_index+1].p) {
+                segment_index++;
+                pixel_walkback = 0;
+
+                //New segments get paused until the snake moves forward enough to reveal them
+                if (this.snake[segment_index].p > 0){
+                    this.snake[segment_index].p -= this.speed;
+                    if (this.snake[segment_index].p < 0)
+                        this.snake[segment_index].p = 0;
+                }
+
+                // Apply new positions to segment
+                this.snake[segment_index].x = coords.x;
+                this.snake[segment_index].y = coords.y;
+                this.snake[segment_index].d = coords.d;
+            }
+        }
+
+        // Apply wraparound to all segments if enabled
+        // If the head needs to wrap around, so do all of the moves!
+        if (ignore_walls == true){
             for (let s=0; s<this.snake.length; s++){
-                if (this.snake[s].p > 0)
-                    this.snake[s].p-=this.speed;
-                else {
-                    switch(this.snake[s].d){
-                    case NORTH:
-                        this.snake[s].y -= this.speed;
-                        break;
-                    case EAST:
-                        this.snake[s].x += this.speed;
-                        break;
-                    case SOUTH:
-                        this.snake[s].y += this.speed;
-                        break;
-                    case WEST:
-                        this.snake[s].x -= this.speed;
-                        break;
-                    }
+                if (this.snake[s].x > width){
+                    this.snake[s].x -= width;
+                    if (s==0)
+                        for (let m=0; m<this.snake[0].m.length; m++)
+                            this.snake[0].m[m].x -= width;
+                    continue;
+                }
+                if (this.snake[s].y > height){
+                    this.snake[s].y -= height;
+                    if (s==0)
+                        for (let m=0; m<this.snake[0].m.length; m++)
+                            this.snake[0].m[m].y -= width;
+                    continue;
+                }
+                if (this.snake[s].x < 0){
+                    this.snake[s].x += width;
+                    if (s==0)
+                        for (let m=0; m<this.snake[0].m.length; m++)
+                            this.snake[0].m[m].x += height;
+                    continue;
+                }
+                if (this.snake[s].y < 0){
+                    this.snake[s].y += height;
+                    if (s==0)
+                        for (let m=0; m<this.snake[0].m.length; m++)
+                            this.snake[0].m[m].y += height;
+                    continue;
                 }
             }
         }
+
+        // Remove moves from index that are beyond snake length
+        this.snake[0].m.splice(0, move_index);
 
         // Update the animation frame
         if (this.frame % 10 == 0)
@@ -556,6 +737,10 @@ class snake {
         this.color = this.color_select.value;
     }
 
+    score(){
+        return this.snake.length - 2
+    }
+
     draw(){
         if (this.status == DEAD) return;
 
@@ -568,45 +753,44 @@ class snake {
         let animation_offset = 0;
         for (let s=this.snake.length-1; s>=0; s--){
 
-	    // sx is sprite x offset - Goes left to right, then right to left
-	    let sx = this.snake[s].f;
+            // sx is sprite x offset - Goes left to right, then right to left
+            let sx = this.snake[s].f;
             if (this.status == ALIVE)
-	        if (sx >= 7) sx = 13-sx;
-	    sx *= 25;
+                if (sx >= 7) sx = 13-sx;
+            sx *= 25;
 
-	    // sy is sprite y offset. This is indicative of color and direction
-	    let sy = color_offset;
+            // sy is sprite y offset. This is indicative of color and direction
+            let sy = color_offset;
 
-	    if (this.snake[s].t == HEAD){
-	        sy += (0  + this.snake[s].d) * 25;
+            if (this.snake[s].t == HEAD){
+                sy += (0  + this.snake[s].d) * 25;
 
                 // Eating animation
-	        if (this.snake[s].e >= 1){
-		    sy += (25 * 4);
-		    sx = (11 - Math.floor(this.snake[s].e)) * 25;
-	        }
-	    }
+                if (this.snake[s].e >= 1){
+                    sy += (25 * 4);
+                    sx = (11 - Math.floor(this.snake[s].e)) * 25;
+                }
+            }
 
-	    if (this.snake[s].t == BODY){
+            if (this.snake[s].t == BODY){
                 if (this.status == DYING)
                     sy += (4 + this.snake[s].d) * 25;
                 else
-	            sy += (12 + this.snake[s].d) * 25;
+                    sy += (12 + this.snake[s].d) * 25;
             }
 
-	    this.ctx.drawImage(sprite, sx, sy, 24, 24, this.snake[s].x, this.snake[s].y, 24, 24);
-	    animation_offset += 1;
+            this.ctx.drawImage(sprite, sx, sy, 24, 24, this.snake[s].x, this.snake[s].y, 24, 24);
+            animation_offset += 1;
 
-	    // Debug
-	    this.ctx.font = "10px Arial";
-	    this.ctx.fillText("("+this.snake[s].x+","+this.snake[s].y+")", this.snake[s].x, this.snake[s].y);
+            // Debug
+            //this.ctx.font = "10px Arial";
+            //this.ctx.fillText("("+this.snake[s].x+","+this.snake[s].y+")", this.snake[s].x, this.snake[s].y);
         }
     }
 
     die(){
         this.status = DYING;
-	this.color = 5;
-        active -= 1;
+        this.color = 5;
 
         // Reset frames for skeleton
         for (let s=0; s<this.snake.length; s++)
@@ -614,13 +798,19 @@ class snake {
     }
 }
 
-function new_game(){
-    //if (active > 0 || paused == false) return;
+function update_tick_speed(){
+    tick_interval = document.getElementById("speed").value;
+}
 
+function new_game(){
+    if (active > 0 && paused == false) return;
     clearTimeout(timer);
 
-    if (snack == null)
-	snack = new_snack();
+    // Get new settings from debug options
+    setup_canvas();
+    max_snacks = Number(document.getElementById("snacks").value);
+
+    new_snack();
 
     redraw();
 
@@ -648,8 +838,14 @@ function new_game(){
     next_frame();
 }
 
+function stop_animation(){
+    clearTimeout(timer);
+}
+
 function next_frame(manual=false){
     redraw();
+    update_snacks();
+
     player_1.move();
     player_1.draw();
 
@@ -666,8 +862,15 @@ function next_frame(manual=false){
         player_4.draw();
     }
 
+    // Check for game over
+    if (active == 0){
+        game_over();
+        return;
+    }
+
     // Setup next animation
-    timer = setTimeout(() => next_frame(), 1);
+    if (manual == false)
+        timer = setTimeout(() => next_frame(), tick_interval);
 }
 
 function redraw(){
@@ -677,61 +880,187 @@ function redraw(){
     // Clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw snake snack
-    ctx.drawImage(apple, 0, 0, 24, 24, snack.x, snack.y, 24, 24);
+    // Draw snake snacks
+    for (snack of snacks){
+        ctx.globalAlpha = Math.min(100, snack.duration)/100.0;
+        ctx.drawImage(food, snack.sx, snack.sy, snack.w, snack.h, snack.x, snack.y, snack.w, snack.h);
+        ctx.globalAlpha = 1.0;
+    }
 }
 
 function game_over(){
-    active = false;
-    //start();
+    clearTimeout(timer);
+
+    check_high_score(player_1);
+    check_high_score(player_2);
+    check_high_score(player_3);
+    check_high_score(player_4);
 }
 
+function toggle_debug(){
+    document.getElementById("debug").classList.toggle("hidden");
+}
 
-setup_canvas();
-//update_high_scores();
-//start();
+function show_controls(){
+    let show_player_controls = document.getElementById("numplayers").value;
+    document.getElementById("p2").classList.add("hidden");
+    document.getElementById("p3").classList.add("hidden");
+    document.getElementById("p4").classList.add("hidden");
 
-let player_1 = new snake(
-    canvas,
-    document.getElementById("color1"),
-    document.getElementById("score1"),
-    EAST,
-    50,
-    50,
-    1
-);
+    if (show_player_controls > 1)
+        document.getElementById("p2").classList.remove("hidden");
+    if (show_player_controls > 2)
+        document.getElementById("p3").classList.remove("hidden");
+    if (show_player_controls > 3)
+        document.getElementById("p4").classList.remove("hidden");
+}
 
-let player_2 = new snake(
-    canvas,
-    document.getElementById("color2"),
-    document.getElementById("score2"),
-    WEST,
-    275,
-    275,
-    2
-);
+function get_high_scores(){
+    // Retrieve Scores
+    var high_scores = localStorage.getItem("snake");
 
-let player_3 = new snake(
-    canvas,
-    document.getElementById("color3"),
-    document.getElementById("score3"),
-    SOUTH,
-    275,
-    50,
-    3
-);
+    // Convert from JSON
+    if (high_scores)
+        high_scores = JSON.parse(high_scores);
+    else
+        high_scores = [];
 
-let player_4 = new snake(
-    canvas,
-    document.getElementById("color4"),
-    document.getElementById("score4"),
-    NORTH,
-    50,
-    275,
-    4
-);
+    return high_scores;
+}
 
-new_game();
+function update_high_scores(){
+    let pos = 1;
+    let scores = get_high_scores();
+    let scores_div = document.getElementById("scores");
+    // Erase old content!
+    scores_div.innerHTML = "";
+
+    // Create new table
+    var score_list = document.createElement("table");
+    for (score of scores){
+        var score_item = document.createElement("tr");
+        // Add position
+        let score_position = document.createElement("td");
+        score_position.innerHTML = pos +".";
+        pos++;
+        score_item.appendChild(score_position);
+
+        // Add Score
+        let score_score = document.createElement("td");
+        score_score.innerHTML = score.score;
+        score_score.classList.add("score")
+        score_item.appendChild(score_score);
+
+        // Add Name
+        let score_name = document.createElement("td");
+        score_name.innerHTML = score.name;
+        score_name.classList.add("name")
+        score_item.appendChild(score_name);
+
+        // Add Date
+        let score_date = document.createElement("td");
+        score_date.innerHTML = new Date(Date.parse(score.date)).toLocaleDateString("en-US");
+        score_date.classList.add("date")
+        score_item.appendChild(score_date);
+
+        score_list.appendChild(score_item);
+        if (pos > 10) break;
+    }
+    scores_div.appendChild(score_list);
+}
+
+function check_high_score(player){
+    let high_scores = get_high_scores();
+    let score = player.score();
+    let player_num = player.player;
+
+    if (score <= 0)
+        return;
+
+    // Go through each and see if it's in the top ten
+    var i     = 0;
+    var place = 0;
+
+    // Find place
+    for (i=0; i<high_scores.length; i++){
+        place += 1;
+        if (score > high_scores[i].score) {
+            break;
+        }
+    }
+
+    // Record new score
+    if (place <= 10) {
+        const nth = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh"]
+        var user_name = null;
+
+        user_name = prompt("New high score! Player "+player_num+" got "+nth[i]+" place. Enter name", "Anonymous");
+
+        if (user_name != null){
+            high_scores.splice(i, 0, {
+                name  : user_name,
+                score : score,
+                date  : new Date(),
+            });
+
+            localStorage.snake = JSON.stringify(high_scores);
+        }
+
+        // Update overlay with new high score!
+        update_high_scores();
+    }
+}
+
+function first_run(){
+    setup_canvas();
+
+    player_1 = new snake(
+        canvas,
+        document.getElementById("color1"),
+        document.getElementById("score1"),
+        EAST,
+        50,
+        50,
+        1
+    );
+
+    player_2 = new snake(
+        canvas,
+        document.getElementById("color2"),
+        document.getElementById("score2"),
+        WEST,
+        275,
+        275,
+        2
+    );
+
+    player_3 = new snake(
+        canvas,
+        document.getElementById("color3"),
+        document.getElementById("score3"),
+        SOUTH,
+        275,
+        50,
+        3
+    );
+
+    player_4 = new snake(
+        canvas,
+        document.getElementById("color4"),
+        document.getElementById("score4"),
+        NORTH,
+        50,
+        275,
+        4
+    );
+
+    show_controls();
+    toggle_walls();
+    update_high_scores();
+    new_game();
+}
+
+first_run();
 </script>
 
 </body></html>
