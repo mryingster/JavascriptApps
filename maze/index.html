@@ -1,0 +1,429 @@
+<html>
+  <head>
+    <title>Test</title>
+    <script src="jscolor.js"></script>
+    <style>
+      body { text-align: center; }
+      .setting {
+      display: inline-block;
+      background: #ccc;
+      border: 1px solid #aaa;
+      border-radius: 10px;
+      margin: 10px;
+      padding: 50 20 20 20px;
+      vertical-align: middle;
+      height: 90px;
+      text-align: left;
+      }
+
+      h2 {
+      position: absolute;
+      left: inherit;
+      top: 10px;
+      color: #888;
+      }
+
+      .slider {
+      width: 250px;
+      margin: 0 0 15 0;
+      }
+
+      canvas {
+      margin:10px;
+      }
+    </style>
+  </head>
+    <body onload="run();">
+
+      <div class="setting">
+	<h2>Size</h2>
+	Width: <span id="width_output"></span>
+	<br>
+	<input type="range" min="1" max="500" value="50" class="slider" oninput="redraw();" id="width">
+	<br>
+	Height: <span id="height_output"></span>
+	<br>
+	<input type="range" min="1" max="500" value="50" class="slider" oninput="redraw();" id="height">
+	<br>
+      </div>
+
+      <div class="setting">
+	<h2>Walls</h2>
+	Thickness: <span id="wall_thickness_output"></span>
+	<br>
+	<input type="range" min="1" max="20" value="1" class="slider" oninput="redraw();" id="wall_thickness">
+	<br>
+	Color: <input id="wall_color_picker" value="#000000" data-jscolor="" oninput="setWallColor(this.jscolor);">
+      </div>
+
+      <div class="setting">
+	<h2>Path</h2>
+	Thickness: <span id="floor_thickness_output"></span>
+	<br>
+	<input type="range" min="1" max="50" value="5" class="slider" oninput="redraw();" id="floor_thickness">
+	<br>
+	Color: <input id="floor_color_picker" value="#FFFFFF" data-jscolor="" oninput="setFloorColor(this.jscolor);">
+      </div>
+
+      <p>
+	<button onclick="run();">Regenerate</button>
+	<button onclick="save();">Save</button>
+	<button onclick="clear_path();">Clear Path</button>
+      </p>
+
+      <canvas id="canvas" width="100" height="100"></canvas>
+    </body>
+    <script>
+const up    = 1;
+const right = 2;
+const down  = 4;
+const left  = 8;
+
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext('2d');
+
+var maze;
+var settings = null;
+var mouse_down = false;
+
+// Mouse listeners
+canvas.addEventListener('mousedown', input_down_mouse);
+canvas.addEventListener('mousemove', input_move_mouse);
+canvas.addEventListener('mouseup',   input_up);
+
+function getCursorPosition(canvas, event){
+    // Determine where clicked
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    return {x:x, y:y};
+}
+
+function input_down_mouse(e){
+    mouse_down = true;
+    updateClickedCoords(getCursorPosition(canvas, e), true);
+}
+
+function input_move_mouse(e){
+    if (mouse_down == true)
+	updateClickedCoords(getCursorPosition(canvas, e), false);
+}
+
+function input_up(e){
+    mouse_down = false;
+}
+
+function createMaze(w, h){
+    // Initialize Maze
+    var new_maze = [];
+    for(var y=0; y<h; y++){
+        let row = []
+        for(var x=0; x<w; x++){
+            row.push(-1);
+        }
+        new_maze.push(row);
+    }
+
+    var posx = 0;
+    var posy = 0;
+
+    new_maze[0][0] = 0;
+
+    while (true){
+        let validMoves = [];
+        if (posx - 1 >= 0)
+            if (new_maze[posy][posx - 1] == -1)
+                validMoves.push(left);
+
+        if (posx + 1 < w)
+            if (new_maze[posy][posx + 1] == -1)
+                validMoves.push(right);
+
+        if (posy - 1 >= 0)
+            if (new_maze[posy - 1][posx] == -1)
+                validMoves.push(up);
+
+        if (posy + 1 < h)
+            if (new_maze[posy + 1][posx] == -1)
+                validMoves.push(down);
+
+        // If no valid moves... Backtrack
+        if (validMoves.length == 0){
+            // If we wind up at 0,0 exit!
+            if (new_maze[posy][posx] == 0)
+                break;
+            else if (new_maze[posy][posx] == up)
+                posy -= 1;
+            else if (new_maze[posy][posx] == right)
+                posx += 1;
+            else if (new_maze[posy][posx] == down)
+                posy += 1;
+            else if (new_maze[posy][posx] == left)
+                posx -= 1;
+            continue;
+        }
+
+        // Choose move direction
+        move = validMoves[Math.floor(Math.random() * validMoves.length)];
+
+        // Change Location, Mark where we came from
+        if (move == up){
+            posy -= 1;
+            new_maze[posy][posx] = down;
+        }
+        if (move == right){
+            posx += 1;
+            new_maze[posy][posx] = left;
+        }
+        if (move == down){
+            posy += 1;
+            new_maze[posy][posx] = up;
+        }
+        if (move == left){
+            posx -= 1;
+            new_maze[posy][posx] = right;
+        }
+    }
+
+    return new_maze;
+}
+
+function drawSquare(ctx, x, y, dir, wall, floor, color, padding=0){
+    ctx.fillStyle = color;
+
+    let up_limit    = y * (floor + wall) + wall + padding;
+    let down_limit  = floor - 2*padding;
+    let left_limit  = x * (floor + wall) + wall + padding;
+    let right_limit = floor - 2*padding;
+
+    switch (dir){
+    case 0:
+        break;
+    case up:
+        up_limit    -= wall + 2*padding;
+        down_limit  += wall + 2*padding;
+        break;
+    case right:
+        right_limit += wall + 2*padding;
+        break;
+    case down:
+        down_limit  += wall + 2*padding;
+        break;
+    case left:
+        left_limit  -= wall + 2*padding;
+        right_limit += wall + 2*padding;
+        break;
+    }
+
+    ctx.fillRect(left_limit, up_limit, right_limit, down_limit);
+}
+
+function drawMaze(ctx, maze, settings){
+    let height = maze.length;
+    let width  = maze[0].length;
+
+    // Fill in the background which serves as wall color
+    ctx.fillStyle = settings["wall_color"];
+    ctx.fillRect(0, 0, settings["canvas_width"], settings["canvas_height"]);
+
+    // Draw floor
+    for(var y=0; y<height; y++){
+        for(var x=0; x<width; x++){
+	    drawSquare(ctx, x, y, maze[y][x], settings['wall_thickness'], settings['floor_thickness'], settings["floor_color"]);
+        }
+    }
+}
+
+function updateSize(){
+    let originalHeight = settings["height"];
+    let originalWidth = settings["width"];
+    let changed = false;
+
+    // Read Sliders
+    settings["width"]		= Number(document.getElementById("width").value);
+    settings["height"]		= Number(document.getElementById("height").value);
+    settings["floor_thickness"] = Number(document.getElementById("floor_thickness").value);
+    settings["wall_thickness"]	= Number(document.getElementById("wall_thickness").value);
+
+    // Write values back out
+    document.getElementById("width_output").innerHTML		= settings["width"];
+    document.getElementById("height_output").innerHTML		= settings["height"];
+    document.getElementById("floor_thickness_output").innerHTML = settings["floor_thickness"];
+    document.getElementById("wall_thickness_output").innerHTML	= settings["wall_thickness"];
+    
+    if (originalHeight != settings["height"] || originalWidth != settings["width"]){
+        maze = createMaze(settings["width"], settings["height"]);
+	changed = true;
+    }
+
+    settings['canvas_width']  = settings['width']  * (settings["floor_thickness"] + settings["wall_thickness"]) + settings["wall_thickness"];
+    settings['canvas_height'] = settings['height'] * (settings["floor_thickness"] + settings["wall_thickness"]) + settings["wall_thickness"];
+
+    // Resize Canvas
+    canvas.width = settings["canvas_width"];
+    canvas.height = settings["canvas_height"];
+
+    return changed;
+}
+
+function clear_path(){
+    settings['first_click'] = -1;
+    settings['last_click'] = -1;
+    console.log("ethan");
+    redraw();
+}
+
+function redraw(){
+    if (updateSize()){
+	settings['first_click'] = -1;
+	settings['last_click'] = -1;
+    }
+
+    drawMaze(ctx, maze, settings);
+
+    if (settings['last_click'] != -1){
+	drawClickPath(settings['first_click'], settings['last_click']);
+    }
+}
+
+function setFloorColor(c){
+    settings["floor_color"] = c.toString();
+    redraw();
+}
+
+function setWallColor(c){
+    settings["wall_color"] = c.toString();
+    redraw();
+}
+
+function colorIncrement(c){
+    if      (c[0] == 255 && c[1] <  255 && c[2] == 0)                c[1]+=1; // Red to Yellow
+    else if (c[0] <= 255 && c[1] == 255 && c[2] == 0   && c[0] != 0) c[0]-=1; // Yellow to Green
+    else if (c[0] == 0   && c[1] == 255 && c[2] <  255)              c[2]+=1; // Green to Cyan
+    else if (c[0] == 0   && c[1] <= 255 && c[2] == 255 && c[1] != 0) c[1]-=1; // Cyan to Blue
+    else if (c[0] <  255 && c[1] == 0   && c[2] == 255)              c[0]+=1; // Blue to Purple
+    else if (c[0] == 255 && c[1] == 0   && c[2] <= 255 && c[2] != 0) c[2]-=1; // Purple to Red
+
+    return c;
+}
+
+function rgbToHex(c){
+    let r = c[0].toString(16);
+    if (r.length == 1) r = "0" + r;
+    let g = c[1].toString(16);
+    if (g.length == 1) g = "0" + g;
+    let b = c[2].toString(16);
+    if (b.length == 1) b = "0" + b;
+
+    return "#" + r + g + b;
+}
+
+function updateClickedCoords(coords, first_click){
+    // Figure out what square we are on
+    let x = Math.min(settings['width']-1,  Math.floor(coords.x / (settings['floor_thickness'] + settings['wall_thickness'])));
+    let y = Math.min(settings['height']-1, Math.floor(coords.y / (settings['floor_thickness'] + settings['wall_thickness'])));
+
+    if (first_click == true)
+	settings["first_click"] = {x:x, y:y};
+    else
+	settings["last_click"] = {x:x, y:y};
+
+    redraw();
+}
+
+function pathToHome(coords){
+    let x = coords.x;
+    let y = coords.y;
+    let path = [{y:y, x:x}];
+
+    while (maze[y][x] != 0){
+	if (maze[y][x] == up)
+	    y -= 1;
+	else if (maze[y][x] == right)
+	    x += 1;
+	else if (maze[y][x] == down)
+	    y += 1;
+	else if (maze[y][x] == left)
+	    x -= 1;
+
+	path.push({y:y, x:x});
+	continue;
+    }
+
+    return path;
+}
+
+function drawClickPath(scoords, ecoords){
+    // Get path home from end
+    let path1 = pathToHome(scoords);
+
+    // Follow path home from start
+    let path2 = pathToHome(ecoords);
+
+    // Find first interesection of two paths
+    let intersection_found = false;
+    let i, j;
+    for (i=0; i<path1.length; i++){
+	for (j=0; j<path2.length; j++){
+	    if (path1[i].y == path2[j].y && path1[i].x == path2[j].x){
+		intersection_found = true
+		break;
+	    }
+	}
+	if (intersection_found)
+	    break;
+    }
+
+    // Combine two paths
+    let temp_path1 = path1.slice(0, i+1);
+    let temp_path2 = path2.slice(0, j);
+    temp_path2.reverse();
+    let final_path = temp_path1.concat(temp_path2);
+
+    // Draw final path
+    drawRainbowPath(final_path);
+}
+
+function drawRainbowPath(p){
+    let padding = settings['wall_thickness'];
+    if (settings['floor_thickness'] <= 2 * padding)
+	padding = 0;
+    var color = [255, 0, 0];
+    for (c of p){
+	color = colorIncrement(color);
+	drawSquare(ctx, c.x, c.y, maze[c.y][c.x], settings['wall_thickness'], settings['floor_thickness'], rgbToHex(color), padding);
+    }
+}
+
+function run(){
+    // Settings
+    if (settings == null)
+	settings = {
+            'width'           : 50,
+            'height'          : 70,
+            'floor_thickness' : 10,
+            'floor_color'     : document.getElementById("floor_color_picker").value.toString(),
+            'wall_thickness'  : 2,
+            'wall_color'      : document.getElementById("wall_color_picker").value.toString(),
+	    'first_click'     : -1,
+	    'last_click'      : -1,
+	}
+
+    updateSize();
+
+    // Clear path
+    clear_path();
+
+    // Create Maze
+    maze = createMaze(settings["width"], settings["height"]);
+
+    // Draw Maze
+    drawMaze(ctx, maze, settings);
+}
+
+function save(){
+    window.open(document.getElementById("canvas").toDataURL('image/png'));
+}
+  </script>
+</html>
