@@ -1,0 +1,397 @@
+<html>
+  <head>
+    <style>
+
+.terms {
+    display: block;
+    font-size: 200px;
+    width: 398px;
+    outline: 0px solid;
+    text-align: right;
+}
+
+#operator {
+    font-size: 130px;
+    font-family: sans-serif;
+    position: relative;
+    left: -120px;
+    top: -170px;
+}
+
+#term2 {
+    border-bottom: 3px solid black;
+}
+
+#answer {
+    border: 1px solid #aaa;
+    font-size: 200px;
+    width: 400;
+    font-family: serif;
+    display: block;
+    text-align: right;
+    margin-top: -80px;
+}
+
+.hidden {
+    display: none;
+}
+
+.blank {
+    background: #eee;
+    color: #888;
+}
+
+.slow {
+    background: #ffe;
+    color: #cc0;
+}
+
+.bad {
+    background: #fee;
+    color: #f00;
+}
+
+table {
+    border-collapse: collapse;
+    color: #000;
+}
+
+thead, tr.header, .table-header {
+    background: var(--color1);
+    text-align: center;
+    font-weight: bold;
+    font-family: sans-serif;
+    color: var(--color4);
+}
+
+td {
+    border: 1px solid #888;
+    margin: 0px;
+    padding: 5px 8px;
+    white-space: nowrap;
+}
+
+#start {
+width: 250px;
+height: 30px;
+}
+
+#end {
+width: 200px;
+height: 30px;
+}
+
+    </style>
+  </head>
+
+  <body>
+<!--
+    <canvas id="speed"></canvas>
+    <canvas id="score"></canvas>
+-->
+    <div id="controls">
+      <p>
+	Operation:
+	<select id="op">
+          <option value="1">Addition</option>
+          <option value="2">Subtraction</option>
+          <option value="3" selected="selected">Multiplication</option>
+          <option value="4">Division</option>
+	</select>
+	Min:
+	<select id="min">
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6" selected="selected">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+	</select>
+	Max:
+	<select id="max">
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9" selected="selected">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+	</select>
+      </p>
+      <button id="start" onclick="start();">Start</button>
+    </div>
+    <div id="status" class="hidden">
+      <button id="end" onclick="show_results();">End</button> Progress: <span id="progress"></span>
+    </div>
+
+    <center>
+
+    <div id="problem">
+      <span id="term1" class="terms">?</span>
+      <span id="term2" class="terms">?</span>
+      <span id="operator">x</span>
+      <input id="answer" onkeydown="user_input(event)"></input>
+    </div>
+
+    <div id="results" class="hidden">
+      <h2>Results</h2>
+      <div id="results_content">
+      </div>
+    </div>
+
+    </center>
+  </body>
+
+  <script>
+
+let ADDITION = 1
+let SUBTRACTION = 2
+let MULTIPLICATION = 3
+let DIVISION = 4
+
+function shuffle(array) {
+    let counter = array.length;
+
+    // While there are elements in the array
+    while (counter > 0) {
+        // Pick a random index
+        let index = Math.floor(Math.random() * counter);
+
+        // Decrease counter by 1
+        counter--;
+
+        // And swap the last element with it
+        let temp = array[counter];
+        array[counter] = array[index];
+        array[index] = temp;
+    }
+
+    return array;
+}
+
+function update_score(){
+    let score = 1.0 * problem_count / try_count;
+    document.getElementById("score").innerHTML = try_count - problem_count;
+}
+
+function show_results() {
+    // Display in "results" div
+    let results_div = document.getElementById("results_content");
+
+    // Clear current results
+    results_div.innerHTML = "";
+
+    // Create new table and header
+    let table = document.createElement("table");
+    let header = document.createElement("thead")
+    let row = document.createElement("tr");
+    for (let n of ["Equation", "Answer", "Time (sec)", "Incorrect Responses"]){
+        let cell = document.createElement("td");
+        cell.innerHTML = n;
+        row.appendChild(cell);
+    }
+    header.appendChild(row);
+    table.appendChild(header);
+
+    // Draw new results
+    let body = document.createElement("tbody")
+    if( problems != -1){
+        for (let r of problems) {
+            row = document.createElement("tr");
+
+            for (let d of ['equation', 'answer', 'time', 'incorrect']){
+                let cell = document.createElement("td");
+                cell.innerHTML = r[d];
+		if (d == "incorrect")
+		    if (r[d].length > 0){
+			row.classList.add("bad");
+			cell.innerHTML = r[d].join(", ");
+		    }
+		if (d == "time"){
+		    if (r[d] >= 10)
+			row.classList.add("slow");
+		    if (r[d] <= 0)
+			row.classList.add("blank");
+		}
+		row.appendChild(cell);
+            }
+            body.appendChild(row);
+        }
+    }
+
+    table.appendChild(body);
+    results_div.appendChild(table);
+
+    // Unhide div
+    document.getElementById("results").classList.remove("hidden");
+    document.getElementById("problem").classList.add("hidden");
+    document.getElementById("status").classList.add("hidden");
+    document.getElementById("controls").classList.remove("hidden");
+}
+
+function next_problem(){
+    // Record time taken for last problem
+    if (this_problem[0] > -1)
+	problems[this_problem[0]]["time"] = (new Date().getTime() - problem_timer) / 1000;
+
+    // increment to new problem
+    this_problem.shift();
+    problem_timer = new Date().getTime();
+
+    if (this_problem[0] == -1){
+	document.getElementById("term1").innerHTML = "?";
+	document.getElementById("term2").innerHTML = "?";
+	show_results();
+	//window.alert("Finished!");
+	return;
+    }
+
+    // Draw it to screen
+    document.getElementById("term1").innerHTML = problems[this_problem[0]]["term1"];
+    document.getElementById("term2").innerHTML = problems[this_problem[0]]["term2"];
+    document.getElementById("operator").innerHTML = problems[this_problem[0]]["operation"];
+    problem_count += 1;
+    //update_score();
+
+    // Update progress
+    document.getElementById("progress").innerHTML = (problems.length - (this_problem.length -2)) + "/" + problems.length;
+
+    return;
+}
+
+function check_solution(solution){
+    input.value="";
+
+    if (this_problem[0] == -1)
+	return;
+
+    try_count += 1;
+
+    if (solution == problems[this_problem[0]]["answer"]){
+	next_problem();
+    } else {
+	problems[this_problem[0]]["incorrect"].push(solution);
+    }
+
+    //update_score();
+}
+
+function user_input(e){
+    // Delete
+    if (e.keyCode == 8)
+	return;
+
+    // Return
+    if (e.keyCode == 13){
+        console.log(input.value);
+        if (input.value)
+            check_solution(Number(input.value));
+    }
+
+    // Only accept numbers
+    if (e.keyCode < 48 || e.keyCode > 57 && e.keyCode < 96 || e.keyCode > 105)
+	e.preventDefault();
+
+    input.focus();
+}
+
+let problems = -1;
+let this_problem = [-1];
+let input = document.getElementById('answer');
+let try_count;
+let problem_count;
+let timer_start = null;
+let problem_timer = null;
+
+function start(){
+    // Clearout stats
+    try_count = 0;
+    problem_count = -1;
+
+    // Clearout results
+    results = [];
+    document.getElementById("results").classList.add("hidden");
+    document.getElementById("problem").classList.remove("hidden");
+    document.getElementById("status").classList.remove("hidden");
+    document.getElementById("controls").classList.add("hidden");
+
+    let max_selection = document.getElementById("max");
+    let max = Number(max_selection.options[max_selection.selectedIndex].value);
+    let min_selection = document.getElementById("min");
+    let min = Number(min_selection.options[min_selection.selectedIndex].value);
+    let op_selection  = document.getElementById("op");
+    let op  = Number(op_selection.options[op_selection.selectedIndex].value);
+
+    let equation, term1, term2, answer;
+    
+    // Generate all 144 (or 78) problems
+    problems = [];
+    for (let a=min; a<=max; a++)
+	for (let b=1; b<=a; b++){
+	    switch (op) {
+	    case ADDITION:
+		equation = a + " + " + b;
+		term1 = a;
+		term2 = b;
+		answer = a + b;
+		operation = "+";
+		break;
+	    case SUBTRACTION:
+		equation = a + " - " + b;
+		term1 = a;
+		term2 = b;
+		answer = a - b;
+		operation = "—"
+		break;
+	    case MULTIPLICATION:
+		equation = a + " x " + b;
+		term1 = a;
+		term2 = b;
+		answer = a*b;
+		operation = "&times;"
+		break;
+	    case DIVISION:
+		equation = (a*b) + " / " + b;
+		term1 = a * b;
+		term2 = b;
+		answer = a;
+		operation = "&divide;";
+		break;
+	    }
+	    problems.push({
+		"equation" : equation,
+		"term1" : term1,
+		"term2" : term2,
+		"answer" : answer,
+		"incorrect" : [],
+		"time" : null,
+		"operation" : operation,
+	    });
+	}
+
+    //console.log(problems);
+
+    // Shuffle problems
+    //problems = shuffle(problems);
+
+    this_problem = shuffle(Array(problems.length).fill().map((x,i)=>i));
+    this_problem = [...[-1], ...this_problem];
+    this_problem.push(-1);
+
+    // Start a timer
+    timer_start = new Date().getTime();
+
+    // Put the first problem on the board
+    next_problem();
+
+    // Set focus
+    input.focus();
+}
+
+  </script>
+</html>
