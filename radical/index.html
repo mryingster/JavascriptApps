@@ -25,368 +25,113 @@
 // comment
 
 class ship{
-    constructor(ctx, sprite, sprite_width, sprite_height, scale, x, y, r, enemy){
-        this.ctx = ctx;
-        this.sprite = sprite;
-        this.sprite_size = {w:sprite_width, h:sprite_height};
-        this.sprite_geometry = {w:sprite.width/sprite_width, h:sprite.height/sprite_height};
-        this.scale = scale;
-
-        this.w = sprite_width * scale;
-        this.h = sprite_height * scale;
-
-        this.position = {x:x, y:y, r:r};
-        this.hitbox_scale = .8;
-
-        this.health = 100;
-        this.energy = 1;
-        this.cooldown = 0;
-        this.rate = 100; // Rate of fire in ms
-
-        this.forward = false;
-        this.backward = false;
-        this.clockwise = false;
-        this.counterclockwise = false
-        this.fire = false;
-
-        this.acceleration = 0;
-        this.momentum = 0;
-        this.rot_accel = 0;
-        this.rot_momentum = 0;
-
-        this.forward_thrust = 1.1;
-        this.reverse_thrust = 1.01;
-        this.rotational_thrust = 1.01;
-        this.deceleration = .95;
-        this.max_forward_speed = 20;
-        this.max_rotational_speed = 1.5;
-        this.max_reverse_speed = -10;
-
-        this.enemy = enemy;
-    }
-
-
-    fire_projectile(ms){
-        if (this.cooldown <= 0 && this.energy > 10){
-            this.energy -= 10;
-            if (this.enemy)
-                projectiles.push(new projectile(ctx, sprite_projectile_enemy, 100, 100, .15, this.position.x, this.position.y, this.position.r, this.momentum + 10, 800, 5, this.enemy));
-            else
-                projectiles.push(new projectile(ctx, sprite_projectile_player, 100, 100, .35, this.position.x, this.position.y, this.position.r, this.momentum + 15, 800, 20, this.enemy));
-
-            play_sfx("sounds/Cannon.aiff.mp3");
-
-            this.cooldown = this.rate;
-        }
-        if (this.cooldown > 0)
-            this.cooldown -= ms;
-    }
-
-    move(ms){
-        if (isNaN(ms))
-            ms = 0;
-
-        // Regenerate energy
-        this.energy = Math.min(100, this.energy + ms * .05);
-
-        // Control ship momentum/speed
-        if (this.forward && !this.backward){
-            if (this.acceleration <= 0)
-                this.acceleration = .15;
-            this.acceleration *= this.forward_thrust;
-            this.momentum += this.acceleration;
-        }
-
-        if (this.backward && !this.forward){
-            if (this.acceleration >= 0)
-                this.acceleration = -.15;
-            this.acceleration *= this.reverse_thrust;
-            this.momentum += this.acceleration;
-        }
-
-        // set max speed
-        if (this.momentum > this.max_forward_speed)
-            this.momentum = this.max_forward_speed;
-        if (this.momentum < this.max_reverse_speed)
-            this.momentum = this.max_reverse_speed;
-
-        // Coasting
-        if (!this.backward && !this.forward){
-            this.acceleration = 0;
-            this.momentum *= this.deceleration;
-            if (this.momentum < .1 && this.momentum > -.1)
-                this.momentum = 0;
-        }
-
-        // Get x/y components of movement vector
-        this.position.y -= Math.cos(Math.PI / 180 * this.position.r) * this.momentum;
-        this.position.x += Math.sin(Math.PI / 180 * this.position.r) * this.momentum;
-
-        // Keep position within bounds of arena (wrap)
-        while (this.position.x < 0) this.position.x += arena_dimensions.x;
-        while (this.position.y < 0) this.position.y += arena_dimensions.y;
-        while (this.position.x > arena_dimensions.x) this.position.x -= arena_dimensions.x;
-        while (this.position.y > arena_dimensions.y) this.position.y -= arena_dimensions.y;
-
-        // Rotational momentum
-        if (this.clockwise && !this.counterclockwise){
-            if (this.rot_accel <= 0)
-                this.rot_accel = .15;
-            this.rot_accel *= this.rotational_thrust;
-            this.rot_momentum += this.rot_accel;
-        }
-        if (this.counterclockwise && !this.clockwise){
-            if (this.rot_accel >= 0)
-                this.rot_accel = -.15;
-            this.rot_accel *= this.rotational_thrust;
-            this.rot_momentum += this.rot_accel;
-        }
-
-        if (this.rot_momentum > this.max_rotational_speed)
-            this.rot_momentum = this.max_rotational_speed;
-        if (this.rot_momentum < -1 * this.max_rotational_speed)
-            this.rot_momentum = -1 * this.max_rotational_speed;
-
-        if (!this.counterclockwise && !this.clockwise){
-            this.rot_accel = 0;
-            this.rot_momentum *= this.deceleration;
-            if (this.rot_momentum < .1 && this.rot_momentum > -.1)
-                this.rot_momentum = 0;
-        }
-
-        this.position.r += this.rot_momentum;
-
-        // loop r so it's never out of range
-        while (this.position.r < 0)   this.position.r += 360;
-        while (this.position.r > 360) this.position.r -= 360;
-
-        // Fire
-        if (this.fire)
-            this.fire_projectile(ms);
-    }
-
-    autopilot(){
-        // Disengage all commands and decide what to do
-        this.forward = false;
-        this.backward = false;
-        this.clockwise = false;
-        this.counterclockwise = false;
-        this.fire = false;
-
-        // calculate angle and distance to player
-        var dy = this.position.y - player.position.y;
-        var dx = this.position.x - player.position.x;
-        var theta = Math.atan2(dy, dx); // range (-PI, PI]
-        theta *= 180 / Math.PI;
-        theta += -90 + 360;
-        theta %= 360;
-
-        // Turn until facing player
-        let angle = (theta - this.position.r + 360) % 360;
-        if (angle > 180)
-           this.counterclockwise = true;
-        if (angle < 180)
-            this.clockwise = true;
-
-        // if roughly facing player, go straight
-        let distance = Math.abs(Math.hypot(this.position.x - player.position.x, this.position.y - player.position.y));
-        if (Math.abs(angle) < 10 && distance > 500)
-            this.forward = true;
-        if (distance < 500)
-            this.bacckward = true;
-
-
-        // if within range, fire
-        if (distance < 700 && !game_over)
-            this.fire = true;
-
-        //console.log(theta, this.position.r, angle, distance, this.forward, this.backward, this.clockwise, this.counterclockwise)
-    }
-
-    draw_ship(p){
-        // Choose proper orientation of ship from sprites
-        let r = 360 - Math.floor(this.position.r);
-        r = Math.floor((r % 360) / 10);
-        let sx = Math.floor(r % this.sprite_geometry.w);
-        sx *= this.sprite_size.w;
-        let sy = Math.floor(r / this.sprite_geometry.h);
-        sy *= this.sprite_size.h;
-
-        // Center sprite on coords
-        let cx = p.x - (this.sprite_size.w * this.scale / 2);
-        let cy = p.y - (this.sprite_size.h * this.scale / 2);
-
-        this.ctx.drawImage(this.sprite, sx, sy, this.sprite_size.w, this.sprite_size.h, cx, cy, this.sprite_size.w * this.scale, this.sprite_size.h * this.scale);
-
-        if (debug){
-            ctx.fillStyle = "#0A0";
-            ctx.font = "20px Arial";
-            ctx.fillText("x:"+p.x, cx, cy);
-            ctx.fillText("y:"+p.y, cx, cy+20);
-            ctx.fillText("r:"+p.r, cx, cy+40);
-        }
-    }
-
-    render(){
-        this.draw_ship({x:this.position.x, y:this.position.y, r:this.position.r})
-    }
-
-    render_player(){
-        // Find center of canvas and render there
-        let x = (width / 2);
-        let y = (height / 2);
-
-        this.draw_ship({x:x, y:y, r:this.position.r})
-    }
-}
-
-class asteroid{
-    constructor(ctx, sprite, sprite_width, sprite_height, scale, x, y, r, s, hits){
+    constructor(ctx, sprite, sprite_width, sprite_height, scale){
         this.ctx = ctx;
         this.sprite = sprite;
         this.sprite_size = {w:sprite_width, h:sprite_height};
         this.sprite_geometry = {w:sprite.width/sprite_width, h:sprite.height/sprite_height};
         this.scale = scale
-        this.hits = 2 // default
-        if (hits > -1)
-            this.hits = hits;
-
-        this.w = sprite_width * this.scale;
-        this.h = sprite_height * this.scale;
-        this.hitbox_scale = 1;
-
-        // Randomly assign size, direction, and rotation
-        this.position = {
-            x : Math.random() * arena_dimensions.x,
-            y : Math.random() * arena_dimensions.y,
-            r : Math.random() * 360,
-        };
-
-        this.s = Math.random() * .2; // px / ms
-
-        if (x != -1) this.position.x = x;
-        if (y != -1) this.position.y = y;
-        if (r != -1) this.position.r = r;
-        if (s != -1) this.position.s = s;
-
-        this.animation = {
-            s : Math.random() * .25 + .15, // animation speed per ms
-            p : 0,
-        };
     }
 
-    move(ms){
-        if (isNaN(ms))
-            ms = 0;
+    render(p){
+        // Find center of canvas
+        let x = (width / 2) - ((this.sprite_size.w * this.scale) / 2);
+        let y = (height / 2);
 
-        // Move it
-        this.position.y -= Math.cos(Math.PI / 180 * this.position.r) * (this.s * ms);
-        this.position.x += Math.sin(Math.PI / 180 * this.position.r) * (this.s * ms);
-
-        // Wrap
-        while (this.position.x < 0) this.position.x += arena_dimensions.x;
-        while (this.position.y < 0) this.position.y += arena_dimensions.y;
-        while (this.position.x > arena_dimensions.x) this.position.x -= arena_dimensions.x;
-        while (this.position.y > arena_dimensions.y) this.position.y -= arena_dimensions.y;
-
-        // Advance the animation
-        this.animation.p += this.animation.s * ms;
-        this.animation.p %= 360;
-    }
-
-    render(){
-        // Choose proper orientation of asteroid from rotation
-        let r = 360 - Math.floor(this.animation.p)
+        // Choose proper orientation of ship from sprites
+        let r = 360 - Math.floor(p.r)
         r = Math.floor((r % 360) / 10);
         let sx = Math.floor(r % this.sprite_geometry.w);
         sx *= this.sprite_size.w;
         let sy = Math.floor(r / this.sprite_geometry.h);
         sy *= this.sprite_size.h;
 
-        let cx = this.position.x - (this.sprite_size.w * this.scale / 2);
-        let cy = this.position.y - (this.sprite_size.h * this.scale / 2);
-
-        this.ctx.drawImage(this.sprite, sx, sy, this.sprite_size.w, this.sprite_size.h, cx, cy, this.sprite_size.w * this.scale, this.sprite_size.h * this.scale);
-    }
-}
-
-class explosion{
-    constructor(ctx, sprite, sprite_width, sprite_height, scale, x, y, s){
-        this.ctx = ctx;
-        this.sprite = sprite;
-        this.sprite_size = {w:sprite_width, h:sprite_height};
-        this.sprite_geometry = {w:sprite.width/sprite_width, h:sprite.height/sprite_height};
-        this.scale = scale;
-        this.position = {
-            x: x,
-            y: y,
-        };
-        this.s = s; // speed in ms/frame?
-        this.ms = 0; // ms sprite has been alive
-    }
-
-    move(ms){
-        this.ms += ms;
-    }
-
-    render(){
-        // choose frame based on time elapsed since started
-        let f = Math.floor(this.ms / this.s);
-        let sx = Math.floor(f % this.sprite_geometry.w);
-        sx *= this.sprite_size.w;
-        let sy = Math.floor(f / this.sprite_geometry.h);
-        sy *= this.sprite_size.h;
-
-        // if we ran out of animation, mark for removal and run!
-        if (f > this.sprite_geometry.w * this.sprite_geometry.h){
-            this.remove = true;
-            return;
-        }
-
-        // Explosions should be centered
-        let cx = this.position.x - (this.sprite_size.w * this.scale / 2);
-        let cy = this.position.y - (this.sprite_size.h * this.scale / 2);
-
-        this.ctx.drawImage(this.sprite, sx, sy, this.sprite_size.w, this.sprite_size.h, cx, cy, this.sprite_size.w * this.scale, this.sprite_size.h * this.scale);
+        // Place ship
+        this.ctx.drawImage(this.sprite, sx, sy, this.sprite_size.w, this.sprite_size.h, x, y, this.sprite_size.w * this.scale, this.sprite_size.h * this.scale);
     }
 }
 
 class projectile{
-    constructor(ctx, sprite, sprite_width, sprite_height, scale, x, y, r, speed, duration, damage, enemy){
+    constructor(ctx, sprite, sprite_width, sprite_height, scale){
         this.ctx = ctx;
         this.sprite = sprite;
         this.sprite_size = {w:sprite_width, h:sprite_height};
-        this.scale = scale;
-        this.enemy = enemy;
-        this.w = this.sprite_size.w * this.scale;
-        this.h = this.sprite_size.h * this.scale;
-        this.damage = damage;
-
-        this.position = {x:x, y:y, r:r};
-        this.s = speed;
-        this.d = duration;
-        this.hitbox_scale = .6;
+        this.scale = scale
+        this.projectiles = [];
     }
 
-    move(ms){
-        this.position.y -= Math.cos(Math.PI / 180 * this.position.r) * this.s;
-        this.position.x += Math.sin(Math.PI / 180 * this.position.r) * this.s;
-        this.d -= this.s;
-
-        // Wrap
-        while (this.position.x < 0) this.position.x += arena_dimensions.x;
-        while (this.position.y < 0) this.position.y += arena_dimensions.y;
-        while (this.position.x > arena_dimensions.x) this.position.x -= arena_dimensions.x;
-        while (this.position.y > arena_dimensions.y) this.position.y -= arena_dimensions.y;
-
-        if (this.d <= 0)
-            this.remove = true;
+    add(p){
+        this.projectiles.push(
+            {
+                x: position.x,
+                y: position.y,
+                r: position.r,
+                s: momentum + 15,
+                d: 800,
+            }
+        );
     }
 
-    render(){
-        let dx = this.position.x - (this.w/2);
-        let dy = this.position.y - (this.h/2);
-        this.ctx.drawImage(this.sprite, dx, dy, this.w, this.h);
+    move(){
+        for (let i=0; i<this.projectiles.length; i++){
+            this.projectiles[i].y -= Math.cos(Math.PI / 180 * this.projectiles[i].r) * this.projectiles[i].s;
+            this.projectiles[i].x += Math.sin(Math.PI / 180 * this.projectiles[i].r) * this.projectiles[i].s;
+            this.projectiles[i].d -= this.projectiles[i].s;
+
+            // Wrap
+            while (this.projectiles[i].x < 0) this.projectiles[i].x += arena_dimensions.x;
+            while (this.projectiles[i].y < 0) this.projectiles[i].y += arena_dimensions.y;
+            while (this.projectiles[i].x > arena_dimensions.x) this.projectiles[i].x -= arena_dimensions.x;
+            while (this.projectiles[i].y > arena_dimensions.y) this.projectiles[i].y -= arena_dimensions.y;
+
+            if (this.projectiles[i].d <= 0)
+                this.projectiles.splice(i,1);
+        }
+    }
+
+    draw_projectile(p){
+        let w = this.sprite_size.w * this.scale;
+        let h = this.sprite_size.h * this.scale;
+        let dx = p.x - (w/2);
+        let dy = p.y - (h/2);
+        this.ctx.drawImage(this.sprite, dx, dy, w, h);
+    }
+
+    render(p){
+        let radians = (Math.PI / 180) * (p.r);
+        let cx = width / 2;
+        let cy = height / 2;
+
+        for (let projectile of this.projectiles){
+            this.ctx.save()
+            this.ctx.translate(cx, cy);
+            this.ctx.rotate(-radians);
+            this.ctx.translate(-p.x, -p.y);
+            this.draw_projectile(projectile);
+            this.ctx.restore();
+
+            // Draw again if we are straddling a boundary
+            this.ctx.save()
+            this.ctx.translate(cx, cy);
+            this.ctx.rotate(-radians);
+            this.ctx.translate(-p.x, -(p.y + arena_dimensions.y));
+            this.draw_projectile(projectile);
+            this.ctx.restore();
+
+            this.ctx.save()
+            this.ctx.translate(cx, cy);
+            this.ctx.rotate(-radians);
+            this.ctx.translate(-(p.x + arena_dimensions.x), -p.y);
+            this.draw_projectile(projectile);
+            this.ctx.restore();
+
+            this.ctx.save()
+            this.ctx.translate(cx, cy);
+            this.ctx.rotate(-radians);
+            this.ctx.translate(-(p.x + arena_dimensions.x), -(p.y + arena_dimensions.y));
+            this.draw_projectile(projectile);
+            this.ctx.restore();
+        }
     }
 }
 
@@ -422,36 +167,80 @@ class starfield{
     }
 
     render(p){
+        let radians = (Math.PI / 180) * p.r;
+        let cos = Math.cos(radians);
+        let sin = Math.sin(radians);
+
+        let cx = width / 2;
+        let cy = height / 2;
+
+        document.getElementById("debug").innerHTML = "x:"+p.x+", y:"+p.y+", r:"+p.r+" ("+radians+" rad)";
+
         for(let star of this.stars){
+            /*
+            this.ctx.translate(-p.x, -p.y);
+            this.ctx.rotate(radians);
+            this.ctx.translate(width/2, height/2);
             this.draw_star(star);
+            this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+            */
+
+            let x1 = star.x;
+            let y1 = star.y;
+
+            // Translate to new origin
+            x1 -= (p.x + cx);
+            y1 -= (p.y + cy);
+
+            // Wrap around
+            while (x1 < 0) x1 += arena_dimensions.x;
+            while (y1 < 0) y1 += arena_dimensions.y;
+            while (x1 > arena_dimensions.x) x1 -= arena_dimensions.x;
+            while (y1 > arena_dimensions.y) y1 -= arena_dimensions.y;
+
+            // Rotate about the center of the screen
+            let x2 = ((x1 - cx) * cos) + ((y1 - cy) * sin);
+            let y2 = ((y1 - cy) * cos) - ((x1 - cx) * sin);
+
+            // Translate center of rotation back to center of screen
+            x2 += cx;
+            y2 += cy;
+
+            // Draw star in correct position
+            let relative_star = {
+                x: x2,
+                y: y2,
+                z: star.z,
+                c: star.c,
+            }
+
+            this.draw_star(relative_star);
         }
     }
 }
 
 // Keyboard listeners
 document.addEventListener('keydown', function(e) {
-    // console.log(e);
+    //console.log(e);
 
     // IJKL
-    if (e.keyCode == 73) {e.preventDefault(); player.forward = true};
-    if (e.keyCode == 76) {e.preventDefault(); player.clockwise = true};
-    if (e.keyCode == 75) {e.preventDefault(); player.backward = true};
-    if (e.keyCode == 74) {e.preventDefault(); player.counterclockwise = true};
-    if (e.keyCode == 32) {e.preventDefault(); player.fire = true}; // space
+    if (e.keyCode == 73) {e.preventDefault(); forward = true};
+    if (e.keyCode == 76) {e.preventDefault(); clockwise = true};
+    if (e.keyCode == 75) {e.preventDefault(); backward = true};
+    if (e.keyCode == 74) {e.preventDefault(); counterclockwise = true};
 
-    //if (e.keyCode == 78) new_game();    // n
-    if (e.keyCode == 80) toggle_pause();  // p
-    if (e.keyCode == 77) toggle_music();  // m
+    //if (e.keyCode == 78) new_game();         // n
+    if (e.keyCode == 80) toggle_pause();     // p
     //if (e.keyCode == 46) toggle_debug();     // forward delete
+    if (e.keyCode == 32) {e.preventDefault(); fire();} // space
 });
 
 document.addEventListener('keyup', function(e) {
     // IJKL
-    if (e.keyCode == 73) {e.preventDefault(); player.forward = false};
-    if (e.keyCode == 76) {e.preventDefault(); player.clockwise = false};
-    if (e.keyCode == 75) {e.preventDefault(); player.backward = false};
-    if (e.keyCode == 74) {e.preventDefault(); player.counterclockwise = false};
-    if (e.keyCode == 32) {e.preventDefault(); player.fire = false}; // space
+    if (e.keyCode == 73) {e.preventDefault(); forward = false};
+    if (e.keyCode == 76) {e.preventDefault(); clockwise = false};
+    if (e.keyCode == 75) {e.preventDefault(); backward = false};
+    if (e.keyCode == 74) {e.preventDefault(); counterclockwise = false};
 });
 
 function toggle_pause(){
@@ -463,11 +252,8 @@ function toggle_pause(){
     }
 }
 
-function toggle_music(){
-    if (music.sound.paused)
-        music.play();
-    else
-        music.stop();
+function fire(){
+    player_projectiles.add(position);
 }
 
 function resize_canvas(){
@@ -477,346 +263,77 @@ function resize_canvas(){
     canvas.height = height;
 }
 
-function draw_circle(x, y, radius, color){
-    ctx.strokeStyle = color;
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI);
-    ctx.stroke();
-}
-
-function draw_square(x, y, r, c){
-    ctx.strokeStyle = c;
-    ctx.strokeRect(x-r, y-r, r*2, r*2);
-}
-
-function draw_triangle (x, y, l, c){
-    ctx.strokeStyle = c;
-    ctx.beginPath();
-    ctx.moveTo(x, y - l);
-    ctx.lineTo(x - l, y + l);
-    ctx.lineTo(x, y);
-    ctx.lineTo(x + l, y + l);
-    ctx.lineTo(x, y - l);
-    ctx.stroke();
-}
-
-function circle_intersect(ax, ay, ar, bx, by, br){
-    return Math.hypot(ax - bx, ay - by) <= ar + br;
-}
-
-function collided(a, b, tolerance){
-    // Old way using a tolerance
-    //if (a.x > b.x - tolerance && a.x < b.x + tolerance &&
-    //a.y > b.y - tolerance && a.y < b.y + tolerance)
-
-    // Treat hitboxes as circles, so find center of sprite
-    let ax = a.position.x - (a.w/2);
-    let ay = a.position.y - (a.h/2);
-    let acx = ax + a.w / 2;
-    let acy = ay + a.h / 2;
-    let ar  = (a.w + a.h) / 4 * a.hitbox_scale;
-
-    let bx = b.position.x - (b.w/2);
-    let by = b.position.y - (b.h/2);
-    let bcx = bx + b.w / 2;
-    let bcy = by + b.h / 2;
-    let br  = (b.w + b.h) / 4 * b.hitbox_scale;
-
-    // Debug Draw hit boxes
-    if (debug){
-        let radians = (Math.PI / 180) * player.position.r;
-        let cx = width / 2;
-        let cy = height / 2;
-        for (let x of [player.position.x - arena_dimensions.x, player.position.x, player.position.x + arena_dimensions.x])
-            for (let y of [player.position.y - arena_dimensions.y, player.position.y, player.position.y + arena_dimensions.y]){
-                ctx.save()
-                ctx.translate(cx, cy);
-                ctx.rotate(-radians);
-                ctx.translate(-x, -y);
-
-                draw_circle(acx, acy, ar, "green")
-                draw_circle(bcx, bcy, br, "cyan")
-
-                // Unrotate
-                ctx.restore();
-            }
+function move_position(){
+    // Control ship momentum/speed
+    if (forward && !backward){
+        if (acceleration <= 0)
+            acceleration = .15;
+        acceleration *= forward_thrust;
+        momentum += acceleration;
     }
 
-    // See if circles intersect
-    return circle_intersect(acx, acy, ar, bcx, bcy, br);
-}
-
-function move_objects(ms){
-    player.move(ms);
-
-    for (let projectile of projectiles)
-        projectile.move(ms);
-
-    for (let asteroid of asteroids)
-        asteroid.move(ms);
-
-    for (let explosion of explosions)
-        explosion.move(ms);
-
-    for (let enemy of enemies){
-        enemy.autopilot();
-        enemy.move(ms);
-    }
-}
-
-function detect_collisions(ms){
-    // Projectile Vs Player
-    for (let projectile of projectiles){
-        if (collided(projectile, player)){
-            if (!projectile.enemy) continue;
-
-            player.health -= projectile.damage;
-
-            if (player.health <= 0){
-                explosions.push(new explosion(ctx, sprite_explosion, 128, 128, 1.5, player.position.x, player.position.y, 30));
-                play_sfx("sounds/ShipExplodes.aiff.mp3");
-                game_over = true;
-            }
-
-            // Remove projectile from play
-            projectile.remove = true;
-        }
+    if (backward && !forward){
+        if (acceleration >= 0)
+            acceleration = -.15;
+        acceleration *= reverse_thrust;
+        momentum += acceleration;
     }
 
-    // Projectiles vs Enemy
-    for (let enemy of enemies){
-        for (let projectile of projectiles){
-            if (projectile.enemy == enemy.enemy) continue; // Enemy ships can't hit themselves
+    // set max speed
+    if (momentum > max_forward_speed)
+        momentum = max_forward_speed;
+    if (momentum < max_reverse_speed)
+        momentum = max_reverse_speed;
 
-            if (collided(enemy, projectile)){
-                // Remove health from enemy (1/4 for now)
-                enemy.health -= projectile.damage;
-
-                if (enemy.health <= 0){
-                    enemy.remove = true;
-                    explosions.push(new explosion(ctx, sprite_explosion, 128, 128, 1.5, enemy.position.x, enemy.position.y, 30));
-                    play_sfx("sounds/ShipExplodes.aiff.mp3");
-                }
-
-                // Remove projectile from play
-                projectile.remove = true;
-            }
-        }
-
-        // Enemy vs Player
-        if (collided(enemy, player)){
-            // Destroy both!
-            enemy.remove = true;
-            explosions.push(new explosion(ctx, sprite_explosion, 128, 128, 1.5, enemy.position.x, enemy.position.y, 50));
-            explosions.push(new explosion(ctx, sprite_explosion, 128, 128, 1.5, player.position.x, player.position.y, 50));
-            play_sfx("sounds/ShipExplodes.aiff.mp3");
-        }
-
+    // Coasting
+    if (!backward && !forward){
+        acceleration = 0;
+        momentum *= deceleration;
+        if (momentum < .1 && momentum > -.1)
+            momentum = 0;
     }
 
-    // Projectiles vs Asteroids
-    for (let a of asteroids){
-        for (let projectile of projectiles)
-            if (collided(a, projectile)){
-                a.hits--;
+    // Get x/y components of movement vector
+    position.y -= Math.cos(Math.PI / 180 * position.r) * momentum;
+    position.x += Math.sin(Math.PI / 180 * position.r) * momentum;
 
-                // If the asteriod has remaining hits, create two new asteroids at half the size
-                if (a.hits >= 0){
-                    let p = a.position;
-                    let s = a.s;
-                    asteroids.push(new asteroid(ctx, a.sprite, a.sprite_size.w, a.sprite_size.h, a.scale * .5, p.x, p.y, p.r-15, s, a.hits));
-                    asteroids.push(new asteroid(ctx, a.sprite, a.sprite_size.w, a.sprite_size.h, a.scale * .5, p.x, p.y, p.r+15, s, a.hits));
-                }
+    // Keep position within bounds of arena (wrap)
+    while (position.x < 0) position.x += arena_dimensions.x;
+    while (position.y < 0) position.y += arena_dimensions.y;
+    while (position.x > arena_dimensions.x) position.x -= arena_dimensions.x;
+    while (position.y > arena_dimensions.y) position.y -= arena_dimensions.y;
 
-                // Remove asteroid and projectile from play
-                projectile.remove = true;
-                a.remove = true;
-
-                // Create explosions
-                explosions.push(new explosion(ctx, sprite_explosion, 128, 128, a.scale, projectile.position.x, projectile.position.y, 30));
-                play_sfx("sounds/MedExplosion.aiff.mp3");
-            }
-
-        // Asteroids vs Player
-        if (collided(a, player)){
-            a.hits--;
-            player.health -= 25 * a.scale;
-
-            // If the asteriod has remaining hits, create two new asteroids at half the size
-            if (a.hits >= 0){
-                let p = a.position;
-                let s = a.s;
-                asteroids.push(new asteroid(ctx, a.sprite, a.sprite_size.w, a.sprite_size.h, a.scale * .5, p.x, p.y, p.r-165, s/2, a.hits));
-                asteroids.push(new asteroid(ctx, a.sprite, a.sprite_size.w, a.sprite_size.h, a.scale * .5, p.x, p.y, p.r+165, s/2, a.hits));
-            }
-
-            // Remove asteroid from play
-            a.remove = true;
-
-            // Create explosions
-            explosions.push(new explosion(ctx, sprite_explosion, 128, 128, a.scale, a.position.x, a.position.y, 30));
-            play_sfx("sounds/MedExplosion.aiff.mp3");
-        }
+    // Rotational momentum
+    if (clockwise && !counterclockwise){
+        if (rot_accel <= 0)
+            rot_accel = .15;
+        rot_accel *= rotational_thrust;
+        rot_momentum += rot_accel;
     }
-}
-
-function purge_arrays(){
-    for (let i=0; i<projectiles.length; i++)
-        if (projectiles[i].remove)
-            projectiles.splice(i--,1);
-
-    for (let i=0; i<asteroids.length; i++)
-        if (asteroids[i].remove)
-            asteroids.splice(i--,1);
-
-    for (let i=0; i<explosions.length; i++)
-        if (explosions[i].remove)
-            explosions.splice(i--,1);
-
-    for (let i=0; i<enemies.length; i++)
-        if (enemies[i].remove)
-            enemies.splice(i--,1);
-}
-
-function is_level_clear(){
-    if (asteroids.length > 0)
-        return false;
-    if (enemies.length > 0)
-        return false;
-    return true;
-}
-
-function render_status_bar(x, y, label, percent){
-    let width = 200;
-    let height = 50;
-
-    ctx.fillStyle = "rgba(0, 128, 0, .5)";
-    ctx.fillRect(x, y, width, height);
-    ctx.strokeStyle = "#0A0";
-    ctx.strokeRect(x, y, width, height);
-
-    const grd = ctx.createLinearGradient(x, 0, x+180, 0);
-    grd.addColorStop(0,"red");
-    grd.addColorStop(1,"green");
-    ctx.fillStyle = grd;
-    ctx.fillRect(x + 5, y + 30, 190 * percent, 15);
-
-    ctx.fillStyle = "#0A0";
-    ctx.font = "12px Arial";
-    ctx.fillText(label, x + 5, y + 20); 
-}
-
-function render_hud(){
-    // Draw rectangle for minimap
-    let mm_scale = .05;
-    let mmw = Math.floor(arena_dimensions.x * mm_scale);
-    let mmh = Math.floor(arena_dimensions.x * mm_scale);
-    let mmx = 0;
-    let mmy = height - mmh;
-
-    // Move canvas so we are drawing at 0,0
-    ctx.save()
-    ctx.translate(mmx, mmy);
-
-    ctx.fillStyle = "rgba(0, 128, 0, .5)";
-    ctx.fillRect(0, 0, mmw, mmh);
-    ctx.strokeStyle = "#0A0";
-    ctx.strokeRect(0, 0, mmw, mmh);
-
-    // Draw elements on minimap
-    for (let projectile of projectiles)
-        draw_circle(projectile.position.x * mm_scale, projectile.position.y * mm_scale, 2, "#008");
-    for (let asteroid of asteroids)
-        draw_circle(asteroid.position.x * mm_scale, asteroid.position.y * mm_scale, 3, "#888");
-    for (let enemy of enemies)
-        draw_square(enemy.position.x * mm_scale, enemy.position.y * mm_scale, 3, "#B00");
-
-    // Rotate canvas for ship orientation
-    ctx.save()
-    ctx.translate(player.position.x * mm_scale, player.position.y * mm_scale);
-    let radians = (Math.PI / 180) * player.position.r;
-    ctx.rotate(radians);
-    draw_triangle(0, 0, 3, "#0B0");
-    ctx.restore();
-
-    // Draw healthbar
-    render_status_bar(mmw, mmh - 50, "Hull Integrity", Math.max(0, player.health / 100));
-
-    // Draw energy bar
-    render_status_bar(mmw, mmh - 100, "Energy", Math.max(0, player.energy / 100));
-
-    // Restore Canvas
-    ctx.restore();
-}
-
-function render_objects(){
-    // Draw rotated things in 9 positions to account for overlap
-    let radians = (Math.PI / 180) * player.position.r;
-    let cx = width / 2;
-    let cy = height / 2;
-
-
-    for (let x of [player.position.x - arena_dimensions.x, player.position.x, player.position.x + arena_dimensions.x])
-        for (let y of [player.position.y - arena_dimensions.y, player.position.y, player.position.y + arena_dimensions.y]){
-
-            ctx.save()
-            ctx.translate(cx, cy);
-            ctx.rotate(-radians);
-            ctx.translate(-x, -y);
-
-            // Draw stars
-            stars.render();
-
-            // Draw projectiles
-            for (let projectile of projectiles)
-                projectile.render();
-
-            // Draw enemies
-            for (let enemy of enemies)
-                enemy.render();
-
-            for (let asteroid of asteroids)
-                asteroid.render();
-
-            // Draw explosions
-            for (let explosion of explosions)
-                explosion.render();
-
-            // Unrotate
-            ctx.restore();
-        }
-
-    // Draw ship(s)
-    if (!game_over)
-        player.render_player();
-
-    // Draw HUD
-    render_hud();
-}
-
-function sound(src) {
-    this.sound = document.createElement("audio");
-    this.sound.src = src;
-    this.sound.setAttribute("preload", "auto");
-    this.sound.setAttribute("controls", "none");
-    this.sound.style.display = "none";
-    document.body.appendChild(this.sound);
-    this.play = function(){
-        this.sound.play();
+    if (counterclockwise && !clockwise){
+        if (rot_accel >= 0)
+            rot_accel = -.15;
+        rot_accel *= rotational_thrust;
+        rot_momentum += rot_accel;
     }
-    this.stop = function(){
-        this.sound.pause();
+
+    if (rot_momentum > max_rotational_speed)
+        rot_momentum = max_rotational_speed;
+    if (rot_momentum < -1 * max_rotational_speed)
+        rot_momentum = -1 * max_rotational_speed;
+
+    if (!counterclockwise && !clockwise){
+        rot_accel = 0;
+        rot_momentum *= deceleration;
+        if (rot_momentum < .1 && rot_momentum > -.1)
+            rot_momentum = 0;
     }
-}
 
-function play_sfx(fname){
-    sfx[sfx_index].sound.src = fname;
-    sfx[sfx_index].sound.volume = .5;
-    sfx[sfx_index].sound.play();
+    position.r += rot_momentum;
 
-    // Prep next index
-    sfx_index++;
-    sfx_index %= 4;
+    // loop r so it's never out of range
+    while (position.r < 0)   position.r += 360;
+    while (position.r > 360) position.r -= 360;
 }
 
 // Canvas
@@ -829,122 +346,80 @@ let height = canvas.height;
 let stars;
 let player;
 let projectiles;
-let enemies;
-let asteroids;
-let explosions;
+
+// Movement Stuff
+let forward = false;
+let backward = false;
+let clockwise = false;
+let counterclockwise = false;
+let position = {};
+let movement = {};
+let acceleration = 0;
+let momentum = 0;
+let rot_accel = 0;
+let rot_momentum = 0;
+
+let forward_thrust = 1.1;
+let reverse_thrust = 1.01;
+let rotational_thrust = 1.01;
+let deceleration = .95;
+let max_forward_speed = 20;
+let max_rotational_speed = 1.5;
+let max_reverse_speed = -10;
 
 // Sprites
 const sprite_player = new Image();
-sprite_player.src = "sprites/main_ship_256.png";
+sprite_player.src = "sprites/main_ship_512.png";
 
-const sprite_enemy = new Image();
-sprite_enemy.src = "sprites/enemy_256.png";
-
-const sprite_projectile_player = new Image();
-sprite_projectile_player.src = "sprites/projectile_blue.png";
-
-const sprite_projectile_enemy = new Image();
-sprite_projectile_enemy.src = "sprites/projectile_red.png";
-
-const sprite_asteroid_1 = new Image();
-sprite_asteroid_1.src = "sprites/asteroid_1_128.png";
-
-const sprite_asteroid_2 = new Image();
-sprite_asteroid_2.src = "sprites/asteroid_2_128.png";
-
-const sprite_asteroid_3 = new Image();
-sprite_asteroid_3.src = "sprites/asteroid_3_128.png";
-
-const sprite_asteroid_4 = new Image();
-sprite_asteroid_4.src = "sprites/asteroid_4_128.png";
-
-const sprite_explosion = new Image();
-sprite_explosion.src = "sprites/explosion_128.png";
-
-// Music and Sounds
-var sfx = [
-    new sound("sounds/Cannon.aiff.mp3"),
-    new sound("sounds/MedExplosion.aiff.mp3"),
-    new sound("sounds/ShipExplodes.aiff.mp3"),
-    new sound("sounds/MedExplosion.aiff.mp3"),
-];
-sfx_index = 0;
-
-var music = new sound("music/Ingame 1.mp3");
-music.sound.loop = true;
+const sprite_projectile = new Image();
+sprite_projectile.src = "sprites/projectile.png";
 
 // Game Stuff
 let arena_dimensions = {x:5000, y:5000};
-let last_frame;
+let timer;
+let tick_interval = 10;
 let paused;
-let debug = false;
-let game_over;
 
-function main_loop(timestamp){
-    if (last_frame === undefined) {
-        last_frame = timestamp;
-    }
-    const elapsed = timestamp - last_frame;
-
+function main_loop(){
     // Clear canvas
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, width, height);
 
     // Move position
-    move_objects(elapsed);
+    move_position();
+    player_projectiles.move();
 
-    // Detect collisions
-    detect_collisions();
+    // Draw stars
+    stars.render(position);
 
-    // Remove entities that need to be removed
-    purge_arrays();
+    // Draw projectiles
+    player_projectiles.render(position);
 
-    // Check for level clear
-    if (is_level_clear())
-        console.log("Sector cleared");
-
-    // Redraw
-    render_objects();
-
-    // Debug
-    document.getElementById("debug").innerHTML = "x:"+player.position.x+", y:"+player.position.y+", r:"+player.position.r+", FPS:"+(1000/elapsed);
+    // Draw ship(s)
+    player.render(position);
 
     // Setup next looop
-    if (!paused){
-        last_frame = timestamp;
-        window.requestAnimationFrame(main_loop);
-    }
+    if (!paused)
+        timer = setTimeout(() => main_loop(), tick_interval);
 }
 
 function first_load(){
-    game_over = false;
-
     // Resize canvas
     resize_canvas();
 
     // Create star field
     stars = new starfield(ctx, arena_dimensions, 500)
 
-    // Create player with default position
-    player = new ship(ctx, sprite_player, 256, 256, 1, arena_dimensions.x / 2, arena_dimensions.y / 2, 0, false);
-
-    // Create enemy with random position for testing
-    enemies = [];
-    while (enemies.length < 3)
-        enemies.push(new ship(ctx, sprite_enemy, 256, 256, 1, Math.random() * arena_dimensions.x, Math.random() * arena_dimensions.y, Math.random() * 360, true));
-
-    // Create Asteroid(s)
-    asteroids = [];
-    while (asteroids.length < 10)
-        asteroids.push(new asteroid(ctx,
-                                    [sprite_asteroid_1, sprite_asteroid_2, sprite_asteroid_3, sprite_asteroid_4][Math.floor(Math.random() * 4)],
-                                    128, 128, 1, -1, -1, -1, -1, -1));
+    // Create ship
+    player = new ship(ctx, sprite_player, 512, 512, .5);
 
     // Clear projectiles
-    projectiles = [];
+    player_projectiles = new projectile(ctx, sprite_projectile, 100, 100, .35);
 
-    // Clear explosions
-    explosions = [];
+    // Set default position
+    position.x = arena_dimensions.x / 2;
+    position.y = arena_dimensions.y / 2;
+    position.r = 0; // Pointing up?
 
     // Start looping
     main_loop();
