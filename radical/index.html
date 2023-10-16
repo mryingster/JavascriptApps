@@ -25,29 +25,56 @@
 // comment
 
 class ship{
-    constructor(ctx, sprite, sprite_width, sprite_height, scale){
+    constructor(ctx, sprite, sprite_width, sprite_height, scale, x, y, r){
         this.ctx = ctx;
         this.sprite = sprite;
         this.sprite_size = {w:sprite_width, h:sprite_height};
         this.sprite_geometry = {w:sprite.width/sprite_width, h:sprite.height/sprite_height};
         this.scale = scale
+
+        this.position = {x:x, y:y, r:r};
+
     }
 
-    render(p){
-        // Find center of canvas
-        let x = (width / 2) - ((this.sprite_size.w * this.scale) / 2);
-        let y = (height / 2);
+    move(x, y, r){
+        this.position = {x:x, y:y, r:r};
+    }
 
+    draw_ship(p){
         // Choose proper orientation of ship from sprites
-        let r = 360 - Math.floor(p.r)
+        let r = 360 - Math.floor(this.position.r)
         r = Math.floor((r % 360) / 10);
         let sx = Math.floor(r % this.sprite_geometry.w);
         sx *= this.sprite_size.w;
         let sy = Math.floor(r / this.sprite_geometry.h);
         sy *= this.sprite_size.h;
 
-        // Place ship
-        this.ctx.drawImage(this.sprite, sx, sy, this.sprite_size.w, this.sprite_size.h, x, y, this.sprite_size.w * this.scale, this.sprite_size.h * this.scale);
+        this.ctx.drawImage(this.sprite, sx, sy, this.sprite_size.w, this.sprite_size.h, p.x, p.y, this.sprite_size.w * this.scale, this.sprite_size.h * this.scale);
+    }
+
+    render(){
+        // We have to unrotate the canvas for the orientation to be correct
+        let radians = (Math.PI / 180) * this.position.r;
+        let half_w = this.sprite_size.w / 2;
+        let half_h = this.sprite_size.h / 2;
+
+        //ctx.save()
+        //ctx.translate(this.position.x - player.position.x, this.position.y - player.position.y);
+        //ctx.rotate(radians);
+        //ctx.translate(-half_w, -half_h);
+
+        this.draw_ship(this.position);
+
+        // Unrotate
+        //ctx.restore();
+    }
+
+    render_player(){
+        // Find center of canvas and render there
+        let x = (width / 2) - ((this.sprite_size.w * this.scale) / 2);
+        let y = (height / 2);
+
+        this.draw_ship({x:x, y:y, r:this.position.r})
     }
 }
 
@@ -58,21 +85,23 @@ class projectile{
         this.sprite_size = {w:sprite_width, h:sprite_height};
         this.scale = scale
         this.projectiles = [];
+        this.cooldown = 0;
+        this.rate = 100; // Rate of fire in ms
     }
 
     add(p){
         this.projectiles.push(
             {
-                x: position.x,
-                y: position.y,
-                r: position.r,
+                x: p.x,
+                y: p.y,
+                r: p.r,
                 s: momentum + 15,
                 d: 800,
             }
         );
     }
 
-    move(){
+    move(ms){
         for (let i=0; i<this.projectiles.length; i++){
             this.projectiles[i].y -= Math.cos(Math.PI / 180 * this.projectiles[i].r) * this.projectiles[i].s;
             this.projectiles[i].x += Math.sin(Math.PI / 180 * this.projectiles[i].r) * this.projectiles[i].s;
@@ -98,39 +127,8 @@ class projectile{
     }
 
     render(p){
-        let radians = (Math.PI / 180) * (p.r);
-        let cx = width / 2;
-        let cy = height / 2;
-
         for (let projectile of this.projectiles){
-            this.ctx.save()
-            this.ctx.translate(cx, cy);
-            this.ctx.rotate(-radians);
-            this.ctx.translate(-p.x, -p.y);
             this.draw_projectile(projectile);
-            this.ctx.restore();
-
-            // Draw again if we are straddling a boundary
-            this.ctx.save()
-            this.ctx.translate(cx, cy);
-            this.ctx.rotate(-radians);
-            this.ctx.translate(-p.x, -(p.y + arena_dimensions.y));
-            this.draw_projectile(projectile);
-            this.ctx.restore();
-
-            this.ctx.save()
-            this.ctx.translate(cx, cy);
-            this.ctx.rotate(-radians);
-            this.ctx.translate(-(p.x + arena_dimensions.x), -p.y);
-            this.draw_projectile(projectile);
-            this.ctx.restore();
-
-            this.ctx.save()
-            this.ctx.translate(cx, cy);
-            this.ctx.rotate(-radians);
-            this.ctx.translate(-(p.x + arena_dimensions.x), -(p.y + arena_dimensions.y));
-            this.draw_projectile(projectile);
-            this.ctx.restore();
         }
     }
 }
@@ -167,54 +165,8 @@ class starfield{
     }
 
     render(p){
-        let radians = (Math.PI / 180) * p.r;
-        let cos = Math.cos(radians);
-        let sin = Math.sin(radians);
-
-        let cx = width / 2;
-        let cy = height / 2;
-
-        document.getElementById("debug").innerHTML = "x:"+p.x+", y:"+p.y+", r:"+p.r+" ("+radians+" rad)";
-
         for(let star of this.stars){
-            /*
-            this.ctx.translate(-p.x, -p.y);
-            this.ctx.rotate(radians);
-            this.ctx.translate(width/2, height/2);
             this.draw_star(star);
-            this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-            */
-
-            let x1 = star.x;
-            let y1 = star.y;
-
-            // Translate to new origin
-            x1 -= (p.x + cx);
-            y1 -= (p.y + cy);
-
-            // Wrap around
-            while (x1 < 0) x1 += arena_dimensions.x;
-            while (y1 < 0) y1 += arena_dimensions.y;
-            while (x1 > arena_dimensions.x) x1 -= arena_dimensions.x;
-            while (y1 > arena_dimensions.y) y1 -= arena_dimensions.y;
-
-            // Rotate about the center of the screen
-            let x2 = ((x1 - cx) * cos) + ((y1 - cy) * sin);
-            let y2 = ((y1 - cy) * cos) - ((x1 - cx) * sin);
-
-            // Translate center of rotation back to center of screen
-            x2 += cx;
-            y2 += cy;
-
-            // Draw star in correct position
-            let relative_star = {
-                x: x2,
-                y: y2,
-                z: star.z,
-                c: star.c,
-            }
-
-            this.draw_star(relative_star);
         }
     }
 }
@@ -228,11 +180,11 @@ document.addEventListener('keydown', function(e) {
     if (e.keyCode == 76) {e.preventDefault(); clockwise = true};
     if (e.keyCode == 75) {e.preventDefault(); backward = true};
     if (e.keyCode == 74) {e.preventDefault(); counterclockwise = true};
+    if (e.keyCode == 32) {e.preventDefault(); fire = true}; // space
 
     //if (e.keyCode == 78) new_game();         // n
     if (e.keyCode == 80) toggle_pause();     // p
     //if (e.keyCode == 46) toggle_debug();     // forward delete
-    if (e.keyCode == 32) {e.preventDefault(); fire();} // space
 });
 
 document.addEventListener('keyup', function(e) {
@@ -241,6 +193,7 @@ document.addEventListener('keyup', function(e) {
     if (e.keyCode == 76) {e.preventDefault(); clockwise = false};
     if (e.keyCode == 75) {e.preventDefault(); backward = false};
     if (e.keyCode == 74) {e.preventDefault(); counterclockwise = false};
+    if (e.keyCode == 32) {e.preventDefault(); fire = false}; // space
 });
 
 function toggle_pause(){
@@ -252,10 +205,6 @@ function toggle_pause(){
     }
 }
 
-function fire(){
-    player_projectiles.add(position);
-}
-
 function resize_canvas(){
     width  = window.innerWidth;
     height = window.innerHeight;
@@ -263,7 +212,7 @@ function resize_canvas(){
     canvas.height = height;
 }
 
-function move_position(){
+function move_position(ms){
     // Control ship momentum/speed
     if (forward && !backward){
         if (acceleration <= 0)
@@ -294,14 +243,14 @@ function move_position(){
     }
 
     // Get x/y components of movement vector
-    position.y -= Math.cos(Math.PI / 180 * position.r) * momentum;
-    position.x += Math.sin(Math.PI / 180 * position.r) * momentum;
+    player.position.y -= Math.cos(Math.PI / 180 * player.position.r) * momentum;
+    player.position.x += Math.sin(Math.PI / 180 * player.position.r) * momentum;
 
     // Keep position within bounds of arena (wrap)
-    while (position.x < 0) position.x += arena_dimensions.x;
-    while (position.y < 0) position.y += arena_dimensions.y;
-    while (position.x > arena_dimensions.x) position.x -= arena_dimensions.x;
-    while (position.y > arena_dimensions.y) position.y -= arena_dimensions.y;
+    while (player.position.x < 0) player.position.x += arena_dimensions.x;
+    while (player.position.y < 0) player.position.y += arena_dimensions.y;
+    while (player.position.x > arena_dimensions.x) player.position.x -= arena_dimensions.x;
+    while (player.position.y > arena_dimensions.y) player.position.y -= arena_dimensions.y;
 
     // Rotational momentum
     if (clockwise && !counterclockwise){
@@ -329,11 +278,11 @@ function move_position(){
             rot_momentum = 0;
     }
 
-    position.r += rot_momentum;
+    player.position.r += rot_momentum;
 
     // loop r so it's never out of range
-    while (position.r < 0)   position.r += 360;
-    while (position.r > 360) position.r -= 360;
+    while (player.position.r < 0)   player.position.r += 360;
+    while (player.position.r > 360) player.position.r -= 360;
 }
 
 // Canvas
@@ -346,14 +295,15 @@ let height = canvas.height;
 let stars;
 let player;
 let projectiles;
+let enemy;
 
 // Movement Stuff
 let forward = false;
 let backward = false;
 let clockwise = false;
 let counterclockwise = false;
-let position = {};
-let movement = {};
+let fire = false;
+
 let acceleration = 0;
 let momentum = 0;
 let rot_accel = 0;
@@ -369,38 +319,77 @@ let max_reverse_speed = -10;
 
 // Sprites
 const sprite_player = new Image();
-sprite_player.src = "sprites/main_ship_512.png";
+sprite_player.src = "sprites/main_ship_256.png";
 
 const sprite_projectile = new Image();
 sprite_projectile.src = "sprites/projectile.png";
 
 // Game Stuff
 let arena_dimensions = {x:5000, y:5000};
-let timer;
-let tick_interval = 10;
+let last_frame;
 let paused;
 
-function main_loop(){
+function main_loop(timestamp){
+    if (last_frame === undefined) {
+        last_frame = timestamp;
+    }
+    const elapsed = timestamp - last_frame;
+
     // Clear canvas
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, width, height);
 
     // Move position
-    move_position();
-    player_projectiles.move();
+    move_position(elapsed);
+    player_projectiles.move(elapsed);
 
-    // Draw stars
-    stars.render(position);
+    // Add projectiles when player is firing
+    if (fire){
+        if (player_projectiles.cooldown <= 0){
+            player_projectiles.add(player.position);
+            player_projectiles.cooldown = player_projectiles.rate;
+        }
+        if (player_projectiles.cooldown > 0)
+            player_projectiles.cooldown -= elapsed;
+    }
 
-    // Draw projectiles
-    player_projectiles.render(position);
+    // Draw rotated things in 9 positions to account for overlap
+    let radians = (Math.PI / 180) * player.position.r;
+    let cx = width / 2;
+    let cy = height / 2;
+
+
+    for (let x of [player.position.x - arena_dimensions.x, player.position.x, player.position.x + arena_dimensions.x])
+        for (let y of [player.position.y - arena_dimensions.y, player.position.y, player.position.y + arena_dimensions.y]){
+
+            ctx.save()
+            ctx.translate(cx, cy);
+            ctx.rotate(-radians);
+            ctx.translate(-x, -y);
+
+            // Draw stars
+            stars.render();
+
+            // Draw enemy
+            enemy.render();
+
+            // Draw projectiles
+            player_projectiles.render();
+
+            // Unrotate
+            ctx.restore();
+        }
 
     // Draw ship(s)
-    player.render(position);
+    player.render_player();
+
+    // Debug
+    document.getElementById("debug").innerHTML = "x:"+player.position.x+", y:"+player.position.y+", r:"+player.position.r+" ("+radians+" rad), FPS:"+(1000/elapsed);
 
     // Setup next looop
     if (!paused)
-        timer = setTimeout(() => main_loop(), tick_interval);
+        last_frame = timestamp;
+        window.requestAnimationFrame(main_loop);
 }
 
 function first_load(){
@@ -410,16 +399,14 @@ function first_load(){
     // Create star field
     stars = new starfield(ctx, arena_dimensions, 500)
 
-    // Create ship
-    player = new ship(ctx, sprite_player, 512, 512, .5);
+    // Create player with default position
+    player = new ship(ctx, sprite_player, 256, 256, 1, arena_dimensions.x / 2, arena_dimensions.y / 2, 0);
+
+    // Create enemy with random position for testing
+    enemy  = new ship(ctx, sprite_player, 256, 256, 1, Math.random() * arena_dimensions.x, Math.random() * arena_dimensions.y, Math.random() * 360);
 
     // Clear projectiles
     player_projectiles = new projectile(ctx, sprite_projectile, 100, 100, .35);
-
-    // Set default position
-    position.x = arena_dimensions.x / 2;
-    position.y = arena_dimensions.y / 2;
-    position.r = 0; // Pointing up?
 
     // Start looping
     main_loop();
