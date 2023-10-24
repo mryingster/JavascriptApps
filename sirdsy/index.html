@@ -27,6 +27,8 @@
       #depth_map, #pattern {
       display: inline-block;
       vertical-align:top;
+      margin: 0px 30px 0px 30px;
+      
       }
 
       #depth_canvas, #tile_canvas {
@@ -35,6 +37,15 @@
 
       .hidden {
       display: none;
+      }
+
+      .slider {
+      vertical-align: middle;
+      }
+
+      input, .slider_label{
+      vertical-align: bottom;
+      margin-top: 10px;
       }
     </style>
   </head>
@@ -54,8 +65,8 @@
         <select name="depth_choice" id="depth_choice" onchange="change_depth_choice();">
           <option value="upload">Upload</option>
         </select>
-        <br>
         <div id="depth_upload_div">
+          <br>
           <input type="file" id="map_load"/>
         </div>
         <br>
@@ -63,9 +74,13 @@
           <input type="checkbox" id="invert" name="invert" value="invert">
           <label for="invert">Invert</label>
         </span>
-        <span title="Add padding to th eleft of image. This may be necessary to esure that the entire 3d image is viewable">
+        <span title="Add padding to the left of image. This may be necessary to ensure that the entire 3d image is viewable">
           <input type="checkbox" id="leftpad" name="leftpad" value="leftpad" checked>
           <label for="leftpad">Pad Map on left</label>
+        </span>
+        <br>
+        <span title="Controls the amount that the pixels shift to create a 3D effect">
+          <label for="depth" class="slider_label">Depth:</label><input type="range" name="depth" min="0" max="50" value="25" class="slider" id="depth">
         </span>
       </div>
 
@@ -83,7 +98,7 @@
           <input type="file" id="tile_load"/>
         </div>
         <div id="tile_noise_div">
-          Scale:<input type="range" min="20" max="500" value="100" class="slider" oninput="generate_noise();" id="size">
+          <label for="size" class="slider_label">Scale:</label><input type="range" name="size" min="40" max="300" value="100" class="slider" id="size">
         </div>
       </div>
 
@@ -107,6 +122,8 @@ document.getElementById('map_load').addEventListener('change', load_map, false);
 document.getElementById('tile_load').addEventListener('change', load_tile, false);
 document.getElementById('invert').addEventListener('change', generate, false);
 document.getElementById('leftpad').addEventListener('change', generate, false);
+document.getElementById('depth').addEventListener('input', generate, false);
+document.getElementById('size').addEventListener('input', generate_noise, false);
 document.getElementById("save").onclick = () => { save() };
 
 function save(){
@@ -323,7 +340,7 @@ function generate(){
 
     let invert = document.getElementById("invert").checked
     let pad = document.getElementById("leftpad").checked
-    let max_offset = 25;
+    let max_offset = document.getElementById("depth").value;
 
     // Adjust map canvas and buffer if there is padding
     if (pad){
