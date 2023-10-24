@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>SIRDSy</title>
+    <style>
+      body {
+      background:#eee;
+      color:#000;
+      font-family : sans-serif;
+      text-align: center;
+      }
+
+      #content {
+      background :#fff;
+      margin: auto;
+      width: fit-content;
+      padding: 10px;
+      }
+
+      #header {
+      width: 512px;
+      text-align: left;
+      margin: auto;
+      }
+
+      #depth_map, #pattern {
+      display: inline-block;
+      vertical-align:top;
+      }
+
+      #depth_canvas, #tile_canvas {
+      height:100px;
+      }
+
+      .hidden {
+      display: none;
+      }
+    </style>
+  </head>
+
+  <body onload="first_run();" onresize="">
+    <div id="content">
+      <div id="header">
+        <h1>SIRDSy</h1>
+        <p>Single Image Random Dot Stereograms are images where a 3D illusion is encoded by shifting pixels in a repeating pattern. The image is viewed by "looking past" the image and having each eye looking at a different instance of the repeating pattern. Dots at the top of the image are included to help. You look past the image, and the two dots should become 3.</p>
+        <p>You can generate different sterograms by selecting or uploading depthmaps (black and white images indicting 3D information), and tiles. </p>
+      </div>
+
+      <div id="depth_map">
+        <h3>Depth Map</h3>
+        <canvas id="depth_canvas"></canvas>
+        <br>
+        <select name="depth_choice" id="depth_choice" onchange="change_depth_choice();">
+          <option value="upload">Upload</option>
+        </select>
+        <br>
+        <div id="depth_upload_div">
+          <input type="file" id="map_load"/>
+        </div>
+        <br>
+        <span title="When checked, darker shades indicate forground, and white indicates background">
+          <input type="checkbox" id="invert" name="invert" value="invert">
+          <label for="invert">Invert</label>
+        </span>
+        <span title="Add padding to th eleft of image. This may be necessary to esure that the entire 3d image is viewable">
+          <input type="checkbox" id="leftpad" name="leftpad" value="leftpad" checked>
+          <label for="leftpad">Pad Map on left</label>
+        </span>
+      </div>
+
+      <div id="pattern">
+        <h3>Pattern</h3>
+        <canvas id="tile_canvas"></canvas>
+        <br>
+        <select name="tile_choice" id="tile_choice" onchange="change_tile_choice();">
+          <option value="upload">Upload</option>
+          <option value="noise" selected>Noise</option>
+          <option value="mononoise">Mono Noise</option>
+        </select>
+        <br>
+        <div id="tile_upload_div">
+          <input type="file" id="tile_load"/>
+        </div>
+        <div id="tile_noise_div">
+          Scale:<input type="range" min="20" max="500" value="100" class="slider" oninput="generate_noise();" id="size">
+        </div>
+      </div>
+
+      <div id="output">
+        <h3>Result</h3>
+        <canvas id="output_canvas"></canvas>
+        <br>
+        <span id="debug"></span>
+        <br>
+        <button onclick="generate();">Regenerate</button>
+        <button id="save">Save</button>
+      </div>
+    </div>
+  </body>
+
+  <script>
+
+// comment
+
+document.getElementById('map_load').addEventListener('change', load_map, false);
+document.getElementById('tile_load').addEventListener('change', load_tile, false);
+document.getElementById('invert').addEventListener('change', generate, false);
+document.getElementById('leftpad').addEventListener('change', generate, false);
+document.getElementById("save").onclick = () => { save() };
+
+function save(){
+    window.open(document.getElementById("output_canvas").toDataURL('image/png'));
+}
+
+function add_drop_down_items(){
+    const DEPTH = 1;
+    const TILE = 0;
+
+    let choices =[
+        { name:"Shark",          type:DEPTH, default:true,  src:"./depthmaps/shark.png" },
+        { name:"Grave",          type:DEPTH, default:false, src:"./depthmaps/grave.jpg" },
+        { name:"Sphere",         type:DEPTH, default:false, src:"./depthmaps/sphere.jpg" },
+        { name:"Squares",        type:DEPTH, default:false, src:"./depthmaps/squares.png" },
+        { name:"Bunny",          type:DEPTH, default:false, src:"./depthmaps/bunny.png" },
+        { name:"Dolphins",       type:DEPTH, default:false, src:"./depthmaps/dolphins.jpg" },
+        { name:"Dragon",         type:DEPTH, default:false, src:"./depthmaps/dragon.jpg" },
+        { name:"Hand",           type:DEPTH, default:false, src:"./depthmaps/hand.jpg" },
+        { name:"Helix",          type:DEPTH, default:false, src:"./depthmaps/helix.webp" },
+        { name:"Hippo",          type:DEPTH, default:false, src:"./depthmaps/hippo.jpg" },
+        { name:"Knot",           type:DEPTH, default:false, src:"./depthmaps/knot.png" },
+        { name:"Ripple",         type:DEPTH, default:false, src:"./depthmaps/ripple.bmp" },
+        { name:"Skull",          type:DEPTH, default:false, src:"./depthmaps/skull.jpg" },
+        { name:"Teapot",         type:DEPTH, default:false, src:"./depthmaps/teapot.webp" },
+        { name:"Turtle",         type:DEPTH, default:false, src:"./depthmaps/turtle.png" },
+
+        //{ name:"Blue Bubbles",   type:TILE,  default:false, src:"./tiles/blue_bubbles.jpg" },
+        { name:"Blue Lumps",     type:TILE,  default:false, src:"./tiles/blue_lumps.jpg" },
+        { name:"Confetti",       type:TILE,  default:false, src:"./tiles/confetti.jpg" },
+        { name:"Grass",          type:TILE,  default:false, src:"./tiles/grass.jpg" },
+        //{ name:"Green Pattern",  type:TILE,  default:false, src:"./tiles/green_pattern.jpg" },
+        { name:"Grey Soup",      type:TILE,  default:false, src:"./tiles/grey_soup.jpg" },
+        { name:"Grey",           type:TILE,  default:false, src:"./tiles/grey.jpg" },
+        { name:"Grey Bubbles",   type:TILE,  default:false, src:"./tiles/grey_bubbles.jpg" },
+        { name:"Grey Lumps",     type:TILE,  default:false, src:"./tiles/grey_lumps.jpg" },
+        { name:"Lavender",       type:TILE,  default:false, src:"./tiles/lavender.jpg" },
+        { name:"Pink Cyan",      type:TILE,  default:false, src:"./tiles/pink_cyan.jpg" },
+        //{ name:"Pink Lumps",     type:TILE,  default:false, src:"./tiles/pink_lumps.jpg" },
+        { name:"Pink Mess",      type:TILE,  default:false, src:"./tiles/pink_mess.jpg" },
+        //{ name:"Plaid",          type:TILE,  default:false, src:"./tiles/plaid.jpg" },
+        { name:"Pumpkins",       type:TILE,  default:false, src:"./tiles/pumpkins.webp" },
+        { name:"Purple",         type:TILE,  default:false, src:"./tiles/purple.jpg" },
+        { name:"Purple Bubbles", type:TILE,  default:false, src:"./tiles/purple_bubbles.jpg" },
+        { name:"Rainbow",        type:TILE,  default:false, src:"./tiles/rainbow.jpg" },
+        { name:"Red Lumps",      type:TILE,  default:false, src:"./tiles/red_lumps.jpg" },
+        { name:"Rocks",          type:TILE,  default:false, src:"./tiles/rocks.jpg" },
+    ];
+
+    let depth_choice = document.getElementById("depth_choice");
+    let tile_choice = document.getElementById("tile_choice");
+
+    for (let choice of choices){
+        let new_choice = document.createElement("option");
+        new_choice.setAttribute("data-src", choice.src);
+        new_choice.innerHTML = choice.name;
+        new_choice.value = choice.name;
+        if (choice.default)
+            new_choice.selected = true;
+
+        if (choice.type == DEPTH)
+            depth_choice.appendChild(new_choice);
+        if (choice.type == TILE)
+            tile_choice.appendChild(new_choice);
+    }
+}
+
+let tile_loaded = false;
+let depth_loaded = false;
+let monochrome = false;
+
+function load_map(e){
+    // Get image from user & Load it into main canvas
+    var reader = new FileReader();
+    reader.onload = function(event){
+        var img = new Image();
+        img.onload = function(){
+            load_image("depth_canvas", img);
+        }
+        img.src = event.target.result;
+    }
+    reader.readAsDataURL(e.target.files[0]);
+}
+
+function load_tile(e){
+    // Get image from user & Load it into main canvas
+    var reader = new FileReader();
+    reader.onload = function(event){
+        var img = new Image();
+        img.onload = function(){
+            load_image("tile_canvas", img);
+        }
+        img.src = event.target.result;
+    }
+    reader.readAsDataURL(e.target.files[0]);
+}
+
+function load_image(canvas_name, image){
+    let canvas = document.getElementById(canvas_name);
+    let ctx = canvas.getContext("2d");
+
+    // Resize
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw!
+    ctx.drawImage(image, 0, 0);
+
+    // Mark as loaded
+    if (canvas == "depth_canvas")
+        depth_loaded = true;
+    if (canvas == "tile_canvas")
+        tile_loaded = true;
+
+    // Try rendering
+    generate();
+}
+
+function change_tile_choice(){
+    document.getElementById("tile_noise_div").classList.add("hidden");
+    document.getElementById("tile_upload_div").classList.add("hidden");
+    let choice = document.getElementById("tile_choice");
+
+    if (choice.value == "mononoise"){
+        monochrome = true;
+        document.getElementById("tile_noise_div").classList.remove("hidden");
+        generate_noise();
+    } else if (choice.value == "noise"){
+        monochrome = false;
+        document.getElementById("tile_noise_div").classList.remove("hidden");
+        generate_noise();
+    } else if (choice.value == "upload"){
+        document.getElementById("tile_upload_div").classList.remove("hidden");
+    } else {
+        let image = new Image();
+        image.onload = function() { load_image("tile_canvas", image); }
+        image.src = choice[choice.selectedIndex].getAttribute("data-src");
+    }
+}
+
+function change_depth_choice(){
+    document.getElementById("depth_upload_div").classList.add("hidden");
+    let choice = document.getElementById("depth_choice");
+
+    if (choice.value == "upload"){
+        document.getElementById("depth_upload_div").classList.remove("hidden");
+    } else {
+        let image = new Image();
+        image.onload = function() { load_image("depth_canvas", image); }
+        image.src = choice[choice.selectedIndex].getAttribute("data-src");
+    }
+}
+
+function debug(m){
+    document.getElementById("debug").innerHTML = m;
+}
+
+function random_color(){
+    let r = (Math.floor(Math.random() * 255)).toString(16)
+    if (r.length < 2) r = "0" + r;
+    let g = (Math.floor(Math.random() * 255)).toString(16)
+    if (g.length < 2) g = "0" + g;
+    let b = (Math.floor(Math.random() * 255)).toString(16)
+    if (b.length < 2) b = "0" + b;
+
+    if (monochrome)
+        return "#" + r + r + r;
+    return "#" + r + g + b;
+}
+
+function generate_noise(){
+    let size = document.getElementById("size").value;
+    let canvas = document.getElementById("tile_canvas");
+    let ctx = canvas.getContext("2d");
+
+    // Resize canvas
+    canvas.width = size;
+    canvas.height = size;
+
+    for (let y=0; y<size; y++)
+        for (let x=0; x<size; x++){
+            let color = random_color();
+            ctx.fillStyle = color;
+	    ctx.fillRect(x, y, 1, 1);
+        }
+
+    generate();
+}
+
+function canvas_draw_circle(ctx, x, y, radius, color){
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.fill();
+}
+
+function generate(){
+    //if (!tile_loaded || !depth_loaded) return;
+
+    let output_canvas = document.getElementById("output_canvas")
+    let output_ctx = output_canvas.getContext("2d");
+
+    let tile_canvas = document.getElementById("tile_canvas")
+    let tile_ctx = tile_canvas.getContext("2d");
+
+    let depth_canvas = document.getElementById("depth_canvas")
+    let depth_ctx = depth_canvas.getContext("2d");
+
+    let tile_width = tile_canvas.width;
+    let tile_height = tile_canvas.height;
+
+    let invert = document.getElementById("invert").checked
+    let pad = document.getElementById("leftpad").checked
+    let max_offset = 25;
+
+    // Adjust map canvas and buffer if there is padding
+    if (pad){
+        let map = depth_ctx.getImageData(0, 0, depth_canvas.width, depth_canvas.height);
+        depth_canvas.width += tile_canvas.width;
+        depth_ctx.fillStyle = "#000";
+        depth_ctx.fillRect(0, 0, depth_canvas.width, depth_canvas.height);
+        depth_ctx.putImageData(map, tile_canvas.width, 0);
+    }
+
+    // Resize canvas
+    output_canvas.width  = depth_canvas.width;
+    output_canvas.height = depth_canvas.height;
+
+    // Draw pattern accross entire canvas
+    let y = 0;
+    while (y < output_canvas.height){
+        let x = 0;
+        while (x < output_canvas.width){
+            output_ctx.drawImage(tile_canvas, 0, 0, tile_width, tile_height, x, y, tile_width, tile_height);
+            x += tile_width;
+        }
+        y += tile_height;
+    }
+
+    // Grab the patternized canvas buffer
+    let map    = depth_ctx.getImageData(0, 0, depth_canvas.width, depth_canvas.height);
+    let buffer = output_ctx.getImageData(0, 0, output_canvas.width, output_canvas.height);
+
+    // Look through the map to normalize it (set extremes to 0 and 1)
+    let min_value = 255;
+    let max_value = 0;
+    for (let i=0; i<map.data.length; i+=4){
+        if (map.data[i] > max_value) max_value = map.data[i];
+        if (map.data[i] < min_value) min_value = map.data[i];
+    }
+    let normalize = 255 / (max_value - min_value);
+
+    // Process the buffer
+    let line_len = output_canvas.width * 4; // RGBA
+    for (let i=0; i<buffer.data.length; i+=4){
+        let offset_i = i
+        let depth_pixel = map.data[i]
+
+        // Normalize depth value
+        depth_pixel -= min_value;
+        depth_pixel *= normalize;
+
+        // Handle inverting the image if necessary
+        if (invert)
+            offset_i = Math.floor(max_offset * (1 - (depth_pixel / 255)));
+        else
+            offset_i = Math.floor(max_offset * (depth_pixel / 255));
+
+        // Look one tile to the left
+        let line_pos = i % line_len;
+        let tile_offset = (tile_width * 4);
+        if (line_pos < tile_width * 4)
+            tile_offset = 0;
+
+        // Shift pixel data
+        buffer.data[i - (offset_i * 4) + 0] = buffer.data[i + 0 - tile_offset]; // R
+        buffer.data[i - (offset_i * 4) + 1] = buffer.data[i + 1 - tile_offset]; // G
+        buffer.data[i - (offset_i * 4) + 2] = buffer.data[i + 2 - tile_offset]; // B
+        buffer.data[i - (offset_i * 4) + 3] = buffer.data[i + 3 - tile_offset]; // A
+    }
+
+    // Write it out to canvas
+    output_ctx.putImageData(buffer, 0, 0, 0, 0, output_canvas.width, output_canvas.height);
+
+    // Restore Depth map from padding if necessary
+    if (pad){
+        depth_canvas.width -= tile_canvas.width;
+        depth_ctx.putImageData(map, -tile_canvas.width, 0);
+    }
+
+    // Place helper dots at the bottom
+    canvas_draw_circle(output_ctx, (output_canvas.width / 2) - (tile_width / 2), 15, 10, "#fff");
+    canvas_draw_circle(output_ctx, (output_canvas.width / 2) + (tile_width / 2), 15, 10, "#fff");
+}
+
+function first_run(){
+    add_drop_down_items();
+    change_tile_choice();
+    change_depth_choice();
+}
+
+  </script>
+</html>
