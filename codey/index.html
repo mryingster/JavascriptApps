@@ -3,17 +3,30 @@
     <title>Temp</title>
     <style>
       #content{
+      text-align: center;
+      }
+
+      #canvas_container {
+          position: relative;
+          margin: auto;
+          width: 768px;
       }
 
       canvas {
-          border:1px solid black;
+          border: 0px solid black;
+          touch-action: manipulation;
+          position: absolute;
+          top: 0;
+          left: 0;
       }
     </style>
   </head>
   <body>
     <div id="content">
-      <canvas id="canvas" width="768px" height="1024px"></canvas>
-      <canvas id="overlay" width="768px" height="1024px"></canvas>
+      <div id="canvas_container">
+        <canvas id="canvas" width="768px" height="1024px"></canvas>
+        <canvas id="overlay" width="768px" height="1024px"></canvas>
+      </div>
     </div>
   </body>
   <script>
@@ -29,27 +42,464 @@ var octx     = overlay.getContext("2d");
 var width   = canvas.width;
 var height  = canvas.height;
 
+let solution;
 let num_guesses = 10;
 let num_combination = 4;
+let guesses = [];
+let current_guess = 0;
+let game_active = false;
+
+let tray_positions = [];
+let selected_color = 0;
+let peg_taken = null;
+let mouse_down = false;
+let mouse_pos;
 
 const colors = [
     "#FF0000",
     "#FFFF00",
     "#00FF00",
-    "#0044FF",
+    "#0088FF",
     "#FFFFFF",
     "#000000",
 ];
 
-function draw_board(ctx){
+// Touch listeners
+overlay.addEventListener('touchstart', input_down_touch, false);
+overlay.addEventListener('touchmove',  input_move_touch, false);
+overlay.addEventListener('touchend',   input_up, false);
+
+function getTouchPosition(overlay, event){
+    if (!e)
+        var e = event;
+
+    var x = null;
+    var y = null;
+
+    if(e.touches) {
+        if (e.touches.length == 1) { // Only deal with one finger
+            var touch = e.touches[0]; // Get the information for finger #1
+            x = touch.pageX-touch.target.offsetLeft;
+            y = touch.pageY-touch.target.offsetTop - (tile_size / 2); // Adjust y because apple messes things up!
+        }
+    }
+
+    return {x:x, y:y};
+}
+
+function input_down_touch(e){
+    if (game_active == false) return;
+    mouse_down = true;
+    mouse_track_word(getTouchPosition(overlay, e));
+    e.preventDefault();
+}
+
+function input_move_touch(e){
+    if (mouse_down == true)
+	mouse_track_word(getTouchPosition(overlay, e));
+    e.preventDefault();
+}
+
+// Mouse listeners
+overlay.addEventListener('mousedown',  input_down_mouse);
+overlay.addEventListener('mousemove',  input_move_mouse);
+overlay.addEventListener('mouseup',    input_up);
+
+function getCursorPosition(overlay, event){
+    // Determine where clicked
+    const rect = overlay.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    return {x:x, y:y};
+}
+
+function input_down_mouse(e){
+    if (!game_active){
+        replay.press(mouse_pos);
+        mouse_down = true;
+        return;
+    }
+
+    mouse_down = true;
+    mouse_pos = getCursorPosition(overlay, e);
+
+    // Try selecting a peg
+    selected_color = select_color(mouse_pos);
+
+    // Check if button pressed
+    submit.press(mouse_pos);
+
+    redraw_game();
+}
+
+function input_move_mouse(e){
+    if (mouse_down == false)
+        return;
+
+    mouse_pos = getCursorPosition(overlay, e);
+
+    submit.move(mouse_pos);
+    replay.move(mouse_pos);
+
+    redraw_game();
+}
+
+function input_up(e){
+    mouse_down = false;
+    let mouse_pos = getCursorPosition(overlay, e);
+
+    // Try pressing the button
+    if (submit.unpress(mouse_pos)) guesses[current_guess].score();
+    if (replay.unpress(mouse_pos)) new_game();
+
+    // Try placing a peg
+    if (selected_color != -1)
+        place_peg(mouse_pos, selected_color);
+
+    redraw_game();
+}
+
+function select_color(p){
+    if (mouse_down == false)
+        return;
+
+    // Check if we are drawing from the trays
+    for (let i=0; i<tray_positions.length; i++){
+        if (p.x >= tray_positions[i].x &&
+            p.y >= tray_positions[i].y &&
+            p.x <= tray_positions[i].x + tray_positions[i].w &&
+            p.y <= tray_positions[i].y + tray_positions[i].h) {
+            return i;
+        }
+    }
+
+    // Check if we are moving from the current guess
+    if (p.x >= guesses[current_guess].boundaries.x &&
+        p.y >= guesses[current_guess].boundaries.y &&
+        p.x <= guesses[current_guess].boundaries.x + guesses[current_guess].boundaries.w &&
+        p.y <= guesses[current_guess].boundaries.y + guesses[current_guess].boundaries.h) {
+
+        let pos = guesses[current_guess].normalize(p);
+        if (pos => 0) {
+            peg_taken = pos
+            let peg = guesses[current_guess].get(pos);
+            if (peg.p >= 0) {
+                guesses[current_guess].place(peg.p, -1); // Remove peg by placing empty slot
+                return peg.c;
+            }
+        }
+    }
+
+    return -1;
+}
+
+function place_peg(p, c){
+    // See if we are hovering over current guess row
+    if (p.x >= guesses[current_guess].boundaries.x &&
+        p.y >= guesses[current_guess].boundaries.y &&
+        p.x <= guesses[current_guess].boundaries.x + guesses[current_guess].boundaries.w &&
+        p.y <= guesses[current_guess].boundaries.y + guesses[current_guess].boundaries.h) {
+
+        // Place the peg
+        let pos = guesses[current_guess].normalize(p);
+        if (pos >= 0){
+            // See if we need to switch a peg
+            let peg = guesses[current_guess].get(pos);
+            if (peg.c >= 0 && peg_taken >= 0) {
+                guesses[current_guess].place(peg_taken, peg.c)
+            }
+            guesses[current_guess].place(pos, c);
+        }
+
+        // reset taken peg
+        peg_taken = null;
+    }
+}
+
+class button{
+    constructor(ctx, icon){
+        this.ctx = ctx;
+        this.pressed = false;
+        this.hover = false
+        this.icon = icon
+        this.position = {
+            x:60,
+            y:0,
+            w:45,
+            h:45,
+        };
+    }
+
+    inbounds(p){
+        if (p.x >= submit.position.x &&
+            p.y >= submit.position.y &&
+            p.x <= submit.position.x + submit.position.w &&
+            p.y <= submit.position.y + submit.position.h)
+            return true;
+        return false;
+    }
+
+    press(p){
+        if (this.inbounds(p)){
+            this.pressed = true;
+            this.hover = true;
+        }
+    }
+
+    move(p){
+        this.hover = false;
+        if (this.pressed && this.inbounds(p))
+            this.hover = true;
+    }
+
+    unpress(){
+        let success = false
+        if (this.pressed && this.hover)
+            success = true;
+        this.pressed = false;
+        this.hover = false;
+        return success;
+    }
+
+    render(){
+        this.position.y = 932 - (87 * current_guess);
+
+        draw_rounded_rect(
+            this.ctx,
+            this.position.x,
+            this.position.y,
+            this.position.w,
+            this.position.h,
+            5,
+            "#CCCCCC",
+            "#999999",
+            1,
+        );
+
+        if (this.pressed && this.hover) {
+            draw_rounded_rect(
+                this.ctx,
+                this.position.x,
+                this.position.y,
+                this.position.w - 3,
+                this.position.h - 3,
+                5,
+                "#888888",
+                "#000000",
+                0,
+            );
+        } else {
+            draw_rounded_rect(
+                this.ctx,
+                this.position.x + 3,
+                this.position.y + 3,
+                this.position.w - 3,
+                this.position.h - 3,
+                5,
+                "#888888",
+                "#000000",
+                0,
+            );
+        }
+
+        draw_rounded_rect(
+            this.ctx,
+            this.position.x + 3,
+            this.position.y + 3,
+            this.position.w - 6,
+            this.position.h - 6,
+            5,
+            "#AAAAAA",
+            "#000000",
+            0,
+        );
+
+        this.ctx.font = "30px Arial";
+        this.ctx.fillStyle = "#00DD22";
+        this.ctx.fillText(this.icon, this.position.x + 10, this.position.y + 35);
+    }
+}
+
+class guess_row{
+    constructor(ctx, guessnum, numguesses){
+        this.ctx = ctx;
+        this.n = guessnum;
+        this.scored = false;
+        this.numguesses = numguesses;
+        this.peg_spacing = 65;
+
+        // If this is the solution, we do things a little differently
+        this.solution = false;
+
+        // Start with pegs being blank
+        this.guess_pegs = [-1,-1,-1,-1];
+
+        // Start with scoring blank
+        this.score_pegs = [];
+
+        // Keep track of boundaries
+        this.boundaries = {
+            x: 100,
+            y: 912 - (87 * this.n),
+            w: 280,
+            h: 87,
+        }
+    }
+
+    render(){
+        // Translate so we can draw
+        this.ctx.save()
+        this.ctx.translate(this.boundaries.x, this.boundaries.y);
+
+        // Move vertically to correct place
+        let y = 43;
+
+        // Draw guess pegs
+        let x = 40;
+        for (let j=0; j<this.guess_pegs.length; j++){
+            if (this.guess_pegs[j] < 0)
+                draw_circle(this.ctx, x, y, 10, "#000000", "#CCCCCC", 5);
+            else
+                draw_circle(this.ctx, x, y, 15, colors[this.guess_pegs[j]], "#CCCCCC", 0);
+            x += this.peg_spacing;
+        }
+
+        // Draw result pegs
+        if (!this.solution) {
+            x += 10;
+            for (let i=0; i<this.guess_pegs.length; i++){
+                let sy = y + 10;
+                if (i % 2 == 0)
+                    sy = y - 10;
+
+                let sx = x + (Math.floor(i/2) * 20);
+                if (i >= this.score_pegs.length)
+                    draw_circle(this.ctx, sx, sy, 5, "#000000", "#CCCCCC", 2);
+                else if (this.score_pegs[i] == 1)
+                    draw_circle(this.ctx, sx, sy, 7, "#FFFFFF", "#CCCCCC", 0);
+                else if (this.score_pegs[i] == 2)
+                    draw_circle(this.ctx, sx, sy, 7, "#000000", "#CCCCCC", 0);
+            }
+        }
+
+        // Untranslate
+        this.ctx.restore();
+    }
+
+    randomize() {
+        this.guess_pegs = [];
+        for (let i=0; i<this.numguesses; i++)
+            this.guess_pegs.push(Math.floor(Math.random() * colors.length));
+    }
+
+    normalize(p) {
+        // Normalize the x position
+        let pos = Math.floor((p.x - this.boundaries.x) / this.peg_spacing);
+
+        if (pos < this.guess_pegs.length && pos >= 0)
+            return pos;
+    }
+
+    place(p, c){
+        if (p < this.guess_pegs.length && p >= 0)
+            this.guess_pegs[p] = c;
+    }
+
+    get(p, c){
+        if (p < this.guess_pegs.length && p >= 0)
+            return { p:p, c:this.guess_pegs[p] };
+        return {p:-1, c:-1};
+    }
+
+    score(){
+        this.scored = true;
+        let solved = true;
+
+        this.score_pegs = [];
+
+        let ignore = [];
+
+        // First pass, look for correct colors and places (black pegs)
+        for (let i=0; i<this.guess_pegs.length; i++)
+            if (this.guess_pegs[i] == solution.guess_pegs[i]){
+                this.score_pegs.push(2); // Black
+                ignore.push(i);
+            }
+            else
+                solved = false;
+
+        // Second pass, look at remaining pegs and see if colors are right (white pegs)
+
+        for (let i=0; i<this.guess_pegs.length; i++){
+            if (ignore.includes(i)) continue;
+
+            // White pegs - Right Color, Wrong Place
+            for (let n=0; n<solution.guess_pegs.length; n++){
+                if (ignore.includes(n)) continue;
+
+                if (this.guess_pegs[i] == solution.guess_pegs[n]){
+                    this.score_pegs.push(1); // White
+                    break;
+                }
+            }
+        }
+
+        this.render();
+
+        if (solved){
+            game_over(true);
+            return;
+        }
+
+        if (this.n == num_guesses - 1){
+            game_over(false);
+            return;
+        }
+
+        current_guess++;
+    }
+}
+
+function draw_background(ctx){
     // Draw tray
-    draw_rounded_rect(ctx, 512-32, 32, 256+32, 1024-64, 16, "#444444", "#000000", 1);
+    draw_rounded_rect(ctx, 512-32, 32, 256+32, 1024-64, 23, "#444444", "#000000", 1);
     let spacing = 8
     let height = (1024-121)/colors.length
     let y = 32;
     for (let i=0; i<colors.length; i++){
-        draw_rounded_rect(ctx, 512+spacing, y+spacing, 256-(spacing * 2), height, 16, "#000000", "#888888", 1);
+        let tray_position_x = 512 + spacing;
+        let tray_position_y = y   + spacing;
+        let tray_position_w = 256 - (spacing * 2);
+        let tray_position_h = height;
+        draw_rounded_rect(ctx,
+                          tray_position_x,
+                          tray_position_y,
+                          tray_position_w,
+                          tray_position_h,
+                          16,
+                          "#222222",
+                          "#888888",
+                          1);
+
+        // Draw some random pegs in the drawers
+        for (let j=0; j<20; j++){
+            draw_circle(ctx,
+                        (Math.random() * (256    - (spacing * 2) - (16 * 2))) + 512 + spacing + 15,
+                        (Math.random() * (height - (spacing * 2) - (16 * 2))) + y   + spacing + 15,
+                        15,
+                        colors[i],
+                        "#000000",
+                        1);
+        }
+
         y += height + spacing;
+        tray_positions.push({
+            x : tray_position_x,
+            y : tray_position_y,
+            w : tray_position_w,
+            h : tray_position_h,
+        });
     }
 
     // Draw background
@@ -62,20 +512,59 @@ function draw_board(ctx){
         y += spacing;
     }
 
-    // Draw area for guesses
-    y = 175;
-    for (let i=0; i<num_guesses; i++){
-        let x = 100;
-        for (let j=0; j<num_combination; j++){
-            draw_circle(ctx, x, y, 10, "#000000", "#CCCCCC", 5);
-            x += 65;
-        }
-        y += spacing;
-    }
-
-    // Draw area for responses
-
     // Draw area for answer
+    ctx.fillStyle = "#aaaaaa";
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#777777";
+    ctx.strokeRect(85, 30, 300, 20);
+    ctx.fillRect(85, 50, 300, 40);
+    ctx.strokeRect(85, 50, 300, 40);
+
+}
+
+function draw_guesses(){
+    for (let i=0; i<guesses.length; i++)
+        guesses[i].render();
+}
+
+function redraw_game(){
+    // Clear
+    octx.clearRect(0, 0, width, height);
+
+    // Draw guesses
+    draw_guesses();
+
+    // Draw button
+    if (game_active)
+        submit.render();
+
+    // Draw peg that user is moving
+    if (mouse_down == true && selected_color != -1)
+        draw_circle(octx, mouse_pos.x, mouse_pos.y, 15, colors[selected_color], "#000000", 0);
+
+    // If game is over draw the code
+    if (game_active == false) {
+        // Draw over shield
+        octx.fillStyle = "#bbbbbb";
+        octx.fillRect(80, 25, 310, 85);
+
+        // Draw knocked over shield
+        octx.fillStyle = "#bbbbbb";
+        octx.fillRect(85, 90, 300, 30);
+        octx.fillStyle = "#aaaaaa";
+        octx.fillRect(85, 120, 300, 15);
+
+        octx.lineWidth = 1;
+        octx.strokeStyle = "#777777";
+        octx.strokeRect(85, 90, 300, 30);
+        octx.strokeRect(85, 120, 300, 15);
+
+        // Draw solution
+        solution.render();
+
+        // Draw replay button
+        replay.render();
+    }
 }
 
 function draw_rounded_rect(ctx, x, y, w, h, r, c1, c2, l=0){
@@ -115,7 +604,52 @@ function draw_circle(ctx, x, y, r, c1, c2, l=0){
         ctx.stroke();
 }
 
-draw_board(ctx);
+function new_game(){
+    // Clear variables
+    game_active = true;
+    mouse_down = false;
+    selected_color = 0;
+    current_guess = 0;
+
+    // Clear background
+    draw_background(ctx);
+
+    // Create solution
+    solution = new guess_row(octx, 10.4, num_combination);
+    solution.solution = true;
+    solution.randomize();
+
+    guesses = [];
+    for (let i=0; i<num_guesses; i++)
+        guesses.push(new guess_row(octx, i, num_combination));
+
+    /*
+    guesses[0].guess_pegs = [1,2,3,0];
+    guesses[0].score();
+    guesses[1].guess_pegs = [1,1,3,2];
+    guesses[1].score();
+    guesses[2].guess_pegs = [3,-1,4,5];
+    guesses[2].score();
+    guesses[3].guess_pegs = [0,1,2,3];
+    guesses[3].score();
+    */
+
+    redraw_game();
+}
+
+function game_over(win){
+    game_active = false;
+    redraw_game();
+    if (win)
+        console.log("You won!");
+    else
+        console.log("You lose!");
+}
+
+let submit = new button(octx, "✔︎");
+let replay = new button(octx, "⟲");
+
+new_game();
 
   </script>
 </html>
