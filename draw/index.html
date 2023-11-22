@@ -1,221 +1,178 @@
 <html>
   <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Test</title>
-    <meta name="viewport" content="user-scalable=no">
+    <meta name="viewport" content="user-scalable=no" />
     <style>
-
-      #canvas{
-      border: 0px solid black;
-      touch-action:manipulation;
-      position:absolute;
-      top:0;
-      left:0;
-      }
-
-      label{
-      display:inline-block;
-      vertical-align: middle;
-      width: 70px;
-      }
-
-      input{
-      vertical-align: middle;
-      }
-
-      body{
-      margin: 0px;
-      }
-
-      #picker{
-      margin-bottom: 10px;
-      }
-
-      #controls{
-      position:absolute;
-      top: 10px;
-      left: 10px;
-      margin: 15px;
-      }
-
+canvas{
+    border: 0px solid black;
+    touch-action:manipulation;
+    position:absolute;
+    top:0;
+    left:0;
+}
+body{
+    margin: 0px;
+}
+#controls{
+    position:absolute;
+    top: 10px;
+    left: 10px;
+}
     </style>
   </head>
   <body onload="main();" onresize="resize();">
-
-    <canvas id="canvas"></canvas>
-
+    <canvas id="canvas" width="512" height="512"></canvas>
     <div id="controls">
-      <canvas id="picker"></canvas><br>
-      <label for="brightness">Brightness:</label>  <input id="brightness" type="range" min="0" max="100" value="50"><br>
-      <label for="decay">Decay:</label>       <input id="decay"    type="range" min="0" max="100" value="50"  oninput="update_decay();"><br>
-      <label for="diameter">Diameter:</label> <input id="diameter" type="range" min="0" max="100" value="50"><br>
-      <!--
-      Coordinates: <span id="coords">-, -</span>
-      <br>
-      Debug: <span id="debug"></span>
-      -->
+      Decay: <input id="decay" type="range" min="0" max="100" value="50" onchange="update_decay();"></input><br>
+      Diameter: <input id="diameter" type="range" min="0" max="100" value="50"></input><br>
+      Coordinates: <span id="coords"></span>
     </div>
   </body>
-  <script>
+<script>
 
 // Globals!
-let canvas = document.querySelector('canvas')
-let ctx    = canvas.getContext('2d');
-let decay  = .05;
-let last_frame;
-let pens   = [];
-let MAX_FINGERS = 5;
-let color  = {r:0xff, g:0x00, b:0x00};
-let p; // Color picker instance
+var MOUSEDOWN = false;
+const canvas = document.querySelector('canvas')
+var ctx = canvas.getContext('2d');
+var timeout = null;
+var decay = .05;
+var last_coords;
 
-// Touch Listeners
-function getTouchPosition(event, finger){
+// Coordinate finding functions
+function getTouchPosition(overlay, event){
     if (!e)
         var e = event;
 
     var x = null;
     var y = null;
 
-    if(e.touches[finger]) {
-        var touch = e.touches[finger];
-        x = touch.pageX-touch.target.offsetLeft;
-        y = touch.pageY-touch.target.offsetTop;
-
-        return {x:x, y:y};
+    if(e.touches) {
+        if (e.touches.length == 1) { // Only deal with one finger
+            var touch = e.touches[0]; // Get the information for finger #1
+            x = touch.pageX-touch.target.offsetLeft;
+            y = touch.pageY-touch.target.offsetTop - (tile_size / 2); // Adjust y because apple messes things up!
+        }
     }
-    
-    return -1;
+
+    return {x:x, y:y};
 }
 
-function input_touch_down(e){
-    e.preventDefault();
-    for (let i=0; i<MAX_FINGERS; i++){
-        pens[i].mouse_down = true;
-        pens[i].draw_line(getTouchPosition(e, i));
-    }
-}
-
-function input_touch_move(e){
-    e.preventDefault();
-    for (let i=0; i<MAX_FINGERS; i++)
-        if (pens[i].mouse_down == true)
-	    pens[i].draw_line(getTouchPosition(e, i));
-}
-
-function input_touch_up(e){
-    e.preventDefault();
-    for (let i=0; i<MAX_FINGERS; i++){
-        pens[i].mouse_down = false;
-        pens[i].last_coords = null;
-    }
-}
-
-canvas.addEventListener('touchstart', input_touch_down, false);
-canvas.addEventListener('touchmove',  input_touch_move, false);
-canvas.addEventListener('touchend',   input_touch_up,   false);
-
-// Mouse Listeners
 function getCursorPosition(canvas, event){
     // Determine where clicked
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    //document.getElementById("coords").innerHTML = x + ", " + y;
+    if (last_coords == null)
+	last_coords = {x:x, y:y};
 
-    return {x:x, y:y};
+    // Draw between last position and current position
+    draw_line(ctx, last_coords.x, last_coords.y, x, y);
+
+    // Draw our final actual location
+    //draw_gradient(ctx, x, y);
+    document.getElementById("coords").innerHTML = x + ", " + y;
+
+    last_coords = {x:x, y:y};
 }
 
+// Touch Listeners
+canvas.addEventListener('touchstart', function(e){
+    MOUSEDOWN = true;
+    getTouchPosition(canvas, e);
+    e.preventDefault();
+}, false);
+
+canvas.addEventListener('touchmove', function(e){
+    if (MOUSEDOWN == true)
+	getTouchPosition(canvas, e);
+    e.preventDefault();
+}, false);
+
+canvas.addEventListener('touchend', function(e){
+    MOUSEDOWN = false;
+    e.preventDefault();
+}, false);
+
+// Mouse Listeners
 canvas.addEventListener('mousedown', function(e){
-    pens[0].mouse_down = true;
-    pens[0].draw_line(getCursorPosition(canvas, e));
+    MOUSEDOWN = true;
+    getCursorPosition(canvas, e);
 });
 
 canvas.addEventListener('mousemove', function(e){
-    if (pens[0].mouse_down == true)
-	pens[0].draw_line(getCursorPosition(canvas, e));
+    if (MOUSEDOWN == true)
+	getCursorPosition(canvas, e);
 });
 
 canvas.addEventListener('mouseup', function(e){
-    pens[0].mouse_down = false;
-    pens[0].last_coords = null;
+    MOUSEDOWN = false;
+    last_coords = null;
 });
 
-class pen {
-    constructor(ctx){
-        this.ctx = ctx;
-        this.last_coords;
-        this.mouse_down = false;
+function draw_line(ctx, x1, y1, x2, y2){
+    let r = document.getElementById("diameter").value/2;
+
+    let dx = x2 - x1;
+    let dy = y2 - y1;
+    let distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+    for (let i=1; i<distance; i+=1){
+	let p = i / distance;
+	draw_gradient(ctx, x1+(dx * p), y1+(dy * p));
     }
-
-    draw_line(coords){
-        if (coords == -1) return;
-
-        if (this.last_coords == undefined)
-	    this.last_coords = {x:coords.x, y:coords.y};
-
-        let r = document.getElementById("diameter").value/2;
-
-        let dx = coords.x - this.last_coords.x;
-        let dy = coords.y - this.last_coords.y;
-
-        let distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-
-        for (let i=1; i<distance; i+=1){
-	    let p = i / distance;
-	    this.draw_gradient(this.last_coords.x + (dx * p), this.last_coords.y + (dy * p));
-        }
-
-        this.last_coords = {x:coords.x, y:coords.y};
-    }
-
-    draw_gradient(x, y){
-        let r = document.getElementById("diameter").value/2;
-
-        let innerRadius = 0;
-        let outerRadius = r;
-
-        var gradient = this.ctx.createRadialGradient(x, y, innerRadius, x, y, outerRadius);
-        gradient.addColorStop( 0, "rgba("+color.r+","+color.g+","+color.b+", 1)");
-        gradient.addColorStop(.5, "rgba("+color.r+","+color.g+","+color.b+",.1)");
-        gradient.addColorStop( 1, "rgba("+color.r+","+color.g+","+color.b+", 0)");
-
-        this.ctx.beginPath();
-        this.ctx.moveTo(x, y);
-        this.ctx.arc(x, y, r, 0, 2*Math.PI);
-        this.ctx.fillStyle = gradient;
-        this.ctx.fill();
-    }
-
-    redraw_gradient(){
-        if (this.last_coords != undefined)
-            this.draw_gradient(this.last_coords.x, this.last_coords.y);
-    }
+    
+    /*
+    // solid line
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = r;
+    ctx.stroke();
+    */
 }
 
-function slowly_fade(timestamp) {
-    if (last_frame == undefined) {
-        last_frame = timestamp;
-    }
+function draw_gradient(ctx, x, y){
+    let r = document.getElementById("diameter").value/2;
+    
+    let innerRadius = 0;
+    let outerRadius = r;
 
-    const elapsed = timestamp - last_frame;
+    var gradient = ctx.createRadialGradient(x, y, innerRadius, x, y, outerRadius);
+    gradient.addColorStop(0, "rgba(0,0,0,1)");
+    gradient.addColorStop(.5, "rgba(0,0,0,.1)");
+    gradient.addColorStop(1, "rgba(0,0,0,0)");
+    //gradient.addColorStop(0, "rgba(255,255,255,1)");
+    //gradient.addColorStop(1, "rgba(255,255,255,0)");
 
-    last_frame = timestamp;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.arc(x, y, r, 0, 2*Math.PI);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+}
+
+function slowly_fade() {
+    //console.log(decay);
+    //ctx.fillStyle = "rgba(255,255,255,"+decay+")";
+    //ctx.fillStyle = "rgba(0,0,0,"+decay+")";
+    //ctx.fillStyle = "rgba(0,0,0,.05)";
+    //ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Test; try increasing value of everysingle pixel
     var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var pix = img.data;
     for (var i=0; i<pix.length; i+=1){
-	pix[i] = pix[i] + 1 > 255 ? 255: pix[i] + (decay * elapsed);
+	pix[i] = pix[i] + 1 > 255 ? 255: pix[i] + (200 * decay);
     }
-
     ctx.putImageData(img, 0, 0);
 
-    for (let i=0; i<pens.length; i++)
-        if (pens[i].mouse_down)
-            pens[i].redraw_gradient();
-
-    window.requestAnimationFrame(slowly_fade);
+    if (MOUSEDOWN)
+	draw_gradient(ctx, last_coords.x, last_coords.y);
+    
+    timeout = setTimeout(() => slowly_fade(), 10);
+    //timeout = setTimeout(() => slowly_fade(), decay);
 }
 
 function resize(){
@@ -225,120 +182,16 @@ function resize(){
 
 function update_decay(){
     let value = document.getElementById("decay").value;
-    decay = value / 200;
+    //decay = value;
+    decay = value/1000;
 }
 
-function update_color(e){
-    let c = p.input_mouse_down(e);
-    color = {
-        r: c[0],
-        g: c[1],
-        b: c[2],
-    }
-}
 
 function main(){
-    // Create pen instances (support 5 fingers)
-    for (let i=0; i<MAX_FINGERS; i++)
-        pens.push(new pen(ctx));
-
-    // Create color picker instance
-    p = new picker(document.getElementById("picker"),
-                       128, 128,
-                       document.getElementById("brightness"));
-
-    p.canvas.addEventListener('mousedown', update_color);
-
-    // Resize canvas
-    resize();
-
-    // Update variables
-    update_decay();
-
-    // Initialize the screen with a white rectangle
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Start fading loop
+resize();
     slowly_fade();
 }
 
-function debug(m){
-    document.getElementById("debug").innerHTML = m;
-}
 
-class picker{
-    constructor(canvas, width, height, slider){
-        this.canvas = canvas;
-        this.canvas.addEventListener('mousedown', (ev) => this.input_mouse_down(ev));
-        this.canvas.addEventListener('mousemove', (ev) => this.input_mouse_move(ev));
-
-        this.ctx = canvas.getContext("2d");
-        this.width = width;
-        this.height = height;
-
-        this.canvas.width = width;
-        this.canvas.height = height;
-
-        this.slider = slider;
-        this.slider.oninput = () => this.render();
-
-        this.cx = width / 2;
-        this.cy = height /2;
-
-        this.render();
-    }
-
-    getCursorPosition(canvas, event){
-        const rect = canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-
-        return {x:x, y:y};
-    }
-
-    input_mouse_down(e){
-        let pos = this.getCursorPosition(this.canvas, e);
-        return this.ctx.getImageData(pos.x, pos.y, 1, 1).data;
-        //document.getElementById("debug").innerHTML = this.ctx.getImageData(pos.x, pos.y, 1, 1).data;
-    }
-
-    input_mouse_move(e){
-        let pos = this.getCursorPosition(this.canvas, e);
-	//document.getElementById("debug").innerHTML = "x:" + pos.x + ", y:" + pos.y + ", a:"+ this.angle(pos.x, pos.y) + ", d:" + this.distance(pos.x, pos.y, this.cx, this.cy);
-    }
-
-    distance(x1, y1, x2, y2){
-        let a = x1 - x2;
-        let b = y1 - y2;
-        return Math.sqrt((a*a)+(b*b));
-    }
-
-    angle(x, y){
-        let a = Math.atan2(y-this.cy, x-this.cx) * 180 / Math.PI;
-        return (a + 360) % 360;
-    }
-
-    render(){
-        for (let x=0; x<this.width; x++)
-            for (let y=0; y<this.height; y++){
-                // Find distance from center
-                let d = this.distance(x, y, this.cx, this.cy);
-                if (d > this.cx) continue;
-
-                // Find the angle from center
-                let a = this.angle(x, y);
-
-                // Convert to color using HSL
-                let h = a;
-                let s = Math.pow(d / this.cx, 1.5) * 100;
-                let l = this.slider.value;
-
-                this.ctx.fillStyle = "hsl("+h+","+s+"%,"+l+"%)";
-                this.ctx.fillRect(x, y, 1, 1);
-            }
-    }
-}
-
-  </script>
+</script>
 </html>
