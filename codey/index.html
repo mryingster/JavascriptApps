@@ -1,6 +1,10 @@
+<!DOCTYPE html>
+
 <html>
   <head>
-    <title>Temp</title>
+    <title>Codey</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=820px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
     <style>
       #content{
       text-align: center;
@@ -8,21 +12,50 @@
 
       #canvas_container {
           position: relative;
-          margin: auto;
+          margin: 10px auto 0 auto;
           width: 768px;
       }
 
       canvas {
-          border: 0px solid black;
           touch-action: manipulation;
           position: absolute;
           top: 0;
           left: 0;
+          border: 0px solid black;
       }
     </style>
   </head>
   <body>
     <div id="content">
+      Pegs:
+      <select id="pegs">
+        <option value="3">3</option>
+        <option value="4" selected>4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+      </select>
+
+      Colors:
+      <select id="colors">
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6" Selected>6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+
+      <input type="checkbox" id="duplicates" name="duplicates" value="duplicates">
+      <label for="duplicates"> Allow duplicate colors</label>
+
+      <input type="checkbox" id="empties" name="empties" value="empties">
+      <label for="empties"> Allow empty</label>
+
+      <button id="newgame" onclick="new_game();">New Game</button>
+
+      <span id="sharespan"><a href="#" id="share">Share</a></span>
+
       <div id="canvas_container">
         <canvas id="canvas" width="768px" height="1024px"></canvas>
         <canvas id="overlay" width="768px" height="1024px"></canvas>
@@ -44,10 +77,15 @@ var height  = canvas.height;
 
 let solution;
 let num_guesses = 10;
-let num_combination = 4;
+let num_pegs = 4;
+let num_colors = 6;
 let guesses = [];
 let current_guess = 0;
 let game_active = false;
+let peg_radius = 15;
+
+let allow_duplicates;
+let allow_empties;
 
 let tray_positions = [];
 let selected_color = 0;
@@ -62,12 +100,29 @@ const colors = [
     "#0088FF",
     "#FFFFFF",
     "#000000",
+    "#FF00FF",
+    "#00FFFF",
+    "#FF8800",
+    "#888888",
+];
+
+const colors_darker = [
+    "#DD0000",
+    "#DDDD00",
+    "#00DD00",
+    "#0066DD",
+    "#DDDDDD",
+    "#000000",
+    "#DD00DD",
+    "#00DDDD",
+    "#DD6600",
+    "#666666",
 ];
 
 // Touch listeners
 overlay.addEventListener('touchstart', input_down_touch, false);
 overlay.addEventListener('touchmove',  input_move_touch, false);
-overlay.addEventListener('touchend',   input_up, false);
+overlay.addEventListener('touchend',   input_up_touch, false);
 
 function getTouchPosition(overlay, event){
     if (!e)
@@ -79,8 +134,8 @@ function getTouchPosition(overlay, event){
     if(e.touches) {
         if (e.touches.length == 1) { // Only deal with one finger
             var touch = e.touches[0]; // Get the information for finger #1
-            x = touch.pageX-touch.target.offsetLeft;
-            y = touch.pageY-touch.target.offsetTop - (tile_size / 2); // Adjust y because apple messes things up!
+            x = touch.pageX-touch.target.offsetLeft - 15;
+            y = touch.pageY-touch.target.offsetTop - 50;
         }
     }
 
@@ -88,22 +143,27 @@ function getTouchPosition(overlay, event){
 }
 
 function input_down_touch(e){
-    if (game_active == false) return;
-    mouse_down = true;
-    mouse_track_word(getTouchPosition(overlay, e));
+    if (!game_active) return;
+    input_down(getTouchPosition(overlay, e));
     e.preventDefault();
 }
 
 function input_move_touch(e){
-    if (mouse_down == true)
-	mouse_track_word(getTouchPosition(overlay, e));
+    if (!mouse_down) return;
+    input_move(getTouchPosition(overlay, e));
+    e.preventDefault();
+}
+
+function input_up_touch(e){
+    if (!mouse_down) return;
+    input_up(mouse_pos);
     e.preventDefault();
 }
 
 // Mouse listeners
 overlay.addEventListener('mousedown',  input_down_mouse);
 overlay.addEventListener('mousemove',  input_move_mouse);
-overlay.addEventListener('mouseup',    input_up);
+overlay.addEventListener('mouseup',    input_up_mouse);
 
 function getCursorPosition(overlay, event){
     // Determine where clicked
@@ -115,47 +175,53 @@ function getCursorPosition(overlay, event){
 }
 
 function input_down_mouse(e){
-    if (!game_active){
-        replay.press(mouse_pos);
-        mouse_down = true;
-        return;
-    }
-
-    mouse_down = true;
-    mouse_pos = getCursorPosition(overlay, e);
-
-    // Try selecting a peg
-    selected_color = select_color(mouse_pos);
-
-    // Check if button pressed
-    submit.press(mouse_pos);
-
-    redraw_game();
+    if (!game_active) return;
+    input_down(getCursorPosition(overlay, e));
 }
 
 function input_move_mouse(e){
-    if (mouse_down == false)
-        return;
+    if (!mouse_down) return;
+    input_move(getCursorPosition(overlay, e));
+}
 
-    mouse_pos = getCursorPosition(overlay, e);
+function input_up_mouse(e){
+    if (!mouse_down) return;
+    input_up(getCursorPosition(overlay, e));
+}
 
-    submit.move(mouse_pos);
-    replay.move(mouse_pos);
+function input_down(pos){
+    mouse_down = true;
+    mouse_pos = pos;
+
+    // Check if button pressed - has precidence
+    if(!submit.press(pos)){
+
+        // Try selecting a peg
+        selected_color = select_color(pos);
+    }
 
     redraw_game();
 }
 
-function input_up(e){
+function input_move(pos){
+    mouse_pos = pos;
+    submit.move(pos);
+    redraw_game();
+}
+
+function input_up(pos){
     mouse_down = false;
-    let mouse_pos = getCursorPosition(overlay, e);
+    mouse_pos = pos;
 
     // Try pressing the button
-    if (submit.unpress(mouse_pos)) guesses[current_guess].score();
-    if (replay.unpress(mouse_pos)) new_game();
+    if (submit.unpress(pos)) guesses[current_guess].score();
 
     // Try placing a peg
     if (selected_color != -1)
-        place_peg(mouse_pos, selected_color);
+        place_peg(pos, selected_color);
+
+    // Clear selected color
+    selected_color = -1;
 
     redraw_game();
 }
@@ -244,7 +310,9 @@ class button{
         if (this.inbounds(p)){
             this.pressed = true;
             this.hover = true;
+            return true;
         }
+        return false;
     }
 
     move(p){
@@ -274,7 +342,7 @@ class button{
             5,
             "#CCCCCC",
             "#999999",
-            1,
+            1
         );
 
         if (this.pressed && this.hover) {
@@ -287,7 +355,7 @@ class button{
                 5,
                 "#888888",
                 "#000000",
-                0,
+                0
             );
         } else {
             draw_rounded_rect(
@@ -299,7 +367,7 @@ class button{
                 5,
                 "#888888",
                 "#000000",
-                0,
+                0
             );
         }
 
@@ -312,7 +380,7 @@ class button{
             5,
             "#AAAAAA",
             "#000000",
-            0,
+            0
         );
 
         this.ctx.font = "30px Arial";
@@ -327,13 +395,15 @@ class guess_row{
         this.n = guessnum;
         this.scored = false;
         this.numguesses = numguesses;
-        this.peg_spacing = 65;
+        this.peg_spacing = 195 / (numguesses - 1);
 
         // If this is the solution, we do things a little differently
         this.solution = false;
 
         // Start with pegs being blank
-        this.guess_pegs = [-1,-1,-1,-1];
+        this.guess_pegs = [];
+        for (let i=0; i<this.numguesses; i++)
+            this.guess_pegs.push(-1);
 
         // Start with scoring blank
         this.score_pegs = [];
@@ -345,6 +415,9 @@ class guess_row{
             w: 280,
             h: 87,
         }
+
+        // Center points for targets when clicking
+        this.targets = [];
     }
 
     render(){
@@ -361,7 +434,15 @@ class guess_row{
             if (this.guess_pegs[j] < 0)
                 draw_circle(this.ctx, x, y, 10, "#000000", "#CCCCCC", 5);
             else
-                draw_circle(this.ctx, x, y, 15, colors[this.guess_pegs[j]], "#CCCCCC", 0);
+                draw_circle(this.ctx, x, y, peg_radius, colors[this.guess_pegs[j]], colors_darker[this.guess_pegs[j]], 1);
+
+            // Save peg location for interactions
+            this.targets.push({
+                x: this.boundaries.x + x,
+                y: this.boundaries.y + y,
+            });
+
+            // Advance for next peg
             x += this.peg_spacing;
         }
 
@@ -387,18 +468,38 @@ class guess_row{
         this.ctx.restore();
     }
 
-    randomize() {
+    randomize(n, c, d, e) {
+        // Empty it out
         this.guess_pegs = [];
-        for (let i=0; i<this.numguesses; i++)
-            this.guess_pegs.push(Math.floor(Math.random() * colors.length));
+
+        // Pick some random colors!
+        while (this.guess_pegs.length <n){
+
+            let color = Math.floor(Math.random() * c);
+
+            // Allow picking empty
+            if (e) color = Math.floor(Math.random() * (c + 1)) - 1;
+
+            // Don't allow duplicates
+            if (!d && this.guess_pegs.includes(color)) continue;
+
+            this.guess_pegs.push(color);
+        }
     }
 
     normalize(p) {
-        // Normalize the x position
-        let pos = Math.floor((p.x - this.boundaries.x) / this.peg_spacing);
+        // Find the closest target
+        let radius = 40;
+        let closest = -1;
 
-        if (pos < this.guess_pegs.length && pos >= 0)
-            return pos;
+        for (let i=0; i< this.targets.length; i++){
+            let distance = Math.abs(Math.hypot(this.targets[i].x - p.x, this.targets[i].y - p.y));
+            if (distance < radius){
+                radius = distance;
+                closest = i;
+            }
+        }
+        return closest;
     }
 
     place(p, c){
@@ -416,34 +517,46 @@ class guess_row{
         this.scored = true;
         let solved = true;
 
+        const zip = (a, b) => a.map((k, i) => [k, b[i]]);
+        const BLACK = 2;
+        const WHITE = 1;
+
         this.score_pegs = [];
 
-        let ignore = [];
+        let unmatched_solution = []
+        let unmatched_guess = []
 
-        // First pass, look for correct colors and places (black pegs)
-        for (let i=0; i<this.guess_pegs.length; i++)
-            if (this.guess_pegs[i] == solution.guess_pegs[i]){
-                this.score_pegs.push(2); // Black
-                ignore.push(i);
-            }
-            else
-                solved = false;
-
-        // Second pass, look at remaining pegs and see if colors are right (white pegs)
-
-        for (let i=0; i<this.guess_pegs.length; i++){
-            if (ignore.includes(i)) continue;
-
-            // White pegs - Right Color, Wrong Place
-            for (let n=0; n<solution.guess_pegs.length; n++){
-                if (ignore.includes(n)) continue;
-
-                if (this.guess_pegs[i] == solution.guess_pegs[n]){
-                    this.score_pegs.push(1); // White
-                    break;
-                }
+        // Look for matches, store unmatched pegs in their own arrays
+        for (let i=0; i<solution.guess_pegs.length; i++){
+            if (solution.guess_pegs[i] == this.guess_pegs[i])
+                this.score_pegs.push(BLACK);
+            else {
+                unmatched_solution.push(solution.guess_pegs[i]);
+                unmatched_guess.push(this.guess_pegs[i]);
             }
         }
+
+        // Go through unmatched pegs and match them up and remove them as we process them to avoid duplicate white pins
+        for (let p of unmatched_solution){
+            if (unmatched_guess.indexOf(p) >= 0){
+                this.score_pegs.push(WHITE);
+                unmatched_guess[unmatched_guess.indexOf(p)] = undefined;
+            }
+        }
+
+        /*
+        let incorrect = zip(solution.guess_pegs, this.guess_pegs)       // Pair peg positions up
+            .map(([s,g]) => s == g ? undefined : s);                    // Replace correct with undefined
+        incorrect.filter(x => x  == undefined)                          // Find the undefined
+            .forEach(() => this.score_pegs.push(BLACK));                // Mark as black for correct
+        incorrect.filter(x => x != undefined)                           // Find the non-undefined
+            .map((s) => !!this.guess_pegs.findIndex(h => h == s) != -1) // Replace the ungessed solutions with a bool that indicates whether its color is somewhere in guess.
+            .filter(x => x == true)                                     // Keep only the trues
+            .forEach(() => this.score_pegs.push(WHITE));                // Add white score for each true remaining
+        */
+
+        if (this.score_pegs.includes(1) || this.score_pegs.length < this.numguesses)
+            solved = false;
 
         this.render();
 
@@ -462,12 +575,16 @@ class guess_row{
 }
 
 function draw_background(ctx){
+    // Clear
+    octx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
     // Draw tray
     draw_rounded_rect(ctx, 512-32, 32, 256+32, 1024-64, 23, "#444444", "#000000", 1);
     let spacing = 8
-    let height = (1024-121)/colors.length
+    let height = (1024 - (65 + (spacing * (num_colors + 1)))) / num_colors;
     let y = 32;
-    for (let i=0; i<colors.length; i++){
+    tray_positions = [];
+    for (let i=0; i<num_colors; i++){
         let tray_position_x = 512 + spacing;
         let tray_position_y = y   + spacing;
         let tray_position_w = 256 - (spacing * 2);
@@ -485,8 +602,8 @@ function draw_background(ctx){
         // Draw some random pegs in the drawers
         for (let j=0; j<20; j++){
             draw_circle(ctx,
-                        (Math.random() * (256    - (spacing * 2) - (16 * 2))) + 512 + spacing + 15,
-                        (Math.random() * (height - (spacing * 2) - (16 * 2))) + y   + spacing + 15,
+                        (Math.random() * (256    - (spacing * 2) - (16 * 2))) + 512 + spacing + 16,
+                        (Math.random() * (height - (spacing * 2) - (16 * 2))) + y   + spacing + 16,
                         15,
                         colors[i],
                         "#000000",
@@ -520,6 +637,17 @@ function draw_background(ctx){
     ctx.fillRect(85, 50, 300, 40);
     ctx.strokeRect(85, 50, 300, 40);
 
+    ctx.save()
+    ctx.scale(2,1);
+    ctx.font = "Bold 32px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#888";
+    ctx.fillText("CODEY", 235/2+1, 80)
+    ctx.fillStyle = "#bbb";
+    ctx.fillText("CODEY", 235/2-1, 80)
+    ctx.fillStyle = "#999";
+    ctx.fillText("CODEY", 235/2, 80)
+    ctx.restore();
 }
 
 function draw_guesses(){
@@ -540,7 +668,7 @@ function redraw_game(){
 
     // Draw peg that user is moving
     if (mouse_down == true && selected_color != -1)
-        draw_circle(octx, mouse_pos.x, mouse_pos.y, 15, colors[selected_color], "#000000", 0);
+        draw_circle(octx, mouse_pos.x, mouse_pos.y, peg_radius*1.4, colors[selected_color], colors_darker[selected_color], 2);
 
     // If game is over draw the code
     if (game_active == false) {
@@ -561,9 +689,6 @@ function redraw_game(){
 
         // Draw solution
         solution.render();
-
-        // Draw replay button
-        replay.render();
     }
 }
 
@@ -604,35 +729,61 @@ function draw_circle(ctx, x, y, r, c1, c2, l=0){
         ctx.stroke();
 }
 
-function new_game(){
+function new_game(gamestate=null){
     // Clear variables
     game_active = true;
     mouse_down = false;
     selected_color = 0;
     current_guess = 0;
 
+    if (gamestate != null) {
+        // Set settings
+        document.getElementById("pegs").value         = gamestate.pegs;
+        document.getElementById("colors").value       = gamestate.colors;
+        document.getElementById("duplicates").checked = gamestate.duplicates;
+        document.getElementById("empties").checked    = gamestate.empties;
+    }
+
+    // Read Settings
+    num_pegs         = Number(document.getElementById("pegs").value)
+    num_colors       = Number(document.getElementById("colors").value)
+    allow_duplicates =        document.getElementById("duplicates").checked
+    allow_empties    =        document.getElementById("empties").checked
+
+    // If the settings don't allow a valid game, error and do nothing
+    let total_colors = num_colors;
+    if (allow_empties) total_colors++;
+    if (total_colors < num_pegs && !allow_duplicates){
+        alert("Invalid combination of settings!")
+        return;
+    }
+
     // Clear background
     draw_background(ctx);
 
-    // Create solution
-    solution = new guess_row(octx, 10.4, num_combination);
+    // Create solution instance and randomize it
+    solution = new guess_row(octx, 10.4, num_pegs);
     solution.solution = true;
-    solution.randomize();
+    solution.randomize(num_pegs, num_colors, allow_duplicates, allow_empties);
 
+    // Restore solution from gamestate
+    if (gamestate != null) {
+        solution.guess_pegs = gamestate.solution;
+    }
+
+    // Create guess instances
     guesses = [];
     for (let i=0; i<num_guesses; i++)
-        guesses.push(new guess_row(octx, i, num_combination));
+        guesses.push(new guess_row(octx, i, num_pegs));
 
-    /*
-    guesses[0].guess_pegs = [1,2,3,0];
-    guesses[0].score();
-    guesses[1].guess_pegs = [1,1,3,2];
-    guesses[1].score();
-    guesses[2].guess_pegs = [3,-1,4,5];
-    guesses[2].score();
-    guesses[3].guess_pegs = [0,1,2,3];
-    guesses[3].score();
-    */
+    // Create gamestate for sharing
+    create_game_link({
+        pegs       : num_pegs,
+        colors     : num_colors,
+        duplicates : allow_duplicates,
+        empties    : allow_empties,
+        solution   : solution.guess_pegs
+    });
 
     redraw_game();
 }
@@ -641,15 +792,34 @@ function game_over(win){
     game_active = false;
     redraw_game();
     if (win)
-        console.log("You won!");
+        alert("You won!");
     else
-        console.log("You lose!");
+        alert("You lose!");
 }
 
 let submit = new button(octx, "✔︎");
-let replay = new button(octx, "⟲");
+//let replay = new button(octx, "⟲");
 
-new_game();
+function first_load(){
+    // Check for URL to see if there is existing game
+    var game_id = window.location.href.split('?')[1];
+    if (game_id)
+        var game_state = decode_game_link(game_id);
+
+    new_game(game_state);
+}
+
+function create_game_link(game){
+    var c2 = btoa(JSON.stringify(game));
+    document.getElementById("share").href = window.location.href.split('?')[0] + "?" + c2;
+}
+
+function decode_game_link(c2){
+    var game = JSON.parse(atob(c2));
+    return game;
+}
+
+first_load();
 
   </script>
 </html>
