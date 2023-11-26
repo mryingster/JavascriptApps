@@ -6,8 +6,23 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=820px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
     <style>
+      body {
+          background:#fff;
+          color:#000;
+          font-family:sans-serif;
+      }
+
       #content{
-      text-align: center;
+      text-align: left;
+      width:768px;
+      margin: auto;
+      }
+
+      h1 {
+          margin:10px;
+          font-size:3em;
+      display: inline-block;
+      vertical-align:middle
       }
 
       #canvas_container {
@@ -23,39 +38,86 @@
           left: 0;
           border: 0px solid black;
       }
+
+      #settings {
+          display: inline-block;
+      vertical-align:middle
+      }
+
+      .column {
+      #border:1px solid red;
+      display: inline-block;
+      margin-left: 20px;
+      vertical-align:middle
+      }
+
+      button {
+      height:40px;
+      }
+
+    .hidden{
+        display: none;
+    }
     </style>
   </head>
-  <body>
+    <body onresize="resize_canvas();">
     <div id="content">
-      Pegs:
-      <select id="pegs">
-        <option value="3">3</option>
-        <option value="4" selected>4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-      </select>
+      <h1>Codey</h1>
+      <div id="settings">
+        <div class="column">
+          Pegs:
+          <select id="pegs">
+            <option value="3">3</option>
+            <option value="4" selected>4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+          </select>
+          <br>
 
-      Colors:
-      <select id="colors">
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6" Selected>6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-      </select>
+          Colors:
+          <select id="colors">
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6" Selected>6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+          </select>
+        </div>
 
-      <input type="checkbox" id="duplicates" name="duplicates" value="duplicates">
-      <label for="duplicates"> Allow duplicate colors</label>
+        <div class="column">
+          <input type="checkbox" id="duplicates" name="duplicates" value="duplicates">
+          <label for="duplicates"> Allow duplicate colors</label>
+          <br>
+          <input type="checkbox" id="empties" name="empties" value="empties">
+          <label for="empties"> Allow empty</label>
+        </div>
 
-      <input type="checkbox" id="empties" name="empties" value="empties">
-      <label for="empties"> Allow empty</label>
 
-      <button id="newgame" onclick="new_game();">New Game</button>
+        <div class="column">
+          <button id="newgame" onclick="new_game();">New Game</button>
+        </div>
 
-      <span id="sharespan"><a href="#" id="share">Share</a></span>
+        <div class="column">
+          <span id="sharespan"><a href="#" id="share">Share</a></span>
+        </div>
 
+        <div class="column">
+          <button onclick="document.getElementById('help').classList.toggle('hidden');">Help</button>
+        </div>
+      </div>
+    <div id="help" class="hidden">
+    <h2>About</h2>
+    <p>Codey is a game where you try to deduce the chosen code of colors by guessing and receiving feedback on your guesses.</p>
+
+    <h2>Rules</h2>
+    <p>Place as many pegs as you wish in the current row (the one next to the check mark).</p>
+    <p>After completing your guess, press the checkmark to have your guess evaluated.</p>
+    <p><b>Black</b> scoring pegs indicate that there is a correct color in a correct spot</p>
+    <p><b>White</b> scoring pegs indicate that there is a correct color in an incorrect spot</p>
+    <p>Note that the scoring pegs do not correlate to any specific position in your guess.</p>
+    </div>
       <div id="canvas_container">
         <canvas id="canvas" width="768px" height="1024px"></canvas>
         <canvas id="overlay" width="768px" height="1024px"></canvas>
@@ -134,8 +196,8 @@ function getTouchPosition(overlay, event){
     if(e.touches) {
         if (e.touches.length == 1) { // Only deal with one finger
             var touch = e.touches[0]; // Get the information for finger #1
-            x = touch.pageX-touch.target.offsetLeft - 15;
-            y = touch.pageY-touch.target.offsetTop - 50;
+            x = touch.pageX-touch.target.offsetLeft - 30;
+            y = touch.pageY-touch.target.offsetTop - 100;
         }
     }
 
@@ -690,6 +752,12 @@ function redraw_game(){
         // Draw solution
         solution.render();
     }
+
+    // DEBUG
+    //octx.fillStyle = "#000000";
+    //octx.fillRect(mouse_pos.x-200, mouse_pos.y, 400, 1);
+    //octx.fillRect(mouse_pos.x, mouse_pos.y-200, 1, 400);
+
 }
 
 function draw_rounded_rect(ctx, x, y, w, h, r, c1, c2, l=0){
@@ -798,7 +866,6 @@ function game_over(win){
 }
 
 let submit = new button(octx, "✔︎");
-//let replay = new button(octx, "⟲");
 
 function first_load(){
     // Check for URL to see if there is existing game
@@ -817,6 +884,9 @@ function create_game_link(game){
 function decode_game_link(c2){
     var game = JSON.parse(atob(c2));
     return game;
+}
+
+function resize_canvas(){
 }
 
 first_load();
