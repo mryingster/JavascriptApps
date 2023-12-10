@@ -24,6 +24,10 @@ class joystick {
         if (this.width < this.height)
             this.type = this.slider_y;
 
+        this.canvas.addEventListener('touchstart',  this.input_down_touch.bind(this), false);
+        this.canvas.addEventListener('touchmove',   this.input_move_touch.bind(this), false);
+        this.canvas.addEventListener('touchend',    this.input_up.bind(this), false);
+
         this.canvas.addEventListener('mousedown',  this.input_down_mouse.bind(this));
         this.canvas.addEventListener('mousemove',  this.input_move_mouse.bind(this));
         this.canvas.addEventListener('mouseup',    this.input_up.bind(this));
@@ -41,6 +45,38 @@ class joystick {
             this.unit_y = this.y / this.max_y;
         }
         this.draw();
+    }
+
+    get_touch_position(canvas, event) {
+        if (!e){
+            var e = event;
+        }
+
+        var x = null;
+        var y = null;
+
+        if(e.touches) {
+            if (e.touches.length == 1) { // Only deal with one finger
+                var touch = e.touches[0]; // Get the information for finger #1
+                console.log(touch)
+                x = touch.pageX-touch.target.getBoundingClientRect().left;
+                y = touch.pageY-touch.target.getBoundingClientRect().top;
+            }
+        }
+
+        return {x:x, y:y};
+    }
+
+    input_down_touch(e) {
+        e.preventDefault();
+        this.mouse_down = true;
+        this.track_mouse(this.get_touch_position(this.canvas, e));
+    }
+
+    input_move_touch(e) {
+        e.preventDefault();
+        if (this.mouse_down == true)
+            this.track_mouse(this.get_touch_position(this.canvas, e));
     }
 
     get_cursor_position(canvas, event) {

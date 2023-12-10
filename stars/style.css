@@ -22,7 +22,7 @@ body {
     background: rgba(64, 64, 64, 0.50);
     /*border: 3px solid #222;*/
     color: #FFF;
-    display: none;
+    display: block;
     position: fixed;
     bottom: 0px;
     left: 0px;
@@ -45,6 +45,10 @@ input {
     vertical-align: middle;
 }
 
+canvas {
+    touch-action: manipulation;
+}
+
 .panel {
     /*background: #111;*/
     display: inline-block;
@@ -64,4 +68,8 @@ label {
 h2 {
     margin: 0px;
     font-size: 1.2em;
+}
+
+.hidden {
+    display: none !important;
 }
