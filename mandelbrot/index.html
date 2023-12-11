@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-
-<html>
-  <head>
+<html class=" usiwyfbdk idc0_343"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Mandelbrot</title>
-     <meta charset="utf-8"/>
+     <meta charset="utf-8">
      <style>
 body {
     margin: 0px;
@@ -56,11 +55,11 @@ canvas {
   </head>
   <body onresize="resize_canvas();" onload="first_run();">
 
-    <canvas id="canvas" width="768px" height="768px"></canvas>
+    <canvas id="canvas" width="1660" height="1085"></canvas>
 
     <div id="controls">
-      <button class="zoom" onclick="zoom(false)">-</button>
-      <button class="zoom" onclick="zoom(true)">+</button>
+    <button class="zoom" onclick="zoom(false, null)">-</button>
+    <button class="zoom" onclick="zoom(true, null)">+</button>
       Depth:
       <select onchange="render()" id="depthSelection">
         <option>1</option>
@@ -68,7 +67,7 @@ canvas {
         <option>4</option>
         <option>8</option>
         <option>16</option>
-        <option selected>32</option>
+        <option selected="selected">32</option>
         <option>64</option>
         <option>128</option>
         <option>256</option>
@@ -79,7 +78,7 @@ canvas {
       </select>
       Scale:
       <select onchange="render()" id="renderScale">
-        <option selected>1</option>
+        <option selected="selected">1</option>
         <option>2</option>
         <option>4</option>
         <option>8</option>
@@ -93,11 +92,11 @@ canvas {
     </div>
 
     <div id="coords_div" class="note">
-      Mouse Coordinates: <span id="coords">--,--</span>
+      Mouse Coordinates: <span id="coords">-0.19854,+1.10112</span>
     </div>
 
     <div id="elapsed_div" class="note">
-      Render Time: <span id="elapsed">--</span>
+      Render Time: <span id="elapsed">00:00.722</span>
     </div>
 
     <script>
@@ -119,6 +118,10 @@ var start_coord   = null;
 var x_diff        = 0;
 var y_diff        = 0;
 
+var start_pinch   = null
+var pinch         = false;
+let start_zoom    = null;
+
 var render_preview = false;
 var final_render_timer = null;
 
@@ -134,11 +137,13 @@ function getTouchPosition(canvas, event){
     var x_coord = null;
     var y_coord = null;
 
+    let coords=[];
+
     if(e.touches) {
-        if (e.touches.length == 1) { // Only deal with one finger
-            let touch = e.touches[0]; // Get the information for finger #1
-            let x_pixel = touch.pageX-touch.target.offsetLeft;
-            let y_pixel = touch.pageY-touch.target.offsetTop - (tile_height); // Adjust y because apple messes things up!
+        for (let i=0; i<e.touches.length; i++){
+            let touch = e.touches[i];
+            let x_pixel = touch.pageX-touch.target.getBoundingClientRect().left;
+            let y_pixel = touch.pageY-touch.target.getBoundingClientRect().top;
 
             // Determine scale
             const x_scale = view_width / width;
@@ -149,23 +154,41 @@ function getTouchPosition(canvas, event){
             var view_top  = view_y_center - (view_height / 2);
             x_coord = x_pixel * x_scale + view_left;
             y_coord = y_pixel * y_scale + view_top;
+
+            coords.push({x:x_coord, y:y_coord});
         }
     }
 
-    return {x:x_coord, y:y_coord};
+    return coords;
 }
 
 function input_start_touch(e){
-    last_touch_position = getTouchPosition(canvas, e)
-    mouse_down = true;
     e.preventDefault();
+    let coords = getTouchPosition(canvas, e);
+
+    // Normal scrolling with one finger
+    if (coords.length == 1){
+        start_coord = coords[0]
+        update_coords(start_coord);
+        mouse_down = true;
+    }
+
+    // Pinching
+    if (coords.length == 2){
+        start_pinch = coords;
+        pinch = true;
+        start_zoom = {vw:view_width, vh:view_height};
+    }
 }
 
 function input_move_touch(e){
+    e.preventDefault();
+
     if (mouse_down == true){
         mouse_moved = true;
+
         // Get current coords
-        let current_coord = getTouchPosition(canvas, e)
+        let current_coord = getTouchPosition(canvas, e)[0]
 
 	// Find difference
 	x_diff = current_coord.x - start_coord.x;
@@ -173,12 +196,32 @@ function input_move_touch(e){
 
 	render();
     }
-    e.preventDefault();
+
+    if (pinch == true){
+        let current_coords = getTouchPosition(canvas, e);
+
+        // If we are down to 1 finger, dont do anything
+        if (current_coords.length < 2) return;
+
+        // Find distance between fingers in start and current positions
+        let d_start   = Math.abs(Math.hypot(start_pinch[0].x - start_pinch[1].x, start_pinch[0].y - start_pinch[1].y));
+        let d_current = Math.abs(Math.hypot(current_coords[0].x - current_coords[1].x, current_coords[0].y - current_coords[1].y));
+
+        // Find how much bigger we should be
+        let zoom = d_current / d_start;
+
+        // Maybe guess where we should center eventually?
+
+        // And zoom
+        view_width  = start_zoom.vw / zoom;
+        view_height = start_zoom.vh / zoom;
+        rerender();
+    }
 }
 
 function input_end_touch(e){
-    input_up_mouse(e);
     e.preventDefault();
+    input_up_mouse(e);
 }
 
 
@@ -206,20 +249,7 @@ function input_move_mouse(e){
 
 	render();
     } else {
-	let coords = getCursorPosition(canvas, e);
-	let string = ""
-	if (coords.x > 0)
-	    string += "+"
-	string += coords.x.toFixed(5);
-	while (string.length < 8)
-	    string += "0";
-	string += ",";
-	if (coords.y < 0)
-	    string += "+"
-	string += (-1 * coords.y.toFixed(5));
-	while (string.length < 17)
-	    string += "0";
-	document.getElementById("coords").innerHTML = string;
+	update_coords(getCursorPosition(canvas, e));
     }
 }
 
@@ -256,10 +286,24 @@ function input_up_mouse(e){
 
 function input_wheel(e){
     render_preview = true;
-    if (e.deltaY > 0)
-	zoom(false);
-    else
-	zoom(true);
+    if (Math.abs(e.deltaY) >= 16) 
+    zoom(e.deltaY < 0, getCursorPosition(canvas, e));
+}
+
+function update_coords(coords){
+    let string = ""
+    if (coords.x > 0)
+	string += "+"
+    string += coords.x.toFixed(5);
+    while (string.length < 8)
+	string += "0";
+    string += ",";
+    if (coords.y < 0)
+	string += "+"
+    string += (-1 * coords.y.toFixed(5));
+    while (string.length < 17)
+	string += "0";
+    document.getElementById("coords").innerHTML = string;
 }
 
 function render(reset_preview_request = false){
@@ -281,7 +325,7 @@ function render(reset_preview_request = false){
 	scale = 8;
 	// If there is a render preview request, set a timeout to render actual image after 1/2 second
 	if (mouse_down != true){
-	    final_render_timer = setTimeout(() => render(true), 500);
+	    final_render_timer = setTimeout(() => render(true), 250);
 	}
     }
 
@@ -297,25 +341,39 @@ function render(reset_preview_request = false){
     var scaled_y  = view_height / height;
     var view_left = effective_x_center - (view_width / 2);
     var view_top  = effective_y_center - (view_height / 2);
-    
+
+    // Draw into an offscreen canvas
+    let buffer_canvas = new OffscreenCanvas(Math.ceil(width/scale), Math.ceil(height/scale));
+    let buffer_ctx    = buffer_canvas.getContext("2d");
+    let buffer = buffer_ctx.getImageData(0, 0, buffer_canvas.width, buffer_canvas.height);
+    let buffer_index = 0;
+
     for (var y=0; y<height; y+=scale){
         for (var x=0; x<width; x+=scale){
             var xValue = (x * scaled_x) + (view_left);
             var yValue = (y * scaled_y) + (view_top);
             var result = mandel(xValue, yValue, depth);
-            
+
             // Choose a color
             var finalColor = "#000000";
             if (result != -1)
                 finalColor = chooseColor(result, depth);
-            
-            // Draw the pixel
-            ctx.fillStyle = finalColor;
-            ctx.fillRect(x, y, scale, scale);
+
+            // Draw the pixel too all the pixels necessary
+            buffer.data[buffer_index + 0] = finalColor.r; // R
+            buffer.data[buffer_index + 1] = finalColor.g; // G
+            buffer.data[buffer_index + 2] = finalColor.b; // B
+            buffer.data[buffer_index + 3] = 255; // A
+
+            buffer_index += 4;
 
         }
     }
-    
+
+    // Draw back to the onscreen canvas
+    buffer_ctx.putImageData(buffer, 0, 0);
+    ctx.drawImage(buffer_canvas,0,0,width,height);
+
     // End timer
     var duration = (new Date().getTime() - start);
     var minutes = Math.floor(duration/1000/60);
@@ -355,7 +413,7 @@ function chooseColor(i, d) {
     var b = 0;
 
     const band = d / 6;
-    
+
     if (i >= band * 0 & i < band * 1){
         r = 0xff;
         g = 0xff * i / band;
@@ -381,7 +439,7 @@ function chooseColor(i, d) {
         b = 0xff * ((band - (i % band)) / band);
     }
 
-    return "#"+hexString(r)+hexString(g)+hexString(b);
+    return {r:r, g:g, b:b};
 }
 
 function hexString(n) {
@@ -409,6 +467,15 @@ function recenter(x, y){
     render();
 }
 
+function getPixelPosition(canvas, event){
+    // Determine pixel location
+    const rect = canvas.getBoundingClientRect()
+    const x_pixel = event.clientX - rect.left
+    const y_pixel = event.clientY - rect.top
+
+    return {x:x_pixel, y:y_pixel};
+}
+
 function getCursorPosition(canvas, event){
     // Determine pixel location
     const rect = canvas.getBoundingClientRect()
@@ -428,16 +495,22 @@ function getCursorPosition(canvas, event){
     return {x:x_coord, y:y_coord};
 }
 
-function zoom(zoom_in){
+function zoom(zoom_in, coords){
     if (zoom_in == true){
 	view_width /= 2;
 	view_height /= 2;
+        if (coords != null)
+            recenter((coords.x - view_x_center) / 2 + view_x_center, (coords.y - view_y_center) / 2 + view_y_center);
+        else
+            render();
     } else {
 	view_width *= 2;
 	view_height *= 2;
+        if (coords != null)
+            recenter(view_x_center - (coords.x - view_x_center), view_y_center - (coords.y - view_y_center));
+        else
+            render();
     }
-
-    render();
 }
 
 function resize_canvas(preview = true){
@@ -467,5 +540,6 @@ function first_run(){
 
 
 </script>
-  </body>
-</html>
+  
+
+</body></html>
