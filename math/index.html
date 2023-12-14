@@ -72,59 +72,78 @@ td {
 }
 
 #start {
-width: 250px;
-height: 30px;
+    width: 250px;
+    height: 30px;
 }
 
 #end {
-width: 200px;
-height: 30px;
+    width: 200px;
+    height: 30px;
+}
+
+#problem {
+    border: 1px solid lightgrey;
+    border-radius: 30px;
+    padding: 50px;
+    width: 500px;
+    box-shadow: 5px 5px 15px grey;
+}
+
+#controls, #status {
+    background: #eee;
+    padding: 8px;
+    border-radius: 10px;
+    width: fit-content;
+    margin: 0px auto 25px auto;
+    text-align: center;
 }
 
     </style>
   </head>
 
   <body>
-<!--
+    <!--
     <canvas id="speed"></canvas>
     <canvas id="score"></canvas>
--->
+    -->
+
     <div id="controls">
-      <p>
-	Operation:
-	<select id="op">
-          <option value="1">Addition</option>
-          <option value="2">Subtraction</option>
-          <option value="3" selected="selected">Multiplication</option>
-          <option value="4">Division</option>
-	</select>
-	Min:
-	<select id="min">
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6" selected="selected">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
-          <option value="10">10</option>
-          <option value="11">11</option>
-          <option value="12">12</option>
-	</select>
-	Max:
-	<select id="max">
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9" selected="selected">9</option>
-          <option value="10">10</option>
-          <option value="11">11</option>
-          <option value="12">12</option>
-	</select>
-      </p>
+      Operation:
+      <select id="op">
+        <option value="1">Addition</option>
+        <option value="2">Subtraction</option>
+        <option value="3" selected="selected">Multiplication</option>
+        <option value="4">Division</option>
+      </select>
+      Min:
+      <select id="min">
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6" selected="selected">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+      </select>
+      Max:
+      <select id="max">
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9" selected="selected">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+      </select>
+      <br>
+      <br>
       <button id="start" onclick="start();">Start</button>
     </div>
+
     <div id="status" class="hidden">
       <button id="end" onclick="show_results();">End</button> Progress: <span id="progress"></span>
     </div>
