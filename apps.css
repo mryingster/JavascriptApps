@@ -1,0 +1,11 @@
+.app {
+    display: inline-block;
+    width: 250px;
+    text-align: center;
+    vertical-align: top;
+}
+
+.icon {
+    width: 150px;
+    height: 150px;
+}
