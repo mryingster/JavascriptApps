@@ -1,0 +1,409 @@
+<html class=" bdoycoeh idc0_343"><head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Test</title>
+    <meta name="viewport" content="user-scalable=no">
+    <style>
+
+      #canvas{
+      border: 0px solid black;
+      touch-action:manipulation;
+      position:absolute;
+      top:0;
+      left:0;
+      }
+
+      label{
+      display:inline-block;
+      vertical-align: middle;
+      width: 70px;
+      }
+
+      input{
+      vertical-align: middle;
+      }
+
+      body{
+      margin: 0px;
+      }
+
+      #picker{
+      margin-bottom: 10px;
+      }
+
+      #controls{
+      position:absolute;
+      top: 10px;
+      left: 10px;
+      margin: 15px;
+      }
+
+    </style>
+  </head>
+  <body onload="main();" onresize="resize();">
+
+    <canvas id="canvas" width="1373" height="1011"></canvas>
+
+    <div id="controls">
+      <button onclick="add_ball();">Add</button>
+      <br>
+      <label for="gravity">Gravity:</label>       <input id="gravity"    type="range" min="0" max="400" value="98" oninput="update_gravity();"><br>
+
+      <label for="efficiency">Efficiency:</label> <input id="efficiency" type="range" min="0" max="100" value="80"><br>
+      <label for="diameter">Diameter:</label>     <input id="diameter"   type="range" min="5" max="512" value="64"><br>
+    </div>
+
+  <script>
+
+    // Globals!
+    let canvas = document.querySelector('canvas')
+    let ctx    = canvas.getContext('2d');
+
+    // Timing
+    let last_frame;
+    let timestamp;
+
+    let balls = [];
+    let gravity = 9.8;
+
+    // Input
+    let mousedown = false;
+    let selected_ball = -1;
+    let last_selected_ball = -1;
+
+    // Touch Listeners
+    function getTouchPosition(event, finger){
+        if (!e)
+            var e = event;
+
+        var x = null;
+        var y = null;
+
+        if(e.touches[finger]) {
+            var touch = e.touches[finger];
+            x = touch.pageX-touch.target.offsetLeft;
+            y = touch.pageY-touch.target.offsetTop;
+
+            return {x:x, y:y};
+        }
+
+        return -1;
+    }
+
+    function input_touch_down(e){
+        e.preventDefault();
+    }
+
+    function input_touch_move(e){
+        e.preventDefault();
+    }
+
+    function input_touch_up(e){
+        e.preventDefault();
+    }
+
+    canvas.addEventListener('touchstart', input_touch_down, false);
+    canvas.addEventListener('touchmove',  input_touch_move, false);
+    canvas.addEventListener('touchend',   input_touch_up,   false);
+
+    // Mouse Listeners
+    function getCursorPosition(canvas, event){
+        // Determine where clicked
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        //document.getElementById("coords").innerHTML = x + ", " + y;
+
+        return {x:x, y:y};
+    }
+
+    canvas.addEventListener('mousedown', function(e){
+        mousedown = true;
+        let pos = getCursorPosition(canvas, e);
+        selected_ball = find_selected_ball(pos);
+        if (selected_ball >= 0){
+            move_selected_ball(pos);
+        }
+    });
+
+    canvas.addEventListener('mousemove', function(e){
+        if (!mousedown) return;
+        let pos = getCursorPosition(canvas, e);
+        if (selected_ball >= 0)
+            move_selected_ball(pos);
+    });
+
+    canvas.addEventListener('mouseup', function(e){
+        if (!mousedown) return;
+        mousedown = false;
+        let pos = getCursorPosition(canvas, e);
+        release_selected_ball(pos);
+    });
+
+    function find_selected_ball(p){
+        for (let b=0; b<balls.length; b++){
+            let distance = Math.abs(Math.hypot(balls[b].pos.x - p.x, balls[b].pos.y - p.y));
+            if (distance < balls[b].radius){
+
+                // Set the selected ball for the settings
+                last_selected_ball = b;
+                document.getElementById("diameter").value = balls[b].radius;
+                document.getElementById("efficiency").value = balls[b].efficiency * 100;
+
+                return b
+            }
+        }
+        return -1
+    }
+
+    function move_selected_ball(p){
+        // Stop ball from moving
+        balls[selected_ball].v.x = 0;
+        balls[selected_ball].v.y = 0;
+        balls[selected_ball].ignore = true;
+
+        // Update location
+        balls[selected_ball].last_pos = balls[selected_ball].pos;
+        balls[selected_ball].pos = p
+        balls[selected_ball].lastts = Date.now();
+    }
+
+    function release_selected_ball(p){
+        if (selected_ball == -1) return;
+        balls[selected_ball].ignore = false;
+
+        // find distance from last position
+        let dx = p.x - balls[selected_ball].last_pos.x;
+        let dy = p.y - balls[selected_ball].last_pos.y;
+
+        // Convert that to speed
+        let elapsed = Date.now() - balls[selected_ball].lastts;
+        if (elapsed <= 0) elapsed = 1;
+        balls[selected_ball].v.x = dx / elapsed;
+        balls[selected_ball].v.y = dy / elapsed;
+    }
+
+    function resize(){
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    function update_gravity(){
+        gravity = Number(document.getElementById("gravity").value) / 10;
+    }
+
+    function loop(timestamp){
+        if (last_frame == undefined) {
+            last_frame = timestamp;
+        }
+
+        let elapsed = timestamp - last_frame;
+        last_frame = timestamp;
+
+        // Collide balls
+        for (let b of balls)
+            b.collide();
+
+        // Move balls
+        for (let b of balls)
+            b.move(elapsed);
+
+        // clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw balls
+        for (let b of balls)
+            b.render();
+
+        window.requestAnimationFrame(loop);
+    }
+
+    function random_color(){
+        let color = "#"
+        for (let c=0; c<3; c++){
+            let t = Math.floor(Math.random() * 255);
+            t = t.toString(16);
+            if (t.length < 2) t = "0" + t;
+            color += t;
+        }
+        return color;
+    }
+
+    function add_ball(){
+        balls.push(
+            new ball(document.getElementById("canvas"),
+                     Number(document.getElementById("diameter").value),
+                     Number(document.getElementById("efficiency").value / 100),
+                     random_color(),
+                     512,
+                     64,
+                     balls.length
+                    )
+        );
+    }
+
+    function main(){
+        // Resize canvas
+        resize();
+
+        // Initialize the screen with a white rectangle
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Start loop
+        loop();
+    }
+
+
+    class ball{
+        constructor(canvas, radius, efficiency, color, x, y, id){
+            this.canvas = canvas;
+            this.ctx = canvas.getContext("2d");
+
+            this.radius = radius;
+
+            this.color = color;
+            this.pos = {x:x, y:y};
+
+            this.v = {x:5, y:0};
+            this.a = {x:0, y:0};
+
+            this.new_v = {x:0, y:0};
+
+            this.efficiency = efficiency;
+
+            this.id = id;
+
+            this.collided_with = {};
+
+            // User interaction variables
+            this.ignore = false;
+            this.lastpos = {x:x, y:y};
+            this.lastts = 0;
+        }
+
+        render(){
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.pos.x, this.pos.y);
+            this.ctx.arc(this.pos.x, this.pos.y, this.radius, 0, 2*Math.PI);
+            this.ctx.fillStyle = this.color;
+            this.ctx.fill();
+        }
+
+        collide(){
+            if (this.ignore) return;
+
+            // Read settings temporarily
+            if (last_selected_ball == this.id){
+                this.radius = Number(document.getElementById("diameter").value);
+                this.efficiency = Number(document.getElementById("efficiency").value / 100);
+            }
+
+            // Work with new_speed variables so collisions can see old speed variables
+            this.new_v.x = this.v.x;
+            this.new_v.y = this.v.y;
+
+            // Collisions with walls
+            if (this.pos.y + this.radius >= this.canvas.height){
+                if (this.new_v.y > 0)
+                    this.new_v.y *= (-1 * this.efficiency);
+                this.pos.y = this.canvas.height - this.radius;
+            }
+
+            if (this.pos.y - this.radius <= 0){
+                if (this.new_v.y < 0)
+                    this.new_v.y *= (-1 * this.efficiency);
+                this.pos.y = this.radius;
+            }
+
+            if (this.pos.x + this.radius >= this.canvas.width){
+                if (this.new_v.x > 0)
+                    this.new_v.x *= (-1 * this.efficiency);
+            }
+
+            if (this.pos.x - this.radius <= 0){
+                if (this.new_v.x < 0)
+                    this.new_v.x *= (-1 * this.efficiency);
+            }
+
+            // Collision with balls
+            for (let b of balls){
+                if (b.id == this.id) continue;
+                if (b.ignore) continue;
+
+                let distance = Math.abs(Math.hypot(b.pos.x - this.pos.x, b.pos.y - this.pos.y));
+                if (distance <= b.radius + this.radius){
+
+                    // Keep track of collisions and don't let collisions happen until balls are uncollided
+                    //if (this.collided_with[b.id] == undefined)
+                    //this.collided_with[b.id] = 0;
+                    //this.collided_with[b.id] += 1;
+                    //if (this.collided_with[b.id] > 1) continue;
+
+                    let v1 = this.v;
+                    let v2 = b.v;
+                    let m1 = this.radius;
+                    let m2 = b.radius;
+
+                    let normal       = {x: this.pos.x - b.pos.x,
+                                        y: this.pos.y - b.pos.y};
+                    let unit_normal  = {x: normal.x / Math.sqrt(normal.x**2 + normal.y**2),
+                                        y: normal.y / Math.sqrt(normal.x**2 + normal.y**2)};
+                    let unit_tangent = {x: unit_normal.y * -1,
+                                        y: unit_normal.x * -1};
+
+                    let v1n = unit_normal.x  * v1.x + unit_normal.y  * v1.y;
+                    let v1t = unit_tangent.x * v1.x + unit_tangent.y * v1.y;
+                    let v2n = unit_normal.x  * v2.x + unit_normal.y  * v2.y;
+                    let v2t = unit_tangent.x * v2.x + unit_tangent.y * v2.y;
+
+                    let v1t_prime = v1t;
+                    let v2t_prime = v2t;
+
+                    let v1n_prime = (v1n * (m1 - m2) + (2 * m2 * v2n)) / (m1 + m2);
+                    let v2n_prime = (v1n * (m1 - m2) + (2 * m2 * v2n)) / (m1 + m2);
+
+                    let v1n_prime_vector = {x: unit_normal.x  * v1n_prime, y: unit_normal.y  * v1n_prime};
+                    let v1t_prime_vector = {x: unit_tangent.x * v1t_prime, y: unit_tangent.y * v1t_prime};
+                    let v2n_prime_vector = {x: unit_normal.x  * v2n_prime, y: unit_normal.y  * v2n_prime};
+                    let v2t_prime_vector = {x: unit_tangent.x * v2t_prime, y: unit_tangent.y * v2t_prime};
+
+                    // Set the new velocities
+                    this.new_v = {x:v1n_prime_vector.x + v1t_prime_vector.x, y:v1n_prime_vector.y + v1t_prime_vector.y};
+                    //b.new_v    = {x:v2n_prime_vector.x + v2t_prime_vector.x, y:v2n_prime_vector.y + v2t_prime_vector.y};
+
+                    // if we are intersected, back off until not intesected
+                    //let reset = (b.radius + this.radius + .1) - distance;
+                    //let hypot = Math.hypot(this.v.x, this.v.y);
+                    //this.pos.x -= this.v.x * (reset/hypot);
+                    //this.pos.y -= this.v.y * (reset/hypot);
+
+
+                } else {
+                    // reset collision count
+                    if (this.collided_with[b.id] != undefined)
+                        this.collided_with[b.id] = 0;
+                }
+            }
+        }
+
+        move(ms){
+            if (this.ignore) return;
+
+            // Update speeds
+            this.v.x = this.new_v.x;
+            this.v.y = this.new_v.y;
+
+            // Update for gravity
+            this.v.y += gravity * ms / 1000;
+
+            // Move ball
+            this.pos.y += this.v.y;
+            this.pos.x += this.v.x;
+        }
+    }
+
+
+  </script>
+
+</body></html>
