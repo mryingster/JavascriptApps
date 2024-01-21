@@ -3,6 +3,8 @@
     <title>Hue're Adorable</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=555px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
+    <script src="/apps/shared/confetti.js"></script>
+
       <style>
       body {
           background:#aaa;
@@ -261,6 +263,8 @@ function input_up(p){
         if (is_solved() && valid){
             document.getElementById("game_over").classList.remove("hidden");
             document.getElementById("go_moves").innerHTML = moves;
+            make_confetti();
+
             //alert("You solved it!");
         }
     }
