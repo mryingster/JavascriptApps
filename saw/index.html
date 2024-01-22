@@ -1,0 +1,174 @@
+<html>
+  <head>
+    <title>Saw Test</title>
+  </head>
+  <body>
+    <label for="leftwood">Wood Height (left) </label><input id="leftwood"></input>
+    <br>
+    <label for="rightwood">Wood Height (right) </label><input id="rightwood"></input>
+    <br>
+    <label for="saw">Saw Position </label><input id="saw"></input>
+    <br>
+    <canvas id="display"></canvas>
+  </body>
+  <script>
+
+    class diagram{
+        constructor(canvas){
+            this.canvas = canvas;
+            this.ctx = canvas.getContext("2d");
+
+            this.sensors = [0, 0, 0];
+
+            this.setup_canvas();
+        }
+
+        setup_canvas(){
+            this.canvas.width = 768;
+            this.canvas.height = 512;
+        }
+
+        draw_background(){
+            // White bits
+            this.ctx.strokeStyle = "#dddddd";
+            this.ctx.fillStyle = "#fefefe";
+            this.ctx.fillRect(330, 90, 400, 80);
+            this.ctx.fillRect(330, 220, 400, 70);
+            this.ctx.fillRect(50, 15, 250, 340);
+            this.ctx.strokeRect(330, 90, 400, 80);
+            this.ctx.strokeRect(330, 220, 400, 70);
+            this.ctx.strokeRect(50, 15, 250, 380);
+
+            // Blue Frame
+            this.ctx.fillStyle = "#2233bb";
+            this.ctx.fillRect(15, 400, 738, 500);
+            this.ctx.fillRect(300, 15, 30, 400);
+            this.ctx.fillRect(330, 340, 500, 30);
+
+            // Silver bits
+            this.ctx.fillStyle = "#cccccc";
+            this.ctx.fillRect(330, 70, 400, 15);
+            this.ctx.fillRect(330, 200, 400, 15);
+            this.ctx.fillRect(330, 320, 500, 15);
+
+            this.ctx.fillRect(15, 400, 738, 5);
+        }
+
+        inches_to_fraction(n){
+            let feet = Math.floor(n / 12);
+            let inches = Math.floor(n % 12);
+            let remainder = Math.round(n%1 * 100000) / 100000;
+
+            let lookup = {
+                0.03125	: " 1/32",
+                0.0625	: " 1/16",
+                0.09375	: " 3/32",
+                0.125	: " 1/8",
+                0.15625	: " 5/32",
+                0.1875	: " 3/16",
+                0.21875	: " 7/32",
+                0.25	: " 1/4",
+                0.28125	: " 9/32",
+                0.3125	: " 5/16",
+                0.34375	: " 11/32",
+                0.375	: " 3/8",
+                0.40625	: " 13/32",
+                0.4375	: " 7/16",
+                0.46875	: " 15/32",
+                0.5	: " 1/2",
+                0.53125	: " 17/32",
+                0.5625	: " 9/16",
+                0.59375	: " 19/32",
+                0.625	: " 5/8",
+                0.65625	: " 21/32",
+                0.6875	: " 11/16",
+                0.71875	: " 23/32",
+                0.75	: " 3/4",
+                0.78125	: " 25/32",
+                0.8125	: " 13/16",
+                0.84375	: " 27/32",
+                0.875	: " 7/8",
+                0.90625	: " 29/32",
+                0.9375	: " 15/16",
+                0.96875	: " 31/32",
+            }
+
+            if (lookup[remainder] != undefined)
+                remainder = lookup[remainder];
+
+            if (remainder == 0)
+                remainder = "";
+
+            return feet + "' " + inches + remainder + '"' ;
+        }
+
+        draw_wood(){
+            let inch_to_pixel = 400 / 96;
+            let left_height  = this.sensors[0] * inch_to_pixel;
+            let right_height = this.sensors[1] * inch_to_pixel;
+
+            this.ctx.strokeStyle = "#895e3c";
+            this.ctx.fillStyle = "#c49c67";
+            this.ctx.textAlign = "center";
+
+            // Left piece
+            this.ctx.fillRect(315, 400, -250, -1 * left_height);
+
+            // Right piece
+            this.ctx.fillRect(315, 400, 250, -1 * right_height);
+
+            // Text
+            this.ctx.fillStyle = "#895e3c";
+            this.ctx.textAlign = "center";
+            this.ctx.font = "36px Arial";
+            if (left_height > 0)
+                this.ctx.fillText(this.inches_to_fraction(this.sensors[0]), 190, 375);
+            if (right_height > 0)
+                this.ctx.fillText(this.inches_to_fraction(this.sensors[1]), 440, 375);
+        }
+
+        draw_guard(){
+            this.ctx.fillStyle = "#2233bb";
+            this.ctx.strokeStyle = "#1122aa";
+            this.ctx.fillRect(300, 15, 30, 400);
+            this.ctx.strokeRect(300, 15, 30, 400);
+
+            this.ctx.fillStyle = "#cccccc";
+            this.ctx.strokeStyle = "#aaaaaa";
+            this.ctx.fillRect(300, 120, 40, 230);
+            this.ctx.strokeRect(300, 120, 40, 230);
+
+            this.ctx.fillStyle = "#008800";
+            this.ctx.fillRect(305, 130, 15, 150);
+        }
+
+        clear(){
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+
+        update(l, r, s){
+            if (!isNaN(l) && l > -1) this.sensors[0] = l;
+            if (!isNaN(r) && r > -1) this.sensors[1] = r;
+            if (!isNaN(s) && s > -1) this.sensors[2] = s;
+
+            this.clear();
+            this.draw_background();
+            this.draw_wood();
+            this.draw_guard();
+        }
+    }
+
+let d = new diagram(document.getElementById("display"));
+
+document.getElementById("leftwood").addEventListener('input', function(e){ d.update(document.getElementById("leftwood").value, -1,  -1);}, false);
+document.getElementById("rightwood").addEventListener('input', function(e){ d.update(-1, document.getElementById("rightwood").value, -1);}, false);
+document.getElementById("saw").addEventListener('input', function(e){ d.update(-1, -1, document.getElementById("saw").value);}, false);
+
+d.update(
+    document.getElementById("leftwood").value,
+    document.getElementById("rightwood").value,
+    document.getElementById("saw").value
+);
+
+</script>
+</html>
