@@ -1,0 +1,203 @@
+<html>
+  <head>
+    <title>Bayes Factor</title>
+    <style>
+body{
+    background: #eee;
+}
+#content {
+    width: 620px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+}
+h1 {
+    margin: 10 0 -10 0;
+}
+.box {
+    display: inline-block;
+    border-radius: 10px;
+    border: 1px solid;
+    padding: 10px;
+    margin: 10px;
+    text-align: center;
+    font-style: italic;
+    font-size: .75em;
+}
+.boxes {
+    text-align: center;
+}
+.percent {
+    background-color: #ffffee;
+    border-color: #ffff00;
+    color: #aaaa00;
+}
+.odds {
+    background-color: #eeffff;
+    border-color: #00ffff;
+    color: #00aaaa;
+}
+.false {
+    background-color: #ffeeee;
+    border-color: #ff0000;
+    color: #aa0000;
+}
+.true {
+    background-color: #eeffee;
+    border-color: #00ff00;
+    color: #00aa00;
+}
+.bayes, .sample {
+    background-color: #eeeeee;
+    border-color: #777777;
+    color: #777777;
+}
+.value {
+    color: #000000;
+    font-style: normal;
+    font-size: 1.25em;
+}
+.slider {
+    width : 500px;
+    vertical-align: middle;
+}
+label{
+    vertical-align: middle;
+    display: inline-block;
+    width: 100px;
+}
+.input {
+    display: block;
+}
+.emphasis {
+    font-weight: bold;
+    background-color: #ffffff;
+}
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <div id="priors">
+        <h1>Prior</h1>
+        <p>This describes the probability of having a disease prior to screening</p>
+
+        <div class="input">
+	  <label for="priors_odds_left">Odds in favor:</label>
+          <input type="range" onInput="update();" min="1" max="100" value="9" class="slider" id="priors_odds_left">
+        </div>
+
+        <div class="input">
+	  <label for="priors_odds_right">Sample Size:</label>
+          <input type="range" onInput="update();" min="1" max="60"  value="10" class="slider" id="priors_odds_right">
+        </div>
+
+        <div class="boxes">
+          <span class="box percent">Percent<br><span class="value" id="prior_percent"></span></span>
+	  <span class="box odds">Odds<br><span class="value" id="prior_odds"></span></span>
+	  <span class="box sample">Sample Size<br><span class="value" id="prior_sample"></span></span>
+        </div>
+      </div>
+
+      <div id="sensitivity">
+        <h1>Sensitivity</h1>
+        <p>This describes what percentage of subjects with the disease are correctly flagged by the screening. This represents the amount of <span class="emphasis true">True Positives</span> and <span class="emphasis false">False Negatives</span></p>
+
+        <div class="input">
+          <label for="sensitivity_range">Percent:</label>
+          <input type="range" onInput="update();" min="1" max="1000" value="900" class="slider" id="sensitivity_range">
+        </div>
+
+        <div class="boxes">
+          <span class="box percent">Percent<br><span class="value" id="sensitivity_percent"></span></span>
+	  <span class="box odds">Odds<br><span class="value" id="sensitivity_odds"></span></span>
+	  <span class="box true">True Positives<br><span class="value" id="true_positives"></span></span>
+	  <span class="box false">False Negatives<br><span class="value" id="false_negatives"></span></span>
+        </div>
+      </div>
+
+      <div id="specificity">
+        <h1>Specificity</h1>
+        <p>This describes what percentage of subjects without the disease are correctly cleared by the screening. This represents the amount of <span class="emphasis true">True Negatives</span> and <span class="emphasis false">False Positives</span></p>
+
+        <div class="input">
+          <label for="specificity_range">Percent:</label>
+          <input type="range" onInput="update();" min="1" max="1000" value="900" class="slider" id="specificity_range">
+        </div>
+
+        <div class="boxes">
+          <span class="box percent">Percent<br><span class="value" id="specificity_percent"></span></span>
+	  <span class="box odds">Odds<br><span class="value" id="specificity_odds"></span></span>
+	  <span class="box true">True Negatives<br><span class="value" id="true_negatives"></span></span>
+	  <span class="box false">False Positives<br><span class="value" id="false_positives"></span></span>
+        </div>
+      </div>
+
+      <div id="results">
+	<h1>Results</h1>
+	<p>The bayes factor is calculated by dividing the <span class="emphasis">Sensitivity</span> by the <span class="emphasis false">False Positive</span> rate</p>
+        <div class="boxes">
+          <span class="box bayes">Bayes Factor<br><span class="value" id="bayes"></span></span>
+        </div>
+	<p>The actual probability that a positive result is accurate is calculated by multiplying the <span class="emphasis">Prior</span> by the <span class="emphasis bayes">Bayes Factor</span></p>
+        <div class="boxes">
+	  <span class="box percent">Percent<br><span class="value" id="result_percent"></span></span>
+	  <span class="box odds">Odds<br><span class="value" id="result_odds"></span></span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+
+function scale_number(n){
+    let out = 10;
+    while (n > 10){
+        out *= 10
+        n -= 10
+    }
+    return out * n;
+}
+
+function update(){
+    let prior_left = document.getElementById("priors_odds_left").value;
+    let prior_sample = scale_number(document.getElementById("priors_odds_right").value);
+    if (prior_left >= prior_sample) prior_left = prior_sample - 1;
+    let prior_right = prior_sample - prior_left;
+    let prior_percent = 100.0 * prior_left / prior_sample;
+    document.getElementById("prior_percent").innerHTML = prior_percent.toFixed(2) + "%";
+    document.getElementById("prior_odds").innerHTML = prior_left + ":" + prior_right;
+    document.getElementById("prior_sample").innerHTML = prior_sample;
+
+    let sensitivity = document.getElementById("sensitivity_range").value;
+    let sensitivity_max = document.getElementById("sensitivity_range").max;
+    let sensitivity_percent = 100.0 * sensitivity / sensitivity_max;
+    let sensitivity_left = sensitivity;
+    let sensitivity_right = sensitivity_max - sensitivity;
+    document.getElementById("sensitivity_percent").innerHTML = sensitivity_percent.toFixed(2) + "%";
+    document.getElementById("sensitivity_odds").innerHTML = sensitivity_left + ":" + sensitivity_right;
+    document.getElementById("true_positives").innerHTML = sensitivity_percent.toFixed(2) + "%";
+    document.getElementById("false_negatives").innerHTML = (100 - sensitivity_percent).toFixed(2) + "%";
+
+    let specificity = document.getElementById("specificity_range").value;
+    let specificity_max = document.getElementById("specificity_range").max;
+    let specificity_percent = 100.0 * specificity / specificity_max;
+    let specificity_left = specificity;
+    let specificity_right = specificity_max - specificity;
+    document.getElementById("specificity_percent").innerHTML = specificity_percent.toFixed(2) + "%";
+    document.getElementById("specificity_odds").innerHTML = specificity_left + ":" + specificity_right;
+    document.getElementById("true_negatives").innerHTML = specificity_percent.toFixed(2) + "%";
+    document.getElementById("false_positives").innerHTML = (100 - specificity_percent).toFixed(2) + "%";
+
+    let bayes = sensitivity_percent / (100 - specificity_percent);
+    document.getElementById("bayes").innerHTML = bayes;
+    let result_odds_left = prior_left * bayes;
+    let result_odds_right = prior_right;
+    let result_percent = 100.0 * result_odds_left / (result_odds_right + result_odds_left);
+    document.getElementById("result_percent").innerHTML = result_percent.toFixed(2) + "%";
+    document.getElementById("result_odds").innerHTML = result_odds_left.toFixed(0) + ":" + result_odds_right;
+}
+
+update();
+
+    </script>
+  </body>
+</html>
