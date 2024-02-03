@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-
-<html>
-  <head>
+<html class=" mmuageppa idc0_343"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Codey</title>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=820px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=820px, user-scalable=no"> <!-- disabled in iOS 10+ -->
+    <script src="/apps/shared/confetti.js"></script>
     <style>
       body {
           background:#fff;
@@ -13,22 +13,27 @@
       }
 
       #content{
-      text-align: left;
-      width:768px;
-      margin: auto;
+          text-align: left;
+      }
+
+      #header{
+          width: 768px;
+          margin: auto;
       }
 
       h1 {
           margin:10px;
           font-size:3em;
-      display: inline-block;
-      vertical-align:middle
+          display: inline-block;
+          vertical-align:middle
       }
 
       #canvas_container {
-          position: relative;
+          position: absolute;
           margin: 10px auto 0 auto;
           width: 768px;
+          height: calc(100% - 100px);
+          display: inline-block;
       }
 
       canvas {
@@ -37,93 +42,98 @@
           top: 0;
           left: 0;
           border: 0px solid black;
+          height: 100%;
       }
 
       #settings {
           display: inline-block;
-      vertical-align:middle
+          vertical-align:middle
       }
 
       .column {
-      #border:1px solid red;
-      display: inline-block;
-      margin-left: 20px;
-      vertical-align:middle
+          #border:1px solid red;
+          display: inline-block;
+          margin-left: 20px;
+          vertical-align:middle
       }
 
       button {
-      height:40px;
+          height:40px;
       }
 
-    .hidden{
-        display: none;
-    }
+      .hidden{
+          display: none;
+      }
     </style>
   </head>
     <body onresize="resize_canvas();">
     <div id="content">
-      <h1>Codey</h1>
-      <div id="settings">
-        <div class="column">
-          Pegs:
-          <select id="pegs">
-            <option value="3">3</option>
-            <option value="4" selected>4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-          </select>
-          <br>
 
-          Colors:
-          <select id="colors">
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6" Selected>6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-          </select>
+      <div id="header">
+        <h1>Codey</h1>
+        <div id="settings">
+          <div class="column">
+            Pegs:
+            <select id="pegs">
+              <option value="3">3</option>
+              <option value="4" selected="selected">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+            </select>
+            <br>
+
+            Colors:
+            <select id="colors">
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6" selected="selected">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+          </div>
+
+          <div class="column">
+            <input type="checkbox" id="duplicates" name="duplicates" value="duplicates">
+            <label for="duplicates"> Allow duplicate colors</label>
+            <br>
+            <input type="checkbox" id="empties" name="empties" value="empties">
+            <label for="empties"> Allow empty</label>
+          </div>
+
+
+          <div class="column">
+            <button id="newgame" onclick="new_game();">New Game</button>
+          </div>
+
+          <div class="column">
+            <span id="sharespan"><a href="https://yingster.net/apps/codey/?eyJwZWdzIjo0LCJjb2xvcnMiOjEwLCJkdXBsaWNhdGVzIjp0cnVlLCJlbXB0aWVzIjp0cnVlLCJzb2x1dGlvbiI6WzYsMywxLDVdfQ==" id="share">Share</a></span>
+          </div>
+
+          <div class="column">
+            <button onclick="document.getElementById('help').classList.toggle('hidden');">Help</button>
+          </div>
         </div>
+        <div id="help" class="hidden">
+          <h2>About</h2>
+          <p>Codey is a game where you try to deduce the chosen code of colors by guessing and receiving feedback on your guesses.</p>
 
-        <div class="column">
-          <input type="checkbox" id="duplicates" name="duplicates" value="duplicates">
-          <label for="duplicates"> Allow duplicate colors</label>
-          <br>
-          <input type="checkbox" id="empties" name="empties" value="empties">
-          <label for="empties"> Allow empty</label>
-        </div>
-
-
-        <div class="column">
-          <button id="newgame" onclick="new_game();">New Game</button>
-        </div>
-
-        <div class="column">
-          <span id="sharespan"><a href="#" id="share">Share</a></span>
-        </div>
-
-        <div class="column">
-          <button onclick="document.getElementById('help').classList.toggle('hidden');">Help</button>
+          <h2>Rules</h2>
+          <p>Place as many pegs as you wish in the current row (the one next to the check mark).</p>
+          <p>After completing your guess, press the checkmark to have your guess evaluated.</p>
+          <p><b>Black</b> scoring pegs indicate that there is a correct color in a correct spot</p>
+          <p><b>White</b> scoring pegs indicate that there is a correct color in an incorrect spot</p>
+          <p>Note that the scoring pegs do not correlate to any specific position in your guess.</p>
         </div>
       </div>
-    <div id="help" class="hidden">
-    <h2>About</h2>
-    <p>Codey is a game where you try to deduce the chosen code of colors by guessing and receiving feedback on your guesses.</p>
 
-    <h2>Rules</h2>
-    <p>Place as many pegs as you wish in the current row (the one next to the check mark).</p>
-    <p>After completing your guess, press the checkmark to have your guess evaluated.</p>
-    <p><b>Black</b> scoring pegs indicate that there is a correct color in a correct spot</p>
-    <p><b>White</b> scoring pegs indicate that there is a correct color in an incorrect spot</p>
-    <p>Note that the scoring pegs do not correlate to any specific position in your guess.</p>
-    </div>
-      <div id="canvas_container">
+      <div id="canvas_container" style="width: 603px; height: 804px; left: 599.5px;">
         <canvas id="canvas" width="768px" height="1024px"></canvas>
         <canvas id="overlay" width="768px" height="1024px"></canvas>
       </div>
     </div>
-  </body>
+  
   <script>
 // comment
 
@@ -142,6 +152,7 @@ let num_guesses = 10;
 let num_pegs = 4;
 let num_colors = 6;
 let guesses = [];
+let buttons = [];
 let current_guess = 0;
 let game_active = false;
 let peg_radius = 15;
@@ -196,12 +207,15 @@ function getTouchPosition(overlay, event){
     if(e.touches) {
         if (e.touches.length == 1) { // Only deal with one finger
             var touch = e.touches[0]; // Get the information for finger #1
-            x = touch.pageX-touch.target.offsetLeft - 30;
-            y = touch.pageY-touch.target.offsetTop - 100;
+            x = touch.pageX-touch.target.getBoundingClientRect().left;
+            y = touch.pageY-touch.target.getBoundingClientRect().top;
         }
     }
 
-    return {x:x, y:y};
+    // Scale input
+    let scale = overlay.height / overlay.getBoundingClientRect().height;
+
+    return {x:x * scale, y:y * scale};
 }
 
 function input_down_touch(e){
@@ -233,7 +247,10 @@ function getCursorPosition(overlay, event){
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    return {x:x, y:y};
+    // Scale input
+    let scale = overlay.height / overlay.getBoundingClientRect().height;
+
+    return {x:x * scale, y:y* scale};
 }
 
 function input_down_mouse(e){
@@ -256,18 +273,22 @@ function input_down(pos){
     mouse_pos = pos;
 
     // Check if button pressed - has precidence
-    if(!submit.press(pos)){
+    let press_button = false;
+    for (let button of buttons)
+        if(button.press(pos))
+            press_button = true;
 
+    if (!press_button)
         // Try selecting a peg
         selected_color = select_color(pos);
-    }
 
     redraw_game();
 }
 
 function input_move(pos){
     mouse_pos = pos;
-    submit.move(pos);
+    for (let button of buttons)
+        button.move(pos);
     redraw_game();
 }
 
@@ -276,7 +297,19 @@ function input_up(pos){
     mouse_pos = pos;
 
     // Try pressing the button
-    if (submit.unpress(pos)) guesses[current_guess].score();
+    for (let b of buttons)
+        if (b.unpress(pos))
+            if (b.type == "submit") {
+                guesses[current_guess].score();
+                // Add new button for copying
+                buttons.push(new button(octx, "⬆︎", "#888888", b.row, "copy", "50px Arial"));
+                // Move submit button
+                b.row++;
+            } else if (b.type == "copy"){
+                guesses[current_guess].guess_pegs = [];
+                for (let peg of guesses[b.row].guess_pegs)
+                    guesses[current_guess].guess_pegs.push(peg)
+            }
 
     // Try placing a peg
     if (selected_color != -1)
@@ -346,11 +379,15 @@ function place_peg(p, c){
 }
 
 class button{
-    constructor(ctx, icon){
+    constructor(ctx, icon, color, row, type, style){
         this.ctx = ctx;
         this.pressed = false;
         this.hover = false
-        this.icon = icon
+        this.icon = icon;
+        this.type = type;
+            this.color = color;
+            this.style = style;
+        this.row = row;
         this.position = {
             x:60,
             y:0,
@@ -360,10 +397,10 @@ class button{
     }
 
     inbounds(p){
-        if (p.x >= submit.position.x &&
-            p.y >= submit.position.y &&
-            p.x <= submit.position.x + submit.position.w &&
-            p.y <= submit.position.y + submit.position.h)
+        if (p.x >= this.position.x &&
+            p.y >= this.position.y &&
+            p.x <= this.position.x + this.position.w &&
+            p.y <= this.position.y + this.position.h)
             return true;
         return false;
     }
@@ -393,7 +430,7 @@ class button{
     }
 
     render(){
-        this.position.y = 932 - (87 * current_guess);
+        this.position.y = 932 - (87 * this.row);
 
         draw_rounded_rect(
             this.ctx,
@@ -445,9 +482,10 @@ class button{
             0
         );
 
-        this.ctx.font = "30px Arial";
-        this.ctx.fillStyle = "#00DD22";
-        this.ctx.fillText(this.icon, this.position.x + 10, this.position.y + 35);
+        this.ctx.font = this.style;
+        this.ctx.textAlign = "center";
+        this.ctx.fillStyle = this.color;
+        this.ctx.fillText(this.icon, this.position.x + (this.position.w / 2), this.position.y + 35);
     }
 }
 
@@ -638,7 +676,7 @@ class guess_row{
 
 function draw_background(ctx){
     // Clear
-    octx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     // Draw tray
     draw_rounded_rect(ctx, 512-32, 32, 256+32, 1024-64, 23, "#444444", "#000000", 1);
@@ -682,7 +720,7 @@ function draw_background(ctx){
     }
 
     // Draw background
-    draw_rounded_rect(ctx, 0, 0, 512, 1024, 16, "#BBBBBB", "#888888", 1);
+    draw_rounded_rect(ctx, 1, 1, 511, 1023, 16, "#BBBBBB", "#888888", 1);
     draw_rounded_rect(ctx, 32, 128, 450, 870, 16, "#BBBBBB", "#888888", 1);
     spacing = 870/(num_guesses);
     y = 128 + spacing;
@@ -692,10 +730,14 @@ function draw_background(ctx){
     }
 
     // Draw area for answer
-    ctx.fillStyle = "#aaaaaa";
     ctx.lineWidth = 1;
     ctx.strokeStyle = "#777777";
+
+    ctx.fillStyle = "#bbbbbb";
+    ctx.fillRect(85, 30, 300, 20);
     ctx.strokeRect(85, 30, 300, 20);
+
+    ctx.fillStyle = "#aaaaaa";
     ctx.fillRect(85, 50, 300, 40);
     ctx.strokeRect(85, 50, 300, 40);
 
@@ -712,6 +754,47 @@ function draw_background(ctx){
     ctx.restore();
 }
 
+let animation_request;
+let animation_start;
+function animate_answer_reveal(ts){
+    // First animation has no time stamp, so get one
+    if (ts == undefined){
+        animation_request = window.requestAnimationFrame(animate_answer_reveal);
+        return;
+    }
+    if (animation_start == undefined)
+        animation_start = ts;
+
+    let ms = ts - animation_start;
+    let max = 250;
+    if (ms > max) ms = max;
+
+    // Draw grey over current cover
+    octx.fillStyle = "#bbbbbb";
+    octx.fillRect(80, 25, 310, 85);
+
+    // Draw solution
+    solution.render();
+
+    // Draw moving cover
+    octx.lineWidth = 1;
+    octx.strokeStyle = "#777777";
+
+    octx.fillStyle = "#bbbbbb";
+    octx.fillRect(  85, 30 + (ms * (60/max)), 300, 20 + (ms * (25/max)));
+    octx.strokeRect(85, 30 + (ms * (60/max)), 300, 20 + (ms * (25/max)));
+
+    octx.fillStyle = "#aaaaaa";
+    octx.fillRect(  85, 50 + (ms * (75/max)), 300, 40 - (ms * (25/max)));
+    octx.strokeRect(85, 50 + (ms * (75/max)), 300, 40 - (ms * (25/max)));
+
+    // If we get to 500 MS, we're finished
+    if (ms < max)
+        animation_request = window.requestAnimationFrame(animate_answer_reveal);
+    else
+        animation_start = undefined;
+}
+
 function draw_guesses(){
     for (let i=0; i<guesses.length; i++)
         guesses[i].render();
@@ -726,12 +809,14 @@ function redraw_game(){
 
     // Draw button
     if (game_active)
-        submit.render();
+        for (let button of buttons)
+            button.render();
 
     // Draw peg that user is moving
     if (mouse_down == true && selected_color != -1)
         draw_circle(octx, mouse_pos.x, mouse_pos.y, peg_radius*1.4, colors[selected_color], colors_darker[selected_color], 2);
 
+    /*
     // If game is over draw the code
     if (game_active == false) {
         // Draw over shield
@@ -751,7 +836,8 @@ function redraw_game(){
 
         // Draw solution
         solution.render();
-    }
+        }
+    */
 
     // DEBUG
     //octx.fillStyle = "#000000";
@@ -801,7 +887,7 @@ function new_game(gamestate=null){
     // Clear variables
     game_active = true;
     mouse_down = false;
-    selected_color = 0;
+    selected_color = -1;
     current_guess = 0;
 
     if (gamestate != null) {
@@ -853,19 +939,25 @@ function new_game(gamestate=null){
         solution   : solution.guess_pegs
     });
 
+    // Create first submit button
+    buttons = [];
+    buttons.push(new button(octx, "✔︎", "#00DD22", 0, "submit", "30px Arial"));
+
     redraw_game();
 }
 
 function game_over(win){
     game_active = false;
-    redraw_game();
-    if (win)
-        alert("You won!");
-    else
-        alert("You lose!");
-}
+    animate_answer_reveal();
 
-let submit = new button(octx, "✔︎");
+    //redraw_game();
+
+    if (win)
+        make_confetti();
+    //    alert("You won!");
+    //else
+    //    alert("You lose!");
+}
 
 function first_load(){
     // Check for URL to see if there is existing game
@@ -874,6 +966,8 @@ function first_load(){
         var game_state = decode_game_link(game_id);
 
     new_game(game_state);
+
+    resize_canvas();
 }
 
 function create_game_link(game){
@@ -887,9 +981,28 @@ function decode_game_link(c2){
 }
 
 function resize_canvas(){
+    let canvas_width = document.getElementById("overlay").getBoundingClientRect().width;
+    let canvas_height = document.getElementById("overlay").getBoundingClientRect().height;
+
+    let window_width = window.innerWidth - 20;
+    let window_height = window.innerHeight - 100;
+
+    // Determine max size that can fit in window
+    let scale_width  = window_width  / 768;
+    let scale_height = window_height / 1024;
+    let scale = Math.min(scale_height, scale_width, 1);
+
+    // Scale the canvases
+    document.getElementById("canvas_container").style.width  = 768  * scale  + "px";
+    document.getElementById("canvas_container").style.height = 1024 * scale + "px";
+
+    // Scale and position canvas container
+    document.getElementById("canvas_container").style.left = (window.innerWidth / 2) - (768 * scale / 2) + "px";
 }
 
 first_load();
 
   </script>
-</html>
+
+
+</body></html>
