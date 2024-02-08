@@ -1,0 +1,350 @@
+<html>
+  <head>
+    <title>Dots</title>
+    <style>
+      body {
+          background:#aaa;
+      }
+      #content {
+          background:#fff;
+          width: 1024px;
+          margin: auto;
+          padding: 5px 20px;
+      }
+      canvas {
+          border: 1px solid black;
+      }
+      hidden {
+          display: none;
+      }
+      .settings {
+          border-radius: 10px;
+          background: #eee;
+          padding: 10px;
+          display: inline-block;
+          margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+    <h1>Dots</h1>
+    <canvas id="canvas"></canvas>
+    <div id="settings" class="settings">
+      Number of Players:
+      <select id="players">
+        <option value="2" selected="selected">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+
+      Size:
+      <select id="size">
+        <option value="175">Small</option>
+        <option value="100" selected="selected">Medium</option>
+        <option value="50">Large</option>
+      </select>
+
+      <button id="start" onclick="new_game();">Start</button>
+    </div>
+
+    <p class="settings">Current Player: <span id="player"></span></p>
+    <p class="settings">Scores: <span id="scores"></span></p>
+    </div>
+  </body>
+  <script>
+
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
+    let size;
+    let game;
+    let num_players;
+    let current_player;
+    let game_active = false;
+    let mouse_down = false;
+
+    let colors = [
+        ["#880000","#ff0000","#ff8888"],
+        ["#008800","#00ff00","#88ff88"],
+        ["#000088","#0000ff","#8888ff"],
+        ["#888800","#ffff00","#ffff88"],
+        ["#008888","#00ffff","#88ffff"],
+        ["#880088","#ff00ff","#ff88ff"],
+        ["#000000","#000000","#888888"]
+    ];
+
+    // Touch listeners
+    canvas.addEventListener('touchstart', input_down_touch, false);
+    canvas.addEventListener('touchmove',  input_move_touch, false);
+    canvas.addEventListener('touchend',   input_up_touch, false);
+
+    function getTouchPosition(canvas, event){
+        if (!e)
+            var e = event;
+
+        var x = null;
+        var y = null;
+
+        if(e.touches) {
+            if (e.touches.length == 1) { // Only deal with one finger
+                var touch = e.touches[0]; // Get the information for finger #1
+                x = touch.pageX-touch.target.getBoundingClientRect().left;
+                y = touch.pageY-touch.target.getBoundingClientRect().top;
+            }
+        }
+
+        // Scale input
+        let scale = canvas.height / canvas.getBoundingClientRect().height;
+
+        return {x:x * scale, y:y * scale};
+    }
+
+    function input_down_touch(e){
+    if (!game_active) return;
+        input_down(getTouchPosition(canvas, e));
+        e.preventDefault();
+    }
+
+    function input_move_touch(e){
+        if (!mouse_down) return;
+        input_move(getTouchPosition(canvas, e));
+        e.preventDefault();
+    }
+
+    function input_up_touch(e){
+        if (!mouse_down) return;
+        input_up(mouse_pos);
+        e.preventDefault();
+    }
+
+    // Mouse listeners
+    canvas.addEventListener("contextmenu", (e) => {e.preventDefault()}); // Disable context menu on canvas
+    canvas.addEventListener('mousedown',  input_down_mouse);
+    canvas.addEventListener('mousemove',  input_move_mouse);
+    canvas.addEventListener('mouseup',    input_up_mouse);
+
+    function getCursorPosition(canvas, event){
+        // Determine where clicked
+        const rect = canvas.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
+
+        return {x:x, y:y};
+    }
+
+    function input_down_mouse(e){
+        if (!game_active) return;
+        input_down(getCursorPosition(canvas, e))
+    }
+
+    function input_move_mouse(e){
+        if (!mouse_down) return;
+        if (!game_active) return;
+    }
+
+    function input_up_mouse(e){
+        mouse_down = false;
+    }
+
+    function input_down(coords){
+        mouse_down = true;
+
+        let moved = 0;
+        for (let square of game){
+            moved = Math.max(moved, square.clicked(coords, current_player));
+        }
+
+        // Advance Character
+        if (moved == 1)
+            current_player++;
+        current_player %= num_players;
+
+        // Redraw
+        render_game();
+    }
+
+    function new_game() {
+        read_settings();
+        game_active = true;
+        current_player = 0;
+
+        // Create game
+        game = [];
+        let max_x = Math.floor(canvas.width / size);
+        let max_y = Math.floor(canvas.height / size);
+        let padding_x = (canvas.width - (max_x * size)) / 2;
+        let padding_y = (canvas.height - (max_y * size)) / 2;
+
+        for (let x=0; x<max_x; x++)
+            for (let y=0; y<max_y; y++)
+                game.push(new square(ctx, size, x, y, padding_x, padding_y));
+
+
+        // Draw game to canvas
+        render_game();
+    }
+
+    function clear_canvas(){
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function draw_circle(ctx, x, y, r, c1, c2, l=0){
+        ctx.fillStyle = c1;
+        ctx.lineWidth = l;
+        ctx.strokeStyle = c2;
+
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, 2 * Math.PI);
+
+        ctx.fill();
+        if (l>0)
+            ctx.stroke();
+    }
+
+    function render_game(){
+        clear_canvas();
+
+        // Draw squares
+        for (let square of game){
+            square.render();
+        }
+
+        // Tabulate scores
+        let scores = [0,0,0,0,0,0,0,0];
+        let gameover = true
+        for (let square of game)
+            if (square.closer >= 0)
+                scores[square.closer]++
+            else
+                gameover = false;
+
+        // Update scores etc
+        document.getElementById("player").innerHTML = current_player + 1;
+        let score_string = "";
+        for (let i=0; i<num_players; i++)
+            score_string += "Player " + (i+1) + ": " + scores[i] + ", ";
+        document.getElementById("scores").innerHTML = score_string;
+
+        // Check for game over
+        if (gameover){
+            let winner = [0,0];
+            for (let i in scores)
+                if (scores[i] > winner[1])
+                    winner = [i+1, scores[i]];
+            game_active = false;
+            window.alert("Game Over! Player " + winner[0] + " wins!");
+        }
+    }
+
+    function first_run() {
+        canvas.width = 1024;
+        canvas.height = 768;
+    }
+
+    function read_settings() {
+        num_players = Number(document.getElementById("players").value);
+        size = Number(document.getElementById("size").value);
+    }
+
+    class square {
+        constructor(ctx, size, x, y, padx, pady) {
+            this.ctx  = ctx;
+            this.size = size;
+
+            this.closer = -1;
+
+            // Convert to pixel location
+            let pixx = x * size + padx;
+            let pixy = y * size + pady;
+
+            this.pos = {
+                x: pixx,
+                y: pixy,
+                w: size,
+                h: size
+            }
+
+            this.lines = [
+                {x1: pixx,        y1: pixy,        x2: pixx + size, y2: pixy,        o: -1}, // Top
+                {x1: pixx + size, y1: pixy,        x2: pixx + size, y2: pixy + size, o: -1}, // Right
+                {x1: pixx + size, y1: pixy + size, x2: pixx,        y2: pixy + size, o: -1}, // Bottom
+                {x1: pixx,        y1: pixy + size, x2: pixx,        y2: pixy,        o: -1}  // Left
+            ]
+        }
+
+        render_lines() {
+            for (let line of this.lines){
+                if (line.o > -1) {
+                    this.ctx.strokeStyle = colors[line.o][1];
+                    this.ctx.lineWidth = 3;
+
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(line.x1, line.y1);
+                    this.ctx.lineTo(line.x2, line.y2);
+                    this.ctx.stroke();
+                }
+            }
+        }
+
+        render_square() {
+            if (this.closer == -1) return;
+
+            this.ctx.fillStyle = colors[this.closer][2];
+            this.ctx.fillRect(this.pos.x, this.pos.y, this.pos.w, this.pos.h);
+        }
+
+        render_dots() {
+            for (let corner of this.lines)
+                draw_circle(this.ctx, corner.x1, corner.y1, 3, "#000000", "#000000", 0);
+        }
+
+        render() {
+            this.render_square();
+            this.render_lines();
+            this.render_dots();
+        }
+
+        closed(){
+            for (let line of this.lines)
+                if (line.o == -1)
+                    return false;
+
+            return true;
+        }
+
+        clicked(p, current_player){
+            let padding = 3;
+            let radius = Math.sqrt(this.size**2) / (2 * Math.sqrt(2));
+
+            for (let line of this.lines){
+                // Don't process if already drawn
+                if (line.o != -1) continue;
+
+                let center = {
+                    x: (line.x1 + line.x2) / 2,
+                    y: (line.y1 + line.y2) / 2
+                };
+
+                let distance = Math.abs(Math.hypot(center.x - p.x, center.y - p.y));
+
+                if (distance < radius) {
+                    line.o = current_player;
+
+                    // Check if box is now closed
+                    if (this.closed()){
+                        this.closer = current_player;
+                        return 2;
+                    }
+
+                    return 1;
+                }
+
+            }
+
+            return 0;
+        }
+    }
+
+    first_run();
+  </script>
+</html>
