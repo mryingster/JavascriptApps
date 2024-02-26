@@ -1,0 +1,127 @@
+<html>
+  <head>
+    <title></title>
+    <style>
+    body {
+        background: #000;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+
+    <svg id="dvd" xmlns="http://www.w3.org/2000/svg" width="500" viewBox="0 0 210 107" style="position:absolute; top:0px; left: 0px" fill="#ff0000">
+        <path d="M118.895,20.346c0,0-13.743,16.922-13.04,18.001c0.975-1.079-4.934-18.186-4.934-18.186s-1.233-3.597-5.102-15.387H81.81H47.812H22.175l-2.56,11.068h19.299h4.579c12.415,0,19.995,5.132,17.878,14.225c-2.287,9.901-13.123,14.128-24.665,14.128H32.39l5.552-24.208H18.647l-8.192,35.368h27.398c20.612,0,40.166-11.067,43.692-25.288c0.617-2.614,0.53-9.185-1.054-13.053c0-0.093-0.091-0.271-0.178-0.537c-0.087-0.093-0.178-0.722,0.178-0.814c0.172-0.092,0.525,0.271,0.525,0.358c0,0,0.179,0.456,0.351,0.813l17.44,50.315l44.404-51.216l18.761-0.092h4.579c12.424,0,20.09,5.132,17.969,14.225c-2.29,9.901-13.205,14.128-24.75,14.128h-4.405L161,19.987h-19.287l-8.198,35.368h27.398c20.611,0,40.343-11.067,43.604-25.288c3.347-14.225-11.101-25.293-31.89-25.293h-18.143h-22.727C120.923,17.823,118.895,20.346,118.895,20.346L118.895,20.346z"/>
+        <path d="M99.424,67.329C47.281,67.329,5,73.449,5,81.012c0,7.558,42.281,13.678,94.424,13.678c52.239,0,94.524-6.12,94.524-13.678C193.949,73.449,151.664,67.329,99.424,67.329z M96.078,85.873c-11.98,0-21.58-2.072-21.58-4.595c0-2.523,9.599-4.59,21.58-4.59c11.888,0,21.498,2.066,21.498,4.59C117.576,83.801,107.966,85.873,96.078,85.873z"/>
+      </svg>
+
+    </div>
+  </body>
+  <script>
+
+// Keyboard listeners
+document.addEventListener('keydown', function(e) {
+    //console.log(e.keyCode);
+
+    // Space for full screen
+    if (e.keyCode == 32)
+        fullscreen();
+
+    // Up arrow
+    if (e.keyCode == 38)
+        speed_multiplier = Math.min(speed_multiplier + 1, 50);
+
+    // Down arrow
+    if (e.keyCode == 40)
+        speed_multiplier = Math.max(speed_multiplier - 1, 1);
+
+});
+
+let speed = { x:1,   y:1 };
+let size  = { x:500, y:255 }
+let pos   = { x:5,   y:5 };
+let color = 0;
+let speed_multiplier = 5;
+let animation_request;
+let last_frame = 0;
+
+function loop(ts) {
+    // First animation has no time stamp, so get one
+    if (ts == undefined){
+        animation_request = window.requestAnimationFrame(loop);
+        return;
+    }
+
+    if (last_frame == undefined)
+        last_frame = ts;
+
+    let ms = ts - last_frame;
+    last_frame = ts;
+
+    // Move the logo
+    pos.y += (speed.y * ms * .01 * speed_multiplier);
+    pos.x += (speed.x * ms * .01 * speed_multiplier);
+
+    // Bounce
+    if (pos.x + size.x >= window.innerWidth) {
+        pos.x = window.innerWidth - size.x - 1;
+        speed.x *= -1;
+    }
+
+    if (pos.x < 0) {
+        pos.x = 0;
+        speed.x *= -1;
+    }
+
+    if (pos.y + size.y >= window.innerHeight) {
+        pos.y = window.innerHeight - size.y - 1;
+        speed.y *= -1;
+    }
+
+    if (pos.y < 0) {
+        pos.y = 0;
+        speed.y *= -1;
+    }
+
+    // Change the color
+    color += (ms * .02);
+    if (color >= 360) color -= 360;
+
+    // Do it
+    let dvd = document.getElementById("dvd");
+    dvd.style.top = pos.y + "px";
+    dvd.style.left = pos.x + "px";
+    dvd.style.fill = "hsl("+color+",100%,50%)"
+
+    animation_request = window.requestAnimationFrame(loop);
+}
+
+function fullscreen() {
+    if ((document.fullScreenElement && document.fullScreenElement !== null) ||  // alternative standard method
+        (!document.mozFullScreen && !document.webkitIsFullScreen)) {            // current working methods
+        if (document.documentElement.requestFullScreen) {
+            document.documentElement.requestFullScreen();
+        } else if (document.documentElement.mozRequestFullScreen) {
+            document.documentElement.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullScreen) {
+            document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        }
+    } else {
+        if (document.cancelFullScreen) {
+            document.cancelFullScreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitCancelFullScreen) {
+            document.webkitCancelFullScreen();
+        }
+    }
+}
+
+function first_run() {
+    loop();
+}
+
+first_run();
+
+  </script>
+</html>
