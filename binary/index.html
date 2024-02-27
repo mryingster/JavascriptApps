@@ -2,189 +2,302 @@
   <head>
     <title></title>
     <style>
-      .button {
-          display: inline-block;
-          background: #ccc;
-          width: 30;
-          height: 25;
-          text-align: center;
-          border: outset 3px;
-          padding-top: 5;
-      }
-      .boundary {
-          margin-right:5px;
-      }
-      .button:hover {
-          background: #eee;
-          cursor: pointer;
-      }
-      .button:active {
-          background: #999;
-      }
-      .toggled {
-          background: #888;
-          border: inset 3px;
-      }
-      .toggled:hover {
-          background: #666;
-          border: inset 3px;
-      }
-      .invalid {
-          color: #aa0000;
-      }
+    .button {
+        display: inline-block;
+        background: #ccc;
+        width: 30;
+        height: 25;
+        text-align: center;
+        border: outset 3px;
+        padding-top: 5;
+    }
+    .boundary {
+        margin-right:5px;
+    }
+    .button:hover {
+        background: #eee;
+        cursor: pointer;
+    }
+    .button:active {
+        background: #999;
+    }
+    .toggled {
+        background: #888;
+        border: inset 3px;
+    }
+    .toggled:hover {
+        background: #666;
+        border: inset 3px;
+    }
+    .invalid {
+        color: #aa0000;
+    }
+    .number {
+        border: 2px solid #aaa;
+        background: #eee;
+        padding: 10px;
+        border-radius: 10px;
+        display: block;
+        width: 1493;
+        margin-bottom: 10px;
+    }
+    .value {
+        margin: 5px;
+        width: 125px;
+        font-size: 17px;
+    }
+    .label {
+        display: block;
+    }
+
     </style>
   </head>
   <body>
     <div id="content">
+    <div id="input"></div>
+    <div id="operations">
+
+    <input type="radio" id="add" onclick="calc_result();" name="op" value="add" checked><label for="add">+</label>
+    <input type="radio" id="sub" onclick="calc_result();" name="op" value="sub"><label for="sub">-</label>
+    <input type="radio" id="mul" onclick="calc_result();" name="op" value="mul"><label for="mul">&times;</label>
+    <input type="radio" id="div" onclick="calc_result();" name="op" value="div"><label for="div">&divide;</label>
+    <input type="radio" id="and" onclick="calc_result();" name="op" value="and"><label for="and">AND</label>
+    <input type="radio" id="or"  onclick="calc_result();" name="op" value="or" ><label for="or" >OR</label>
+    <input type="radio" id="xor" onclick="calc_result();" name="op" value="xor"><label for="xor">XOR</label>
+
+</div>
+    <div id="output"></div>
     </div>
   </body>
   <script>
 
-    class button{
-        constructor(value){
-            this.value = 2 ** value;
-            // Create element
-            this.div = document.createElement("div");
-            this.div.innerHTML = "0";
-            this.div.classList.add("button");
-            if (value % 4 == 0)
-                this.div.classList.add("boundary");
-            this.div.onclick = () => this.toggle();
+class button {
+    constructor(value, parent, update_function) {
+        this.value = 2 ** value;
 
-            //this.div.onclick = () => this.div.classList.toggle("toggled");
-            //this.div.onClick = function() { this.classList.toggle("toggled") };
+        // Create element
+        this.div = document.createElement("div");
+        this.div.innerHTML = "0";
+        this.div.classList.add("button");
+        if (value % 4 == 0)
+            this.div.classList.add("boundary");
+        this.div.onclick = () => this.toggle();
 
-            document.body.appendChild(this.div)
-        }
+        //this.div.onclick = () => this.div.classList.toggle("toggled");
+        //this.div.onClick = function() { this.classList.toggle("toggled") };
 
-        toggle(n=-1){
-            if (n == 0) {
-                this.div.classList.remove("toggled")
-                this.div.innerHTML = "0";
-                this.toggled = false;
-            }
+        parent.appendChild(this.div)
 
-            if (n == 1) {
-                this.div.classList.add("toggled");
-                this.div.innerHTML = "1";
-                this.toggled = true;
-            }
-
-            if (n == -1) {
-                if (this.toggled)
-                    this.toggle(0)
-                else
-                    this.toggle(1)
-                update_binary();
-            }
-        }
+        this.update_function = update_function;
     }
 
-    function tohex(n) {
+    toggle(n=-1) {
+        if (n == 0) {
+            this.div.classList.remove("toggled")
+            this.div.innerHTML = "0";
+            this.toggled = false;
+        }
+
+        if (n == 1) {
+            this.div.classList.add("toggled");
+            this.div.innerHTML = "1";
+            this.toggled = true;
+        }
+
+        if (n == -1) {
+            if (this.toggled)
+                this.toggle(0)
+            else
+                this.toggle(1)
+            this.update_function();
+        }
+    }
+}
+
+class integer {
+    constructor(label, parent, interactive) {
+        this.interactive = interactive;
+
+        this.div = document.createElement("div");
+        this.div.classList.add("number");
+        if (!interactive)
+            this.div.style = "pointer-events:none;";
+
+        this.label = document.createElement("span");
+        this.label.innerHTML = label;
+        this.label.classList.add("label");
+        this.div.appendChild(this.label);
+
+        this.binary = [];
+        for (let i=31; i>=0; i--) {
+            this.binary.push(new button(i, this.div, () => this.update_binary()));
+        }
+
+        this.decimal = document.createElement("input");
+        this.decimal.classList.add("value");
+        this.decimal.oninput = () => this.update_decimal();
+        this.div.appendChild(this.decimal);
+
+        this.hex = document.createElement("input");
+        this.hex.classList.add("value");
+        this.hex.oninput = () => this.update_hex();
+        this.div.appendChild(this.hex);
+
+        this.clear = document.createElement("button");
+        this.clear.innerHTML = "C";
+        this.clear.onclick = () => this.update_all(0);
+        this.div.appendChild(this.clear)
+
+        parent.appendChild(this.div);
+
+        this.update_binary();
+
+        this.value = 0;
+    }
+
+    tohex(n) {
         let h = n.toString(16);
         while (h.length < 8)
             h = "0" + h;
         return "0x" + h;
-        //return h;
     }
 
-    function update_binary() {
-        let n = 0;
-        for (let b of binary)
+    update_all(n) {
+        if (n < this.binary[0].value * 2)
+            this.value = n;
+
+        this.decimal.value = this.value;
+        this.update_decimal();
+    }
+
+    update_binary() {
+        this.value = 0;
+        for (let b of this.binary)
             if (b.toggled)
-                n += b.value;
+                this.value += b.value;
 
-        decimal.value = n;
-        hex.value = tohex(n);
+        this.decimal.value = this.value;
+        this.hex.value = this.tohex(this.value);
+
+        if (this.interactive) calc_result();
     }
 
-    function update_hex() {
-        hex.classList.remove("invalid");
+    update_hex() {
+        this.hex.classList.remove("invalid");
 
         // Ensure strings starts with 0x - Need that for Number to work correctly
-        if (! hex.value.toLowerCase().startsWith("0x"))
-            hex.value = "0x" + hex.value;
+        if (! this.hex.value.toLowerCase().startsWith("0x"))
+            this.hex.value = "0x" + this.hex.value;
 
         // Check for valid characters
         let valid_chars = ["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","X"];
         let number_of_x = 0;
-        for (let c of hex.value.toUpperCase()){
+        for (let c of this.hex.value.toUpperCase()){
             if (c == "X") number_of_x++;
             if (! valid_chars.includes(c) || number_of_x > 1){
-                hex.classList.add("invalid");
+                this.hex.classList.add("invalid");
                 return;
             }
         }
 
-        let value = Number(hex.value);
+        let value = Number(this.hex.value);
 
         // Check for overflow
-        if (value >= binary[0].value * 2){
-            hex.classList.add("invalid");
+        if (value >= this.binary[0].value * 2){
+            this.hex.classList.add("invalid");
             return;
         }
 
+        this.value = value;
+
         // Update Decimal
-        decimal.value = value;
+        this.decimal.value = value;
 
         // Update binary buttons
-        for (let b of binary){
+        for (let b of this.binary){
             b.toggle(0)
             if (value >= b.value) {
                 b.toggle(1);
                 value -= b.value;
             }
         }
+
+        if (this.interactive) calc_result();
     }
 
-    function update_decimal() {
-        decimal.classList.remove("invalid");
+    update_decimal() {
+        this.decimal.classList.remove("invalid");
 
         // Check for valid characters
         let valid_chars = ["0","1","2","3","4","5","6","7","8","9"];
-        for (let c of decimal.value)
+        for (let c of this.decimal.value)
             if (! valid_chars.includes(c)){
-                decimal.classList.add("invalid");
+                this.decimal.classList.add("invalid");
                 return;
             }
 
-        let value = Number(decimal.value);
+        let value = Number(this.decimal.value);
 
         // Check for overflow
-        if (value >= binary[0].value * 2){
-            decimal.classList.add("invalid");
+        if (value >= this.binary[0].value * 2){
+            this.decimal.classList.add("invalid");
             return;
         }
 
+        this.value = value;
+
         // Update HEX
-        hex.value = tohex(value);
+        this.hex.value = this.tohex(value);
 
         // Update binary buttons
-        for (let b of binary){
+        for (let b of this.binary){
             b.toggle(0)
             if (value >= b.value) {
                 b.toggle(1);
                 value -= b.value;
             }
         }
+
+        if (this.interactive) calc_result();
+    }
+}
+
+function calc_result() {
+    try {
+        input;
+        mask;
+        output;
+    } catch(e) {
+        return;
     }
 
-    let binary = [];
-    for (let i=31; i>=0; i--) {
-        binary.push(new button(i));
+    let operation = document.querySelector('input[name="op"]:checked').value;
+
+    if (operation == "add")
+        output.update_all(input.value + mask.value);
+    if (operation == "sub") {
+        let value = Math.max(0, input.value - mask.value);
+        output.update_all(value);
     }
+    if (operation == "mul") {
+        let value = (input.value * mask.value) & 0xffffffff;
+        output.update_all(value);
+    }
+    if (operation == "div") {
+        let value = Math.floor(input.value / mask.value);
+        output.update_all(value);
+    }
+    if (operation == "and")
+        output.update_all(input.value & mask.value);
+    if (operation == "or")
+        output.update_all(input.value | mask.value);
+    if (operation == "xor")
+        output.update_all(input.value ^ mask.value);
+}
 
-    let decimal = document.createElement("input");
-    decimal.classList.add("value");
-    decimal.oninput = () => update_decimal();
-    document.body.appendChild(decimal);
-
-    let hex = document.createElement("input");
-    hex.classList.add("value");
-    hex.oninput = () => update_hex();
-    document.body.appendChild(hex);
-
-    update_binary();
+let input  = new integer("Input 1", document.getElementById("input"),  true);
+let mask   = new integer("Input 2", document.getElementById("input"),  true);
+let output = new integer("Output",  document.getElementById("output"), false);
 
   </script>
 </html>
