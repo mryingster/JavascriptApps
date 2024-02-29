@@ -1,0 +1,119 @@
+<html>
+  <head>
+    <title></title>
+    <style>
+    #copy {
+        width: 512px;
+  font-size: 33px;
+  margin: 50px auto;
+    }
+    .current {
+        background: #ffff00;
+    }
+    .finished {
+        color: #888888;
+    }
+    .mistake {
+        color:#880000;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+    <div id="copy"></div>
+
+    <div id="stats">
+    Words Per Min: <span id="wpm"></span><br>
+    Characters Per Min: <span id="cpm"></span><br>
+    Accuracy: <span id="accuracy"></span>%<br>
+    </div>
+    </div>
+  </body>
+  <script>
+
+let prompt = "For behold, this is my work and my glory-to bring to pass the immortality and eternal life of man.";
+let pos = 0;
+let score = [];
+let current = {
+    start    : Date.now(),
+    end      : null,
+    wrong    : [],
+    duration : null,
+};
+
+// Keyboard listeners
+//document.addEventListener('keyup', function(e) {});
+document.addEventListener('keydown', function(e) {
+    let key = e.key;
+    let end = Date.now();
+
+    // If non-letter key pushed, ignore
+    if (key.length == 1) {
+        // Check if correct key is pressed
+        if (prompt[pos] == key) {
+            current.end = end;
+            current.duration = end - current.start;
+            score.push(current);
+
+            // Reset for next letter
+            pos++;
+            current = {
+                start    : end,
+                end      : null,
+                wrong    : [],
+                duration : null,
+            }
+        } else {
+            current.wrong.push(key);
+        }
+    }
+
+    update_interface();
+});
+
+function update_interface(){
+    // Clear stuff up
+    let copy = document.getElementById("copy");
+    copy.innerHTML = "";
+    let words = 0;
+    let mistakes = 0;
+
+    for (let i=0; i<prompt.length; i++){
+        let c = document.createElement("span");
+        c.innerHTML = prompt[i];
+
+        // Character we are on
+        if (i == pos) {
+            c.classList.add("current");
+            if (current.wrong.length > 0)
+                c.classList.add("mistake");
+        }
+        // Characters in the future
+        if (i > pos) {
+            c.classList.add("normal");
+        }
+        // Characters we've done
+        if (i < pos) {
+            if (prompt[i] == " ") words++;
+            mistakes += score[i].wrong.length;
+
+            c.classList.add("finished");
+            if (score[i].wrong.length > 0)
+                c.classList.add("mistake");
+        }
+
+        copy.appendChild(c);
+    }
+
+    if (pos > 0) {
+        let elapsed = (current.start - score[0].start) / 1000;
+        document.getElementById("wpm").innerHTML = Math.floor(words * (60 / elapsed));
+        document.getElementById("cpm").innerHTML = Math.floor(pos * (60 / elapsed));
+        document.getElementById("accuracy").innerHTML = Math.floor(pos * 100 / (pos + mistakes));
+    }
+}
+
+update_interface();
+
+  </script>
+</html>
