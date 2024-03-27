@@ -1,0 +1,163 @@
+<html>
+  <head>
+    <title></title>
+    <style>
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <canvas id="canvas">
+    </div>
+  </body>
+  <script>
+
+// Keyboard listeners
+document.addEventListener('keydown', function(e) {
+    //console.log(e);
+
+    if (e.keyCode == 37) {e.preventDefault(); player.left  = true};
+    if (e.keyCode == 38) {e.preventDefault(); player.up    = true};
+    if (e.keyCode == 39) {e.preventDefault(); player.right = true};
+    if (e.keyCode == 40) {e.preventDefault(); player.down  = true};
+});
+
+document.addEventListener('keyup', function(e) {
+    if (e.keyCode == 37) {e.preventDefault(); player.left  = false};
+    if (e.keyCode == 38) {e.preventDefault(); player.up    = false};
+    if (e.keyCode == 39) {e.preventDefault(); player.right = false};
+    if (e.keyCode == 40) {e.preventDefault(); player.down  = false};
+});
+
+function draw_circle(x, y, radius, color1, color2) {
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    if (color1 != 0) {
+        ctx.fillStyle = color1;
+        ctx.fill();
+    }
+    if (color2 != 0) {
+        ctx.strokeStyle = color2;
+        ctx.stroke();
+    }
+}
+
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+
+canvas.width = 1024;
+canvas.height = 1024;
+let cx = canvas.width / 2;
+let cy = canvas.height / 2;
+let maze_radius = 80;
+
+let player = {
+    y: cy - (maze_radius/2),
+    r: 0,
+    up: false,
+    right: false,
+    left: false,
+    down: false,
+};
+
+let last_frame;
+
+let grids_per_layer = [40, 40, 20, 20, 10, 5];
+//let grids_per_layer = [30, 25, 18, 12, 5];
+
+function draw_background() {
+    // Paint background
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    let radius = cx;
+    for (let i=0; i<grids_per_layer.length; i++) {
+        // Draw outer circle
+        draw_circle(cx,
+                    cy,
+                    radius,
+                    "#000",
+                    "#00F"
+                   );
+
+        // Rotate canvas, and draw lines
+        for (let n=0; n<=grids_per_layer[i]; n++) {
+            ctx.save()
+
+            // Rotate
+            ctx.translate(cx, cy);
+            ctx.rotate(player.r * (Math.PI / 180));
+            ctx.rotate((360 / grids_per_layer[i] * n) * (Math.PI / 180));
+
+            // Draw line
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, radius);
+            ctx.strokeStyle = "#00f";
+            ctx.stroke();
+
+            // Unrotate
+            ctx.restore();
+        }
+
+        // Reduce our radius
+        radius -= maze_radius;// * (i + 1); //(2 * cx) * 3.14 / grids_per_layer[0];
+    }
+}
+
+function draw_player() {
+    // Rotate canvas
+    ctx.save()
+    ctx.translate(cx, cy);
+    //ctx.rotate(player.r * (Math.PI / 180));
+
+    // Draw player
+    draw_circle(0, player.y, 25, "#ff0", 0);
+
+    // Unrotate
+    ctx.restore();
+}
+
+function redraw() {
+    draw_background();
+    draw_player();
+}
+
+function main_loop(timestamp) {
+    if (last_frame === undefined) {
+        last_frame = timestamp;
+    }
+    const elapsed = timestamp - last_frame;
+
+    // Clear canvas
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Move player
+    if (player.up)
+        player.y -= .1 * elapsed;
+
+    if (player.down)
+        player.y += .1 * elapsed;
+
+    if (player.right)
+        player.r += .05 * elapsed;
+
+    if (player.left)
+        player.r -= .05 * elapsed;
+
+    // Redraw
+    redraw();
+
+    // Loop!
+    last_frame = timestamp;
+    window.requestAnimationFrame(main_loop);
+}
+
+function main() {
+    main_loop();
+}
+
+main();
+
+  </script>
+</html>
