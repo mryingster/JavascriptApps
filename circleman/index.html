@@ -57,6 +57,7 @@ let player = {
     right: false,
     left: false,
     down: false,
+    phase: 0,
 };
 
 let last_frame;
@@ -111,7 +112,40 @@ function draw_player() {
     //ctx.rotate(player.r * (Math.PI / 180));
 
     // Draw player
-    draw_circle(0, player.y, 25, "#ff0", 0);
+    let maw = Math.sin(player.phase) * 1
+    let maw_start = 0 + maw;
+    let maw_end   = 2 * Math.PI - maw;
+    let radius    = 25;
+    let mouth_pivot_x = 0;
+    let mouth_pivot_y = player.y;
+
+    if (player.last_dir == 0) {
+        mouth_pivot_y += radius / 5;
+        maw_start -= Math.PI / 2;
+        maw_end   -= Math.PI / 2;
+    }
+
+    if (player.last_dir == 1) {
+        mouth_pivot_y -= radius / 5;
+        maw_start += Math.PI / 2;
+        maw_end   += Math.PI / 2;
+    }
+
+    if (player.last_dir == 2) {
+        mouth_pivot_x -= radius / 5;
+    }
+
+    if (player.last_dir == 3) {
+        mouth_pivot_x += radius / 5;
+        maw_start -= Math.PI;
+        maw_end   -= Math.PI;
+    }
+
+    ctx.beginPath();
+    ctx.arc(0, player.y, radius, maw_start, maw_end);
+    ctx.lineTo(mouth_pivot_x, mouth_pivot_y);
+    ctx.fillStyle = "#ff0";
+    ctx.fill();
 
     // Unrotate
     ctx.restore();
@@ -133,20 +167,27 @@ function main_loop(timestamp) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Move player
-    if (player.up)
+    if (player.up) {
         player.y -= .1 * elapsed;
-
-    if (player.down)
+        player.last_dir = 0;
+    }
+    if (player.down) {
         player.y += .1 * elapsed;
-
-    if (player.right)
+        player.last_dir = 1;
+    }
+    if (player.right) {
         player.r += .05 * elapsed;
-
-    if (player.left)
+        player.last_dir = 2;
+    }
+    if (player.left) {
         player.r -= .05 * elapsed;
+        player.last_dir = 3;
+    }
+    if (elapsed > 0)
+        player.phase += elapsed * .01;
 
     // Redraw
-    redraw();
+    redraw(elapsed);
 
     // Loop!
     last_frame = timestamp;
