@@ -1,17 +1,30 @@
 <!DOCTYPE html>
-
-<html>
-  <head>
+<html class=" ejfrd idc0_343"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Icon</title>
-    <meta charset="utf-8"/>
+    <meta charset="utf-8">
     <link rel="stylesheet" type="text/css" media="screen" href="style.css">
   </head>
 
+  <!--
+      To-dos
+
+      1. Lasso marquee
+      2. Undo - Done
+      2.1 copy/paste
+      3. Menus?
+      4. Drag image to mask
+      5. Save using local storage - Done
+  -->
+
   <body>
     <script src="jscolor.js"></script>
+
+    <button id="export">Export</button>
+    <input type="file" id="load">
+    <br>
     <button onclick="debug();">Test</button>
-    <button id="save">Save</button>
-    <input type="file" id="load"/>
+    <button id="maskify" onclick="update_mask();">Update Mask</button>
 
     <div id="content">
       <div id="tools"></div>
@@ -19,8 +32,8 @@
       <button id="background" class="jscolor {value:'#ffffff', position:'bottom', paletteCols:13, hideOnPaletteClick:true}"></button>
       <button id="foreground" class="jscolor {value:'#000000', position:'bottom', paletteCols:13, hideOnPaletteClick:true}"></button>
 
-      <canvas class="artboard" id="canvas_color"></canvas>
-      <canvas class="artboard" id="canvas_mask"></canvas>
+      <canvas tabindex='1' class="artboard" id="canvas_color"></canvas>
+      <canvas tabindex='1' class="artboard" id="canvas_mask"></canvas>
 
       <canvas class="preview thirtytwo" id="icon_composite"></canvas>
       <canvas class="color thirtytwo"   onclick='select("color");' id="icon_color"></canvas>
@@ -38,6 +51,7 @@ class artboard {
 	this.tools   = tools;
 	this.foreground_color = fgcolor;
 	this.background_color = bgcolor;
+        this.default_color = default_color;
 
 	// Artboard settings
 	this.icon_size		= icon_size;
@@ -55,15 +69,18 @@ class artboard {
 	this.icon.height        = icon_size;
 
 	this.update_preview     = null;
+        this.command_down       = false;
 
 	// State
 	this.state = {
-	    "artboard_array" : this.initialize_2d_array(this.icon_size, this.icon_size, default_color),
-	    "prev_artboard_array": this.initialize_2d_array(this.icon_size, this.icon_size, default_color),
-	    "actual_color"   : null,
-	    "mouse_down"     : false,
-	    "mouse_down_pos" : {x:null, y:null},
+	    "artboard_array"      : this.initialize_2d_array(this.icon_size, this.icon_size, this.default_color),
+	    "prev_artboard_array" : this.initialize_2d_array(this.icon_size, this.icon_size, this.default_color),
+	    "actual_color"        : null,
+	    "mouse_down"          : false,
+	    "mouse_down_pos"      : {x:null, y:null},
 	};
+
+        this.history = [];
 
 	this.selection = {
 	    "selected"          : false,
@@ -75,9 +92,16 @@ class artboard {
 	    "timer"             : null,
 	};
 
+        // See if local storage has anything to load
+        this.load_from_local_storage();
+
 	// Listeners
 	this.canvas.addEventListener('mousedown', function(e){
 	    let pos = this.getCursorPosition(canvas, e)
+
+            // Record canvas before editing for undo information
+            this.record();
+
 	    // Record our click position, but only if the mouse thinks it isn't already down
 	    if (this.state.mouse_down != true)
 		this.state.mouse_down_pos = pos;
@@ -88,28 +112,84 @@ class artboard {
 
 	    this.action(pos);
 	    this.state.mouse_down = true;
-	    
 	}.bind(this))
 
-	this.canvas.addEventListener('mousemove', function(e){
-	    if (this.state.mouse_down == true){
+	this.canvas.addEventListener('mousemove', function(e) {
+	    if (this.state.mouse_down == true) {
 		let pos = this.getCursorPosition(canvas, e)
 		this.action(pos);
 	    }
 	}.bind(this))
 
-	this.canvas.addEventListener('mouseup', function(e){
+	this.canvas.addEventListener('mouseleave', function(e) {
 	    this.state.mouse_down = false;
 	    this.state.use_bg_color = false;
 	    this.state.prev_artboard_array = JSON.parse(JSON.stringify(this.state.artboard_array));
+            this.save_to_local_storage();
 
 	    if (this.tools.selected == "marquee")
 		this.mouse_up_marquee();
 	}.bind(this))
 
+	this.canvas.addEventListener('mouseup', function(e) {
+	    this.state.mouse_down = false;
+	    this.state.use_bg_color = false;
+	    this.state.prev_artboard_array = JSON.parse(JSON.stringify(this.state.artboard_array));
+            this.save_to_local_storage();
+
+	    if (this.tools.selected == "marquee")
+		this.mouse_up_marquee();
+	}.bind(this))
+
+        // Keyboard Listeners
+        this.canvas.addEventListener('keydown', function(e) {
+            if (e.key == "Meta" || e.key == "Control")
+                this.command_down == true;
+            if (e.key == "z")
+                this.undo();
+            //console.log(e);
+        }.bind(this));
+
+        this.canvas.addEventListener('keyup', function(e) {
+            if (e.key == "Meta" || e.key == "Control")
+                this.command_down == false;
+            //console.log(e);
+        }.bind(this));
+
 	this.redraw_canvas();
     }
 
+    replace_artboard_array(a) {
+        // Save what we have so we can undo
+        this.record();
+
+        // Load new array
+        this.state.artboard_array = a;
+
+        // Update local storage
+        this.save_to_local_storage();
+
+        // Redraw!
+        this.redraw_canvas();
+    }
+
+    record() {
+        this.history.push(this.initialize_2d_array(this.icon_size, this.icon_size, this.default_color));
+        this.history[this.history.length - 1] = JSON.parse(JSON.stringify(this.state.artboard_array));
+    }
+
+    save_to_local_storage() {
+        localStorage[this.icon.id] = JSON.stringify(this.state.artboard_array);
+    }
+
+    load_from_local_storage() {
+        let previous_session = localStorage.getItem(this.icon.id);
+        if (previous_session != null) {
+            this.state.prev_artboard_array = JSON.parse(previous_session);
+            this.state.artboard_array = JSON.parse(previous_session);
+            this.redraw_canvas();
+        }
+    }
 
     mouse_down_marquee(pos){
 	// If nothing is yet selected, record the position for start of selection box
@@ -172,7 +252,7 @@ class artboard {
 	if (this.selection.selected == true)
 	    this.animate_marquee();
     }
-    
+
     initialize_2d_array(x, y, c){
 	let new_array = [];
 	while (new_array.length < y){
@@ -396,9 +476,8 @@ class artboard {
 	    this.recurse(pos.x, pos.y, current_color, this.fg_color());
 	}
 
-	// Nothing Button - Temporary undo button
+	// Nothing Button
 	if (this.tools.selected == "nothing"){
-	    this.undo();
 	}
 
 	// Eyedropper tool
@@ -409,7 +488,7 @@ class artboard {
 	// Filled Rectangle Action
 	if (this.tools.selected == "filled_rect"){
 	    // Undo the previously drawn box
-	    this.undo();
+	    this.revert();
 
 	    for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
 		for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
@@ -421,7 +500,7 @@ class artboard {
 	// Empty Rectangle Action
 	if (this.tools.selected == "empty_rect"){
 	    // Undo the previously drawn box
-	    this.undo();
+	    this.revert();
 
 	    for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
 		this.state.artboard_array[pos.y][x] = this.fg_color();
@@ -431,7 +510,6 @@ class artboard {
 		this.state.artboard_array[y][pos.x] = this.fg_color();
 		this.state.artboard_array[y][this.state.mouse_down_pos.x] = this.fg_color();
 	    }
-		
 	}
 
 	// Marquee Action
@@ -489,7 +567,7 @@ class artboard {
 	// Filled Rounded Rectangle Action
 	if (this.tools.selected == "filled_round_rect"){
 	    // Undo the previously drawn box
-	    this.undo();
+	    this.revert();
 
 	    for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
 		for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
@@ -515,7 +593,7 @@ class artboard {
 	// Empty Rounded Rectangle Action
 	if (this.tools.selected == "empty_round_rect"){
 	    // Undo the previously drawn box
-	    this.undo();
+	    this.revert();
 
 	    for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
 		if ( (x >= pos.x-2 && x <= pos.x+2) || (x >= this.state.mouse_down_pos.x-2 && x <= this.state.mouse_down_pos.x+2) ){
@@ -552,11 +630,10 @@ class artboard {
 	    }
 	}
 
-	
 	// Line Action
 	if (this.tools.selected == "line"){
 	    // Undo the previously drawn line
-	    this.undo();
+	    this.revert();
 
 	    let x0 = this.state.mouse_down_pos.x;
 	    let x1 = pos.x;
@@ -579,7 +656,7 @@ class artboard {
 	// Empty Oval Action
 	if (this.tools.selected == "empty_oval" || this.tools.selected == "filled_oval"){
 	    // Undo the previously drawn line
-	    this.undo();
+	    this.revert();
 
 	    let radius_x = Math.abs(this.state.mouse_down_pos.x - pos.x) / 2;
 	    let radius_y = Math.abs(this.state.mouse_down_pos.y - pos.y) / 2;
@@ -597,6 +674,14 @@ class artboard {
     }
 
     undo(){
+        if (this.history.length > 0) {
+            this.state.artboard_array = JSON.parse(JSON.stringify(this.history[this.history.length - 1]));
+            this.redraw_canvas();
+            this.history.pop();
+        }
+    }
+
+    revert(){
 	this.state.artboard_array = JSON.parse(JSON.stringify(this.state.prev_artboard_array));
 	this.redraw_canvas();
     }
@@ -628,11 +713,11 @@ class toolbox{
     constructor(div){
 	this.div = div;
 	this.cursors = {
-	    pencil     : "url(cursors/pencil.png)      0 15, default",
-	    crosshair  : "url(cursors/crosshair.png)   6  6, crosshair",
-	    eraser     : "url(cursors/eraser.png)      3  3, default",
-	    eyedropper : "url(cursors/eyedropper.png)  1 15, default",
-	    bucket     : "url(cursors/bucket.png)     13 15, default",
+	    pencil     : "url(https://home.yingster.net/apps/resedit/cursors/pencil.png)      0 15, default",
+	    crosshair  : "url(https://home.yingster.net/apps/resedit/cursors/crosshair.png)   6  6, crosshair",
+	    eraser     : "url(https://home.yingster.net/apps/resedit/cursors/eraser.png)      3  3, default",
+	    eyedropper : "url(https://home.yingster.net/apps/resedit/cursors/eyedropper.png)  1 15, default",
+	    bucket     : "url(https://home.yingster.net/apps/resedit/cursors/bucket.png)     13 15, default",
 	    default    : "default"
 	};
 
@@ -701,11 +786,12 @@ class render_icon {
 	let b = parseInt(s.substring(5,7), 16);
 	return {r:r, g:g, b:b};
     }
+
     rgb_to_alpha(c){
 	let a = this.string_to_rgb(c);
 	return Math.max(a.r, a.g, a.b)/255.0
     }
-    
+
     convert_to_rgba(color, alpha){
 	let a = 1 - this.rgb_to_alpha(alpha);
 	let c = this.string_to_rgb(color);
@@ -770,7 +856,7 @@ let preview = new render_icon(
 Icon32Bit.update_preview = () => {preview.render()};
 IconMask.update_preview = () => {preview.render()};
 
-document.getElementById("save").onclick = () => { preview.export() };
+document.getElementById("export").onclick = () => { preview.export() };
 document.getElementById('load').addEventListener('change', load, false);
 
 function hex(n, l=2){
@@ -823,21 +909,16 @@ function load(e){
 		}
 	    }
 
+	    // Clear canvas
+	    tmp_ctx.clearRect(0, 0, Icon32Bit.canvas.width, Icon32Bit.canvas.height);
+
 	    // Load data into states
-	    Icon32Bit.state.artboard_array = icon_array;
-	    IconMask.state.artboard_array = mask_array;
-	    
-	    // Clear the spot we were using
-	    tmp_ctx.clearRect(0, 0, 32, 32);
-
-	    // redraw
-	    Icon32Bit.redraw_canvas();
-	    IconMask.redraw_canvas();
-
+	    Icon32Bit.replace_artboard_array(icon_array);
+	    IconMask.replace_artboard_array(mask_array);
         }
         img.src = event.target.result;
     }
-    reader.readAsDataURL(e.target.files[0]); 
+    reader.readAsDataURL(e.target.files[0]);
 }
 
 function select(s){
@@ -864,12 +945,28 @@ function select(s){
 
 select("color");
 
+function update_mask() {
+    let new_mask = [];
 
+    for (var y=0; y<Icon32Bit.state.artboard_array.length; y++) {
+        let new_mask_line = [];
+        for (var x=0; x<Icon32Bit.state.artboard_array[y].length; x++) {
+            if (["#ffffff", "#FFFFFF"].includes(Icon32Bit.state.artboard_array[y][x])) {
+                new_mask_line.push("#FFFFFF");
+            } else {
+                new_mask_line.push("#000000");
+            }
+        }
+        new_mask.push(new_mask_line);
+    }
+
+    IconMask.replace_artboard_array(new_mask);
+}
 
 // Ignore me...
 
 function debug(){
-    Icon32Bit.state.artboard_array = [
+    Icon32Bit.replace_artboard_array([
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#EA0000","#EA0000","#EA0000","#EA0000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#EA0000","#EA0000","#EA0000","#EA0000","#EA0000","#000000","#000000","#000000","#ffffff","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
@@ -902,9 +999,9 @@ function debug(){
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"]
-    ];
+    ]);
 
-    IconMask.state.artboard_array =[
+    IconMask.replace_artboard_array([
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
@@ -937,11 +1034,8 @@ function debug(){
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"]
-    ];
-
-    Icon32Bit.redraw_canvas();
-    IconMask.redraw_canvas();
+    ]);
 }
     </script>
-  </body>
-</html>
+
+</body></html>
