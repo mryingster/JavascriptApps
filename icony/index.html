@@ -1,57 +1,189 @@
-<!DOCTYPE html>
-<html class=" ejfrd idc0_343"><head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <title>Icon</title>
-    <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" media="screen" href="style.css">
+<html>
+  <head>
+    <title></title>
+    <style>
+      body {
+          background-image: url("https://home.yingster.net/apps/resedit/images/tile.png");
+      }
+
+      .window {
+          border : 0px solid black;
+          position : absolute;
+          overflow : clip;
+      }
+
+      canvas {
+          position : absolute;
+      }
+
+      .hidden {
+          display: none;
+      }
+
+      .editor {
+          position: absolute;
+          left: 64px;
+          top: 30;
+          border: 1px solid black;
+      }
+
+      .jscolor {
+          border: 1px black solid;
+          box-shadow: black 2px 2px;
+          width: 28px;
+          height: 18px;
+      }
+
+      #foreground {
+          position:absolute;
+          margin-top:213px;
+          margin-left:13px;
+      }
+
+      #background {
+          position:absolute;
+          margin-top:226px;
+          margin-left:25px;
+      }
+
+      div#tools {
+          border: 0px solid green;
+          background-color: #000000;
+          width: 43px;
+          height: 148px;
+          position: absolute;
+          margin-top: 30px;
+          margin-left: 14px;
+          line-height: 0px;
+          padding: 0px;
+      }
+
+      button.tool {
+          width: 21px;
+          padding: 0px;
+          margin: 0;
+          display: inline-block;
+          border: 0px solid red;
+          height: 21px;
+      }
+
+      button#lasso                      { background:url("https://home.yingster.net/apps/resedit/images/tools.png")   0px    0px; }
+      button#marquee                    { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -21px    0px; }
+      button#eraser                     { background:url("https://home.yingster.net/apps/resedit/images/tools.png")   0px  -21px; }
+      button#pencil                     { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -21px  -21px; }
+      button#eyedropper                 { background:url("https://home.yingster.net/apps/resedit/images/tools.png")   0px  -42px; }
+      button#paint_bucket               { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -21px  -42px; }
+      button#nothing                    { background:url("https://home.yingster.net/apps/resedit/images/tools.png")   0px  -63px; }
+      button#line                       { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -21px  -63px; }
+      button#filled_rect                { background:url("https://home.yingster.net/apps/resedit/images/tools.png")   0px  -84px; }
+      button#empty_rect                 { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -21px  -84px; }
+      button#filled_round_rect          { background:url("https://home.yingster.net/apps/resedit/images/tools.png")   0px -105px; }
+      button#empty_round_rect           { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -21px -105px; }
+      button#filled_oval                { background:url("https://home.yingster.net/apps/resedit/images/tools.png")   0px -126px; }
+      button#empty_oval                 { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -21px -126px; }
+      button#lasso.selected             { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -43px    0px; }
+      button#marquee.selected           { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -64px    0px; }
+      button#eraser.selected            { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -43px  -21px; }
+      button#pencil.selected            { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -64px  -21px; }
+      button#eyedropper.selected        { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -43px  -42px; }
+      button#paint_bucket.selected      { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -64px  -42px; }
+      button#nothing.selected           { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -43px  -63px; }
+      button#line.selected              { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -64px  -63px; }
+      button#filled_rect.selected       { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -43px  -84px; }
+      button#empty_rect.selected        { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -64px  -84px; }
+      button#filled_round_rect.selected { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -43px -105px; }
+      button#empty_round_rect.selected  { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -64px -105px; }
+      button#filled_oval.selected       { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -43px -126px; }
+      button#empty_oval.selected        { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -64px -126px; }
+
+    </style>
   </head>
-
-  <!--
-      To-dos
-
-      1. Lasso marquee
-      2. Undo - Done
-      2.1 copy/paste
-      3. Menus?
-      4. Drag image to mask
-      5. Save using local storage - Done
-  -->
-
   <body>
-    <script src="jscolor.js"></script>
-
-    <button id="export">Export</button>
-    <input type="file" id="load">
-    <br>
-    <button onclick="debug();">Test</button>
-    <button id="maskify" onclick="update_mask();">Update Mask</button>
-
+    <script src="https://home.yingster.net/apps/resedit/jscolor.js"></script>
     <div id="content">
-      <div id="tools"></div>
-
-      <button id="background" class="jscolor {value:'#ffffff', position:'bottom', paletteCols:13, hideOnPaletteClick:true}"></button>
-      <button id="foreground" class="jscolor {value:'#000000', position:'bottom', paletteCols:13, hideOnPaletteClick:true}"></button>
-
-      <canvas tabindex='1' class="artboard" id="canvas_color"></canvas>
-      <canvas tabindex='1' class="artboard" id="canvas_mask"></canvas>
-
-      <canvas class="preview thirtytwo" id="icon_composite"></canvas>
-      <canvas class="color thirtytwo"   onclick='select("color");' id="icon_color"></canvas>
-      <canvas class="mask thirtytwo"    onclick='select("mask");'  id="icon_mask"></canvas>
+      <button onclick="new_window(-1);">New Window</button>
     </div>
+  </body>
+  <script>
 
-    <script>
-// Comment
+class toolbox {
+    constructor(div, id) {
+	this.div = div;
+        this.id  = id;
+	this.cursors = {
+	    pencil     : "url(https://home.yingster.net/apps/resedit/cursors/pencil.png)      0 15, default",
+	    crosshair  : "url(https://home.yingster.net/apps/resedit/cursors/crosshair.png)   6  6, crosshair",
+	    eraser     : "url(https://home.yingster.net/apps/resedit/cursors/eraser.png)      3  3, default",
+	    eyedropper : "url(https://home.yingster.net/apps/resedit/cursors/eyedropper.png)  1 15, default",
+	    bucket     : "url(https://home.yingster.net/apps/resedit/cursors/bucket.png)     13 15, default",
+	    default    : "default"
+	};
+
+	this.tools = {
+	    "lasso"             : this.cursors.pencil,
+	    "marquee"	        : this.cursors.crosshair,
+	    "eraser"	        : this.cursors.eraser,
+	    "pencil"	        : this.cursors.pencil,
+	    "eyedropper"        : this.cursors.eyedropper,
+	    "paint_bucket"      : this.cursors.bucket,
+	    "nothing"           : this.cursors.default,
+	    "line"              : this.cursors.pencil,
+	    "filled_rect"       : this.cursors.crosshair,
+	    "empty_rect"        : this.cursors.crosshair,
+	    "filled_round_rect" : this.cursors.crosshair,
+	    "empty_round_rect"  : this.cursors.crosshair,
+	    "filled_oval"       : this.cursors.crosshair,
+	    "empty_oval"        : this.cursors.crosshair,
+	};
+
+	this.selected = null;
+
+	for (var tool in this.tools) ((tool) => {
+	    let button = document.createElement('button');
+	    button.classList.add("tool");
+            button.classList.add(this.id);
+            button.classList.add(tool);
+	    button.onclick = function() { this.select(tool) }.bind(this);
+	    button.id = tool;
+	    this.div.appendChild(button);
+	})(tool)
+    }
+
+    select(t) {
+	for (var button of document.getElementsByClassName("tool")) {
+            if (button.classList.contains(this.id)) {
+	        button.classList.remove("selected");
+	        if(button.classList.contains(t)) {
+		    // Select tool
+		    button.classList.add("selected");
+		    this.selected = t;
+
+		    // Change Cursor
+		    if (this.tools[t] != null)
+		        for (let a of document.getElementsByClassName("editor"))
+                            if (a.classList.contains(this.id))
+			        a.style.cursor = this.tools[t];
+                }
+            }
+	}
+    }
+}
 
 class artboard {
-    constructor(canvas, icon, fgcolor, bgcolor, icon_size, tools, default_color){
+    constructor(canvas, fgcolor, bgcolor, icon_size, tools, default_color, render_window, keydown, keyup, id){
 	// Constants
 	this.canvas  = canvas;
-	this.icon    = icon;
 	this.tools   = tools;
 	this.foreground_color = fgcolor;
 	this.background_color = bgcolor;
         this.default_color = default_color;
+        this.id = id;
+        this.canvas.classList.add(this.id);
+
+        // Functions in other class
+        this.render_window = render_window;
+        this.keydown = keydown;
+        this.keyup = keyup;
 
 	// Artboard settings
 	this.icon_size		= icon_size;
@@ -60,13 +192,10 @@ class artboard {
 	this.width		= this.icon_size * (this.square_size + this.border_size) + this.border_size;
 	this.height		= this.icon_size * (this.square_size + this.border_size) + this.border_size;
 	this.artboard_ctx	= canvas.getContext("2d");
-	this.icon_ctx		= icon.getContext("2d");
 
 	// Set canvas size
 	this.canvas.width	= this.width;
 	this.canvas.height	= this.height;
-	this.icon.width         = icon_size;
-	this.icon.height        = icon_size;
 
 	this.update_preview     = null;
         this.command_down       = false;
@@ -92,12 +221,12 @@ class artboard {
 	    "timer"             : null,
 	};
 
-        // See if local storage has anything to load
-        this.load_from_local_storage();
-
 	// Listeners
 	this.canvas.addEventListener('mousedown', function(e){
 	    let pos = this.getCursorPosition(canvas, e)
+
+            // Select this window
+            background_other_windows(this.id);
 
             // Record canvas before editing for undo information
             this.record();
@@ -125,7 +254,6 @@ class artboard {
 	    this.state.mouse_down = false;
 	    this.state.use_bg_color = false;
 	    this.state.prev_artboard_array = JSON.parse(JSON.stringify(this.state.artboard_array));
-            this.save_to_local_storage();
 
 	    if (this.tools.selected == "marquee")
 		this.mouse_up_marquee();
@@ -135,26 +263,20 @@ class artboard {
 	    this.state.mouse_down = false;
 	    this.state.use_bg_color = false;
 	    this.state.prev_artboard_array = JSON.parse(JSON.stringify(this.state.artboard_array));
-            this.save_to_local_storage();
 
 	    if (this.tools.selected == "marquee")
 		this.mouse_up_marquee();
+
+            this.render_window();
 	}.bind(this))
 
-        // Keyboard Listeners
         this.canvas.addEventListener('keydown', function(e) {
-            if (e.key == "Meta" || e.key == "Control")
-                this.command_down == true;
-            if (e.key == "z")
-                this.undo();
-            //console.log(e);
-        }.bind(this));
+            this.keydown(e);
+        }.bind(this))
 
         this.canvas.addEventListener('keyup', function(e) {
-            if (e.key == "Meta" || e.key == "Control")
-                this.command_down == false;
-            //console.log(e);
-        }.bind(this));
+            this.keyup(e);
+	}.bind(this))
 
 	this.redraw_canvas();
     }
@@ -166,9 +288,6 @@ class artboard {
         // Load new array
         this.state.artboard_array = a;
 
-        // Update local storage
-        this.save_to_local_storage();
-
         // Redraw!
         this.redraw_canvas();
     }
@@ -176,19 +295,6 @@ class artboard {
     record() {
         this.history.push(this.initialize_2d_array(this.icon_size, this.icon_size, this.default_color));
         this.history[this.history.length - 1] = JSON.parse(JSON.stringify(this.state.artboard_array));
-    }
-
-    save_to_local_storage() {
-        localStorage[this.icon.id] = JSON.stringify(this.state.artboard_array);
-    }
-
-    load_from_local_storage() {
-        let previous_session = localStorage.getItem(this.icon.id);
-        if (previous_session != null) {
-            this.state.prev_artboard_array = JSON.parse(previous_session);
-            this.state.artboard_array = JSON.parse(previous_session);
-            this.redraw_canvas();
-        }
     }
 
     mouse_down_marquee(pos){
@@ -702,82 +808,474 @@ class artboard {
 	// Draw on the artboard
 	this.artboard_ctx.fillStyle = color;
 	this.artboard_ctx.fillRect(pixel_left, pixel_top, this.square_size, this.square_size);
-
-	// Draw on the pixel preview
-	this.icon_ctx.fillStyle = color;
-	this.icon_ctx.fillRect(pos.x, pos.y, 1, 1);
     }
 }
 
-class toolbox{
-    constructor(div){
-	this.div = div;
-	this.cursors = {
-	    pencil     : "url(https://home.yingster.net/apps/resedit/cursors/pencil.png)      0 15, default",
-	    crosshair  : "url(https://home.yingster.net/apps/resedit/cursors/crosshair.png)   6  6, crosshair",
-	    eraser     : "url(https://home.yingster.net/apps/resedit/cursors/eraser.png)      3  3, default",
-	    eyedropper : "url(https://home.yingster.net/apps/resedit/cursors/eyedropper.png)  1 15, default",
-	    bucket     : "url(https://home.yingster.net/apps/resedit/cursors/bucket.png)     13 15, default",
-	    default    : "default"
-	};
+class icon_window {
+    constructor(div, id) {
+        this.id = id;
 
-	this.tools = {
-	    "lasso"		: this.cursors.pencil,
-	    "marquee"		: this.cursors.crosshair,
-	    "eraser"		: this.cursors.eraser,
-	    "pencil"		: this.cursors.pencil,
-	    "eyedropper"	: this.cursors.eyedropper,
-	    "paint_bucket"	: this.cursors.bucket,
-	    "nothing"           : this.cursors.default,
-	    "line"		: this.cursors.pencil,
-	    "filled_rect"	: this.cursors.crosshair,
-	    "empty_rect"	: this.cursors.crosshair,
-	    "filled_round_rect"	: this.cursors.crosshair,
-	    "empty_round_rect"	: this.cursors.crosshair,
-	    "filled_oval"	: this.cursors.crosshair,
-	    "empty_oval"	: this.cursors.crosshair,
-	};
+        // Load images needed
+        this.background = new Image();
+        this.background.onload = function() { /*super.render();*/ }
+        this.background.src="https://home.yingster.net/apps/resedit/images/background.png";
+        this.background_inactive = new Image();
+        this.background_inactive.src="https://home.yingster.net/apps/resedit/images/background_inactive.png";
 
-	this.selected = null;
+        // Set up div
+        this.div = div
+        this.div.style.width  = 496;
+	this.div.style.height = 304;
 
-	for (var tool in this.tools) ((tool) => {
-	    let button = document.createElement('button');
-	    button.classList.add("tool");
-	    button.onclick = function(){this.select(tool)}.bind(this);
-	    button.id=tool;
-	    this.div.appendChild(button);
-	})(tool)
-    }
+        this.div.style.top = 100;
+        this.div.style.left = 100;
 
-    select(t){
-	for (var tool in this.tools){
-	    var button = document.getElementById(tool);
-	    button.classList.remove("selected");
-	    if(tool == t){
-		// Select tool
-		button.classList.add("selected");
-		this.selected = tool;
+        this.div.style.zIndex = zindex++;
 
-		// Change Cursor
-		if (this.tools[tool] != null)
-		    for (let a of document.getElementsByClassName("artboard"))
-			a.style.cursor = this.tools[tool];
+        // Setup This Window Canvas
+        this.canvas = document.createElement('canvas');
+        this.canvas.tabIndex = 1;
+        this.div.appendChild(this.canvas);
+
+        this.ctx = this.canvas.getContext("2d");
+
+        this.canvas.width  = 496;
+	this.canvas.height = 304;
+
+        // Create JS Color Instances
+        this.palette_background = document.createElement("button");
+        this.palette_background.id = "background";
+        this.palette_background.classList.add("jscolor", "{value:'#ffffff',position:'bottom',paletteCols:13,hideOnPaletteClick:true}");
+        this.div.appendChild(this.palette_background);
+        this.palette_foreground = document.createElement("button");
+        this.palette_foreground.id = "foreground";
+        this.palette_foreground.classList.add("jscolor", "{value:'#000000',position:'bottom',paletteCols:13,hideOnPaletteClick:true}");
+        this.div.appendChild(this.palette_foreground);
+        //this.update_palette();
+
+        // Create toolbox
+        this.toolsdiv = document.createElement("div");
+        this.toolsdiv.id = "tools";
+        this.tools = new toolbox( this.toolsdiv, this.id );
+        this.div.appendChild(this.toolsdiv);
+
+        // Set up editor canvases
+        this.icon32_canvas = document.createElement('canvas');
+        this.icon32_canvas.classList.add("editor");
+        this.icon32_canvas.tabIndex = 1;
+        this.div.appendChild(this.icon32_canvas);
+        this.icon32 = new artboard(
+            this.icon32_canvas,
+            this.palette_foreground,
+            this.palette_background,
+            32,
+            this.tools,
+            "#FFFFFF",
+            () => this.render(),
+            (e) => this.keydown(e),
+            (e) => this.keyup(e),
+            this.id
+        )
+
+        this.mask32_canvas = document.createElement('canvas');
+        this.mask32_canvas.classList.add("editor");
+        this.mask32_canvas.tabIndex = 1;
+        this.div.appendChild(this.mask32_canvas);
+        this.mask32 = new artboard(
+            this.mask32_canvas,
+            this.palette_foreground,
+            this.palette_background,
+            32,
+            this.tools,
+            "#000000",
+            () => this.render(),
+            (e) => this.keydown(e),
+            (e) => this.keyup(e),
+            this.id
+        )
+
+        // State information
+        this.mouse_down  = false;
+        this.mouse_start = null;
+        this.command_down = false;
+
+        this.window_pos     = { x: 100, y: 100 };
+        this.window_new_pos = { x: 100, y: 100 };
+        this.window_move    = false;
+        this.minimized      = false;
+        this.inactive       = false;
+        this.selected       = "icon32";
+        this.deleted        = false;
+
+        this.icon_drag       = false;
+        this.icon_drag_start = null;
+
+        // Editor Information
+        this.editor_square_size = 7;
+        this.editor_border_size = 1;
+        this.editor_pos         = { x:67, y:32, w:256, h:256 };
+
+        // Listeners
+	this.canvas.addEventListener('mousedown', function(e){
+	    let pos = this.get_canvas_cursor_position(this.canvas, e)
+
+            // Set focus on this canvas, and send other to back
+            if (this.inactive)
+                this.div.style.zIndex = zindex++;
+            background_other_windows(this.id);
+
+            // If the pos is < 30, this is title bar interaction
+            if (pos.y < 30) {
+                if (this.click_in_rect(4, 4, 16, 16, pos)) {
+                    this.close();
+                } else if (this.click_in_rect(479, 4, 490, 16, pos)) {
+                    this.minimize();
+                } else {
+                    let page_pos = this.get_page_cursor_position(e);
+                    this.window_move = page_pos;
+                }
+            }
+
+            // If the position is in the editor area, draw
+            if (this.click_in_rect(67, 32, 324, 289, pos)) {
+                let editor_cursor_pos = this.get_editor_cursor_position(this.canvas, e);
+
+	        if (this.tools.selected == "marquee")
+		    this.mouse_down_marquee(editor_cursor_pos);
+	        clearTimeout(this.selection.timer);
+
+	        this.action(editor_cursor_pos);
+            }
+
+            // If the position is in the small icon area, allow to drag to mask
+            if (this.click_in_rect(334, 31, 366, 63, pos)) {
+                this.icon_drag = pos;
+                this.icon_drag_start = pos;
+            }
+
+	    // Record our click position, but only if the mouse thinks it isn't already down
+	    if (this.mouse_down != true)
+		this.mouse_start = pos;
+
+	    this.mouse_down = true;
+	}.bind(this))
+
+	this.canvas.addEventListener('mousemove', function(e) {
+	    if (this.mouse_down != true) {
+                return;
 	    }
-	}
+
+	    let pos = this.get_canvas_cursor_position(this.canvas, e)
+
+            // If the position is in the editor area, draw
+            if (this.click_in_rect(67, 32, 324, 289, pos)) {
+                let editor_cursor_pos = this.get_editor_cursor_position(this.canvas, e);
+	        this.action(editor_cursor_pos);
+            }
+
+            // Moving Window
+            if (this.window_move != false) {
+                this.move_window(this.get_page_cursor_position(e));
+            }
+
+            // Dragging Small Icons
+            if (this.icon_drag != false) {
+                this.icon_drag = pos;
+                this.render();
+            }
+
+	}.bind(this))
+
+	this.canvas.addEventListener('mouseup', function(e) {
+            // Lock in window position if window was moving
+            if (this.move_window != false) {
+                this.window_pos = {
+                    x: this.window_new_pos.x,
+                    y: this.window_new_pos.y,
+                }
+            }
+
+            // Dragging icon to mask
+            if (this.icon_drag != false)
+                if (this.click_in_rect(334, 91, 366, 123, this.icon_drag))
+                    this.update_mask();
+
+            // Selecting editing targets
+            if (this.click_in_rect(334, 31, 366, 63, this.icon_drag)) {
+                this.selected = "icon32"
+                this.select_artboard();
+            }
+            if (this.icon_drag == false) {
+                let pos = this.get_canvas_cursor_position(this.canvas, e)
+                if (this.click_in_rect(334, 91, 366, 123, pos)) {
+                    this.selected = "mask32"
+                    this.select_artboard();
+                }
+            }
+
+            if (this.tools.selected == "marquee")
+		this.mouse_up_marquee();
+
+            // Reset states
+	    this.mouse_down = false;
+            this.window_move = false;
+            this.icon_drag = false;
+            this.icon_drag_start = false;
+
+            // Reset
+            this.render();
+	}.bind(this))
+
+	this.canvas.addEventListener('mouseleave', function(e) {
+	    this.mouse_down = false;
+	}.bind(this))
+
+        // Keyboard Listeners
+        this.canvas.addEventListener('keydown', function(e) {
+            this.keydown(e);
+            //console.log(e);
+        }.bind(this));
+
+        this.canvas.addEventListener('keyup', function(e) {
+            this.keyup(e);
+            //console.log(e);
+        }.bind(this));
+
+
+        this.select_artboard();
+        this.render();
     }
-}
 
-class render_icon {
-    constructor(canvas, image, mask){
-	this.canvas = canvas;
-	this.ctx    = this.canvas.getContext("2d");
-	this.image  = image;
-	this.mask   = mask;
+    keydown(event) {
+        let key = event.key;
 
-	this.canvas.height = this.image.state.artboard_array.length;
-	this.canvas.width  = this.image.state.artboard_array[0].length;
+        if (key == "Meta" || key == "Control")
+            this.command_down = true;
 
-	this.render();
+        // UNDO - Command Z
+        if (this.command_down && key == "z")
+            this.undo();
+
+        // Close - Command W
+        if (this.command_down && key == "w") {
+            event.preventDefault();
+            this.close();
+        }
+
+        // Minimize - Command M
+        if (this.command_down && key == "m") {
+            event.preventDefault();
+            this.minimize();
+        }
+
+        // Export - Command S
+        if (this.command_down && key == "e") {
+            event.preventDefault();
+            this.export();
+        }
+    }
+
+    keyup(event) {
+        if (event.key == "Meta" || event.key == "Control")
+            this.command_down == false;
+    }
+
+    get_page_cursor_position(event) {
+	return {x:event.clientX, y:event.clientY};
+    }
+
+    get_canvas_cursor_position(canvas, event) {
+	// Determine where clicked
+	const rect  = canvas.getBoundingClientRect()
+	const realx = event.clientX - rect.left;
+	const realy = event.clientY - rect.top;
+
+	return {x:realx, y:realy};
+    }
+
+    get_editor_cursor_position(canvas, event) {
+        // Determine where clicked
+	const rect = canvas.getBoundingClientRect()
+	const realx = event.clientX - rect.left - this.editor_pos.x;
+	const realy = event.clientY - rect.top  - this.editor_pos.y;
+
+	// Determine square size
+	var pixelx = Math.floor(realx/(this.editor_square_size + this.editor_border_size));
+	var pixely = Math.floor(realy/(this.editor_square_size + this.editor_border_size));
+
+	return {x:pixelx, y:pixely};
+    }
+
+    click_in_rect(x1, y1, x2, y2, p) {
+        if (p.x < x1 || p.x > x2)
+            return false;
+        if (p.y < y1 || p.y > y2)
+            return false;
+        return true;
+    }
+
+    undo() {
+        console.log("undo");
+        if (this.selected == "icon32")
+            this.icon32.undo();
+        if (this.selected == "mask32")
+            this.mask32.undo();
+    }
+
+    export(){
+        let export_canvas = document.createElement("canvas");
+        let export_ctx = export_canvas.getContext("2d");
+        export_canvas.width = 32;
+        export_canvas.height = 32;
+
+        this.render_icon32_preview(export_ctx, 0, 0, 1, 0);
+
+	window.open(export_canvas.toDataURL('image/png'));
+
+        export_canvas.remove();
+    }
+
+
+    move_window(p) {
+        let new_x = this.window_pos.x;
+        let new_y = this.window_pos.y;
+
+        if (this.window_move != false) {
+            new_x -= this.window_move.x - p.x;
+            new_y -= this.window_move.y - p.y;
+        }
+
+        if (new_x < 0) new_x = 0;
+        if (new_y < 0) new_y = 0;
+
+        this.window_new_pos = {
+            x: new_x,
+            y: new_y
+        };
+
+        this.div.style.top  = new_y;
+        this.div.style.left = new_x;
+    }
+
+    close() {
+        this.deleted = true
+        this.save_to_local_storage();
+        remove(this.id);
+    }
+
+    minimize() {
+        if (this.minimized) {
+            this.canvas.height = 304;
+            this.div.style.height = 304;
+            this.minimized = false;
+        } else {
+            this.canvas.height = 23;
+            this.div.style.height = 23;
+            this.minimized = true;
+        }
+
+        this.render();
+    }
+
+    initialize_2d_array(x, y, c){
+	let new_array = [];
+	while (new_array.length < y){
+	    let new_row = [];
+	    while (new_row.length < x){
+		new_row.push(c);
+	    }
+	    new_array.push(new_row);
+	}
+	return new_array;
+    }
+
+    replace_mask32_array(a) {
+        // Load new array
+        this.mask32.replace_artboard_array(a);
+
+        // Redraw!
+        this.render();
+    }
+
+    replace_icon32_array(a) {
+        // Load new array
+        this.icon32.replace_artboard_array(a);
+
+        // Redraw!
+        this.render();
+    }
+
+    update_mask() {
+        let new_mask = [];
+
+        for (var y=0; y<this.icon32.length; y++) {
+            let new_mask_line = [];
+            for (var x=0; x<this.icon32[y].length; x++) {
+                if (["#ffffff", "#FFFFFF"].includes(this.icon32[y][x])) {
+                    new_mask_line.push("#FFFFFF");
+                } else {
+                    new_mask_line.push("#000000");
+                }
+            }
+            new_mask.push(new_mask_line);
+        }
+
+        this.replace_mask32_array(new_mask);
+    }
+
+    render_background() {
+        this.ctx.drawImage(this.background, 0, 0);
+
+        if (this.inactive)
+            this.ctx.drawImage(this.background_inactive, 0, 0);
+
+        if (this.minimized){
+            this.ctx.fillStyle = "#000000";
+            if (this.inactive)
+                this.ctx.fillStyle = "#656565";
+	    this.ctx.fillRect(0, 21, 496, 2);
+        }
+    }
+
+    render_icon(ctx, a, x, y, bs, spacing) {
+        let y1 = y;
+        for (let row of a) {
+            let x1 = x;
+            for (let c of row) {
+                ctx.fillStyle = c;
+                ctx.fillRect(x1, y1, bs, bs);
+                x1 += bs + spacing;
+            }
+            y1 += bs + spacing;
+        }
+    }
+
+    render_icon32_small() {
+        this.ctx.fillStyle = "#000000";
+        this.ctx.strokeRect(332, 31, 35, 35);
+
+        if (this.selected == "icon32")
+            this.ctx.strokeRect(331, 30, 37, 37);
+
+        let x = 333;
+        let y = 32;
+
+        if (this.icon_drag != false) {
+            x += this.icon_drag.x - this.icon_drag_start.x;
+            y += this.icon_drag.y - this.icon_drag_start.y;
+        }
+
+        this.render_icon(this.ctx, this.icon32.state.artboard_array, x, y, 1, 0);
+    }
+
+    render_mask32_small() {
+        this.ctx.fillStyle = "#000000";
+        this.ctx.strokeRect(332, 90, 35, 35);
+
+        if (this.selected == "mask32")
+            this.ctx.strokeRect(331, 89, 37, 37);
+
+        this.render_icon(this.ctx, this.mask32.state.artboard_array, 333, 91, 1, 0);
     }
 
     string_to_rgb(s){
@@ -787,186 +1285,138 @@ class render_icon {
 	return {r:r, g:g, b:b};
     }
 
-    rgb_to_alpha(c){
-	let a = this.string_to_rgb(c);
-	return Math.max(a.r, a.g, a.b)/255.0
-    }
+    convert_to_rgba(i, m) {
+        let a = [];
 
-    convert_to_rgba(color, alpha){
-	let a = 1 - this.rgb_to_alpha(alpha);
-	let c = this.string_to_rgb(color);
-
-	return "rgba("+c.r+", "+c.g+", "+c.b+", "+a+")";
-    }
-
-    clear(){
-	this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-
-    render(){
-	this.clear();
-
-	let icon = this.image.state.artboard_array;
-	let mask = this.mask.state.artboard_array;
-
-	for (let y=0; y<icon.length; y++)
-	    for (let x=0; x<icon[y].length; x++){
-		this.ctx.fillStyle = this.convert_to_rgba(icon[y][x], mask[y][x]);
-		this.ctx.fillRect(x, y, 1, 1);
-	    }
-    }
-
-    export(){
-	window.open(this.canvas.toDataURL('image/png'));
-    }
-}
-
-var tools = new toolbox(
-    document.getElementById('tools')
-);
-
-tools.select("pencil");
-
-var Icon32Bit = new artboard(
-    document.getElementById('canvas_color'),	// Artboard
-    document.getElementById('icon_color'),	// Icon
-    document.getElementById('foreground'),	// Foreground color
-    document.getElementById('background'),	// Background color
-    32,						// Size
-    tools,					// Tool thing
-    '#ffffff'
-);
-
-var IconMask  = new artboard(
-    document.getElementById('canvas_mask'),
-    document.getElementById('icon_mask'),
-    document.getElementById('foreground'),	// Foreground color
-    document.getElementById('background'),	// Background color
-    32,
-    tools,					// Tool thing
-    '#000000'
-);
-
-let preview = new render_icon(
-    document.getElementById("icon_composite"),
-    Icon32Bit,
-    IconMask,
-);
-
-Icon32Bit.update_preview = () => {preview.render()};
-IconMask.update_preview = () => {preview.render()};
-
-document.getElementById("export").onclick = () => { preview.export() };
-document.getElementById('load').addEventListener('change', load, false);
-
-function hex(n, l=2){
-    s = n.toString(16);
-    while (s.length < l)
-	s = "0"+s;
-    return s;
-}
-
-function data_to_string(r, g, b, i){
-    if (i){
-	r = 255-r;
-	g = 255-g;
-	b = 255-b;
-    }
-    return "#" + hex(r) + hex(g) + hex(b);
-}
-
-function load(e){
-    // clear main canvas temporarily
-    let tmp_ctx = Icon32Bit.artboard_ctx
-    tmp_ctx.clearRect(0, 0, 32, 32);
-
-    // Get image from user & Load it into main canvas
-    var reader = new FileReader();
-    reader.onload = function(event){
-        var img = new Image();
-        img.onload = function(){
-            tmp_ctx.drawImage(img, 0, 0);
-
-	    // Read back from canvas to get image data format
-	    var image_data = tmp_ctx.getImageData(0, 0, 32, 32);
-	    var pixels = image_data.data;
-
-	    // Convert pixels; crop to 32x32
-	    let icon_array = [];
-	    let mask_array = [];
-
-	    let icon_row = [];
-	    let mask_row = [];
-	    for (let p=0; p<pixels.length; p+=4){
-		icon_row.push(data_to_string(pixels[p+0], pixels[p+1], pixels[p+2], false));
-		mask_row.push(data_to_string(pixels[p+3], pixels[p+3], pixels[p+3], true));
-
-		if (icon_row.length == 32){
-		    icon_array.push(icon_row);
-		    mask_array.push(mask_row);
-		    icon_row = [];
-		    mask_row = [];
-		}
-	    }
-
-	    // Clear canvas
-	    tmp_ctx.clearRect(0, 0, Icon32Bit.canvas.width, Icon32Bit.canvas.height);
-
-	    // Load data into states
-	    Icon32Bit.replace_artboard_array(icon_array);
-	    IconMask.replace_artboard_array(mask_array);
+        for (let y=0; y<i.length; y++) {
+            let r = [];
+            for (let x=0; x<i[y].length; x++) {
+                let c1 = this.string_to_rgb(i[y][x]);
+                let c2 = this.string_to_rgb(m[y][x]);
+                let a = 1 - Math.max(c2.r, c2.g, c2.b)/255.0
+                r.push("rgba("+c1.r+", "+c1.g+", "+c1.b+", "+a+")");
+            }
+            a.push(r);
         }
-        img.src = event.target.result;
+        return a;
     }
-    reader.readAsDataURL(e.target.files[0]);
+
+    render_icon32_preview(ctx, x, y, w, s) {
+        this.render_icon(ctx, this.convert_to_rgba(this.icon32.state.artboard_array, this.mask32.state.artboard_array), x, y, w, s);
+    }
+
+    render() {
+        this.render_background();
+
+        this.render_icon32_preview(this.ctx, 411, 37, 1, 0);
+
+        this.render_mask32_small();
+
+        this.render_icon32_small();
+
+        this.save_to_local_storage();
+    }
+
+    select_artboard() {
+        this.icon32_canvas.classList.remove("hidden");
+	this.mask32_canvas.classList.add("hidden");
+
+        if (this.selected == "mask32") {
+            this.icon32_canvas.classList.add("hidden");
+	    this.mask32_canvas.classList.remove("hidden");
+        }
+
+        if (this.palette_foreground.jscolor)
+            this.update_palette();
+    }
+
+    update_palette() {
+        let palette = '#ffffdf #ffdfbb #dfbb92 #ff925f #5effbb #00d300 #5fbb92 #5f9292 #bbffff #00bbff #0000ea #5f00bb #dfdfff #bbbbff #9292df #5f5f92 #ff92df #bb0092 #bb92bb #ffffff #f5f5f5 #eaeaea #dfdfdf #d3d3d3 #c7c7c7 #aeaeae #a0a0a0 #828282 #717171 #484848 #2c2c2c #000000 #ffff00 #ea0000';
+
+        if (this.selected == "mask32"){
+	    palette = '#ffffff #f5f5f5 #eaeaea #dfdfdf #d3d3d3 #c7c7c7 #aeaeae #a0a0a0 #828282 #717171 #484848 #2c2c2c #000000';
+        }
+
+        this.palette_foreground.jscolor.set__palette(palette);
+        this.palette_background.jscolor.set__palette(palette);
+    }
+
+    save_to_local_storage() {
+        // Get local storage
+        let previous_session = localStorage.getItem("icony");
+
+        if (previous_session == null)
+            previous_session = {};
+        else
+            previous_session = JSON.parse(previous_session);
+
+        // Update session info
+        previous_session["window"+this.id] = {
+            window : this.window_pos,
+            icon32 : this.icon32.state.artboard_array,
+            mask32 : this.mask32.state.artboard_array,
+            deleted : this.deleted
+        };
+
+        // Write it back out
+        localStorage["icony"] = JSON.stringify(previous_session);
+    }
 }
 
-function select(s){
-    let palette = '#ffffdf #ffdfbb #dfbb92 #ff925f #5effbb #00d300 #5fbb92 #5f9292 #bbffff #00bbff #0000ea #5f00bb #dfdfff #bbbbff #9292df #5f5f92 #ff92df #bb0092 #bb92bb #ffffff #f5f5f5 #eaeaea #dfdfdf #d3d3d3 #c7c7c7 #aeaeae #a0a0a0 #828282 #717171 #484848 #2c2c2c #000000 #ffff00 #ea0000';
+let windows = {};
+let window_id = 0;
+let zindex = 0;
 
-    if (s == "color"){
-	document.getElementById("canvas_color").classList.remove("hidden");
-	document.getElementById("icon_color").classList.add("selected");
-	document.getElementById("canvas_mask").classList.add("hidden");
-	document.getElementById("icon_mask").classList.remove("selected");
-    }
-    if (s == "mask"){
-	document.getElementById("canvas_mask").classList.remove("hidden");
-	document.getElementById("icon_mask").classList.add("selected");
-	document.getElementById("canvas_color").classList.add("hidden");
-	document.getElementById("icon_color").classList.remove("selected");
-
-	palette = '#ffffff #f5f5f5 #eaeaea #dfdfdf #d3d3d3 #c7c7c7 #aeaeae #a0a0a0 #828282 #717171 #484848 #2c2c2c #000000';
-    }
-
-    document.getElementById("foreground").jscolor.set__palette(palette);
-    document.getElementById("background").jscolor.set__palette(palette);
+function new_window(id) {
+    var content = document.getElementById('content');
+    let div  = document.createElement('div');
+    if (id != -1)
+        window_id = id;
+    windows[window_id] = new icon_window(div, window_id++);
+    div.classList.add("window");
+    content.appendChild(div);
+    background_other_windows(windows.length - 1);
+    jscolor.install()
+    //debug();
 }
 
-select("color");
+function background_other_windows(id){
+    for (let w in windows) {
+        windows[w].inactive = true;
+        if (windows[w].id == id)
+            windows[w].inactive = false;
+        windows[w].render();
+    }
+}
 
-function update_mask() {
-    let new_mask = [];
+function remove(id){
+    windows[id].div.remove();
+    //windows.splice(id, 1);
+    windows[id] == null;
+}
 
-    for (var y=0; y<Icon32Bit.state.artboard_array.length; y++) {
-        let new_mask_line = [];
-        for (var x=0; x<Icon32Bit.state.artboard_array[y].length; x++) {
-            if (["#ffffff", "#FFFFFF"].includes(Icon32Bit.state.artboard_array[y][x])) {
-                new_mask_line.push("#FFFFFF");
-            } else {
-                new_mask_line.push("#000000");
+function load_from_local_storage() {
+    let previous_session = localStorage.getItem("icony");
+    if (previous_session != null) {
+        let state = JSON.parse(previous_session);
+        for (let key in state) {
+            if (state[key].deleted == false) {
+                let id = key.slice(6);
+                new_window(id);
+                windows[id].replace_icon32_array(state[key].icon32);
+                windows[id].replace_mask32_array(state[key].mask32);
+                windows[id].window_pos = state[key].window;
+                windows[id].move_window(null);
             }
         }
-        new_mask.push(new_mask_line);
     }
-
-    IconMask.replace_artboard_array(new_mask);
 }
 
-// Ignore me...
+load_from_local_storage();
+
 
 function debug(){
-    Icon32Bit.replace_artboard_array([
+    windows[windows.length - 1].replace_icon32_array([
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#EA0000","#EA0000","#EA0000","#EA0000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#EA0000","#EA0000","#EA0000","#EA0000","#EA0000","#000000","#000000","#000000","#ffffff","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
@@ -1001,7 +1451,7 @@ function debug(){
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"]
     ]);
 
-    IconMask.replace_artboard_array([
+    windows[windows.length - 1].replace_mask32_array([
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
@@ -1036,6 +1486,7 @@ function debug(){
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"]
     ]);
 }
-    </script>
 
-</body></html>
+
+  </script>
+</html>
