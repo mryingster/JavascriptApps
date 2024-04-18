@@ -102,6 +102,7 @@
     <script src="https://home.yingster.net/apps/resedit/jscolor.js"></script>
     <div id="content">
       <button onclick="new_window(-1);">New Window</button>
+      <input class="hidden" type="file" id="load"/>
     </div>
   </body>
   <script>
@@ -170,7 +171,7 @@ class toolbox {
 }
 
 class artboard {
-    constructor(canvas, fgcolor, bgcolor, icon_size, tools, default_color, render_window, keydown, keyup, id){
+    constructor(canvas, fgcolor, bgcolor, icon_size, tools, default_color, render_window, id){
 	// Constants
 	this.canvas  = canvas;
 	this.tools   = tools;
@@ -182,8 +183,6 @@ class artboard {
 
         // Functions in other class
         this.render_window = render_window;
-        this.keydown = keydown;
-        this.keyup = keyup;
 
 	// Artboard settings
 	this.icon_size		= icon_size;
@@ -198,12 +197,12 @@ class artboard {
 	this.canvas.height	= this.height;
 
 	this.update_preview     = null;
-        this.command_down       = false;
 
 	// State
 	this.state = {
 	    "artboard_array"      : this.initialize_2d_array(this.icon_size, this.icon_size, this.default_color),
 	    "prev_artboard_array" : this.initialize_2d_array(this.icon_size, this.icon_size, this.default_color),
+            "overlay_array"       : this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)"),
 	    "actual_color"        : null,
 	    "mouse_down"          : false,
 	    "mouse_down_pos"      : {x:null, y:null},
@@ -270,14 +269,6 @@ class artboard {
             this.render_window();
 	}.bind(this))
 
-        this.canvas.addEventListener('keydown', function(e) {
-            this.keydown(e);
-        }.bind(this))
-
-        this.canvas.addEventListener('keyup', function(e) {
-            this.keyup(e);
-	}.bind(this))
-
 	this.redraw_canvas();
     }
 
@@ -324,19 +315,19 @@ class artboard {
 	    this.selection.selected = true;
 
 	// Check to make sure smaller coords in x0/y0
-	if (this.selection.start_coords.y0 > this.selection.start_coords.y1){
+	if (this.selection.start_coords.y0 > this.selection.start_coords.y1) {
 	    let t = this.selection.start_coords.y1;
 	    this.selection.start_coords.y1 = this.selection.start_coords.y0;
 	    this.selection.start_coords.y0 = t;
 	}
-	if (this.selection.start_coords.x0 > this.selection.start_coords.x1){
+	if (this.selection.start_coords.x0 > this.selection.start_coords.x1) {
 	    let t = this.selection.start_coords.x1;
 	    this.selection.start_coords.x1 = this.selection.start_coords.x0;
 	    this.selection.start_coords.x0 = t;
 	}
 
 	// See if the selection area has moved at all
-	if (this.selection.moved == true){
+	if (this.selection.moved == true) {
 	    this.selection.original_artboard = JSON.parse(JSON.stringify(this.state.artboard_array));
 	    this.selection.start_coords = {...this.selection.end_coords};
 	    // Check to see if the coords are out of bounds, and shrink them
@@ -348,15 +339,22 @@ class artboard {
 
 	// Check if selection contains nothing, deselect
 	if (this.selection.start_coords.y0 == this.selection.start_coords.y1 ||
-	    this.selection.start_coords.x0 == this.selection.start_coords.x1){
-	    this.selection.selected = false;
-	    this.state.artboard_array = JSON.parse(JSON.stringify(this.selection.original_artboard));
-	    this.redraw_canvas();
+	    this.selection.start_coords.x0 == this.selection.start_coords.x1) {
+            this.deselect_marquee();
 	}
 
 	// Animate if something is still selected
 	if (this.selection.selected == true)
 	    this.animate_marquee();
+    }
+
+    deselect_marquee() {
+	clearTimeout(this.selection.timer);
+        this.selection.selected = false;
+	//this.state.artboard_array = JSON.parse(JSON.stringify(this.selection.original_artboard));
+        this.state.overlay_array = this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)");
+	this.redraw_overlay();
+	this.redraw_canvas();
     }
 
     initialize_2d_array(x, y, c){
@@ -385,9 +383,8 @@ class artboard {
     }
 
     animate_marquee(){
-	// Undo the previously drawn box
-	this.state.artboard_array = JSON.parse(JSON.stringify(this.selection.original_artboard));
-	//this.undo();
+	// Clear the overlay
+        this.state.overlay_array = this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)");
 
 	// Draw blinking outline
 	let position1 = this.selection.blink_position % 6;
@@ -396,19 +393,32 @@ class artboard {
 	let position4 = this.selection.blink_position++ % 6;
 
 	for(let x=Math.min(this.selection.start_coords.x0, this.selection.start_coords.x1); x<=Math.max(this.selection.start_coords.x0, this.selection.start_coords.x1); x++)
-	    if (position1++ % 6 < 3)
-		this.state.artboard_array[this.selection.start_coords.y0][x] = "#000000";
+	    if (position1++ % 6 < 3) {
+		this.state.overlay_array[this.selection.start_coords.y0][x] = "#000000";
+            } else {
+            	this.state.overlay_array[this.selection.start_coords.y0][x] = "#FFFFFF";
+            }
 	for(let x=Math.max(this.selection.start_coords.x0, this.selection.start_coords.x1); x>=Math.min(this.selection.start_coords.x0, this.selection.start_coords.x1); x--)
-	    if (position2++ % 6 < 3)
-		this.state.artboard_array[this.selection.start_coords.y1][x] = "#000000";
+	    if (position2++ % 6 < 3) {
+		this.state.overlay_array[this.selection.start_coords.y1][x] = "#000000";
+            } else {
+            	this.state.overlay_array[this.selection.start_coords.y1][x] = "#FFFFFF";
+            }
 	for(let y=Math.min(this.selection.start_coords.y0, this.selection.start_coords.y1); y<=Math.max(this.selection.start_coords.y0, this.selection.start_coords.y1); y++)
-	    if (position3++ % 6 < 3)
-		this.state.artboard_array[y][this.selection.start_coords.x1] = "#000000";
+	    if (position3++ % 6 < 3) {
+		this.state.overlay_array[y][this.selection.start_coords.x1] = "#000000";
+            } else {
+            	this.state.overlay_array[y][this.selection.start_coords.x1] = "#FFFFFF";
+            }
 	for(let y=Math.max(this.selection.start_coords.y0, this.selection.start_coords.y1); y>=Math.min(this.selection.start_coords.y0, this.selection.start_coords.y1); y--)
-	    if (position4++ % 6 < 3)
-		this.state.artboard_array[y][this.selection.start_coords.x0] = "#000000";
+	    if (position4++ % 6 < 3) {
+		this.state.overlay_array[y][this.selection.start_coords.x0] = "#000000";
+            } else {
+            	this.state.overlay_array[y][this.selection.start_coords.x0] = "#FFFFFF";
+            }
 
 	this.redraw_canvas();
+        this.redraw_overlay();
 	this.selection.timer = setTimeout(() => this.animate_marquee(), 250);
     }
 
@@ -620,18 +630,20 @@ class artboard {
 
 	// Marquee Action
 	if (this.tools.selected == "marquee"){
-	    // Redraw from stored state of canvas
-	    this.state.artboard_array = JSON.parse(JSON.stringify(this.selection.original_artboard));
+	    // Clear the overlay
+            this.state.overlay_array = this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)");
+            // Clear our history
+            this.state.artboard_array = JSON.parse(JSON.stringify(this.selection.original_artboard));
 
 	    // If we have no selection, draw selection box
 	    if (this.selection.selected == false){
 		for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
-		    this.state.artboard_array[pos.y][x] = "#000000";
-		    this.state.artboard_array[this.state.mouse_down_pos.y][x] = "#000000";
+		    this.state.overlay_array[pos.y][x] = "#000000";
+		    this.state.overlay_array[this.state.mouse_down_pos.y][x] = "#000000";
 		}
 		for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
-		    this.state.artboard_array[y][pos.x] = "#000000";
-		    this.state.artboard_array[y][this.state.mouse_down_pos.x] = "#000000";
+		    this.state.overlay_array[y][pos.x] = "#000000";
+		    this.state.overlay_array[y][this.state.mouse_down_pos.x] = "#000000";
 		}
 
 		this.selection.start_coords.x1 = pos.x;
@@ -668,7 +680,9 @@ class artboard {
 		this.selection.end_coords.y0 = this.selection.start_coords.y0 - dy;
 		this.selection.end_coords.y1 = this.selection.start_coords.y1 - dy;
 	    }
-	}
+	} else {
+            this.deselect_marquee();
+        }
 
 	// Filled Rounded Rectangle Action
 	if (this.tools.selected == "filled_round_rect"){
@@ -775,14 +789,15 @@ class artboard {
 		for (let rx = 0; rx<radius_x; rx+=1)
 		    this.plot_ellipse(rx + (radius_x % 1), radius_y, center_x, center_y);
 	}
-
 	this.redraw_canvas();
+        this.redraw_overlay();
     }
 
     undo(){
         if (this.history.length > 0) {
             this.state.artboard_array = JSON.parse(JSON.stringify(this.history[this.history.length - 1]));
             this.redraw_canvas();
+            this.render_window();
             this.history.pop();
         }
     }
@@ -792,7 +807,13 @@ class artboard {
 	this.redraw_canvas();
     }
 
-    redraw_canvas(){
+    redraw_overlay() {
+	for (let y=0; y<this.state.overlay_array.length; y++)
+	    for (let x=0; x<this.state.overlay_array[y].length; x++)
+		this.draw_pixel({x:x, y:y}, this.state.overlay_array[y][x]);
+    }
+
+    redraw_canvas() {
 	for (let y=0; y<this.state.artboard_array.length; y++)
 	    for (let x=0; x<this.state.artboard_array[y].length; x++)
 		this.draw_pixel({x:x, y:y}, this.state.artboard_array[y][x]);
@@ -872,8 +893,6 @@ class icon_window {
             this.tools,
             "#FFFFFF",
             () => this.render(),
-            (e) => this.keydown(e),
-            (e) => this.keyup(e),
             this.id
         )
 
@@ -889,8 +908,6 @@ class icon_window {
             this.tools,
             "#000000",
             () => this.render(),
-            (e) => this.keydown(e),
-            (e) => this.keyup(e),
             this.id
         )
 
@@ -920,8 +937,6 @@ class icon_window {
 	    let pos = this.get_canvas_cursor_position(this.canvas, e)
 
             // Set focus on this canvas, and send other to back
-            if (this.inactive)
-                this.div.style.zIndex = zindex++;
             background_other_windows(this.id);
 
             // If the pos is < 30, this is title bar interaction
@@ -1013,9 +1028,6 @@ class icon_window {
                 }
             }
 
-            if (this.tools.selected == "marquee")
-		this.mouse_up_marquee();
-
             // Reset states
 	    this.mouse_down = false;
             this.window_move = false;
@@ -1030,54 +1042,8 @@ class icon_window {
 	    this.mouse_down = false;
 	}.bind(this))
 
-        // Keyboard Listeners
-        this.canvas.addEventListener('keydown', function(e) {
-            this.keydown(e);
-            //console.log(e);
-        }.bind(this));
-
-        this.canvas.addEventListener('keyup', function(e) {
-            this.keyup(e);
-            //console.log(e);
-        }.bind(this));
-
-
         this.select_artboard();
         this.render();
-    }
-
-    keydown(event) {
-        let key = event.key;
-
-        if (key == "Meta" || key == "Control")
-            this.command_down = true;
-
-        // UNDO - Command Z
-        if (this.command_down && key == "z")
-            this.undo();
-
-        // Close - Command W
-        if (this.command_down && key == "w") {
-            event.preventDefault();
-            this.close();
-        }
-
-        // Minimize - Command M
-        if (this.command_down && key == "m") {
-            event.preventDefault();
-            this.minimize();
-        }
-
-        // Export - Command S
-        if (this.command_down && key == "e") {
-            event.preventDefault();
-            this.export();
-        }
-    }
-
-    keyup(event) {
-        if (event.key == "Meta" || event.key == "Control")
-            this.command_down == false;
     }
 
     get_page_cursor_position(event) {
@@ -1134,7 +1100,6 @@ class icon_window {
 
         export_canvas.remove();
     }
-
 
     move_window(p) {
         let new_x = this.window_pos.x;
@@ -1205,13 +1170,58 @@ class icon_window {
         this.render();
     }
 
+    get_active_array() {
+        let temp_icon = this.icon32;
+        if (this.selected == "mask32")
+            temp_icon = this.mask32;
+
+        // If a selection marquee is up, only get within those coords
+        let coords = { x0: 0, y0: 0, x1:31 , y1:31 };
+        if (temp_icon.selection.selected)
+            coords = temp_icon.selection.start_coords;
+        console.log(coords);
+
+        let temp_array = temp_icon.state.artboard_array.slice();
+        let output_array = [];
+
+        for (let y=coords.y0; y<=coords.y1; y++) {
+            let row = []
+            for (let x=coords.x0; x<=coords.x1; x++) {
+                row.push(temp_array[y][x]);
+            }
+            output_array.push(row);
+        }
+
+        return output_array;
+    }
+
+    paste(cb) {
+        let temp_icon = this.icon32;
+        if (this.selected == "mask32")
+            temp_icon = this.mask32;
+
+        // Snapshot previous artboard
+        temp_icon.selection.original_artboard = JSON.parse(JSON.stringify(temp_icon.state.artboard_array));
+
+        // Place clipboard into top left area of canvas
+        for (let y=0; y<cb.length; y++)
+            for (let x=0; x<cb[0].length; x++) {
+                temp_icon.state.artboard_array[y][x] = cb[y][x];
+            }
+
+        // Prepare selection/marquee tool
+        temp_icon.selection.selected = true;
+        temp_icon.selection.start_coords = { x0:0, y0:0, x1:cb[0].length - 1, y1:cb.length - 1 };
+        temp_icon.animate_marquee();
+    }
+
     update_mask() {
         let new_mask = [];
 
-        for (var y=0; y<this.icon32.length; y++) {
+        for (var y=0; y<this.icon32.state.artboard_array.length; y++) {
             let new_mask_line = [];
-            for (var x=0; x<this.icon32[y].length; x++) {
-                if (["#ffffff", "#FFFFFF"].includes(this.icon32[y][x])) {
+            for (var x=0; x<this.icon32.state.artboard_array[y].length; x++) {
+                if (["#ffffff", "#FFFFFF"].includes(this.icon32.state.artboard_array[y][x])) {
                     new_mask_line.push("#FFFFFF");
                 } else {
                     new_mask_line.push("#000000");
@@ -1219,7 +1229,7 @@ class icon_window {
             }
             new_mask.push(new_mask_line);
         }
-
+        console.log(new_mask);
         this.replace_mask32_array(new_mask);
     }
 
@@ -1286,6 +1296,7 @@ class icon_window {
     }
 
     convert_to_rgba(i, m) {
+        if (m.length == 0) return i;
         let a = [];
 
         for (let y=0; y<i.length; y++) {
@@ -1302,7 +1313,11 @@ class icon_window {
     }
 
     render_icon32_preview(ctx, x, y, w, s) {
-        this.render_icon(ctx, this.convert_to_rgba(this.icon32.state.artboard_array, this.mask32.state.artboard_array), x, y, w, s);
+        this.render_icon(
+            ctx,
+            this.convert_to_rgba(this.icon32.state.artboard_array,
+                                 this.mask32.state.artboard_array),
+            x, y, w, s);
     }
 
     render() {
@@ -1363,30 +1378,188 @@ class icon_window {
     }
 }
 
+document.addEventListener('keydown', function(e) {
+    let key = e.key;
+
+    if (key == "Meta" || key == "Control")
+        command_down = true;
+
+    // Switch window focus
+    if (command_down && key == "`") {
+        e.preventDefault();
+        rotate_focus();
+    }
+
+    // UNDO - Command Z
+    if (command_down && key == "z")
+        windows[selected].undo();
+
+    // Close - Command W
+    if (command_down && key == "w") {
+        e.preventDefault();
+        windws[selected].close();
+    }
+
+    // Minimize - Command M
+    if (command_down && key == "m") {
+        e.preventDefault();
+        windows[selected].minimize();
+    }
+
+    // Export - Command E
+    if (command_down && key == "e") {
+        e.preventDefault();
+        windows[selected].export();
+    }
+
+    // Copy - Command C
+    if (command_down && key == "c") {
+        e.preventDefault();
+        clipboard = windows[selected].get_active_array();
+    }
+
+    // Paste - Command V
+    if (command_down && key == "v") {
+        e.preventDefault();
+        windows[selected].paste(clipboard);
+    }
+
+    // Load - Command L
+    if (command_down && key == "l") {
+        e.preventDefault();
+        document.getElementById("load").showPicker();
+    }
+
+    console.log(e);
+});
+
+document.addEventListener('keyup', function(e) {
+    if (event.key == "Meta" || event.key == "Control")
+        command_down = false;
+});
+
+document.getElementById("load").addEventListener('change', function(e) {
+    // Create temporary canvas
+    let tmp_canvas = document.createElement("canvas");
+    let tmp_ctx = tmp_canvas.getContext("2d");
+
+    function hex(n, l=2){
+        let s = n.toString(16);
+        while (s.length < l)
+	    s = "0"+s;
+        return s;
+    }
+
+    function data_to_string(r, g, b, i){
+        if (i){
+	    r = 255-r;
+	    g = 255-g;
+	    b = 255-b;
+        }
+        return "#" + hex(r) + hex(g) + hex(b);
+    }
+
+    // Get image from user & Load it into canvas
+    var reader = new FileReader();
+    reader.onload = function(event){
+        var img = new Image();
+        img.onload = function(){
+            tmp_ctx.drawImage(img, 0, 0);
+
+	    // Read back from canvas to get image data format
+	    var image_data = tmp_ctx.getImageData(0, 0, 32, 32);
+	    var pixels = image_data.data;
+
+	    // Convert pixels; crop to 32x32
+	    let icon_array = [];
+	    let mask_array = [];
+
+	    let icon_row = [];
+	    let mask_row = [];
+	    for (let p=0; p<pixels.length; p+=4){
+		icon_row.push(data_to_string(pixels[p+0], pixels[p+1], pixels[p+2], false));
+		mask_row.push(data_to_string(pixels[p+3], pixels[p+3], pixels[p+3], true));
+
+		if (icon_row.length == 32){
+		    icon_array.push(icon_row);
+		    mask_array.push(mask_row);
+		    icon_row = [];
+		    mask_row = [];
+		}
+	    }
+
+	    // Load data into states
+	    windows[selected].replace_icon32_array(icon_array);
+	    windows[selected].replace_mask32_array(mask_array);
+
+	    // remove the canvas
+	    tmp_canvas.remove()
+        }
+        img.src = event.target.result;
+    }
+    reader.readAsDataURL(e.target.files[0]); 
+}, false);
+
 let windows = {};
 let window_id = 0;
 let zindex = 0;
+let selected = -1;
+let command_down = false;
+let clipboard = null;
 
 function new_window(id) {
     var content = document.getElementById('content');
     let div  = document.createElement('div');
     if (id != -1)
         window_id = id;
-    windows[window_id] = new icon_window(div, window_id++);
+    windows[window_id] = new icon_window(div, window_id);
+    selected = window_id++;
     div.classList.add("window");
     content.appendChild(div);
     background_other_windows(windows.length - 1);
     jscolor.install()
+
+    background_other_windows(selected);
     //debug();
 }
 
 function background_other_windows(id){
+    if (! (id in windows)) return;
+
+    // Background other windows
     for (let w in windows) {
         windows[w].inactive = true;
         if (windows[w].id == id)
             windows[w].inactive = false;
         windows[w].render();
     }
+
+    //Fix z-index
+    windows[id].div.style.zIndex = zindex++;
+
+    // Set selection
+    selected = id;
+}
+
+function rotate_focus() {
+    let smallest = windows[0].id;
+    let next = -1;
+    for (let w in windows) {
+        if (windows[w].id == selected || windows[w].deleted)
+            continue
+        if (windows[w].id > selected && next == -1)
+            next = windows[w].id;
+        if (windows[w].id < smallest)
+            smallest = windows[w].id;
+    }
+
+    // If there was no window larger than the current selection, cycle back to the smallest
+    if (selected == next || next == -1)
+        next = smallest;
+
+    background_other_windows(next)
+    selected = next;
+    return;
 }
 
 function remove(id){
@@ -1407,6 +1580,8 @@ function load_from_local_storage() {
                 windows[id].replace_mask32_array(state[key].mask32);
                 windows[id].window_pos = state[key].window;
                 windows[id].move_window(null);
+
+                background_other_windows(id);
             }
         }
     }
@@ -1416,7 +1591,7 @@ load_from_local_storage();
 
 
 function debug(){
-    windows[windows.length - 1].replace_icon32_array([
+    windows[selected].replace_icon32_array([
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#EA0000","#EA0000","#EA0000","#EA0000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#EA0000","#EA0000","#EA0000","#EA0000","#EA0000","#000000","#000000","#000000","#ffffff","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
@@ -1451,7 +1626,7 @@ function debug(){
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"]
     ]);
 
-    windows[windows.length - 1].replace_mask32_array([
+    windows[selected].replace_mask32_array([
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
 	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
