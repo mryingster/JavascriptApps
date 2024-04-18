@@ -211,13 +211,16 @@ class artboard {
         this.history = [];
 
 	this.selection = {
-	    "selected"          : false,
-	    "moved"             : false,
-	    "original_artboard" : null,
-	    "start_coords"      : {x0:null, y0:null, x1:null, y1:null},
-	    "end_coords"        : {x0:null, y0:null, x1:null, y1:null},
-	    "blink_position"    : 0,
-	    "timer"             : null,
+	    "selected"            : false,
+	    "moved"               : false,
+	    "source_artboard"     : null,
+            "source_coords"       : { x0:null, y0:null, x1:null, y1:null },
+	    "start_coords"        : { x0:null, y0:null, x1:null, y1:null },
+	    "last_coords"         : { x0:null, y0:null, x1:null, y1:null },
+	    "dest_coords"         : { x0:null, y0:null, x1:null, y1:null },
+	    "blink_position"      : 0,
+	    "timer"               : null,
+            "replace_background"  : false,
 	};
 
 	// Listeners
@@ -236,7 +239,6 @@ class artboard {
 
 	    if (this.tools.selected == "marquee")
 		this.mouse_down_marquee(pos);
-	    clearTimeout(this.selection.timer);
 
 	    this.action(pos);
 	    this.state.mouse_down = true;
@@ -288,75 +290,6 @@ class artboard {
         this.history[this.history.length - 1] = JSON.parse(JSON.stringify(this.state.artboard_array));
     }
 
-    mouse_down_marquee(pos){
-	// If nothing is yet selected, record the position for start of selection box
-	if (this.selection.selected == false){
-	    this.selection.original_artboard = JSON.parse(JSON.stringify(this.state.artboard_array));
-	    this.selection.start_coords.x0 = pos.x;
-	    this.selection.start_coords.y0 = pos.y;
-	}
-	this.selection.moved = false;
-
-	// Check if we clicked out of the selection area
-	if (this.selection.selected == true){
-	    if (pos.x < this.selection.start_coords.x0 ||
-		pos.x > this.selection.start_coords.x1 ||
-		pos.y < this.selection.start_coords.y0 ||
-		pos.y > this.selection.start_coords.y1){
-		this.selection.selected = false;
-		this.selection.start_coords.x0 = pos.x;
-		this.selection.start_coords.y0 = pos.y;
-	    }
-	}
-    }
-
-    mouse_up_marquee(){
-	if (this.selection.selected == false)
-	    this.selection.selected = true;
-
-	// Check to make sure smaller coords in x0/y0
-	if (this.selection.start_coords.y0 > this.selection.start_coords.y1) {
-	    let t = this.selection.start_coords.y1;
-	    this.selection.start_coords.y1 = this.selection.start_coords.y0;
-	    this.selection.start_coords.y0 = t;
-	}
-	if (this.selection.start_coords.x0 > this.selection.start_coords.x1) {
-	    let t = this.selection.start_coords.x1;
-	    this.selection.start_coords.x1 = this.selection.start_coords.x0;
-	    this.selection.start_coords.x0 = t;
-	}
-
-	// See if the selection area has moved at all
-	if (this.selection.moved == true) {
-	    this.selection.original_artboard = JSON.parse(JSON.stringify(this.state.artboard_array));
-	    this.selection.start_coords = {...this.selection.end_coords};
-	    // Check to see if the coords are out of bounds, and shrink them
-	    this.selection.start_coords.y0 = Math.max(this.selection.start_coords.y0, 0);
-	    this.selection.start_coords.y1 = Math.min(this.selection.start_coords.y1, this.state.artboard_array.length -1);
-	    this.selection.start_coords.x0 = Math.max(this.selection.start_coords.x0, 0);
-	    this.selection.start_coords.x1 = Math.min(this.selection.start_coords.x1, this.state.artboard_array.length -1);
-	}
-
-	// Check if selection contains nothing, deselect
-	if (this.selection.start_coords.y0 == this.selection.start_coords.y1 ||
-	    this.selection.start_coords.x0 == this.selection.start_coords.x1) {
-            this.deselect_marquee();
-	}
-
-	// Animate if something is still selected
-	if (this.selection.selected == true)
-	    this.animate_marquee();
-    }
-
-    deselect_marquee() {
-	clearTimeout(this.selection.timer);
-        this.selection.selected = false;
-	//this.state.artboard_array = JSON.parse(JSON.stringify(this.selection.original_artboard));
-        this.state.overlay_array = this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)");
-	this.redraw_overlay();
-	this.redraw_canvas();
-    }
-
     initialize_2d_array(x, y, c){
 	let new_array = [];
 	while (new_array.length < y){
@@ -382,9 +315,177 @@ class artboard {
 	return {x:pixelx, y:pixely};
     }
 
+    mouse_down_marquee(pos){
+        // Clearout the animation timeout
+        this.clear_marquee_timeout();
+
+	// If nothing is yet selected, record the position for start of selection box
+	if (this.selection.selected == false){
+	    this.selection.source_artboard = JSON.parse(JSON.stringify(this.state.artboard_array));
+	    this.selection.dest_coords.x0 = pos.x;
+	    this.selection.dest_coords.y0 = pos.y;
+	}
+	this.selection.moved = false;
+
+	// Check if we clicked out of the selection area
+	if (this.selection.selected == true){
+	    if (pos.x < this.selection.dest_coords.x0 ||
+		pos.x > this.selection.dest_coords.x1 ||
+		pos.y < this.selection.dest_coords.y0 ||
+		pos.y > this.selection.dest_coords.y1){
+
+                // Deselect
+                this.deselect_marquee();
+
+                // Make new selection
+		this.selection.dest_coords.x0 = pos.x;
+		this.selection.dest_coords.y0 = pos.y;
+	    }
+	}
+    }
+
+    mouse_up_marquee(){
+	// Check to make sure smaller coords in x0/y0
+	if (this.selection.dest_coords.y0 > this.selection.dest_coords.y1) {
+	    let t = this.selection.dest_coords.y1;
+	    this.selection.dest_coords.y1 = this.selection.dest_coords.y0;
+	    this.selection.dest_coords.y0 = t;
+	}
+	if (this.selection.dest_coords.x0 > this.selection.dest_coords.x1) {
+	    let t = this.selection.dest_coords.x1;
+	    this.selection.dest_coords.x1 = this.selection.dest_coords.x0;
+	    this.selection.dest_coords.x0 = t;
+	}
+
+        // Make initial selection
+	if (this.selection.selected == false) {
+	    this.selection.selected = true;
+            this.selection.source_artboard = JSON.parse(JSON.stringify(this.state.artboard_array));
+
+            // Set the source coordinates
+            this.selection.source_coords = {
+                x0: this.selection.dest_coords.x0,
+                y0: this.selection.dest_coords.y0,
+                x1: this.selection.dest_coords.x1,
+                y1: this.selection.dest_coords.y1,
+            };
+
+            // Set the start coordinates
+            this.selection.start_coords = {
+                x0: this.selection.dest_coords.x0,
+                y0: this.selection.dest_coords.y0,
+                x1: this.selection.dest_coords.x1,
+                y1: this.selection.dest_coords.y1,
+            };
+
+            // And set the last coordinates
+            this.selection.last_coords = {
+                x0: this.selection.dest_coords.x0,
+                y0: this.selection.dest_coords.y0,
+                x1: this.selection.dest_coords.x1,
+                y1: this.selection.dest_coords.y1,
+            };
+
+            this.selection.replace_background = true;
+        }
+
+	// See if the selection area has moved at all
+	if (this.selection.moved == true) {
+            // Set the last coordinates for our next move
+            this.selection.last_coords = {
+                x0: this.selection.dest_coords.x0,
+                y0: this.selection.dest_coords.y0,
+                x1: this.selection.dest_coords.x1,
+                y1: this.selection.dest_coords.y1,
+            };
+        }
+
+	// Check if selection contains nothing, deselect
+	if (this.selection.dest_coords.y0 == this.selection.dest_coords.y1 ||
+	    this.selection.dest_coords.x0 == this.selection.dest_coords.x1) {
+            this.deselect_marquee();
+	}
+
+	// Animate if something is still selected
+	if (this.selection.selected == true && this.selection.timer == null)
+	    this.animate_marquee();
+    }
+
+    deselect_marquee() {
+        // Stop drawing outline
+        this.selection.selected = false;
+        this.clear_marquee_timeout();
+
+        // Commit source artboard to actual artboard
+        // Draw empty space where came from
+        if (this.selection.replace_background) {
+	    for(let x=this.selection.start_coords.x0; x<=this.selection.start_coords.x1; x++){
+		for(let y=this.selection.start_coords.y0; y<=this.selection.start_coords.y1; y++){
+		    this.state.artboard_array[y][x] = this.bg_color();
+		}
+	    }
+        }
+
+        // Draw source image into overlay
+        let size_x = this.selection.source_coords.x1 - this.selection.source_coords.x0;
+        let size_y = this.selection.source_coords.y1 - this.selection.source_coords.y0;
+
+        for (let y=0; y<=size_y; y++) {
+            for (let x=0; x<=size_x; x++) {
+                if (this.selection.dest_coords.y0 + y < 0) continue;
+                if (this.selection.dest_coords.x0 + x < 0) continue;
+                if (this.selection.dest_coords.y0 + y > this.state.artboard_array.length -1) continue;
+                if (this.selection.dest_coords.x0 + x > this.state.artboard_array[0].length -1) continue;
+		this.state.artboard_array[this.selection.dest_coords.y0 + y][this.selection.dest_coords.x0 + x] = this.selection.source_artboard[this.selection.source_coords.y0 + y][this.selection.source_coords.x0 + x];
+            }
+        }
+
+        // Clear overlay
+        this.state.overlay_array = this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)");
+
+        // Reset variables
+        this.selection.replace_background = false;
+
+        // Redraw
+	this.redraw_overlay();
+	this.redraw_canvas();
+    }
+
     animate_marquee(){
+        // If no selection, stop animating
+        if (! this.selection.selected) return;
+
 	// Clear the overlay
         this.state.overlay_array = this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)");
+
+        // Draw empty space where came from
+        if (this.selection.replace_background) {
+	    for(let x=this.selection.start_coords.x0; x<=this.selection.start_coords.x1; x++){
+		for(let y=this.selection.start_coords.y0; y<=this.selection.start_coords.y1; y++){
+		    this.state.overlay_array[y][x] = this.bg_color();
+		}
+	    }
+        }
+
+        // Draw source image into overlay
+        let size_x = this.selection.source_coords.x1 - this.selection.source_coords.x0;
+        let size_y = this.selection.source_coords.y1 - this.selection.source_coords.y0;
+
+        for (let y=0; y<=size_y; y++) {
+            for (let x=0; x<=size_x; x++) {
+                if (this.selection.dest_coords.y0 + y < 0) continue;
+                if (this.selection.dest_coords.x0 + x < 0) continue;
+                if (this.selection.dest_coords.y0 + y > this.state.artboard_array.length -1) continue;
+                if (this.selection.dest_coords.x0 + x > this.state.artboard_array[0].length -1) continue;
+		this.state.overlay_array[this.selection.dest_coords.y0 + y][this.selection.dest_coords.x0 + x] = this.selection.source_artboard[this.selection.source_coords.y0 + y][this.selection.source_coords.x0 + x];
+            }
+        }
+
+        // Shring outline if we are off the screen on any side
+        let selection_bounds_y0 = Math.max(this.selection.dest_coords.y0, 0);
+	let selection_bounds_y1 = Math.min(this.selection.dest_coords.y1, this.state.artboard_array.length -1);
+	let selection_bounds_x0 = Math.max(this.selection.dest_coords.x0, 0);
+	let selection_bounds_x1 = Math.min(this.selection.dest_coords.x1, this.state.artboard_array.length -1);
 
 	// Draw blinking outline
 	let position1 = this.selection.blink_position % 6;
@@ -392,34 +493,39 @@ class artboard {
 	let position3 = this.selection.blink_position % 6;
 	let position4 = this.selection.blink_position++ % 6;
 
-	for(let x=Math.min(this.selection.start_coords.x0, this.selection.start_coords.x1); x<=Math.max(this.selection.start_coords.x0, this.selection.start_coords.x1); x++)
+	for(let x=Math.min(selection_bounds_x0, selection_bounds_x1); x<=Math.max(selection_bounds_x0, selection_bounds_x1); x++)
 	    if (position1++ % 6 < 3) {
-		this.state.overlay_array[this.selection.start_coords.y0][x] = "#000000";
+		this.state.overlay_array[selection_bounds_y0][x] = "#000000";
             } else {
-            	this.state.overlay_array[this.selection.start_coords.y0][x] = "#FFFFFF";
+            	this.state.overlay_array[selection_bounds_y0][x] = "#FFFFFF";
             }
-	for(let x=Math.max(this.selection.start_coords.x0, this.selection.start_coords.x1); x>=Math.min(this.selection.start_coords.x0, this.selection.start_coords.x1); x--)
+	for(let x=Math.max(selection_bounds_x0, selection_bounds_x1); x>=Math.min(selection_bounds_x0, selection_bounds_x1); x--)
 	    if (position2++ % 6 < 3) {
-		this.state.overlay_array[this.selection.start_coords.y1][x] = "#000000";
+		this.state.overlay_array[selection_bounds_y1][x] = "#000000";
             } else {
-            	this.state.overlay_array[this.selection.start_coords.y1][x] = "#FFFFFF";
+            	this.state.overlay_array[selection_bounds_y1][x] = "#FFFFFF";
             }
-	for(let y=Math.min(this.selection.start_coords.y0, this.selection.start_coords.y1); y<=Math.max(this.selection.start_coords.y0, this.selection.start_coords.y1); y++)
+	for(let y=Math.min(selection_bounds_y0, selection_bounds_y1); y<=Math.max(selection_bounds_y0, selection_bounds_y1); y++)
 	    if (position3++ % 6 < 3) {
-		this.state.overlay_array[y][this.selection.start_coords.x1] = "#000000";
+		this.state.overlay_array[y][selection_bounds_x1] = "#000000";
             } else {
-            	this.state.overlay_array[y][this.selection.start_coords.x1] = "#FFFFFF";
+            	this.state.overlay_array[y][selection_bounds_x1] = "#FFFFFF";
             }
-	for(let y=Math.max(this.selection.start_coords.y0, this.selection.start_coords.y1); y>=Math.min(this.selection.start_coords.y0, this.selection.start_coords.y1); y--)
+	for(let y=Math.max(selection_bounds_y0, selection_bounds_y1); y>=Math.min(selection_bounds_y0, selection_bounds_y1); y--)
 	    if (position4++ % 6 < 3) {
-		this.state.overlay_array[y][this.selection.start_coords.x0] = "#000000";
+		this.state.overlay_array[y][selection_bounds_x0] = "#000000";
             } else {
-            	this.state.overlay_array[y][this.selection.start_coords.x0] = "#FFFFFF";
+            	this.state.overlay_array[y][selection_bounds_x0] = "#FFFFFF";
             }
 
 	this.redraw_canvas();
         this.redraw_overlay();
 	this.selection.timer = setTimeout(() => this.animate_marquee(), 250);
+    }
+
+    clear_marquee_timeout() {
+        clearTimeout(this.selection.timer);
+        this.selection.timer = null;
     }
 
     recurse(x, y, cc, nc){
@@ -632,11 +738,9 @@ class artboard {
 	if (this.tools.selected == "marquee"){
 	    // Clear the overlay
             this.state.overlay_array = this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)");
-            // Clear our history
-            this.state.artboard_array = JSON.parse(JSON.stringify(this.selection.original_artboard));
 
 	    // If we have no selection, draw selection box
-	    if (this.selection.selected == false){
+	    if (this.selection.selected == false) {
 		for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
 		    this.state.overlay_array[pos.y][x] = "#000000";
 		    this.state.overlay_array[this.state.mouse_down_pos.y][x] = "#000000";
@@ -646,41 +750,49 @@ class artboard {
 		    this.state.overlay_array[y][this.state.mouse_down_pos.x] = "#000000";
 		}
 
-		this.selection.start_coords.x1 = pos.x;
-		this.selection.start_coords.y1 = pos.y;
+		this.selection.dest_coords.x1 = pos.x;
+		this.selection.dest_coords.y1 = pos.y;
+            }
 
-		// If we have a selection...
-	    } else {
+            // If we have a selection...
+            if (this.selection.selected) {
 		// See if click is not previously selected area. Draw a new box...
 
 		// Fill the original selection area with background color
-		for(let x=Math.min(this.selection.start_coords.x0, this.selection.start_coords.x1); x<=Math.max(this.selection.start_coords.x0, this.selection.start_coords.x1); x++){
-		    for(let y=Math.min(this.selection.start_coords.y0, this.selection.start_coords.y1); y<=Math.max(this.selection.start_coords.y0, this.selection.start_coords.y1); y++){
-			this.state.artboard_array[y][x] = this.bg_color();
+                if (this.selection.replace_background) {
+		    for(let x=this.selection.source_coords.x0; x<=this.selection.source_coords.x1; x++){
+		        for(let y=this.selection.source_coords.y0; y<=this.selection.source_coords.y1; y++){
+			    this.state.overlay_array[y][x] = this.bg_color();
+		        }
 		    }
-		}
+                }
 
 		// get the x and y offsets from the move
 		let dx = this.state.mouse_down_pos.x - pos.x;
 		let dy = this.state.mouse_down_pos.y - pos.y;
 
+                // Record new destination coords
+		this.selection.dest_coords.x0 = this.selection.last_coords.x0 - dx;
+		this.selection.dest_coords.x1 = this.selection.last_coords.x1 - dx;
+		this.selection.dest_coords.y0 = this.selection.last_coords.y0 - dy;
+		this.selection.dest_coords.y1 = this.selection.last_coords.y1 - dy;
+
 		// Draw the selected area in the new location
-		for(let x=Math.min(this.selection.start_coords.x0, this.selection.start_coords.x1); x<=Math.max(this.selection.start_coords.x0, this.selection.start_coords.x1); x++){
-		    for(let y=Math.min(this.selection.start_coords.y0, this.selection.start_coords.y1); y<=Math.max(this.selection.start_coords.y0, this.selection.start_coords.y1); y++){
-			if (y-dy < 0 || y-dy > this.state.artboard_array.length-1) continue;
-			if (x-dx < 0 || x-dx > this.state.artboard_array[0].length-1) continue;
-			this.state.artboard_array[y-dy][x-dx] = this.selection.original_artboard[y][x];
+                let selection_width  = this.selection.source_coords.x1 - this.selection.source_coords.x0;
+                let selection_height = this.selection.source_coords.y1 - this.selection.source_coords.y0;
+
+		for(let y=0; y<=selection_height; y++) {
+		    for(let x=0; x<=selection_width; x++) {
+			if (this.selection.dest_coords.y0 + y < 0 || this.selection.dest_coords.y0 + y > this.state.artboard_array.length-1) continue;
+			if (this.selection.dest_coords.x0 + x < 0 || this.selection.dest_coords.x0 + x > this.state.artboard_array[0].length-1) continue;
+			this.state.overlay_array[this.selection.dest_coords.y0 + y][this.selection.dest_coords.x0 + x] = this.selection.source_artboard[this.selection.source_coords.y0 + y][this.selection.source_coords.x0 + x];
 		    }
 		}
 
 		// Indicate that we've moved and record the new coords
 		this.selection.moved = true;
-		this.selection.end_coords.x0 = this.selection.start_coords.x0 - dx;
-		this.selection.end_coords.x1 = this.selection.start_coords.x1 - dx;
-		this.selection.end_coords.y0 = this.selection.start_coords.y0 - dy;
-		this.selection.end_coords.y1 = this.selection.start_coords.y1 - dy;
 	    }
-	} else {
+	} else if (this.selection.selected) {
             this.deselect_marquee();
         }
 
@@ -958,6 +1070,7 @@ class icon_window {
 	        if (this.tools.selected == "marquee")
 		    this.mouse_down_marquee(editor_cursor_pos);
 	        clearTimeout(this.selection.timer);
+                this.selection.timer = null;
 
 	        this.action(editor_cursor_pos);
             }
@@ -1081,7 +1194,6 @@ class icon_window {
     }
 
     undo() {
-        console.log("undo");
         if (this.selected == "icon32")
             this.icon32.undo();
         if (this.selected == "mask32")
@@ -1178,8 +1290,7 @@ class icon_window {
         // If a selection marquee is up, only get within those coords
         let coords = { x0: 0, y0: 0, x1:31 , y1:31 };
         if (temp_icon.selection.selected)
-            coords = temp_icon.selection.start_coords;
-        console.log(coords);
+            coords = temp_icon.selection.dest_coords;
 
         let temp_array = temp_icon.state.artboard_array.slice();
         let output_array = [];
@@ -1200,18 +1311,19 @@ class icon_window {
         if (this.selected == "mask32")
             temp_icon = this.mask32;
 
-        // Snapshot previous artboard
-        temp_icon.selection.original_artboard = JSON.parse(JSON.stringify(temp_icon.state.artboard_array));
-
         // Place clipboard into top left area of canvas
         for (let y=0; y<cb.length; y++)
             for (let x=0; x<cb[0].length; x++) {
-                temp_icon.state.artboard_array[y][x] = cb[y][x];
+                temp_icon.selection.source_artboard[y][x] = cb[y][x];
             }
 
         // Prepare selection/marquee tool
         temp_icon.selection.selected = true;
-        temp_icon.selection.start_coords = { x0:0, y0:0, x1:cb[0].length - 1, y1:cb.length - 1 };
+        temp_icon.selection.replace_background = false;
+        temp_icon.selection.source_coords = { x0:0, y0:0, x1:cb[0].length - 1, y1:cb.length - 1 };
+        temp_icon.selection.dest_coords   = { x0:0, y0:0, x1:cb[0].length - 1, y1:cb.length - 1 };
+        temp_icon.selection.start_coords   = { x0:0, y0:0, x1:cb[0].length - 1, y1:cb.length - 1 };
+        temp_icon.selection.last_coords   = { x0:0, y0:0, x1:cb[0].length - 1, y1:cb.length - 1 };
         temp_icon.animate_marquee();
     }
 
@@ -1229,7 +1341,6 @@ class icon_window {
             }
             new_mask.push(new_mask_line);
         }
-        console.log(new_mask);
         this.replace_mask32_array(new_mask);
     }
 
@@ -1430,7 +1541,7 @@ document.addEventListener('keydown', function(e) {
         document.getElementById("load").showPicker();
     }
 
-    console.log(e);
+    //console.log(e);
 });
 
 document.addEventListener('keyup', function(e) {
@@ -1520,7 +1631,6 @@ function new_window(id) {
     jscolor.install()
 
     background_other_windows(selected);
-    //debug();
 }
 
 function background_other_windows(id){
