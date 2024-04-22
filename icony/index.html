@@ -4,6 +4,18 @@
     <style>
       body {
           background-image: url("https://home.yingster.net/apps/resedit/images/tile.png");
+          background:url("https://yingster.net/picts/macos.jpg");
+          background-repeat: no-repeat;
+          background-attachment: fixed;
+          background-size: cover;
+          color: var(--mono_darkest);
+          font-family: sans-serif;
+          margin:0px 0px;
+          padding:0px;
+          width:100%;
+          height:100%;
+          text-align: left;
+          box-shadow: inset 0px 10px 0px 0px black;
       }
 
       .window {
@@ -96,12 +108,185 @@
       button#filled_oval.selected       { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -43px -126px; }
       button#empty_oval.selected        { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -64px -126px; }
 
+      :root {
+    /* Main Theme */
+    --primary_darkest  : #003399;
+    --primary_darker   : #0066cc;
+    --primary_dark     : #0077ee;
+    --primary          : #1188ff;
+    --primary_lighter  : #44bbff;
+    --primary_lightest : #DDEEFF;
+
+    /* tables */
+    --table_text       : #08447F;
+    --table_background : #BDDFFF;
+
+    /* mono */
+    --mono_lightest    : #ffffff;
+    --mono_light       : #cccccc;
+    --mono             : #999999;
+    --mono_dark        : #666666;
+    --mono_darker      : #333333;
+    --mono_darkest     : #000000;
+}
+
+/* General Hyperlinks */
+a:link    { color: var(--primary_darkest); text-decoration: none; }
+a:visited { color: var(--primary_darkest); text-decoration: none; }
+a:hover   { color: var(--primary_darker);  text-decoration: underline; }
+a:active  { color: var(--primary_lighter); text-decoration: underline; }
+
+/* Header */
+div#header {
+    display:block;
+    background: #E0E0E0;
+    margin: 0px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
+    width:100%;
+    height:20px;
+    top:0px;
+
+    border-radius: 10px 10px 0px 0px;
+    border-bottom: 1px solid black;
+    border-top: 1px solid white;
+    /*border: 1px solid red;*/
+
+    z-index: 1000;
+}
+
+#header::before {
+    content: "";
+    width:24px;
+    height:24px;
+    margin: -2px 0 0 10px;
+    display: inline-block;
+    background: url("https://yingster.net/picts/apple.png");
+}
+
+/* Navigation */
+
+#navigation{
+    list-style:none;
+    margin: 0px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
+    position: absolute;
+    z-index: 5000;
+    /*border: 1px solid yellow;*/
+    top: 5px;
+    left: 42px;
+}
+
+#navigation li{
+    float:left;
+    margin:0px 15px 0px 0px;
+    position:relative;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#navigation a{
+    display: block;
+    padding: 5px 5px;
+    color: black;
+    font-weight: bold;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+#navigation a:hover{
+    color:var(--mono_lightest);
+    background:var(--primary_dark);
+}
+
+#navigation ul{
+    background:rgba(255,255,255,0);
+    margin:0px;
+    padding:0px;
+    list-style:none;
+    position:absolute;
+    left:-9999px;
+    display:block;
+    opacity:0;
+    box-shadow: 0px 3px 5px rgba(0,0,0,.5);
+    /*margin-top: 1px;*/
+}
+
+#navigation ul li{
+    padding-top:0px;
+    margin: 0px;
+    float:none;
+    background: #E0E0E0;
+    /*border-radius: 4px;*/
+}
+#navigation ul a{
+    white-space:nowrap;
+}
+#navigation li:hover ul{
+    display:block;
+    left: 0px;
+
+    opacity:.95;
+    -webkit-transition: opacity .3s ease-in-out;
+    -moz-transition: opacity .3s ease-in-out;
+    -ms-transition: opacity .3s ease-in-out;
+    -o-transition: opacity .3s ease-in-out;
+    transition: opacity .3s ease-in-out;
+}
+
+#navigation li:hover a{
+    //background:var(--primary);
+}
+#navigation li:hover ul a{
+    text-decoration:none;
+}
+
+#navigation li:hover ul li a:hover{
+    //background:var(--primary_dark);
+}
+
+    .shortcut {
+        position: absolute;
+        right: 15px;
+        width: 15px;
+    }
+
+    .menuitem {
+        width:120px;
+    }
+
     </style>
   </head>
   <body>
     <script src="https://home.yingster.net/apps/resedit/jscolor.js"></script>
+    <div id="header">
+      <ul id="navigation">
+        <li>Icony
+          <ul>
+            <li class="menuitem"><a href="#" onclick="new_window(-1);">New Icon<span class="shortcut">⌘n</span></a></li>
+            <li class="menuitem"><a href="#" onclick="load();">Load<span class="shortcut">⌘l</span></a></li>
+            <li class="menuitem"><a href="#" onclick="windows[selected].export();">Export<span class="shortcut">⌘e</span></a></li>
+          </ul>
+        </li>
+        <li>Edit
+          <ul>
+            <li class="menuitem"><a href="#" onclick="select_all();">Select All<span class="shortcut">⌘a</span></a></li>
+            <li class="menuitem"><a href="#" onclick="windows[selected].undo()">Undo<span class="shortcut">⌘z</span></a></li>
+            <li class="menuitem"><a href="#" onclick="cut();">Cut<span class="shortcut">⌘x</span></a></li>
+            <li class="menuitem"><a href="#" onclick="copy();">Copy<span class="shortcut">⌘c</span></a></li>
+            <li class="menuitem"><a href="#" onclick="paste();">Paste<span class="shortcut">⌘v</span></a></li>
+          </ul>
+        </li>
+        <li>Window
+          <ul>
+            <li class="menuitem"><a href="#" onclick="windows[selected].minimize();">Minimize<span class="shortcut">⌘m</span></a></li>
+            <li class="menuitem"><a href="#" onclick="windows[selected].close();">Close<span class="shortcut">⌘w</span></a></li>
+            <li class="menuitem"><a href="#" onclick="rotate_focus();">Cycle<span class="shortcut">⌘&grave;</span></a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
     <div id="content">
-      <button onclick="new_window(-1);">New Window</button>
+      <!--<button onclick="new_window(-1);">New Window</button>-->
       <input class="hidden" type="file" id="load"/>
     </div>
   </body>
@@ -1252,7 +1437,7 @@ class icon_window {
         }
 
         if (new_x < 0) new_x = 0;
-        if (new_y < 0) new_y = 0;
+        if (new_y < 21) new_y = 21;
 
         this.window_new_pos = {
             x: new_x,
@@ -1349,11 +1534,31 @@ class icon_window {
         }
 
         // Save this as the new revert state for some tools
-        this.state.prev_artboard_array = JSON.parse(JSON.stringify(this.state.artboard_array));
+        temp_icon.state.prev_artboard_array = JSON.parse(JSON.stringify(temp_icon.state.artboard_array));
 
         // Re render
         temp_icon.redraw_canvas();
         this.render();
+    }
+
+    select_region(x0, y0, x1, y1) {
+        let temp_icon = this.icon32;
+        if (this.selected == "mask32")
+            temp_icon = this.mask32;
+
+        if (x0 == -1) x0 = 0;
+        if (y0 == -1) y0 = 0;
+        if (x1 == -1) x1 = temp_icon.icon_size - 1;
+        if (y1 == -1) y1 = temp_icon.icon_size - 1;
+
+        temp_icon.selection.source_artboard = JSON.parse(JSON.stringify(temp_icon.state.artboard_array));
+        temp_icon.selection.selected = true;
+        temp_icon.selection.replace_background = true;
+        temp_icon.selection.source_coords = { x0:x0, y0:y0, x1:x1, y1:y1 };
+        temp_icon.selection.dest_coords   = { x0:x0, y0:y0, x1:x1, y1:y1 };
+        temp_icon.selection.start_coords  = { x0:x0, y0:y0, x1:x1, y1:y1 };
+        temp_icon.selection.last_coords   = { x0:x0, y0:y0, x1:x1, y1:y1 };
+        temp_icon.animate_marquee();
     }
 
     paste(cb) {
@@ -1375,7 +1580,7 @@ class icon_window {
         temp_icon.selection.replace_background = false;
         temp_icon.selection.source_coords = { x0:0, y0:0, x1:cb[0].length - 1, y1:cb.length - 1 };
         temp_icon.selection.dest_coords   = { x0:0, y0:0, x1:cb[0].length - 1, y1:cb.length - 1 };
-        temp_icon.selection.start_coords   = { x0:0, y0:0, x1:cb[0].length - 1, y1:cb.length - 1 };
+        temp_icon.selection.start_coords  = { x0:0, y0:0, x1:cb[0].length - 1, y1:cb.length - 1 };
         temp_icon.selection.last_coords   = { x0:0, y0:0, x1:cb[0].length - 1, y1:cb.length - 1 };
         temp_icon.animate_marquee();
     }
@@ -1558,10 +1763,16 @@ document.addEventListener('keydown', function(e) {
     if (command_down && key == "z")
         windows[selected].undo();
 
+    // New - Command N
+    if (command_down && key == "n") {
+        e.preventDefault();
+        new_window(-1);
+    }
+
     // Close - Command W
     if (command_down && key == "w") {
         e.preventDefault();
-        windws[selected].close();
+        windows[selected].close();
     }
 
     // Minimize - Command M
@@ -1576,17 +1787,22 @@ document.addEventListener('keydown', function(e) {
         windows[selected].export();
     }
 
+    // Select All - Command A
+    if (command_down && key == "a") {
+        e.preventDefault();
+        select_all();
+    }
+
     // Copy - Command C
     if (command_down && key == "c") {
         e.preventDefault();
-        clipboard = windows[selected].get_active_array();
+        copy();
     }
 
     // Cut - Command X
     if (command_down && key == "x") {
         e.preventDefault();
-        clipboard = windows[selected].get_active_array();
-        windows[selected].clear_selection();
+        cut();
     }
 
     // Delete
@@ -1598,13 +1814,13 @@ document.addEventListener('keydown', function(e) {
     // Paste - Command V
     if (command_down && key == "v") {
         e.preventDefault();
-        windows[selected].paste(clipboard);
+        paste();
     }
 
     // Load - Command L
     if (command_down && key == "l") {
         e.preventDefault();
-        document.getElementById("load").showPicker();
+        load();
     }
 
     //console.log(e);
@@ -1614,6 +1830,29 @@ document.addEventListener('keyup', function(e) {
     if (event.key == "Meta" || event.key == "Control")
         command_down = false;
 });
+
+function select_all() {
+    windows[selected].select_region(-1, -1, -1, -1);
+    windows[selected].tools.select("marquee");
+}
+
+function load() {
+    document.getElementById("load").showPicker();
+}
+
+function cut() {
+    clipboard = windows[selected].get_active_array();
+    windows[selected].clear_selection();
+}
+
+function copy() {
+    clipboard = windows[selected].get_active_array();
+}
+
+function paste() {
+    windows[selected].paste(clipboard);
+    windows[selected].tools.select("marquee");
+}
 
 document.getElementById("load").addEventListener('change', function(e) {
     // Create temporary canvas
