@@ -252,26 +252,26 @@ class artboard {
 	}.bind(this))
 
 	this.canvas.addEventListener('mouseleave', function(e) {
-	    this.state.mouse_down = false;
-	    this.state.use_bg_color = false;
-	    this.state.prev_artboard_array = JSON.parse(JSON.stringify(this.state.artboard_array));
-
-	    if (this.tools.selected == "marquee")
-		this.mouse_up_marquee();
+            if (this.state.mouse_down)
+                this.mouse_up();
 	}.bind(this))
 
 	this.canvas.addEventListener('mouseup', function(e) {
-	    this.state.mouse_down = false;
-	    this.state.use_bg_color = false;
-	    this.state.prev_artboard_array = JSON.parse(JSON.stringify(this.state.artboard_array));
-
-	    if (this.tools.selected == "marquee")
-		this.mouse_up_marquee();
-
-            this.render_window();
+            this.mouse_up();
 	}.bind(this))
 
 	this.redraw_canvas();
+    }
+
+    mouse_up() {
+	this.state.mouse_down = false;
+	this.state.use_bg_color = false;
+	this.state.prev_artboard_array = JSON.parse(JSON.stringify(this.state.artboard_array));
+
+	if (this.tools.selected == "marquee")
+	    this.mouse_up_marquee();
+
+        this.render_window();
     }
 
     replace_artboard_array(a) {
@@ -407,8 +407,9 @@ class artboard {
 	}
 
 	// Animate if something is still selected
-	if (this.selection.selected == true && this.selection.timer == null)
+	if (this.selection.selected == true && this.selection.timer == null){
 	    this.animate_marquee();
+        }
     }
 
     deselect_marquee() {
@@ -548,6 +549,34 @@ class artboard {
 
     bg_color(){
 	return this.background_color.jscolor.toHEXString();
+    }
+
+    hex(n, l=2){
+        let s = n.toString(16);
+        while (s.length < l)
+	    s = "0"+s;
+        return s;
+    }
+
+    data_to_string(r, g, b, i){
+        if (i) {
+	    r = 255-r;
+	    g = 255-g;
+	    b = 255-b;
+        }
+        return "#" + this.hex(r) + this.hex(g) + this.hex(b);
+    }
+
+    string_to_rgb(s){
+	let r = parseInt(s.substring(1,3), 16);
+	let g = parseInt(s.substring(3,5), 16);
+	let b = parseInt(s.substring(5,7), 16);
+	return {r:r, g:g, b:b};
+    }
+
+    invert_color(c1){
+        let c = this.string_to_rgb(c1);
+        return this.data_to_string(c.r, c.g, c.b, true);
     }
 
     plot_line_low(x0, y0, x1, y1){
@@ -742,12 +771,12 @@ class artboard {
 	    // If we have no selection, draw selection box
 	    if (this.selection.selected == false) {
 		for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
-		    this.state.overlay_array[pos.y][x] = "#000000";
-		    this.state.overlay_array[this.state.mouse_down_pos.y][x] = "#000000";
+		    this.state.overlay_array[pos.y][x] = this.invert_color(this.state.artboard_array[pos.y][x]);
+		    this.state.overlay_array[this.state.mouse_down_pos.y][x] = this.invert_color(this.state.artboard_array[this.state.mouse_down_pos.y][x]);
 		}
 		for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
-		    this.state.overlay_array[y][pos.x] = "#000000";
-		    this.state.overlay_array[y][this.state.mouse_down_pos.x] = "#000000";
+		    this.state.overlay_array[y][pos.x] = this.invert_color(this.state.artboard_array[y][pos.x]);
+		    this.state.overlay_array[y][this.state.mouse_down_pos.x] = this.invert_color(this.state.artboard_array[y][this.state.mouse_down_pos.x]);
 		}
 
 		this.selection.dest_coords.x1 = pos.x;
@@ -1306,7 +1335,31 @@ class icon_window {
         return output_array;
     }
 
+    clear_selection(){
+        let temp_icon = this.icon32;
+        if (this.selected == "mask32")
+            temp_icon = this.mask32;
+
+        // Replace selection with background color
+        if (temp_icon.selection.selected) {
+            temp_icon.deselect_marquee();
+            for (let y=temp_icon.selection.dest_coords.y0; y<=temp_icon.selection.dest_coords.y1; y++)
+                for (let x=temp_icon.selection.dest_coords.x0; x<=temp_icon.selection.dest_coords.x1; x++)
+                    temp_icon.state.artboard_array[y][x] = temp_icon.bg_color();
+        }
+
+        // Save this as the new revert state for some tools
+        this.state.prev_artboard_array = JSON.parse(JSON.stringify(this.state.artboard_array));
+
+        // Re render
+        temp_icon.redraw_canvas();
+        this.render();
+    }
+
     paste(cb) {
+        // Select the marquee tool
+        this.tools.select("marquee");
+
         let temp_icon = this.icon32;
         if (this.selected == "mask32")
             temp_icon = this.mask32;
@@ -1529,6 +1582,19 @@ document.addEventListener('keydown', function(e) {
         clipboard = windows[selected].get_active_array();
     }
 
+    // Cut - Command X
+    if (command_down && key == "x") {
+        e.preventDefault();
+        clipboard = windows[selected].get_active_array();
+        windows[selected].clear_selection();
+    }
+
+    // Delete
+    if (key == "Backspace") {
+        e.preventDefault();
+        windows[selected].clear_selection();
+    }
+
     // Paste - Command V
     if (command_down && key == "v") {
         e.preventDefault();
@@ -1562,7 +1628,7 @@ document.getElementById("load").addEventListener('change', function(e) {
     }
 
     function data_to_string(r, g, b, i){
-        if (i){
+        if (i) {
 	    r = 255-r;
 	    g = 255-g;
 	    b = 255-b;
