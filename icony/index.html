@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title></title>
+    <title>Icony</title>
     <style>
       body {
           background-image: url("https://home.yingster.net/apps/resedit/images/tile.png");
@@ -109,151 +109,150 @@
       button#empty_oval.selected        { background:url("https://home.yingster.net/apps/resedit/images/tools.png") -64px -126px; }
 
       :root {
-    /* Main Theme */
-    --primary_darkest  : #003399;
-    --primary_darker   : #0066cc;
-    --primary_dark     : #0077ee;
-    --primary          : #1188ff;
-    --primary_lighter  : #44bbff;
-    --primary_lightest : #DDEEFF;
+          /* Main Theme */
+          --primary_darkest  : #003399;
+          --primary_darker   : #0066cc;
+          --primary_dark     : #0077ee;
+          --primary          : #1188ff;
+          --primary_lighter  : #44bbff;
+          --primary_lightest : #DDEEFF;
 
-    /* tables */
-    --table_text       : #08447F;
-    --table_background : #BDDFFF;
+          /* tables */
+          --table_text       : #08447F;
+          --table_background : #BDDFFF;
 
-    /* mono */
-    --mono_lightest    : #ffffff;
-    --mono_light       : #cccccc;
-    --mono             : #999999;
-    --mono_dark        : #666666;
-    --mono_darker      : #333333;
-    --mono_darkest     : #000000;
-}
+          /* mono */
+          --mono_lightest    : #ffffff;
+          --mono_light       : #cccccc;
+          --mono             : #999999;
+          --mono_dark        : #666666;
+          --mono_darker      : #333333;
+          --mono_darkest     : #000000;
+      }
 
-/* General Hyperlinks */
-a:link    { color: var(--primary_darkest); text-decoration: none; }
-a:visited { color: var(--primary_darkest); text-decoration: none; }
-a:hover   { color: var(--primary_darker);  text-decoration: underline; }
-a:active  { color: var(--primary_lighter); text-decoration: underline; }
+      /* General Hyperlinks */
+      a:link    { color: var(--primary_darkest); text-decoration: none; }
+      a:visited { color: var(--primary_darkest); text-decoration: none; }
+      a:hover   { color: var(--primary_darker);  text-decoration: underline; }
+      a:active  { color: var(--primary_lighter); text-decoration: underline; }
 
-/* Header */
-div#header {
-    display:block;
-    background: #E0E0E0;
-    margin: 0px 0px 0px 0px;
-    padding: 0px 0px 0px 0px;
-    width:100%;
-    height:20px;
-    top:0px;
+      /* Header */
+      div#header {
+          display:block;
+          background: #E0E0E0;
+          margin: 0px 0px 0px 0px;
+          padding: 0px 0px 0px 0px;
+          width:100%;
+          height:20px;
+          top:0px;
 
-    border-radius: 10px 10px 0px 0px;
-    border-bottom: 1px solid black;
-    border-top: 1px solid white;
-    /*border: 1px solid red;*/
+          border-radius: 10px 10px 0px 0px;
+          border-bottom: 1px solid black;
+          border-top: 1px solid white;
+          /*border: 1px solid red;*/
 
-    z-index: 1000;
-}
+          z-index: 1000;
+      }
 
-#header::before {
-    content: "";
-    width:24px;
-    height:24px;
-    margin: -2px 0 0 10px;
-    display: inline-block;
-    background: url("https://yingster.net/picts/apple.png");
-}
+      #header::before {
+          content: "";
+          width:24px;
+          height:24px;
+          margin: -2px 0 0 10px;
+          display: inline-block;
+          background: url("https://yingster.net/picts/apple.png");
+      }
 
-/* Navigation */
+      /* Navigation */
 
-#navigation{
-    list-style:none;
-    margin: 0px 0px 0px 0px;
-    padding: 0px 0px 0px 0px;
-    position: absolute;
-    z-index: 5000;
-    /*border: 1px solid yellow;*/
-    top: 5px;
-    left: 42px;
-}
+      #navigation{
+          list-style:none;
+          margin: 0px 0px 0px 0px;
+          padding: 0px 0px 0px 0px;
+          position: absolute;
+          z-index: 5000;
+          /*border: 1px solid yellow;*/
+          top: 5px;
+          left: 42px;
+      }
 
-#navigation li{
-    float:left;
-    margin:0px 15px 0px 0px;
-    position:relative;
-    font-size: 14px;
-    font-weight: bold;
-}
+      #navigation li{
+          float:left;
+          margin:0px 15px 0px 0px;
+          position:relative;
+          font-size: 14px;
+          font-weight: bold;
+      }
 
-#navigation a{
-    display: block;
-    padding: 5px 5px;
-    color: black;
-    font-weight: bold;
-    font-size: 14px;
-    text-decoration: none;
-}
+      #navigation a{
+          display: block;
+          padding: 5px 5px;
+          color: black;
+          font-weight: bold;
+          font-size: 14px;
+          text-decoration: none;
+      }
 
-#navigation a:hover{
-    color:var(--mono_lightest);
-    background:var(--primary_dark);
-}
+      #navigation a:hover{
+          color:var(--mono_lightest);
+          background:var(--primary_dark);
+      }
 
-#navigation ul{
-    background:rgba(255,255,255,0);
-    margin:0px;
-    padding:0px;
-    list-style:none;
-    position:absolute;
-    left:-9999px;
-    display:block;
-    opacity:0;
-    box-shadow: 0px 3px 5px rgba(0,0,0,.5);
-    /*margin-top: 1px;*/
-}
+      #navigation ul{
+          background:rgba(255,255,255,0);
+          margin:0px;
+          padding:0px;
+          list-style:none;
+          position:absolute;
+          left:-9999px;
+          display:block;
+          opacity:0;
+          box-shadow: 0px 3px 5px rgba(0,0,0,.5);
+          /*margin-top: 1px;*/
+      }
 
-#navigation ul li{
-    padding-top:0px;
-    margin: 0px;
-    float:none;
-    background: #E0E0E0;
-    /*border-radius: 4px;*/
-}
-#navigation ul a{
-    white-space:nowrap;
-}
-#navigation li:hover ul{
-    display:block;
-    left: 0px;
+      #navigation ul li{
+          padding-top:0px;
+          margin: 0px;
+          float:none;
+          background: #E0E0E0;
+          /*border-radius: 4px;*/
+      }
+      #navigation ul a{
+          white-space:nowrap;
+      }
+      #navigation li:hover ul{
+          display:block;
+          left: 0px;
 
-    opacity:.95;
-    -webkit-transition: opacity .3s ease-in-out;
-    -moz-transition: opacity .3s ease-in-out;
-    -ms-transition: opacity .3s ease-in-out;
-    -o-transition: opacity .3s ease-in-out;
-    transition: opacity .3s ease-in-out;
-}
+          opacity:.95;
+              -webkit-transition: opacity .3s ease-in-out;
+              -moz-transition: opacity .3s ease-in-out;
+              -ms-transition: opacity .3s ease-in-out;
+              -o-transition: opacity .3s ease-in-out;
+          transition: opacity .3s ease-in-out;
+      }
 
-#navigation li:hover a{
-    //background:var(--primary);
-}
-#navigation li:hover ul a{
-    text-decoration:none;
-}
+      #navigation li:hover a{
+          //background:var(--primary);
+      }
+      #navigation li:hover ul a{
+          text-decoration:none;
+      }
 
-#navigation li:hover ul li a:hover{
-    //background:var(--primary_dark);
-}
+      #navigation li:hover ul li a:hover{
+          //background:var(--primary_dark);
+      }
 
-    .shortcut {
-        position: absolute;
-        right: 15px;
-        width: 15px;
-    }
+      .shortcut {
+          position: absolute;
+          right: 15px;
+          width: 15px;
+      }
 
-    .menuitem {
-        width:120px;
-    }
-
+      .menuitem {
+          width:120px;
+      }
     </style>
   </head>
   <body>
@@ -262,25 +261,38 @@ div#header {
       <ul id="navigation">
         <li>Icony
           <ul>
-            <li class="menuitem"><a href="#" onclick="new_window(-1);">New Icon<span class="shortcut">⌘n</span></a></li>
-            <li class="menuitem"><a href="#" onclick="load();">Load<span class="shortcut">⌘l</span></a></li>
-            <li class="menuitem"><a href="#" onclick="windows[selected].export();">Export<span class="shortcut">⌘e</span></a></li>
+            <li class="menuitem"><a href="#" onclick="new_window(-1);">New Icon
+                <span class="shortcut">⌘N</span></a></li>
+            <li class="menuitem"><a href="#" onclick="load();">Load
+                <span class="shortcut">⌘L</span></a></li>
+            <li class="menuitem"><a href="#" onclick="windows[selected].export();">Export
+                <span class="shortcut">⌘E</span></a></li>
           </ul>
         </li>
         <li>Edit
           <ul>
-            <li class="menuitem"><a href="#" onclick="select_all();">Select All<span class="shortcut">⌘a</span></a></li>
-            <li class="menuitem"><a href="#" onclick="windows[selected].undo()">Undo<span class="shortcut">⌘z</span></a></li>
-            <li class="menuitem"><a href="#" onclick="cut();">Cut<span class="shortcut">⌘x</span></a></li>
-            <li class="menuitem"><a href="#" onclick="copy();">Copy<span class="shortcut">⌘c</span></a></li>
-            <li class="menuitem"><a href="#" onclick="paste();">Paste<span class="shortcut">⌘v</span></a></li>
+            <li class="menuitem"><a href="#" onclick="windows[selected].undo()">Undo
+                <span class="shortcut">⌘Z</span></a></li>
+            <li class="menuitem"><a href="#" onclick="windows[selected].redo()">Redo
+                <span class="shortcut">⌘Y</span></a></li>
+            <li class="menuitem"><a href="#" onclick="select_all();">Select All
+                <span class="shortcut">⌘A</span></a></li>
+            <li class="menuitem"><a href="#" onclick="cut();">Cut
+                <span class="shortcut">⌘X</span></a></li>
+            <li class="menuitem"><a href="#" onclick="copy();">Copy
+                <span class="shortcut">⌘C</span></a></li>
+            <li class="menuitem"><a href="#" onclick="paste();">Paste
+                <span class="shortcut">⌘V</span></a></li>
           </ul>
         </li>
         <li>Window
           <ul>
-            <li class="menuitem"><a href="#" onclick="windows[selected].minimize();">Minimize<span class="shortcut">⌘m</span></a></li>
-            <li class="menuitem"><a href="#" onclick="windows[selected].close();">Close<span class="shortcut">⌘w</span></a></li>
-            <li class="menuitem"><a href="#" onclick="rotate_focus();">Cycle<span class="shortcut">⌘&grave;</span></a></li>
+            <li class="menuitem"><a href="#" onclick="windows[selected].minimize();">Minimize
+                <span class="shortcut">⌘M</span></a></li>
+            <li class="menuitem"><a href="#" onclick="windows[selected].close();">Close
+                <span class="shortcut">⌘W</span></a></li>
+            <li class="menuitem"><a href="#" onclick="rotate_focus();">Cycle
+                <span class="shortcut">⌘&grave;</span></a></li>
           </ul>
         </li>
       </ul>
@@ -294,74 +306,74 @@ div#header {
 
 class toolbox {
     constructor(div, id) {
-	this.div = div;
+        this.div = div;
         this.id  = id;
-	this.cursors = {
-	    pencil     : "url(https://home.yingster.net/apps/resedit/cursors/pencil.png)      0 15, default",
-	    crosshair  : "url(https://home.yingster.net/apps/resedit/cursors/crosshair.png)   6  6, crosshair",
-	    eraser     : "url(https://home.yingster.net/apps/resedit/cursors/eraser.png)      3  3, default",
-	    eyedropper : "url(https://home.yingster.net/apps/resedit/cursors/eyedropper.png)  1 15, default",
-	    bucket     : "url(https://home.yingster.net/apps/resedit/cursors/bucket.png)     13 15, default",
-	    default    : "default"
-	};
+        this.cursors = {
+            pencil     : "url(https://home.yingster.net/apps/resedit/cursors/pencil.png)      0 15, default",
+            crosshair  : "url(https://home.yingster.net/apps/resedit/cursors/crosshair.png)   6  6, crosshair",
+            eraser     : "url(https://home.yingster.net/apps/resedit/cursors/eraser.png)      3  3, default",
+            eyedropper : "url(https://home.yingster.net/apps/resedit/cursors/eyedropper.png)  1 15, default",
+            bucket     : "url(https://home.yingster.net/apps/resedit/cursors/bucket.png)     13 15, default",
+            default    : "default"
+        };
 
-	this.tools = {
-	    "lasso"             : this.cursors.pencil,
-	    "marquee"	        : this.cursors.crosshair,
-	    "eraser"	        : this.cursors.eraser,
-	    "pencil"	        : this.cursors.pencil,
-	    "eyedropper"        : this.cursors.eyedropper,
-	    "paint_bucket"      : this.cursors.bucket,
-	    "nothing"           : this.cursors.default,
-	    "line"              : this.cursors.pencil,
-	    "filled_rect"       : this.cursors.crosshair,
-	    "empty_rect"        : this.cursors.crosshair,
-	    "filled_round_rect" : this.cursors.crosshair,
-	    "empty_round_rect"  : this.cursors.crosshair,
-	    "filled_oval"       : this.cursors.crosshair,
-	    "empty_oval"        : this.cursors.crosshair,
-	};
+        this.tools = {
+            "lasso"             : this.cursors.pencil,
+            "marquee"           : this.cursors.crosshair,
+            "eraser"            : this.cursors.eraser,
+            "pencil"            : this.cursors.pencil,
+            "eyedropper"        : this.cursors.eyedropper,
+            "paint_bucket"      : this.cursors.bucket,
+            "nothing"           : this.cursors.default,
+            "line"              : this.cursors.pencil,
+            "filled_rect"       : this.cursors.crosshair,
+            "empty_rect"        : this.cursors.crosshair,
+            "filled_round_rect" : this.cursors.crosshair,
+            "empty_round_rect"  : this.cursors.crosshair,
+            "filled_oval"       : this.cursors.crosshair,
+            "empty_oval"        : this.cursors.crosshair,
+        };
 
-	this.selected = null;
+        this.selected = null;
 
-	for (var tool in this.tools) ((tool) => {
-	    let button = document.createElement('button');
-	    button.classList.add("tool");
+        for (var tool in this.tools) ((tool) => {
+            let button = document.createElement('button');
+            button.classList.add("tool");
             button.classList.add(this.id);
             button.classList.add(tool);
-	    button.onclick = function() { this.select(tool) }.bind(this);
-	    button.id = tool;
-	    this.div.appendChild(button);
-	})(tool)
+            button.onclick = function() { this.select(tool) }.bind(this);
+            button.id = tool;
+            this.div.appendChild(button);
+        })(tool)
     }
 
     select(t) {
-	for (var button of document.getElementsByClassName("tool")) {
+        for (var button of document.getElementsByClassName("tool")) {
             if (button.classList.contains(this.id)) {
-	        button.classList.remove("selected");
-	        if(button.classList.contains(t)) {
-		    // Select tool
-		    button.classList.add("selected");
-		    this.selected = t;
+                button.classList.remove("selected");
+                if(button.classList.contains(t)) {
+                    // Select tool
+                    button.classList.add("selected");
+                    this.selected = t;
 
-		    // Change Cursor
-		    if (this.tools[t] != null)
-		        for (let a of document.getElementsByClassName("editor"))
+                    // Change Cursor
+                    if (this.tools[t] != null)
+                        for (let a of document.getElementsByClassName("editor"))
                             if (a.classList.contains(this.id))
-			        a.style.cursor = this.tools[t];
+                                a.style.cursor = this.tools[t];
                 }
             }
-	}
+        }
     }
 }
 
 class artboard {
     constructor(canvas, fgcolor, bgcolor, icon_size, tools, default_color, render_window, id){
-	// Constants
-	this.canvas  = canvas;
-	this.tools   = tools;
-	this.foreground_color = fgcolor;
-	this.background_color = bgcolor;
+        // Constants
+        this.canvas  = canvas;
+        this.tools   = tools;
+        this.foreground_color = fgcolor;
+        this.background_color = bgcolor;
         this.default_color = default_color;
         this.id = id;
         this.canvas.classList.add(this.id);
@@ -369,92 +381,99 @@ class artboard {
         // Functions in other class
         this.render_window = render_window;
 
-	// Artboard settings
-	this.icon_size		= icon_size;
-	this.square_size	= 7;
-	this.border_size	= 1;
-	this.width		= this.icon_size * (this.square_size + this.border_size) + this.border_size;
-	this.height		= this.icon_size * (this.square_size + this.border_size) + this.border_size;
-	this.artboard_ctx	= canvas.getContext("2d");
+        // Artboard settings
+        this.icon_size          = icon_size;
+        this.square_size        = 7;
+        this.border_size        = 1;
+        this.width              = this.icon_size * (this.square_size + this.border_size) + this.border_size;
+        this.height             = this.icon_size * (this.square_size + this.border_size) + this.border_size;
+        this.artboard_ctx       = canvas.getContext("2d");
 
-	// Set canvas size
-	this.canvas.width	= this.width;
-	this.canvas.height	= this.height;
+        // Set canvas size
+        this.canvas.width       = this.width;
+        this.canvas.height      = this.height;
 
-	this.update_preview     = null;
+        this.update_preview     = null;
 
-	// State
-	this.state = {
-	    "artboard_array"      : this.initialize_2d_array(this.icon_size, this.icon_size, this.default_color),
-	    "prev_artboard_array" : this.initialize_2d_array(this.icon_size, this.icon_size, this.default_color),
+        // State
+        this.state = {
+            "artboard_array"      : this.initialize_2d_array(this.icon_size, this.icon_size, this.default_color),
             "overlay_array"       : this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)"),
-	    "actual_color"        : null,
-	    "mouse_down"          : false,
-	    "mouse_down_pos"      : {x:null, y:null},
-	};
+            "actual_color"        : null,
+            "mouse_down"          : false,
+            "mouse_down_pos"      : {x:null, y:null},
+        };
 
         this.history = [];
+        this.hist_index = 0;
 
-	this.selection = {
-	    "selected"            : false,
-	    "moved"               : false,
-	    "source_artboard"     : null,
+        this.selection = {
+            "selected"            : false,
+            "moved"               : false,
+            "source_artboard"     : null,
             "source_coords"       : { x0:null, y0:null, x1:null, y1:null },
-	    "start_coords"        : { x0:null, y0:null, x1:null, y1:null },
-	    "last_coords"         : { x0:null, y0:null, x1:null, y1:null },
-	    "dest_coords"         : { x0:null, y0:null, x1:null, y1:null },
-	    "blink_position"      : 0,
-	    "timer"               : null,
+            "start_coords"        : { x0:null, y0:null, x1:null, y1:null },
+            "last_coords"         : { x0:null, y0:null, x1:null, y1:null },
+            "dest_coords"         : { x0:null, y0:null, x1:null, y1:null },
+            "blink_position"      : 0,
+            "timer"               : null,
             "replace_background"  : false,
-	};
+        };
 
-	// Listeners
-	this.canvas.addEventListener('mousedown', function(e){
-	    let pos = this.getCursorPosition(canvas, e)
+        // Listeners
+        this.canvas.addEventListener('mousedown', function(e){
+            let pos = this.getCursorPosition(canvas, e)
 
             // Select this window
             background_other_windows(this.id);
 
-            // Record canvas before editing for undo information
-            this.record();
+            // Record our click position, but only if the mouse thinks it isn't already down
+            if (this.state.mouse_down != true)
+                this.state.mouse_down_pos = pos;
 
-	    // Record our click position, but only if the mouse thinks it isn't already down
-	    if (this.state.mouse_down != true)
-		this.state.mouse_down_pos = pos;
+            if (this.tools.selected == "marquee")
+                this.mouse_down_marquee(pos);
 
-	    if (this.tools.selected == "marquee")
-		this.mouse_down_marquee(pos);
+            this.action(pos);
+            this.state.mouse_down = true;
+        }.bind(this))
 
-	    this.action(pos);
-	    this.state.mouse_down = true;
-	}.bind(this))
+        this.canvas.addEventListener('mousemove', function(e) {
+            if (this.state.mouse_down == true) {
+                let pos = this.getCursorPosition(canvas, e)
+                this.action(pos);
+            }
+        }.bind(this))
 
-	this.canvas.addEventListener('mousemove', function(e) {
-	    if (this.state.mouse_down == true) {
-		let pos = this.getCursorPosition(canvas, e)
-		this.action(pos);
-	    }
-	}.bind(this))
-
-	this.canvas.addEventListener('mouseleave', function(e) {
+        this.canvas.addEventListener('mouseleave', function(e) {
             if (this.state.mouse_down)
                 this.mouse_up();
-	}.bind(this))
+        }.bind(this))
 
-	this.canvas.addEventListener('mouseup', function(e) {
+        this.canvas.addEventListener('mouseup', function(e) {
             this.mouse_up();
-	}.bind(this))
+        }.bind(this))
 
-	this.redraw_canvas();
+        this.redraw_canvas();
     }
 
     mouse_up() {
-	this.state.mouse_down = false;
-	this.state.use_bg_color = false;
-	this.state.prev_artboard_array = JSON.parse(JSON.stringify(this.state.artboard_array));
+        if (this.state.mouse_down == false) return;
 
-	if (this.tools.selected == "marquee")
-	    this.mouse_up_marquee();
+        this.state.mouse_down = false;
+        this.state.use_bg_color = false;
+
+        // For some drawing tools, we need to commit and clear overlay changes to the artboard
+        if (["line", "filled_rect", "empty_rect", "filled_round_rect", "empty_round_rect", "empty_oval", "filled_oval"].includes(this.tools.selected)) {
+            this.commit_overlay();
+            this.clear_overlay();
+        }
+
+        // Record canvas before editing for undo information
+        this.record();
+
+        if (this.tools.selected == "marquee")
+            this.mouse_up_marquee();
 
         this.render_window();
     }
@@ -471,80 +490,85 @@ class artboard {
     }
 
     record() {
-        this.history.push(this.initialize_2d_array(this.icon_size, this.icon_size, this.default_color));
-        this.history[this.history.length - 1] = JSON.parse(JSON.stringify(this.state.artboard_array));
+        // Remove redo history
+        while (this.history.length > this.hist_index)
+            this.history.pop();
+
+        // Record undo history
+        this.history.push(JSON.parse(JSON.stringify(this.state.artboard_array)));
+        this.hist_index = this.history.length;
     }
 
     initialize_2d_array(x, y, c){
-	let new_array = [];
-	while (new_array.length < y){
-	    let new_row = [];
-	    while (new_row.length < x){
-		new_row.push(c);
-	    }
-	    new_array.push(new_row);
-	}
-	return new_array;
+        let new_array = [];
+        while (new_array.length < y){
+            let new_row = [];
+            while (new_row.length < x){
+                new_row.push(c);
+            }
+            new_array.push(new_row);
+        }
+        return new_array;
     }
 
     getCursorPosition(canvas, event){
-	// Determine where clicked
-	const rect = canvas.getBoundingClientRect()
-	const realx = event.clientX - rect.left
-	const realy = event.clientY - rect.top
+        // Determine where clicked
+        const rect = canvas.getBoundingClientRect()
+        const realx = event.clientX - rect.left
+        const realy = event.clientY - rect.top
 
-	// Determine square size
-	var pixelx = Math.floor(realx/(this.square_size + this.border_size));
-	var pixely = Math.floor(realy/(this.square_size + this.border_size));
+        // Determine square size
+        var pixelx = Math.floor(realx/(this.square_size + this.border_size));
+        var pixely = Math.floor(realy/(this.square_size + this.border_size));
 
-	return {x:pixelx, y:pixely};
+        return {x:pixelx, y:pixely};
     }
 
     mouse_down_marquee(pos){
         // Clearout the animation timeout
         this.clear_marquee_timeout();
 
-	// If nothing is yet selected, record the position for start of selection box
-	if (this.selection.selected == false){
-	    this.selection.source_artboard = JSON.parse(JSON.stringify(this.state.artboard_array));
-	    this.selection.dest_coords.x0 = pos.x;
-	    this.selection.dest_coords.y0 = pos.y;
-	}
-	this.selection.moved = false;
+        // If nothing is yet selected, record the position for start of selection box
+        if (this.selection.selected == false){
+            this.selection.source_artboard = JSON.parse(JSON.stringify(this.state.artboard_array));
+            this.selection.dest_coords.x0 = pos.x;
+            this.selection.dest_coords.y0 = pos.y;
+        }
+        this.selection.moved = false;
 
-	// Check if we clicked out of the selection area
-	if (this.selection.selected == true){
-	    if (pos.x < this.selection.dest_coords.x0 ||
-		pos.x > this.selection.dest_coords.x1 ||
-		pos.y < this.selection.dest_coords.y0 ||
-		pos.y > this.selection.dest_coords.y1){
+        // Check if we clicked out of the selection area
+        if (this.selection.selected == true){
+            if (pos.x < this.selection.dest_coords.x0 ||
+                pos.x > this.selection.dest_coords.x1 ||
+                pos.y < this.selection.dest_coords.y0 ||
+                pos.y > this.selection.dest_coords.y1){
 
                 // Deselect
                 this.deselect_marquee();
 
                 // Make new selection
-		this.selection.dest_coords.x0 = pos.x;
-		this.selection.dest_coords.y0 = pos.y;
-	    }
-	}
+                this.selection.dest_coords.x0 = pos.x;
+                this.selection.dest_coords.y0 = pos.y;
+            }
+        }
     }
 
     mouse_up_marquee(){
-	// Check to make sure smaller coords in x0/y0
-	if (this.selection.dest_coords.y0 > this.selection.dest_coords.y1) {
-	    let t = this.selection.dest_coords.y1;
-	    this.selection.dest_coords.y1 = this.selection.dest_coords.y0;
-	    this.selection.dest_coords.y0 = t;
-	}
-	if (this.selection.dest_coords.x0 > this.selection.dest_coords.x1) {
-	    let t = this.selection.dest_coords.x1;
-	    this.selection.dest_coords.x1 = this.selection.dest_coords.x0;
-	    this.selection.dest_coords.x0 = t;
-	}
+        // Check to make sure smaller coords in x0/y0
+        if (this.selection.dest_coords.y0 > this.selection.dest_coords.y1) {
+            let t = this.selection.dest_coords.y1;
+            this.selection.dest_coords.y1 = this.selection.dest_coords.y0;
+            this.selection.dest_coords.y0 = t;
+        }
+        if (this.selection.dest_coords.x0 > this.selection.dest_coords.x1) {
+            let t = this.selection.dest_coords.x1;
+            this.selection.dest_coords.x1 = this.selection.dest_coords.x0;
+            this.selection.dest_coords.x0 = t;
+        }
 
         // Make initial selection
-	if (this.selection.selected == false) {
-	    this.selection.selected = true;
+        if (this.selection.selected == false) {
+            this.selection.selected = true;
             this.selection.source_artboard = JSON.parse(JSON.stringify(this.state.artboard_array));
 
             // Set the source coordinates
@@ -574,8 +598,8 @@ class artboard {
             this.selection.replace_background = true;
         }
 
-	// See if the selection area has moved at all
-	if (this.selection.moved == true) {
+        // See if the selection area has moved at all
+        if (this.selection.moved == true) {
             // Set the last coordinates for our next move
             this.selection.last_coords = {
                 x0: this.selection.dest_coords.x0,
@@ -585,15 +609,15 @@ class artboard {
             };
         }
 
-	// Check if selection contains nothing, deselect
-	if (this.selection.dest_coords.y0 == this.selection.dest_coords.y1 ||
-	    this.selection.dest_coords.x0 == this.selection.dest_coords.x1) {
+        // Check if selection contains nothing, deselect
+        if (this.selection.dest_coords.y0 == this.selection.dest_coords.y1 ||
+            this.selection.dest_coords.x0 == this.selection.dest_coords.x1) {
             this.deselect_marquee();
-	}
+        }
 
-	// Animate if something is still selected
-	if (this.selection.selected == true && this.selection.timer == null){
-	    this.animate_marquee();
+        // Animate if something is still selected
+        if (this.selection.selected == true && this.selection.timer == null){
+            this.animate_marquee();
         }
     }
 
@@ -605,11 +629,11 @@ class artboard {
         // Commit source artboard to actual artboard
         // Draw empty space where came from
         if (this.selection.replace_background) {
-	    for(let x=this.selection.start_coords.x0; x<=this.selection.start_coords.x1; x++){
-		for(let y=this.selection.start_coords.y0; y<=this.selection.start_coords.y1; y++){
-		    this.state.artboard_array[y][x] = this.bg_color();
-		}
-	    }
+            for(let x=this.selection.start_coords.x0; x<=this.selection.start_coords.x1; x++){
+                for(let y=this.selection.start_coords.y0; y<=this.selection.start_coords.y1; y++){
+                    this.state.artboard_array[y][x] = this.bg_color();
+                }
+            }
         }
 
         // Draw source image into overlay
@@ -622,35 +646,35 @@ class artboard {
                 if (this.selection.dest_coords.x0 + x < 0) continue;
                 if (this.selection.dest_coords.y0 + y > this.state.artboard_array.length -1) continue;
                 if (this.selection.dest_coords.x0 + x > this.state.artboard_array[0].length -1) continue;
-		this.state.artboard_array[this.selection.dest_coords.y0 + y][this.selection.dest_coords.x0 + x] = this.selection.source_artboard[this.selection.source_coords.y0 + y][this.selection.source_coords.x0 + x];
+                this.state.artboard_array[this.selection.dest_coords.y0 + y][this.selection.dest_coords.x0 + x] = this.selection.source_artboard[this.selection.source_coords.y0 + y][this.selection.source_coords.x0 + x];
             }
         }
 
         // Clear overlay
-        this.state.overlay_array = this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)");
+        this.clear_overlay();
 
         // Reset variables
         this.selection.replace_background = false;
 
         // Redraw
-	this.redraw_overlay();
-	this.redraw_canvas();
+        this.redraw_overlay();
+        this.redraw_canvas();
     }
 
     animate_marquee(){
         // If no selection, stop animating
         if (! this.selection.selected) return;
 
-	// Clear the overlay
-        this.state.overlay_array = this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)");
+        // Clear the overlay
+        this.clear_overlay();
 
         // Draw empty space where came from
         if (this.selection.replace_background) {
-	    for(let x=this.selection.start_coords.x0; x<=this.selection.start_coords.x1; x++){
-		for(let y=this.selection.start_coords.y0; y<=this.selection.start_coords.y1; y++){
-		    this.state.overlay_array[y][x] = this.bg_color();
-		}
-	    }
+            for(let x=this.selection.start_coords.x0; x<=this.selection.start_coords.x1; x++){
+                for(let y=this.selection.start_coords.y0; y<=this.selection.start_coords.y1; y++){
+                    this.state.overlay_array[y][x] = this.bg_color();
+                }
+            }
         }
 
         // Draw source image into overlay
@@ -663,50 +687,50 @@ class artboard {
                 if (this.selection.dest_coords.x0 + x < 0) continue;
                 if (this.selection.dest_coords.y0 + y > this.state.artboard_array.length -1) continue;
                 if (this.selection.dest_coords.x0 + x > this.state.artboard_array[0].length -1) continue;
-		this.state.overlay_array[this.selection.dest_coords.y0 + y][this.selection.dest_coords.x0 + x] = this.selection.source_artboard[this.selection.source_coords.y0 + y][this.selection.source_coords.x0 + x];
+                this.state.overlay_array[this.selection.dest_coords.y0 + y][this.selection.dest_coords.x0 + x] = this.selection.source_artboard[this.selection.source_coords.y0 + y][this.selection.source_coords.x0 + x];
             }
         }
 
         // Shring outline if we are off the screen on any side
         let selection_bounds_y0 = Math.max(this.selection.dest_coords.y0, 0);
-	let selection_bounds_y1 = Math.min(this.selection.dest_coords.y1, this.state.artboard_array.length -1);
-	let selection_bounds_x0 = Math.max(this.selection.dest_coords.x0, 0);
-	let selection_bounds_x1 = Math.min(this.selection.dest_coords.x1, this.state.artboard_array.length -1);
+        let selection_bounds_y1 = Math.min(this.selection.dest_coords.y1, this.state.artboard_array.length -1);
+        let selection_bounds_x0 = Math.max(this.selection.dest_coords.x0, 0);
+        let selection_bounds_x1 = Math.min(this.selection.dest_coords.x1, this.state.artboard_array.length -1);
 
-	// Draw blinking outline
-	let position1 = this.selection.blink_position % 6;
-	let position2 = this.selection.blink_position % 6;
-	let position3 = this.selection.blink_position % 6;
-	let position4 = this.selection.blink_position++ % 6;
+        // Draw blinking outline
+        let position1 = this.selection.blink_position % 6;
+        let position2 = this.selection.blink_position % 6;
+        let position3 = this.selection.blink_position % 6;
+        let position4 = this.selection.blink_position++ % 6;
 
-	for(let x=Math.min(selection_bounds_x0, selection_bounds_x1); x<=Math.max(selection_bounds_x0, selection_bounds_x1); x++)
-	    if (position1++ % 6 < 3) {
-		this.state.overlay_array[selection_bounds_y0][x] = "#000000";
+        for(let x=Math.min(selection_bounds_x0, selection_bounds_x1); x<=Math.max(selection_bounds_x0, selection_bounds_x1); x++)
+            if (position1++ % 6 < 3) {
+                this.state.overlay_array[selection_bounds_y0][x] = "#000000";
             } else {
-            	this.state.overlay_array[selection_bounds_y0][x] = "#FFFFFF";
+                this.state.overlay_array[selection_bounds_y0][x] = "#FFFFFF";
             }
-	for(let x=Math.max(selection_bounds_x0, selection_bounds_x1); x>=Math.min(selection_bounds_x0, selection_bounds_x1); x--)
-	    if (position2++ % 6 < 3) {
-		this.state.overlay_array[selection_bounds_y1][x] = "#000000";
+        for(let x=Math.max(selection_bounds_x0, selection_bounds_x1); x>=Math.min(selection_bounds_x0, selection_bounds_x1); x--)
+            if (position2++ % 6 < 3) {
+                this.state.overlay_array[selection_bounds_y1][x] = "#000000";
             } else {
-            	this.state.overlay_array[selection_bounds_y1][x] = "#FFFFFF";
+                this.state.overlay_array[selection_bounds_y1][x] = "#FFFFFF";
             }
-	for(let y=Math.min(selection_bounds_y0, selection_bounds_y1); y<=Math.max(selection_bounds_y0, selection_bounds_y1); y++)
-	    if (position3++ % 6 < 3) {
-		this.state.overlay_array[y][selection_bounds_x1] = "#000000";
+        for(let y=Math.min(selection_bounds_y0, selection_bounds_y1); y<=Math.max(selection_bounds_y0, selection_bounds_y1); y++)
+            if (position3++ % 6 < 3) {
+                this.state.overlay_array[y][selection_bounds_x1] = "#000000";
             } else {
-            	this.state.overlay_array[y][selection_bounds_x1] = "#FFFFFF";
+                this.state.overlay_array[y][selection_bounds_x1] = "#FFFFFF";
             }
-	for(let y=Math.max(selection_bounds_y0, selection_bounds_y1); y>=Math.min(selection_bounds_y0, selection_bounds_y1); y--)
-	    if (position4++ % 6 < 3) {
-		this.state.overlay_array[y][selection_bounds_x0] = "#000000";
+        for(let y=Math.max(selection_bounds_y0, selection_bounds_y1); y>=Math.min(selection_bounds_y0, selection_bounds_y1); y--)
+            if (position4++ % 6 < 3) {
+                this.state.overlay_array[y][selection_bounds_x0] = "#000000";
             } else {
-            	this.state.overlay_array[y][selection_bounds_x0] = "#FFFFFF";
+                this.state.overlay_array[y][selection_bounds_x0] = "#FFFFFF";
             }
 
-	this.redraw_canvas();
+        this.redraw_canvas();
         this.redraw_overlay();
-	this.selection.timer = setTimeout(() => this.animate_marquee(), 250);
+        this.selection.timer = setTimeout(() => this.animate_marquee(), 250);
     }
 
     clear_marquee_timeout() {
@@ -715,48 +739,48 @@ class artboard {
     }
 
     recurse(x, y, cc, nc){
-	if (cc == nc) return;
-	if (this.state.artboard_array[y][x].toLowerCase() != cc.toLowerCase()) return;
-	this.state.artboard_array[y][x] = nc;
-	if (x+1 < this.icon_size)
-	    this.recurse(x+1, y, cc, nc);
-	if (x-1 >= 0)
-	    this.recurse(x-1, y, cc, nc);
-	if (y+1 < this.icon_size)
-	    this.recurse(x, y+1, cc, nc);
-	if (y-1 >= 0)
-	    this.recurse(x, y-1, cc, nc);
+        if (cc == nc) return;
+        if (this.state.artboard_array[y][x].toLowerCase() != cc.toLowerCase()) return;
+        this.state.artboard_array[y][x] = nc;
+        if (x+1 < this.icon_size)
+            this.recurse(x+1, y, cc, nc);
+        if (x-1 >= 0)
+            this.recurse(x-1, y, cc, nc);
+        if (y+1 < this.icon_size)
+            this.recurse(x, y+1, cc, nc);
+        if (y-1 >= 0)
+            this.recurse(x, y-1, cc, nc);
     }
 
     fg_color(){
-	return this.foreground_color.jscolor.toHEXString();
+        return this.foreground_color.jscolor.toHEXString();
     }
 
     bg_color(){
-	return this.background_color.jscolor.toHEXString();
+        return this.background_color.jscolor.toHEXString();
     }
 
     hex(n, l=2){
         let s = n.toString(16);
         while (s.length < l)
-	    s = "0"+s;
+            s = "0"+s;
         return s;
     }
 
     data_to_string(r, g, b, i){
         if (i) {
-	    r = 255-r;
-	    g = 255-g;
-	    b = 255-b;
+            r = 255-r;
+            g = 255-g;
+            b = 255-b;
         }
         return "#" + this.hex(r) + this.hex(g) + this.hex(b);
     }
 
     string_to_rgb(s){
-	let r = parseInt(s.substring(1,3), 16);
-	let g = parseInt(s.substring(3,5), 16);
-	let b = parseInt(s.substring(5,7), 16);
-	return {r:r, g:g, b:b};
+        let r = parseInt(s.substring(1,3), 16);
+        let g = parseInt(s.substring(3,5), 16);
+        let b = parseInt(s.substring(5,7), 16);
+        return {r:r, g:g, b:b};
     }
 
     invert_color(c1){
@@ -764,397 +788,412 @@ class artboard {
         return this.data_to_string(c.r, c.g, c.b, true);
     }
 
-    plot_line_low(x0, y0, x1, y1){
-    	let dx = x1 - x0;
-	let dy = y1 - y0;
-	let yi = 1;
-	if (dy < 0) {
-	    yi = -1;
-	    dy *= -1;
-	}
-	let D  = (2.0 * dy) - dx;
-	let y  = y0;
+    plot_line_low(a, x0, y0, x1, y1){
+        let dx = x1 - x0;
+        let dy = y1 - y0;
+        let yi = 1;
+        if (dy < 0) {
+            yi = -1;
+            dy *= -1;
+        }
+        let D  = (2.0 * dy) - dx;
+        let y  = y0;
 
-	for (let x=x0; x<=x1; x++) {
-	    this.state.artboard_array[y][x] = this.fg_color();
+        for (let x=x0; x<=x1; x++) {
+            a[y][x] = this.fg_color();
 
-	    if (D > 0) {
-		y += yi;
-		D = D + (2 * (dy-dx));
-	    } else {
-		D = D + (2 * dy);
-	    }
-	}
+            if (D > 0) {
+                y += yi;
+                D = D + (2 * (dy-dx));
+            } else {
+                D = D + (2 * dy);
+            }
+        }
 
-	return;
+        return;
     }
 
-    plot_line_high(x0, y0, x1, y1){
-    	let dx = x1 - x0;
-	let dy = y1 - y0;
-	let xi = 1;
-	if (dx < 0) {
-	    xi = -1;
-	    dx *= -1;
-	}
-	let D  = (2.0 * dx) - dy;
-	let x  = x0;
+    plot_line_high(a, x0, y0, x1, y1){
+        let dx = x1 - x0;
+        let dy = y1 - y0;
+        let xi = 1;
+        if (dx < 0) {
+            xi = -1;
+            dx *= -1;
+        }
+        let D  = (2.0 * dx) - dy;
+        let x  = x0;
 
-	for (let y=y0; y<=y1; y++) {
-	    this.state.artboard_array[y][x] = this.fg_color();
+        for (let y=y0; y<=y1; y++) {
+            a[y][x] = this.fg_color();
 
-	    if (D > 0) {
-		x += xi;
-		D = D + (2 * (dx-dy));
-	    } else {
-		D = D + (2 * dx);
-	    }
-	}
+            if (D > 0) {
+                x += xi;
+                D = D + (2 * (dx-dy));
+            } else {
+                D = D + (2 * dx);
+            }
+        }
 
-	return;
+        return;
     }
 
-    plot_ellipse(rx, ry, xc, yc){
-	let x = 0.0;
-	if (rx % 1 != 0) x+=.5; // Workaround for not working on 1/2 radius lengths?
-	let y = ry * 1.0;
+    plot_ellipse(a, rx, ry, xc, yc){
+        let x = 0.0;
+        if (rx % 1 != 0) x+=.5; // Workaround for not working on 1/2 radius lengths?
+        let y = ry * 1.0;
 
-	// Initial decision parameter of region 1
-	let d1 = (ry * ry) - (rx * rx * ry) + (0.25 * rx * rx);
-	let dx = 2.0 * ry * ry * x;
-	let dy = 2.0 * rx * rx * y;
+        // Initial decision parameter of region 1
+        let d1 = (ry * ry) - (rx * rx * ry) + (0.25 * rx * rx);
+        let dx = 2.0 * ry * ry * x;
+        let dy = 2.0 * rx * rx * y;
 
-	// For region 1
-	while (dx < dy) {
+        // For region 1
+        while (dx < dy) {
 
-	    // Color perimeter with 4 way symmetry
-	    this.state.artboard_array[y+yc][x+xc] = this.fg_color();
-	    this.state.artboard_array[y+yc][-x+xc] = this.fg_color();
-	    this.state.artboard_array[-y+yc][x+xc] = this.fg_color();
-	    this.state.artboard_array[-y+yc][-x+xc] = this.fg_color();
+            // Color perimeter with 4 way symmetry
+            a[y+yc][x+xc]   = this.fg_color();
+            a[y+yc][-x+xc]  = this.fg_color();
+            a[-y+yc][x+xc]  = this.fg_color();
+            a[-y+yc][-x+xc] = this.fg_color();
 
-	    // Checking and updating value of
-	    // decision parameter based on algorithm
-	    if (d1 < 0) {
-		x++;
-		dx = dx + (2 * ry * ry);
-		d1 = d1 + dx + (ry * ry);
-	    } else {
-		x++;
-		y--;
-		dx = dx + (2 * ry * ry);
-		dy = dy - (2 * rx * rx);
-		d1 = d1 + dx - dy + (ry * ry);
-	    }
-	}
+            // Checking and updating value of
+            // decision parameter based on algorithm
+            if (d1 < 0) {
+                x++;
+                dx = dx + (2 * ry * ry);
+                d1 = d1 + dx + (ry * ry);
+            } else {
+                x++;
+                y--;
+                dx = dx + (2 * ry * ry);
+                dy = dy - (2 * rx * rx);
+                d1 = d1 + dx - dy + (ry * ry);
+            }
+        }
 
-	// Decision parameter of region 2
-	let d2 = ((ry * ry) * ((x + 0.5) * (x + 0.5))) +
-	    ((rx * rx) * ((y - 1) * (y - 1))) -
-	    (rx * rx * ry * ry);
+        // Decision parameter of region 2
+        let d2 = ((ry * ry) * ((x + 0.5) * (x + 0.5))) +
+            ((rx * rx) * ((y - 1) * (y - 1))) -
+            (rx * rx * ry * ry);
 
-	// Plotting points of region 2
-	while (y >= 0) {
+        // Plotting points of region 2
+        while (y >= 0) {
 
-	    // Color perimeter with 4 way symmetry
-	    this.state.artboard_array[y+yc][x+xc] = this.fg_color();
-	    this.state.artboard_array[y+yc][-x+xc] = this.fg_color();
-	    this.state.artboard_array[-y+yc][x+xc] = this.fg_color();
-	    this.state.artboard_array[-y+yc][-x+xc] = this.fg_color();
+            // Color perimeter with 4 way symmetry
+            a[y+yc][x+xc]   = this.fg_color();
+            a[y+yc][-x+xc]  = this.fg_color();
+            a[-y+yc][x+xc]  = this.fg_color();
+            a[-y+yc][-x+xc] = this.fg_color();
 
-	    // Checking and updating parameter
-	    // value based on algorithm
-	    if (d2 > 0) {
-		y--;
-		dy = dy - (2 * rx * rx);
-		d2 = d2 + (rx * rx) - dy;
-	    } else {
-		y--;
-		x++;
-		dx = dx + (2 * ry * ry);
-		dy = dy - (2 * rx * rx);
-		d2 = d2 + dx - dy + (rx * rx);
-	    }
-	}
+            // Checking and updating parameter
+            // value based on algorithm
+            if (d2 > 0) {
+                y--;
+                dy = dy - (2 * rx * rx);
+                d2 = d2 + (rx * rx) - dy;
+            } else {
+                y--;
+                x++;
+                dx = dx + (2 * ry * ry);
+                dy = dy - (2 * rx * rx);
+                d2 = d2 + dx - dy + (rx * rx);
+            }
+        }
     }
 
     action(pos){
-	// Make sure pos isn't out of bounds
-	if (pos.x >= this.icon_size || pos.y >= this.icon_size) return;
+        // Make sure pos isn't out of bounds
+        if (pos.x >= this.icon_size || pos.y >= this.icon_size) return;
 
-	// Pencil Action
-	if (this.tools.selected == "pencil"){
-	    // If you just clicked, check if you are actually going to draw white
-	    if (this.state.mouse_down == false)
-		if (this.state.artboard_array[pos.y][pos.x] == this.fg_color())
-		    this.state.use_bg_color = true;
+        // Pencil Action
+        if (this.tools.selected == "pencil"){
+            // If you just clicked, check if you are actually going to draw white
+            if (this.state.mouse_down == false)
+                if (this.state.artboard_array[pos.y][pos.x] == this.fg_color())
+                    this.state.use_bg_color = true;
 
-	    if (this.state.use_bg_color == true)
-		this.state.artboard_array[pos.y][pos.x] = this.bg_color();
-	    else
-		this.state.artboard_array[pos.y][pos.x] = this.fg_color();
-	}
+            if (this.state.use_bg_color == true)
+                this.state.artboard_array[pos.y][pos.x] = this.bg_color();
+            else
+                this.state.artboard_array[pos.y][pos.x] = this.fg_color();
+        }
 
-	// Eraser Action
-	if (this.tools.selected == "eraser"){
-	    this.state.artboard_array[pos.y][pos.x] = "#ffffff";
-	    if (pos.y+1 < this.state.artboard_array.length)
-		this.state.artboard_array[pos.y+1][pos.x] = "#ffffff";
-	    if (pos.x+1 < this.state.artboard_array[0].length)
-		this.state.artboard_array[pos.y][pos.x+1] = "#ffffff";
-	    if (pos.y+1 < this.state.artboard_array.length && pos.x+1 < this.state.artboard_array[0].length)
-		this.state.artboard_array[pos.y+1][pos.x+1] = "#ffffff";
-	}
+        // Eraser Action
+        if (this.tools.selected == "eraser"){
+            this.state.artboard_array[pos.y][pos.x] = "#ffffff";
+            if (pos.y+1 < this.state.artboard_array.length)
+                this.state.artboard_array[pos.y+1][pos.x] = "#ffffff";
+            if (pos.x+1 < this.state.artboard_array[0].length)
+                this.state.artboard_array[pos.y][pos.x+1] = "#ffffff";
+            if (pos.y+1 < this.state.artboard_array.length && pos.x+1 < this.state.artboard_array[0].length)
+                this.state.artboard_array[pos.y+1][pos.x+1] = "#ffffff";
+        }
 
-	// Paint Bucket Action
-	if (this.tools.selected == "paint_bucket"){
-	    let current_color = this.state.artboard_array[pos.y][pos.x];
-	    this.recurse(pos.x, pos.y, current_color, this.fg_color());
-	}
+        // Paint Bucket Action
+        if (this.tools.selected == "paint_bucket"){
+            let current_color = this.state.artboard_array[pos.y][pos.x];
+            this.recurse(pos.x, pos.y, current_color, this.fg_color());
+        }
 
-	// Nothing Button
-	if (this.tools.selected == "nothing"){
-	}
+        // Nothing Button
+        if (this.tools.selected == "nothing"){
+        }
 
-	// Eyedropper tool
-	if (this.tools.selected == "eyedropper"){
-	    this.foreground_color.jscolor.fromString(this.state.artboard_array[pos.y][pos.x]);
-	}
+        // Eyedropper tool
+        if (this.tools.selected == "eyedropper"){
+            this.foreground_color.jscolor.fromString(this.state.artboard_array[pos.y][pos.x]);
+        }
 
-	// Filled Rectangle Action
-	if (this.tools.selected == "filled_rect"){
-	    // Undo the previously drawn box
-	    this.revert();
+        // Filled Rectangle Action
+        if (this.tools.selected == "filled_rect"){
+            this.clear_overlay();
 
-	    for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
-		for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
-		    this.state.artboard_array[y][x] = this.fg_color();
-		}
-	    }
-	}
+            for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
+                for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
+                    this.state.overlay_array[y][x] = this.fg_color();
+                }
+            }
+        }
 
-	// Empty Rectangle Action
-	if (this.tools.selected == "empty_rect"){
-	    // Undo the previously drawn box
-	    this.revert();
+        // Empty Rectangle Action
+        if (this.tools.selected == "empty_rect"){
+            this.clear_overlay();
 
-	    for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
-		this.state.artboard_array[pos.y][x] = this.fg_color();
-		this.state.artboard_array[this.state.mouse_down_pos.y][x] = this.fg_color();
-	    }
-	    for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
-		this.state.artboard_array[y][pos.x] = this.fg_color();
-		this.state.artboard_array[y][this.state.mouse_down_pos.x] = this.fg_color();
-	    }
-	}
+            for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
+                this.state.overlay_array[pos.y][x] = this.fg_color();
+                this.state.overlay_array[this.state.mouse_down_pos.y][x] = this.fg_color();
+            }
+            for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
+                this.state.overlay_array[y][pos.x] = this.fg_color();
+                this.state.overlay_array[y][this.state.mouse_down_pos.x] = this.fg_color();
+            }
+        }
 
-	// Marquee Action
-	if (this.tools.selected == "marquee"){
-	    // Clear the overlay
+        // Marquee Action
+        if (this.tools.selected == "marquee"){
+            // Clear the overlay
             this.state.overlay_array = this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)");
 
-	    // If we have no selection, draw selection box
-	    if (this.selection.selected == false) {
-		for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
-		    this.state.overlay_array[pos.y][x] = this.invert_color(this.state.artboard_array[pos.y][x]);
-		    this.state.overlay_array[this.state.mouse_down_pos.y][x] = this.invert_color(this.state.artboard_array[this.state.mouse_down_pos.y][x]);
-		}
-		for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
-		    this.state.overlay_array[y][pos.x] = this.invert_color(this.state.artboard_array[y][pos.x]);
-		    this.state.overlay_array[y][this.state.mouse_down_pos.x] = this.invert_color(this.state.artboard_array[y][this.state.mouse_down_pos.x]);
-		}
+            // If we have no selection, draw selection box
+            if (this.selection.selected == false) {
+                for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
+                    this.state.overlay_array[pos.y][x] = this.invert_color(this.state.artboard_array[pos.y][x]);
+                    this.state.overlay_array[this.state.mouse_down_pos.y][x] = this.invert_color(this.state.artboard_array[this.state.mouse_down_pos.y][x]);
+                }
+                for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
+                    this.state.overlay_array[y][pos.x] = this.invert_color(this.state.artboard_array[y][pos.x]);
+                    this.state.overlay_array[y][this.state.mouse_down_pos.x] = this.invert_color(this.state.artboard_array[y][this.state.mouse_down_pos.x]);
+                }
 
-		this.selection.dest_coords.x1 = pos.x;
-		this.selection.dest_coords.y1 = pos.y;
+                this.selection.dest_coords.x1 = pos.x;
+                this.selection.dest_coords.y1 = pos.y;
             }
 
             // If we have a selection...
             if (this.selection.selected) {
-		// See if click is not previously selected area. Draw a new box...
+                // See if click is not previously selected area. Draw a new box...
 
-		// Fill the original selection area with background color
+                // Fill the original selection area with background color
                 if (this.selection.replace_background) {
-		    for(let x=this.selection.source_coords.x0; x<=this.selection.source_coords.x1; x++){
-		        for(let y=this.selection.source_coords.y0; y<=this.selection.source_coords.y1; y++){
-			    this.state.overlay_array[y][x] = this.bg_color();
-		        }
-		    }
+                    for(let x=this.selection.source_coords.x0; x<=this.selection.source_coords.x1; x++){
+                        for(let y=this.selection.source_coords.y0; y<=this.selection.source_coords.y1; y++){
+                            this.state.overlay_array[y][x] = this.bg_color();
+                        }
+                    }
                 }
 
-		// get the x and y offsets from the move
-		let dx = this.state.mouse_down_pos.x - pos.x;
-		let dy = this.state.mouse_down_pos.y - pos.y;
+                // get the x and y offsets from the move
+                let dx = this.state.mouse_down_pos.x - pos.x;
+                let dy = this.state.mouse_down_pos.y - pos.y;
 
                 // Record new destination coords
-		this.selection.dest_coords.x0 = this.selection.last_coords.x0 - dx;
-		this.selection.dest_coords.x1 = this.selection.last_coords.x1 - dx;
-		this.selection.dest_coords.y0 = this.selection.last_coords.y0 - dy;
-		this.selection.dest_coords.y1 = this.selection.last_coords.y1 - dy;
+                this.selection.dest_coords.x0 = this.selection.last_coords.x0 - dx;
+                this.selection.dest_coords.x1 = this.selection.last_coords.x1 - dx;
+                this.selection.dest_coords.y0 = this.selection.last_coords.y0 - dy;
+                this.selection.dest_coords.y1 = this.selection.last_coords.y1 - dy;
 
-		// Draw the selected area in the new location
+                // Draw the selected area in the new location
                 let selection_width  = this.selection.source_coords.x1 - this.selection.source_coords.x0;
                 let selection_height = this.selection.source_coords.y1 - this.selection.source_coords.y0;
 
-		for(let y=0; y<=selection_height; y++) {
-		    for(let x=0; x<=selection_width; x++) {
-			if (this.selection.dest_coords.y0 + y < 0 || this.selection.dest_coords.y0 + y > this.state.artboard_array.length-1) continue;
-			if (this.selection.dest_coords.x0 + x < 0 || this.selection.dest_coords.x0 + x > this.state.artboard_array[0].length-1) continue;
-			this.state.overlay_array[this.selection.dest_coords.y0 + y][this.selection.dest_coords.x0 + x] = this.selection.source_artboard[this.selection.source_coords.y0 + y][this.selection.source_coords.x0 + x];
-		    }
-		}
+                for(let y=0; y<=selection_height; y++) {
+                    for(let x=0; x<=selection_width; x++) {
+                        if (this.selection.dest_coords.y0 + y < 0 || this.selection.dest_coords.y0 + y > this.state.artboard_array.length-1) continue;
+                        if (this.selection.dest_coords.x0 + x < 0 || this.selection.dest_coords.x0 + x > this.state.artboard_array[0].length-1) continue;
+                        this.state.overlay_array[this.selection.dest_coords.y0 + y][this.selection.dest_coords.x0 + x] = this.selection.source_artboard[this.selection.source_coords.y0 + y][this.selection.source_coords.x0 + x];
+                    }
+                }
 
-		// Indicate that we've moved and record the new coords
-		this.selection.moved = true;
-	    }
-	} else if (this.selection.selected) {
+                // Indicate that we've moved and record the new coords
+                this.selection.moved = true;
+            }
+        } else if (this.selection.selected) {
             this.deselect_marquee();
         }
 
-	// Filled Rounded Rectangle Action
-	if (this.tools.selected == "filled_round_rect"){
-	    // Undo the previously drawn box
-	    this.revert();
+        // Filled Rounded Rectangle Action
+        if (this.tools.selected == "filled_round_rect"){
+            this.clear_overlay();
 
-	    for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
-		for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
-		    // Skip corner cases
-		    if (
-			// Vertical corners
-			x == pos.x && ( y >= pos.y-2 && y <= pos.y+2 ) ||
-			x == pos.x && ( y >= this.state.mouse_down_pos.y-2 && y <= this.state.mouse_down_pos.y+2 ) ||
-			x == this.state.mouse_down_pos.x && ( y >= pos.y-2 && y <= pos.y+2 ) ||
-			x == this.state.mouse_down_pos.x && ( y >= this.state.mouse_down_pos.y-2 && y <= this.state.mouse_down_pos.y+2 ) ||
+            for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
+                for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
+                    // Skip corner cases
+                    if (
+                        // Vertical corners
+                        x == pos.x && ( y >= pos.y-2 && y <= pos.y+2 ) ||
+                        x == pos.x && ( y >= this.state.mouse_down_pos.y-2 && y <= this.state.mouse_down_pos.y+2 ) ||
+                        x == this.state.mouse_down_pos.x && ( y >= pos.y-2 && y <= pos.y+2 ) ||
+                        x == this.state.mouse_down_pos.x && ( y >= this.state.mouse_down_pos.y-2 && y <= this.state.mouse_down_pos.y+2 ) ||
 
-			// Horizontal corners
-			y == pos.y && ( x >= pos.x-2 && x <= pos.x+2 ) ||
-			y == pos.y && ( x >= this.state.mouse_down_pos.x-2 && x <= this.state.mouse_down_pos.x+2 ) ||
-			y == this.state.mouse_down_pos.y && ( x >= pos.x-2 && x <= pos.x+2 ) ||
-			y == this.state.mouse_down_pos.y && ( x >= this.state.mouse_down_pos.x-2 && x <= this.state.mouse_down_pos.x+2 )
-		    ) continue;
-		    this.state.artboard_array[y][x] = this.fg_color();
-		}
-	    }
-	}
+                        // Horizontal corners
+                        y == pos.y && ( x >= pos.x-2 && x <= pos.x+2 ) ||
+                        y == pos.y && ( x >= this.state.mouse_down_pos.x-2 && x <= this.state.mouse_down_pos.x+2 ) ||
+                        y == this.state.mouse_down_pos.y && ( x >= pos.x-2 && x <= pos.x+2 ) ||
+                        y == this.state.mouse_down_pos.y && ( x >= this.state.mouse_down_pos.x-2 && x <= this.state.mouse_down_pos.x+2 )
+                    ) continue;
+                    this.state.overlay_array[y][x] = this.fg_color();
+                }
+            }
+        }
 
-	// Empty Rounded Rectangle Action
-	if (this.tools.selected == "empty_round_rect"){
-	    // Undo the previously drawn box
-	    this.revert();
+        // Empty Rounded Rectangle Action
+        if (this.tools.selected == "empty_round_rect"){
+            this.clear_overlay();
 
-	    for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
-		if ( (x >= pos.x-2 && x <= pos.x+2) || (x >= this.state.mouse_down_pos.x-2 && x <= this.state.mouse_down_pos.x+2) ){
-		    if ( x != pos.x && x != this.state.mouse_down_pos.x ){
-			if (pos.y < this.state.mouse_down_pos.y){
-			    this.state.artboard_array[pos.y+1][x] = this.fg_color();
-			    this.state.artboard_array[this.state.mouse_down_pos.y-1][x] = this.fg_color();
-			} else {
-			    this.state.artboard_array[pos.y-1][x] = this.fg_color();
-			    this.state.artboard_array[this.state.mouse_down_pos.y+1][x] = this.fg_color();
-			}
-		    }
-		} else {
-		    this.state.artboard_array[pos.y][x] = this.fg_color();
-		    this.state.artboard_array[this.state.mouse_down_pos.y][x] = this.fg_color();
-		}
-	    }
+            for(let x=Math.min(this.state.mouse_down_pos.x, pos.x); x<=Math.max(this.state.mouse_down_pos.x, pos.x); x++){
+                if ( (x >= pos.x-2 && x <= pos.x+2) || (x >= this.state.mouse_down_pos.x-2 && x <= this.state.mouse_down_pos.x+2) ){
+                    if ( x != pos.x && x != this.state.mouse_down_pos.x ){
+                        if (pos.y < this.state.mouse_down_pos.y){
+                            this.state.overlay_array[pos.y+1][x] = this.fg_color();
+                            this.state.overlay_array[this.state.mouse_down_pos.y-1][x] = this.fg_color();
+                        } else {
+                            this.state.overlay_array[pos.y-1][x] = this.fg_color();
+                            this.state.overlay_array[this.state.mouse_down_pos.y+1][x] = this.fg_color();
+                        }
+                    }
+                } else {
+                    this.state.overlay_array[pos.y][x] = this.fg_color();
+                    this.state.overlay_array[this.state.mouse_down_pos.y][x] = this.fg_color();
+                }
+            }
 
-	    for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
-		if ( (y >= pos.y-2 && y <= pos.y+2) || (y >= this.state.mouse_down_pos.y-2 && y <= this.state.mouse_down_pos.y+2) ){
-		    if ( y != pos.y && y != this.state.mouse_down_pos.y ){
-			if (pos.x < this.state.mouse_down_pos.x){
-			    this.state.artboard_array[y][pos.x+1] = this.fg_color();
-			    this.state.artboard_array[y][this.state.mouse_down_pos.x-1] = this.fg_color();
-			} else {
-			    this.state.artboard_array[y][pos.x-1] = this.fg_color();
-			    this.state.artboard_array[y][this.state.mouse_down_pos.x+1] = this.fg_color();
-			}
-		    }
-		} else {
-		    this.state.artboard_array[y][pos.x] = this.fg_color();
-		    this.state.artboard_array[y][this.state.mouse_down_pos.x] = this.fg_color();
-		}
-	    }
-	}
+            for(let y=Math.min(this.state.mouse_down_pos.y, pos.y); y<=Math.max(this.state.mouse_down_pos.y, pos.y); y++){
+                if ( (y >= pos.y-2 && y <= pos.y+2) || (y >= this.state.mouse_down_pos.y-2 && y <= this.state.mouse_down_pos.y+2) ){
+                    if ( y != pos.y && y != this.state.mouse_down_pos.y ){
+                        if (pos.x < this.state.mouse_down_pos.x){
+                            this.state.overlay_array[y][pos.x+1] = this.fg_color();
+                            this.state.overlay_array[y][this.state.mouse_down_pos.x-1] = this.fg_color();
+                        } else {
+                            this.state.overlay_array[y][pos.x-1] = this.fg_color();
+                            this.state.overlay_array[y][this.state.mouse_down_pos.x+1] = this.fg_color();
+                        }
+                    }
+                } else {
+                    this.state.overlay_array[y][pos.x] = this.fg_color();
+                    this.state.overlay_array[y][this.state.mouse_down_pos.x] = this.fg_color();
+                }
+            }
+        }
 
-	// Line Action
-	if (this.tools.selected == "line"){
-	    // Undo the previously drawn line
-	    this.revert();
+        // Line Action
+        if (this.tools.selected == "line"){
+            this.clear_overlay();
 
-	    let x0 = this.state.mouse_down_pos.x;
-	    let x1 = pos.x;
-	    let y0 = this.state.mouse_down_pos.y;
-	    let y1 = pos.y;
+            let x0 = this.state.mouse_down_pos.x;
+            let x1 = pos.x;
+            let y0 = this.state.mouse_down_pos.y;
+            let y1 = pos.y;
 
-	    if (Math.abs(y1 - y0) < Math.abs(x1 - x0)) {
-		if (x0 > x1)
-		    this.plot_line_low(x1, y1, x0, y0)
-		else
-		    this.plot_line_low(x0, y0, x1, y1)
-	    } else {
-		if (y0 > y1)
-		    this.plot_line_high(x1, y1, x0, y0)
-		else
-		    this.plot_line_high(x0, y0, x1, y1)
-	    }
-	}
+            if (Math.abs(y1 - y0) < Math.abs(x1 - x0)) {
+                if (x0 > x1)
+                    this.plot_line_low(this.state.overlay_array, x1, y1, x0, y0)
+                else
+                    this.plot_line_low(this.state.overlay_array, x0, y0, x1, y1)
+            } else {
+                if (y0 > y1)
+                    this.plot_line_high(this.state.overlay_array, x1, y1, x0, y0)
+                else
+                    this.plot_line_high(this.state.overlay_array, x0, y0, x1, y1)
+            }
+        }
 
-	// Empty Oval Action
-	if (this.tools.selected == "empty_oval" || this.tools.selected == "filled_oval"){
-	    // Undo the previously drawn line
-	    this.revert();
+        // Empty Oval Action
+        if (this.tools.selected == "empty_oval" || this.tools.selected == "filled_oval"){
+            this.clear_overlay();
 
-	    let radius_x = Math.abs(this.state.mouse_down_pos.x - pos.x) / 2;
-	    let radius_y = Math.abs(this.state.mouse_down_pos.y - pos.y) / 2;
-	    let center_x = Math.min(this.state.mouse_down_pos.x, pos.x) + radius_x;
-	    let center_y = Math.min(this.state.mouse_down_pos.y, pos.y) + radius_y;
+            let radius_x = Math.abs(this.state.mouse_down_pos.x - pos.x) / 2;
+            let radius_y = Math.abs(this.state.mouse_down_pos.y - pos.y) / 2;
+            let center_x = Math.min(this.state.mouse_down_pos.x, pos.x) + radius_x;
+            let center_y = Math.min(this.state.mouse_down_pos.y, pos.y) + radius_y;
 
-	    this.plot_ellipse(radius_x, radius_y, center_x, center_y);
+            this.plot_ellipse(this.state.overlay_array, radius_x, radius_y, center_x, center_y);
 
-	    if (this.tools.selected == "filled_oval")
-		for (let rx = 0; rx<radius_x; rx+=1)
-		    this.plot_ellipse(rx + (radius_x % 1), radius_y, center_x, center_y);
-	}
-	this.redraw_canvas();
+            if (this.tools.selected == "filled_oval")
+                for (let rx = 0; rx<radius_x; rx+=1)
+                    this.plot_ellipse(this.state.overlay_array, rx + (radius_x % 1), radius_y, center_x, center_y);
+        }
+
+        this.redraw_canvas();
         this.redraw_overlay();
     }
 
-    undo(){
-        if (this.history.length > 0) {
-            this.state.artboard_array = JSON.parse(JSON.stringify(this.history[this.history.length - 1]));
-            this.redraw_canvas();
-            this.render_window();
-            this.history.pop();
+    redo() {
+        if (this.hist_index < this.history.length) {
+            this.hist_index++;
+            this.navigate_history();
         }
     }
 
-    revert(){
-	this.state.artboard_array = JSON.parse(JSON.stringify(this.state.prev_artboard_array));
-	this.redraw_canvas();
+    undo() {
+        if (this.hist_index > 1) {
+            this.hist_index--;
+            this.navigate_history();
+        }
+    }
+
+    navigate_history() {
+        this.state.artboard_array = JSON.parse(JSON.stringify(this.history[this.hist_index - 1]));
+        this.redraw_canvas();
+        this.render_window();
+    }
+
+    clear_overlay() {
+        this.state.overlay_array = this.initialize_2d_array(this.icon_size, this.icon_size, "rgba(0,0,0,0)");
+    }
+
+    commit_overlay() {
+        for (let y=0; y<this.state.overlay_array.length; y++) {
+            for (let x=0; x<this.state.overlay_array[0].length; x++) {
+                if (this.state.overlay_array[y][x] != "rgba(0,0,0,0)") {
+                    this.state.artboard_array[y][x] = this.state.overlay_array[y][x];
+                }
+            }
+        }
     }
 
     redraw_overlay() {
-	for (let y=0; y<this.state.overlay_array.length; y++)
-	    for (let x=0; x<this.state.overlay_array[y].length; x++)
-		this.draw_pixel({x:x, y:y}, this.state.overlay_array[y][x]);
+        for (let y=0; y<this.state.overlay_array.length; y++)
+            for (let x=0; x<this.state.overlay_array[y].length; x++)
+                this.draw_pixel({x:x, y:y}, this.state.overlay_array[y][x]);
     }
 
     redraw_canvas() {
-	for (let y=0; y<this.state.artboard_array.length; y++)
-	    for (let x=0; x<this.state.artboard_array[y].length; x++)
-		this.draw_pixel({x:x, y:y}, this.state.artboard_array[y][x]);
+        for (let y=0; y<this.state.artboard_array.length; y++)
+            for (let x=0; x<this.state.artboard_array[y].length; x++)
+                this.draw_pixel({x:x, y:y}, this.state.artboard_array[y][x]);
 
-	if (this.update_preview != null)
-	    this.update_preview();
+        if (this.update_preview != null)
+            this.update_preview();
     }
 
     draw_pixel(pos, color){
-	let pixel_left = pos.x * (this.square_size + this.border_size) + this.border_size;
-	let pixel_top  = pos.y * (this.square_size + this.border_size) + this.border_size;
+        let pixel_left = pos.x * (this.square_size + this.border_size) + this.border_size;
+        let pixel_top  = pos.y * (this.square_size + this.border_size) + this.border_size;
 
-	// Draw on the artboard
-	this.artboard_ctx.fillStyle = color;
-	this.artboard_ctx.fillRect(pixel_left, pixel_top, this.square_size, this.square_size);
+        // Draw on the artboard
+        this.artboard_ctx.fillStyle = color;
+        this.artboard_ctx.fillRect(pixel_left, pixel_top, this.square_size, this.square_size);
     }
 }
 
@@ -1172,7 +1211,7 @@ class icon_window {
         // Set up div
         this.div = div
         this.div.style.width  = 496;
-	this.div.style.height = 304;
+        this.div.style.height = 304;
 
         this.div.style.top = 100;
         this.div.style.left = 100;
@@ -1187,7 +1226,7 @@ class icon_window {
         this.ctx = this.canvas.getContext("2d");
 
         this.canvas.width  = 496;
-	this.canvas.height = 304;
+        this.canvas.height = 304;
 
         // Create JS Color Instances
         this.palette_background = document.createElement("button");
@@ -1259,8 +1298,8 @@ class icon_window {
         this.editor_pos         = { x:67, y:32, w:256, h:256 };
 
         // Listeners
-	this.canvas.addEventListener('mousedown', function(e){
-	    let pos = this.get_canvas_cursor_position(this.canvas, e)
+        this.canvas.addEventListener('mousedown', function(e){
+            let pos = this.get_canvas_cursor_position(this.canvas, e)
 
             // Set focus on this canvas, and send other to back
             background_other_windows(this.id);
@@ -1281,12 +1320,12 @@ class icon_window {
             if (this.click_in_rect(67, 32, 324, 289, pos)) {
                 let editor_cursor_pos = this.get_editor_cursor_position(this.canvas, e);
 
-	        if (this.tools.selected == "marquee")
-		    this.mouse_down_marquee(editor_cursor_pos);
-	        clearTimeout(this.selection.timer);
+                if (this.tools.selected == "marquee")
+                    this.mouse_down_marquee(editor_cursor_pos);
+                clearTimeout(this.selection.timer);
                 this.selection.timer = null;
 
-	        this.action(editor_cursor_pos);
+                this.action(editor_cursor_pos);
             }
 
             // If the position is in the small icon area, allow to drag to mask
@@ -1295,24 +1334,24 @@ class icon_window {
                 this.icon_drag_start = pos;
             }
 
-	    // Record our click position, but only if the mouse thinks it isn't already down
-	    if (this.mouse_down != true)
-		this.mouse_start = pos;
+            // Record our click position, but only if the mouse thinks it isn't already down
+            if (this.mouse_down != true)
+                this.mouse_start = pos;
 
-	    this.mouse_down = true;
-	}.bind(this))
+            this.mouse_down = true;
+        }.bind(this))
 
-	this.canvas.addEventListener('mousemove', function(e) {
-	    if (this.mouse_down != true) {
+        this.canvas.addEventListener('mousemove', function(e) {
+            if (this.mouse_down != true) {
                 return;
-	    }
+            }
 
-	    let pos = this.get_canvas_cursor_position(this.canvas, e)
+            let pos = this.get_canvas_cursor_position(this.canvas, e)
 
             // If the position is in the editor area, draw
             if (this.click_in_rect(67, 32, 324, 289, pos)) {
                 let editor_cursor_pos = this.get_editor_cursor_position(this.canvas, e);
-	        this.action(editor_cursor_pos);
+                this.action(editor_cursor_pos);
             }
 
             // Moving Window
@@ -1326,9 +1365,9 @@ class icon_window {
                 this.render();
             }
 
-	}.bind(this))
+        }.bind(this))
 
-	this.canvas.addEventListener('mouseup', function(e) {
+        this.canvas.addEventListener('mouseup', function(e) {
             // Lock in window position if window was moving
             if (this.move_window != false) {
                 this.window_pos = {
@@ -1343,12 +1382,12 @@ class icon_window {
                     this.update_mask();
 
             // Selecting editing targets
-            if (this.click_in_rect(334, 31, 366, 63, this.icon_drag)) {
+            let pos = this.get_canvas_cursor_position(this.canvas, e)
+            if (this.click_in_rect(334, 31, 366, 63, pos)) {
                 this.selected = "icon32"
                 this.select_artboard();
             }
             if (this.icon_drag == false) {
-                let pos = this.get_canvas_cursor_position(this.canvas, e)
                 if (this.click_in_rect(334, 91, 366, 123, pos)) {
                     this.selected = "mask32"
                     this.select_artboard();
@@ -1356,47 +1395,47 @@ class icon_window {
             }
 
             // Reset states
-	    this.mouse_down = false;
+            this.mouse_down = false;
             this.window_move = false;
             this.icon_drag = false;
             this.icon_drag_start = false;
 
             // Reset
             this.render();
-	}.bind(this))
+        }.bind(this))
 
-	this.canvas.addEventListener('mouseleave', function(e) {
-	    this.mouse_down = false;
-	}.bind(this))
+        this.canvas.addEventListener('mouseleave', function(e) {
+            this.mouse_down = false;
+        }.bind(this))
 
         this.select_artboard();
         this.render();
     }
 
     get_page_cursor_position(event) {
-	return {x:event.clientX, y:event.clientY};
+        return {x:event.clientX, y:event.clientY};
     }
 
     get_canvas_cursor_position(canvas, event) {
-	// Determine where clicked
-	const rect  = canvas.getBoundingClientRect()
-	const realx = event.clientX - rect.left;
-	const realy = event.clientY - rect.top;
+        // Determine where clicked
+        const rect  = canvas.getBoundingClientRect()
+        const realx = event.clientX - rect.left;
+        const realy = event.clientY - rect.top;
 
-	return {x:realx, y:realy};
+        return {x:realx, y:realy};
     }
 
     get_editor_cursor_position(canvas, event) {
         // Determine where clicked
-	const rect = canvas.getBoundingClientRect()
-	const realx = event.clientX - rect.left - this.editor_pos.x;
-	const realy = event.clientY - rect.top  - this.editor_pos.y;
+        const rect = canvas.getBoundingClientRect()
+        const realx = event.clientX - rect.left - this.editor_pos.x;
+        const realy = event.clientY - rect.top  - this.editor_pos.y;
 
-	// Determine square size
-	var pixelx = Math.floor(realx/(this.editor_square_size + this.editor_border_size));
-	var pixely = Math.floor(realy/(this.editor_square_size + this.editor_border_size));
+        // Determine square size
+        var pixelx = Math.floor(realx/(this.editor_square_size + this.editor_border_size));
+        var pixely = Math.floor(realy/(this.editor_square_size + this.editor_border_size));
 
-	return {x:pixelx, y:pixely};
+        return {x:pixelx, y:pixely};
     }
 
     click_in_rect(x1, y1, x2, y2, p) {
@@ -1405,6 +1444,13 @@ class icon_window {
         if (p.y < y1 || p.y > y2)
             return false;
         return true;
+    }
+
+    redo() {
+        if (this.selected == "icon32")
+            this.icon32.redo();
+        if (this.selected == "mask32")
+            this.mask32.redo();
     }
 
     undo() {
@@ -1422,7 +1468,7 @@ class icon_window {
 
         this.render_icon32_preview(export_ctx, 0, 0, 1, 0);
 
-	window.open(export_canvas.toDataURL('image/png'));
+        window.open(export_canvas.toDataURL('image/png'));
 
         export_canvas.remove();
     }
@@ -1469,15 +1515,15 @@ class icon_window {
     }
 
     initialize_2d_array(x, y, c){
-	let new_array = [];
-	while (new_array.length < y){
-	    let new_row = [];
-	    while (new_row.length < x){
-		new_row.push(c);
-	    }
-	    new_array.push(new_row);
-	}
-	return new_array;
+        let new_array = [];
+        while (new_array.length < y){
+            let new_row = [];
+            while (new_row.length < x){
+                new_row.push(c);
+            }
+            new_array.push(new_row);
+        }
+        return new_array;
     }
 
     replace_mask32_array(a) {
@@ -1533,10 +1579,7 @@ class icon_window {
                     temp_icon.state.artboard_array[y][x] = temp_icon.bg_color();
         }
 
-        // Save this as the new revert state for some tools
-        temp_icon.state.prev_artboard_array = JSON.parse(JSON.stringify(temp_icon.state.artboard_array));
-
-        // Re render
+        // Rerender
         temp_icon.redraw_canvas();
         this.render();
     }
@@ -1612,7 +1655,7 @@ class icon_window {
             this.ctx.fillStyle = "#000000";
             if (this.inactive)
                 this.ctx.fillStyle = "#656565";
-	    this.ctx.fillRect(0, 21, 496, 2);
+            this.ctx.fillRect(0, 21, 496, 2);
         }
     }
 
@@ -1658,10 +1701,10 @@ class icon_window {
     }
 
     string_to_rgb(s){
-	let r = parseInt(s.substring(1,3), 16);
-	let g = parseInt(s.substring(3,5), 16);
-	let b = parseInt(s.substring(5,7), 16);
-	return {r:r, g:g, b:b};
+        let r = parseInt(s.substring(1,3), 16);
+        let g = parseInt(s.substring(3,5), 16);
+        let b = parseInt(s.substring(5,7), 16);
+        return {r:r, g:g, b:b};
     }
 
     convert_to_rgba(i, m) {
@@ -1703,11 +1746,11 @@ class icon_window {
 
     select_artboard() {
         this.icon32_canvas.classList.remove("hidden");
-	this.mask32_canvas.classList.add("hidden");
+        this.mask32_canvas.classList.add("hidden");
 
         if (this.selected == "mask32") {
             this.icon32_canvas.classList.add("hidden");
-	    this.mask32_canvas.classList.remove("hidden");
+            this.mask32_canvas.classList.remove("hidden");
         }
 
         if (this.palette_foreground.jscolor)
@@ -1718,7 +1761,7 @@ class icon_window {
         let palette = '#ffffdf #ffdfbb #dfbb92 #ff925f #5effbb #00d300 #5fbb92 #5f9292 #bbffff #00bbff #0000ea #5f00bb #dfdfff #bbbbff #9292df #5f5f92 #ff92df #bb0092 #bb92bb #ffffff #f5f5f5 #eaeaea #dfdfdf #d3d3d3 #c7c7c7 #aeaeae #a0a0a0 #828282 #717171 #484848 #2c2c2c #000000 #ffff00 #ea0000';
 
         if (this.selected == "mask32"){
-	    palette = '#ffffff #f5f5f5 #eaeaea #dfdfdf #d3d3d3 #c7c7c7 #aeaeae #a0a0a0 #828282 #717171 #484848 #2c2c2c #000000';
+            palette = '#ffffff #f5f5f5 #eaeaea #dfdfdf #d3d3d3 #c7c7c7 #aeaeae #a0a0a0 #828282 #717171 #484848 #2c2c2c #000000';
         }
 
         this.palette_foreground.jscolor.set__palette(palette);
@@ -1759,9 +1802,13 @@ document.addEventListener('keydown', function(e) {
         rotate_focus();
     }
 
-    // UNDO - Command Z
+    // Undo - Command Z
     if (command_down && key == "z")
         windows[selected].undo();
+
+    // Redo - Command Y
+    if (command_down && key == "y")
+        windows[selected].redo();
 
     // New - Command N
     if (command_down && key == "n") {
@@ -1862,15 +1909,15 @@ document.getElementById("load").addEventListener('change', function(e) {
     function hex(n, l=2){
         let s = n.toString(16);
         while (s.length < l)
-	    s = "0"+s;
+            s = "0"+s;
         return s;
     }
 
     function data_to_string(r, g, b, i){
         if (i) {
-	    r = 255-r;
-	    g = 255-g;
-	    b = 255-b;
+            r = 255-r;
+            g = 255-g;
+            b = 255-b;
         }
         return "#" + hex(r) + hex(g) + hex(b);
     }
@@ -1882,38 +1929,38 @@ document.getElementById("load").addEventListener('change', function(e) {
         img.onload = function(){
             tmp_ctx.drawImage(img, 0, 0);
 
-	    // Read back from canvas to get image data format
-	    var image_data = tmp_ctx.getImageData(0, 0, 32, 32);
-	    var pixels = image_data.data;
+            // Read back from canvas to get image data format
+            var image_data = tmp_ctx.getImageData(0, 0, 32, 32);
+            var pixels = image_data.data;
 
-	    // Convert pixels; crop to 32x32
-	    let icon_array = [];
-	    let mask_array = [];
+            // Convert pixels; crop to 32x32
+            let icon_array = [];
+            let mask_array = [];
 
-	    let icon_row = [];
-	    let mask_row = [];
-	    for (let p=0; p<pixels.length; p+=4){
-		icon_row.push(data_to_string(pixels[p+0], pixels[p+1], pixels[p+2], false));
-		mask_row.push(data_to_string(pixels[p+3], pixels[p+3], pixels[p+3], true));
+            let icon_row = [];
+            let mask_row = [];
+            for (let p=0; p<pixels.length; p+=4){
+                icon_row.push(data_to_string(pixels[p+0], pixels[p+1], pixels[p+2], false));
+                mask_row.push(data_to_string(pixels[p+3], pixels[p+3], pixels[p+3], true));
 
-		if (icon_row.length == 32){
-		    icon_array.push(icon_row);
-		    mask_array.push(mask_row);
-		    icon_row = [];
-		    mask_row = [];
-		}
-	    }
+                if (icon_row.length == 32){
+                    icon_array.push(icon_row);
+                    mask_array.push(mask_row);
+                    icon_row = [];
+                    mask_row = [];
+                }
+            }
 
-	    // Load data into states
-	    windows[selected].replace_icon32_array(icon_array);
-	    windows[selected].replace_mask32_array(mask_array);
+            // Load data into states
+            windows[selected].replace_icon32_array(icon_array);
+            windows[selected].replace_mask32_array(mask_array);
 
-	    // remove the canvas
-	    tmp_canvas.remove()
+            // remove the canvas
+            tmp_canvas.remove()
         }
         img.src = event.target.result;
     }
-    reader.readAsDataURL(e.target.files[0]); 
+    reader.readAsDataURL(e.target.files[0]);
 }, false);
 
 let windows = {};
@@ -1934,6 +1981,7 @@ function new_window(id) {
     content.appendChild(div);
     background_other_windows(windows.length - 1);
     jscolor.install()
+    windows[selected].select_artboard();
 
     background_other_windows(selected);
 }
@@ -2007,76 +2055,75 @@ load_from_local_storage();
 
 function debug(){
     windows[selected].replace_icon32_array([
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#EA0000","#EA0000","#EA0000","#EA0000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#EA0000","#EA0000","#EA0000","#EA0000","#EA0000","#000000","#000000","#000000","#ffffff","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#000000","#EA0000","#EA0000","#EA0000","#EA0000","#EA0000","#000000","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#FFDFBB","#FFDFBB","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#000000","#000000","#000000","#EA0000","#EA0000","#000000","#FFDFBB","#FFDFBB","#828282","#00BBFF","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#000000","#ffffff","#ffffff","#000000","#000000","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#ffffff","#ffffff","#000000","#FFDFBB","#828282","#FFDFBB","#EA0000","#EA0000","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#ffffff","#ffffff","#000000","#FFDFBB","#00BBFF","#FFDFBB","#EA0000","#EA0000","#FFDFBB","#000000","#FFDFBB","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#FFDFBB","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#000000","#FFDFBB","#FFDFBB","#000000","#00D300","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#FFDFBB","#FFDFBB","#000000","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#00D300","#00D300","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#ffffff","#000000","#000000","#000000","#000000","#00D300","#00D300","#000000","#EA0000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#00D300","#000000","#EA0000","#EA0000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#EA0000","#EA0000","#000000","#00BBFF","#00BBFF","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#717171","#717171","#717171","#717171","#717171","#717171","#717171","#717171","#717171","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#717171","#717171","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#ffffff","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#717171","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#ffffff","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#717171","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#ffffff","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#717171","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#ffffff","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#717171","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#ffffff","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#717171","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#ffffff","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#00D300","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#000000","#000000","#000000","#000000","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#EA0000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#FFFFFF","#C7C7C7","#FFFFFF","#C7C7C7","#FFFFFF","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"]
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#EA0000","#EA0000","#EA0000","#EA0000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#EA0000","#EA0000","#EA0000","#EA0000","#EA0000","#000000","#000000","#000000","#ffffff","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#000000","#EA0000","#EA0000","#EA0000","#EA0000","#EA0000","#000000","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#FFDFBB","#FFDFBB","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#000000","#000000","#000000","#EA0000","#EA0000","#000000","#FFDFBB","#FFDFBB","#828282","#00BBFF","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#000000","#ffffff","#ffffff","#000000","#000000","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#ffffff","#ffffff","#000000","#FFDFBB","#828282","#FFDFBB","#EA0000","#EA0000","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#ffffff","#ffffff","#000000","#FFDFBB","#00BBFF","#FFDFBB","#EA0000","#EA0000","#FFDFBB","#000000","#FFDFBB","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#FFDFBB","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#000000","#FFDFBB","#FFDFBB","#000000","#00D300","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#FFDFBB","#FFDFBB","#000000","#FFDFBB","#FFDFBB","#FFDFBB","#FFDFBB","#000000","#00D300","#00D300","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#ffffff","#000000","#000000","#000000","#000000","#00D300","#00D300","#000000","#EA0000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#00D300","#000000","#EA0000","#EA0000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#EA0000","#EA0000","#000000","#00BBFF","#00BBFF","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#717171","#717171","#717171","#717171","#717171","#717171","#717171","#717171","#717171","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#717171","#717171","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#ffffff","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#717171","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#ffffff","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#717171","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#ffffff","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#717171","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#ffffff","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#717171","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#ffffff","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#717171","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#DFDFFF","#ffffff","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#00D300","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#000000","#000000","#000000","#000000","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#EA0000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#FFFFFF","#C7C7C7","#FFFFFF","#C7C7C7","#FFFFFF","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#C7C7C7","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"]
     ]);
 
     windows[selected].replace_mask32_array([
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#000000","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
-	["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"]
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#000000","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#FFFFFF","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"],
+        ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff"]
     ]);
 }
-
 
   </script>
 </html>
