@@ -30,6 +30,19 @@
           font-family: "SegmentedAlpha";
           src: url('fonts/Digital7Regular.otf');
       }
+
+      g.button{ 
+          touch-action: manipulation;
+      }
+
+      .mobile { display:none; }
+
+      @media (max-width: 991px) {
+          .mobile {
+              display:block !important;
+              touch-action: manipulation;
+          }
+      }
     </style>
   </head>
 
@@ -37,7 +50,70 @@
 
     <div id="content" style="margin: 0 auto; width:512px;">
       <canvas id="canvas" width="512" height="512" onclick="tetris_instance.start();" style="border:1px solid black; touch-action: manipulation"></canvas><br>
-      <input id="myInput" type="text" onblur="" onkeydown="tetris_instance.user_move(event)" style="width: 0px; position:relative; left:-10000px;"></input>
+
+      <div class="mobile">
+        <svg width="100%"
+             height="100%"
+             viewBox="80 50 1000 600"
+             version="1.1"
+             xmlns="http://www.w3.org/2000/svg"
+             xmlns:xlink="http://www.w3.org/1999/xlink"
+             xml:space="preserve"
+             xmlns:serif="http://www.serif.com/"
+             style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+
+          <!-- Start/Select -->
+          <g class="button" onclick="tetris_instance.toggleGhostMode();" transform="matrix(1,0,0,1,-50,0)">
+            <path d="M602.032,562.235C602.032,550.187 592.25,540.405 580.202,540.405L412.402,540.405C400.354,540.405 390.572,550.187 390.572,562.235C390.572,574.284 400.354,584.066 412.402,584.066L580.202,584.066C592.25,584.066 602.032,574.284 602.032,562.235Z" style="fill:rgb(44,44,44);"/>
+            <path d="M602.032,562.235C602.032,550.187 592.25,540.405 580.202,540.405L412.402,540.405C400.354,540.405 390.572,550.187 390.572,562.235C390.572,574.284 400.354,584.066 412.402,584.066L580.202,584.066C592.25,584.066 602.032,574.284 602.032,562.235Z" style="fill:rgb(27,27,27);"/>
+            <path d="M591.167,562.235C591.167,555.826 585.963,550.622 579.554,550.622L413.05,550.622C406.641,550.622 401.437,555.826 401.437,562.235C401.437,568.645 406.641,573.849 413.05,573.849L579.554,573.849C585.963,573.849 591.167,568.645 591.167,562.235Z" style="fill:rgb(39,39,39);"/>
+          </g>
+          <g class="button" onclick="tetris_instance.start(focus=false);"  transform="matrix(1,0,0,1,-50,0)">
+            <path d="M889.428,562.235C889.428,550.187 879.646,540.405 867.598,540.405L699.798,540.405C687.75,540.405 677.968,550.187 677.968,562.235C677.968,574.284 687.75,584.066 699.798,584.066L867.598,584.066C879.646,584.066 889.428,574.284 889.428,562.235Z" style="fill:rgb(44,44,44);"/>
+            <path d="M889.428,562.235C889.428,550.187 879.646,540.405 867.598,540.405L699.798,540.405C687.75,540.405 677.968,550.187 677.968,562.235C677.968,574.284 687.75,584.066 699.798,584.066L867.598,584.066C879.646,584.066 889.428,574.284 889.428,562.235Z" style="fill:rgb(27,27,27);"/>
+            <path d="M878.563,562.235C878.563,555.826 873.359,550.622 866.95,550.622L700.446,550.622C694.037,550.622 688.833,555.826 688.833,562.235C688.833,568.645 694.037,573.849 700.446,573.849L866.95,573.849C873.359,573.849 878.563,568.645 878.563,562.235Z" style="fill:rgb(39,39,39);"/>
+          </g>
+
+          <!-- D-Pad -->
+          <g>
+            <path d="M342.959,109.763C359.714,109.764 373.316,123.366 373.316,140.119L373.316,220.016L453.212,220.016C469.966,220.016 483.568,233.618 483.568,250.372L483.568,311.084C483.568,327.838 469.966,341.441 453.212,341.441L373.316,341.441L373.316,421.337C373.316,438.091 359.713,451.693 342.959,451.693L282.247,451.693C265.493,451.693 251.891,438.091 251.891,421.337L251.891,341.441L171.994,341.441C155.24,341.441 141.638,327.838 141.638,311.084L141.638,250.372C141.638,233.618 155.24,220.016 171.994,220.016L251.891,220.016L251.891,140.119C251.891,123.366 265.493,109.764 282.247,109.763L342.959,109.763Z"/>
+            <path d="M339.31,117.685C354.05,117.685 366.016,129.652 366.016,144.391L366.016,227.315L448.94,227.315C463.68,227.316 475.647,239.282 475.647,254.022L475.647,307.435C475.647,322.175 463.68,334.141 448.94,334.141L366.016,334.141L366.016,417.065C366.016,431.805 354.05,443.772 339.31,443.772L285.897,443.772C271.157,443.772 259.19,431.805 259.19,417.065L259.19,334.141L176.266,334.141C161.527,334.141 149.56,322.175 149.56,307.435L149.56,254.022C149.56,239.282 161.526,227.316 176.266,227.315L259.19,227.315L259.19,144.391C259.19,129.652 271.157,117.685 285.897,117.685L339.31,117.685Z" style="fill:rgb(26,26,26);"/>
+            <ellipse cx="312.603" cy="280.728" rx="33.985" ry="34.549" style="fill:rgb(51,51,51);"/>
+            <rect x="265.847" y="180.812" width="93.513" height="21.932" style="fill:rgb(51,51,51);"/>
+            <rect x="265.847" y="150.812" width="93.513" height="21.932" style="fill:rgb(51,51,51);"/>
+            <rect x="265.847" y="388.068" width="93.513" height="21.932" style="fill:rgb(51,51,51);"/>
+            <rect x="265.847" y="358.068" width="93.513" height="21.932" style="fill:rgb(51,51,51);"/>
+            <path d="M412.197,327.162L412.197,233.649L390.265,233.649L390.265,327.162L412.197,327.162Z" style="fill:rgb(51,51,51);"/>
+            <path d="M442.197,327.162L442.197,233.649L420.265,233.649L420.265,327.162L442.197,327.162Z" style="fill:rgb(51,51,51);"/>
+            <path d="M204.941,327.162L204.941,233.649L183.009,233.649L183.009,327.162L204.941,327.162Z" style="fill:rgb(51,51,51);"/>
+            <path d="M234.941,327.162L234.941,233.649L213.009,233.649L213.009,327.162L234.941,327.162Z" style="fill:rgb(51,51,51);"/>
+          </g>
+
+          <!-- Buttons A/B -->
+          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.ccw);">
+            <circle cx="724.723" cy="349.044" r="84.723" style="fill:rgb(171,0,0);"/>
+            <circle cx="724.723" cy="349.044" r="76.8" style="fill:rgb(210,7,7);"/>
+          </g>
+          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.cw);">
+            <circle cx="940.009" cy="212.413" r="84.723" style="fill:rgb(171,0,0);"/>
+            <circle cx="940.009" cy="212.413" r="76.8" style="fill:rgb(210,7,7);"/>
+          </g>
+
+          <!-- D-Pad Sensor Shapes -->
+          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.ccw);">
+            <path d="M312.603,280.728L483.568,109.763L312.603,58.765L141.638,109.763L312.603,280.728Z" style="fill:rgba(255,0,0,0);"/>
+          </g>
+          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.right);">
+            <path d="M312.603,280.728L483.568,451.693L534.566,280.728L483.568,109.763L312.603,280.728Z" style="fill:rgba(17,255,0,0);"/>
+          </g>
+          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.down);">
+            <path d="M312.603,280.728L141.638,451.693L312.603,502.691L483.568,451.693L312.603,280.728Z" style="fill:rgba(0,255,239,0);"/>
+          </g>
+          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.left);">
+            <path d="M312.603,280.728L141.638,109.763L90.64,280.728L141.638,451.693L312.603,280.728Z" style="fill:rgba(0,4,255,0);"/>
+          </g>
+        </svg>
+      </div>
     </div>
 
     <script>
@@ -98,6 +174,8 @@
                   down  : 3,
                   left  : 4,
                   drop  : 5,
+                  cw    : 6,
+                  ccw   : 7
               };
 
               // Key Codes
@@ -114,6 +192,7 @@
                   l           : 76,
                   n           : 78,
                   e           : 69,
+                  o           : 79,
                   g           : 71,
                   p           : 80,
                   d           : 68,
@@ -132,7 +211,7 @@
                   amber      : "#CCBB00",
                   green      : "#00CC00",
                   light_grey : "#CCCCCC",
-                  white      : "#FFFFFF"
+                  white      : "#FFFFFF",
               };
 
               this.overlays = {
@@ -312,6 +391,14 @@
                       color : { r:0x00, g:0x66, b:0x00 }, // Light Green
                   },
 
+                  /*
+                  Ethan : {
+                      shape : [[1,0,1,0], [0,1,0,0], [0,1,0,0], [0,1,0,0]],
+                      rotations : 4,
+                      color : { r:0xdd, g:0xdd, b:0xdd }, // Dark Green
+                      },
+                  */
+
                   // Triominoes
                   SmallL : {
                       shape : [[0,1], [1,1]],
@@ -406,7 +493,7 @@
               }
 
               if (lines_cleared.length > 0)
-                  this.animateLineClear(lines_cleared, 8);
+                  this.animateLineClear(lines_cleared, 16);
 
               return lines_cleared.length;
           }
@@ -437,7 +524,8 @@
               if (dir == this.direction.down)  pos_y++;
               if (dir == this.direction.left)  pos_x--;
               if (dir == this.direction.right) pos_x++;
-              if (dir == this.direction.up)    rot++;
+              if (dir == this.direction.ccw)   rot++;
+              if (dir == this.direction.cw)    rot--;
 
               // Rotate
               var block_array = this.rotateArray(block, rot);
@@ -535,9 +623,14 @@
                   this.state.block_position[0] = this.state.block_position[0] + 1;
               }
 
-              if (dir == this.direction.up){
+              if (dir == this.direction.ccw){
                   this.state.block_position[3] = 0; // only get points for how far it dropped without shifting
                   this.state.block_position[2] = this.state.block_position[2] + 1;
+              }
+
+              if (dir == this.direction.cw){
+                  this.state.block_position[3] = 0; // only get points for how far it dropped without shifting
+                  this.state.block_position[2] = this.state.block_position[2] + 3;
               }
 
               // Redraw
@@ -635,7 +728,11 @@
 
                   case this.key.up_arrow:
                   case this.key.i:
-                      direction = this.direction.up;
+                      direction = this.direction.ccw;
+                      break;
+
+                  case this.key.o:
+                      direction = this.direction.cw;
                       break;
 
                   case this.key.right_arrow:
@@ -726,6 +823,8 @@
                           level : this.state.level,
                           score : this.state.score,
                           extra : this.settings.useExtraPieces,
+                          lines : this.state.lines,
+                          date  : new Date().toString()
                       });
 
                       localStorage.scores = JSON.stringify(high_scores);
@@ -822,8 +921,9 @@
                   // Look for lines to clear, Update Scores and Counts
                   var lines_cleared = this.lookForLines();
                   this.state.score += this.rules.line_scores[lines_cleared] * this.state.level;
-                  if (Math.floor(this.state.lines / 10) < Math.floor((this.state.lines + lines_cleared) / 10))
+                  if (Math.floor(this.state.lines / 10) < Math.floor((this.state.lines + lines_cleared) / 10)){
                       this.state.level += 1;
+                  }
                   this.state.lines += lines_cleared;
 
                   // 1 point per block for distance fallen, double for fast drop
@@ -844,7 +944,6 @@
               this.move(this.direction.down);
 
               // See if window/game lost focus, and pause
-              //if (document.activeElement == document.getElementById('myInput')) // Not working
               if(!document.hasFocus()) this.pause();
 
               // Set timer
@@ -922,10 +1021,6 @@
               return;
           }
 
-          setFocus(){
-              document.getElementById("myInput").focus()
-          }
-
           pause(){
               if (this.state.game_active == true && this.state.game_paused == false){
                   this.state.game_paused = true;
@@ -956,7 +1051,6 @@
 
           start(){
               this.state.game_overlay = null; // Clear text overlays
-              this.setFocus();    // Set focus to input box
               this.togglePause();  // Toggle pause
 
               // Start game
@@ -1070,7 +1164,7 @@
                   for (var x=0; x<this.dimension.game_width + (2 * this.dimension.game_border); x++)
                       if (y == this.dimension.game_height || (x == 0 || x == this.dimension.game_width + 1))
                           this.drawChisledBrick(this.ctx, x + this.dimension.left_buffer, y + this.dimension.top_buffer, this.dimension.square_size,
-                                                {r:0x88, g:0x88, b:0x88},
+                                                {r:0x88, g:0x88, b:0x88}, // Color here?
                                                 y == 0 || y == this.dimension.game_height && x != 0 && x != this.dimension.game_width + 1 ? false : true,
                                                 y <  this.dimension.game_height || y == this.dimension.game_height && x == this.dimension.game_width + 1 ? false : true,
                                                 y == this.dimension.game_height ? false : true,
@@ -1500,9 +1594,6 @@
               // Redraw everything
               this.resizeCanvas(gameWidth, gameHeight);
               this.redraw();
-
-              // Set focus so we can keep playing
-              this.setFocus();
           }
 
           firstRun(){
@@ -1512,7 +1603,16 @@
 
       }
 
-      var tetris_instance = new tetris(document.getElementById("canvas"));
+var tetris_instance = new tetris(document.getElementById("canvas"));
+
+// Keyboard listeners
+//document.addEventListener('keyup', function(e) {});
+document.addEventListener('keydown', function(e) {
+    tetris_instance.user_move(e);
+});
+
+
+
 
     </script>
   </body>
