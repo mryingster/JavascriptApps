@@ -1,0 +1,210 @@
+<html>
+  <head>
+    <title></title>
+    <style>
+      body {
+          background: #ddd;
+      }
+      #content {
+          background: #fff;
+          margin: auto;
+          max-width: 500px;
+          padding: 20px;
+          border-radius: 20px;
+      }
+      input {
+          width : 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <h1>Deriving the Day of the Week For Any Date</h1>
+
+      <p>This method comes from Lewis Carroll from a letter he wrote to Nature on March 31, 1887 (Which was a Thursday). I found the method as described to be somewhat hard to follow, so I have inserted the calculations for a given date after each of his instructions. Hopefully this will make the method more clear.</p>
+
+
+      <p>Having hit upon the following method of mentally computing the day of the week for any given date, I send it you in the hope that it may interest some of your readers. I am not a rapid computer myself, and as I find my average time for doing any such question is about 20 seconds, I have little doubt that a rapid computer would not need 15.</p>
+
+      <p>
+        <center>
+          Year / Month / Date <br>
+          <input id="year" value="2024"></input> / <input id="month" value="6"></input> / <input id="date" value="4"></input><br>
+          <button onclick="calculate();">Calculate</button>
+        </center>
+      </p>
+
+      <p>Take the given date in 4 portions, viz. the number of centuries, the number of years over, the month, the day of the month.</p>
+
+      <p>
+        <center>
+          Centuries : <span id="1_centuries"></span><br>
+          Years : <span id="1_years"></span><br>
+          Month : <span id="1_month"></span><br>
+          Day : <span id="1_date"></span><br>
+        </center>
+      </p>
+
+      <p>Compute the following 4 items, adding each, when found, to the total of the previous items. <b>When an item or total exceeds 7, divide by 7, and keep the remainder only.</b></p>
+
+      <p><b>The Century-Item.</b> — For Old Style (which ended September 2, 1752) subtract from 18. For New Style (which began September 14) divide by 4, take overplus from 3, multiply remainder by 2. <br>
+        <i>[The Century-Item is the first two digits of the year, so for 1811 take 18.]</i></p>
+
+      <p>
+        <center>
+          Result : <span id="2_century"></span>
+        </center>
+      </p>
+
+      <p><b>The Year-Item.</b> — Add together the number of dozens, the overplus, and the number of 4’s in the overplus.</p>
+
+      <p>
+        <center>
+          Dozens : <span id="2_year_dozens"></span><br>
+          Overplus : <span id="2_year_overplus"></span><br>
+          Fours : <span id="2_year_fours"></span><br>
+          Result : <span id="2_year_result"></span><br>
+          Sub Total : <span id="2_year_total"></span><br>
+        </center>
+      </p>
+
+      <p><b>The Month-Item.</b> — If it begins or ends with a vowel, subtract the number, denoting its place in the year, from 10. This, plus its number of days, gives the item for the following month. The item for January is ‘0’; for February or March (the 3rd month), ‘3’; for December (the 12th month), ’12.’ <br>
+        <i>[So, for clarity, the required final numbers after division by 7 are January, 0; February, 3; March, 3; April, 6; May, 1; June, 4; July, 6; August 2; September, 5; October, 0; November, 3; and December, 5.]</i></p>
+
+      <p>
+        <center>
+          Result : <span id="2_month"></span><br>
+          Sub Total : <span id="2_month_total"></span>
+        </center>
+      </p>
+
+
+      <p><b>The Day-Item</b> is the day of the month.</p>
+
+      <p>
+        <center>
+          Result : <span id="2_day"></span><br>
+          Sub Total : <span id="2_day_total"></span>
+        </center>
+      </p>
+
+
+      <p>The total, thus reached, must be corrected, by deducting ‘1’ (first adding 7, if the total be ‘0’), if the date be January or February in a Leap Year: remembering that every year, divisible by 4, is a Leap Year, excepting only the century-years, in New Style, when the number of centuries is not so divisible (e.g. 1800).</p>
+
+      <p>
+        <center>
+          Total : <span id="3_total"></span><br>
+          Corrected Total : <span id="3_total_corrected"></span>
+        </center>
+      </p>
+
+
+      <p>The final result gives the day of the week, ‘0’ meaning Sunday, ‘1’ Monday, and so on.</p>
+
+      <p>
+        <center>
+          Resulting Day : <span id="4_day"></span>
+        </center>
+      </p>
+
+    </div>
+  </body>
+  <script>
+
+    function mod_string(n, m) {
+        if (n >= m)
+            return (n % m)+" ("+n+" % "+m+")";
+        return n
+    }
+
+    function calculate() {
+        let input_years = Number(document.getElementById("year").value);
+        let input_month = Number(document.getElementById("month").value);
+        let input_date  = Number(document.getElementById("date").value);
+
+        let centuries = Math.floor(input_years / 100);
+        let years     = input_years % 100;
+
+        // Get our basic components
+        document.getElementById("1_centuries").innerHTML = centuries;
+        document.getElementById("1_years").innerHTML = years;
+        document.getElementById("1_month").innerHTML = input_month;
+        document.getElementById("1_date").innerHTML = input_date;
+
+        let century_item = (3 - (centuries % 4)) * 2
+
+        // Correction for calendar pre leap years
+        if (input_years < 1752 || (input_years == 1752 && (input_month < 9 || (input_month == 9 && input_date < 2))))
+            century_item = 18 - centuries;
+
+        document.getElementById("2_century").innerHTML = century_item;
+
+
+        // Calculate the years
+        let year_dozens = Math.floor(years / 12);
+        document.getElementById("2_year_dozens").innerHTML = year_dozens;
+        let year_overplus = years % 12;
+        document.getElementById("2_year_overplus").innerHTML = year_overplus;
+        let year_fours = Math.floor(year_overplus / 4);
+        document.getElementById("2_year_fours").innerHTML = year_fours;
+        let year_total = year_dozens + year_overplus + year_fours;
+        year_total %= 7;
+        document.getElementById("2_year_result").innerHTML = year_total;
+
+        document.getElementById("2_year_total").innerHTML = mod_string((century_item + year_total), 7);
+
+        // Convert the month
+        let month_item = {
+            1  : 0,
+            2  : 3,
+            3  : 3,
+            4  : 6,
+            5  : 1,
+            6  : 4,
+            7  : 6,
+            8  : 2,
+            9  : 5,
+            10 : 0,
+            11 : 3,
+            12 : 5,
+        }[input_month];
+        document.getElementById("2_month").innerHTML = month_item;
+
+        document.getElementById("2_month_total").innerHTML = mod_string((century_item + year_total + month_item), 7);
+
+        // Date!
+        document.getElementById("2_day").innerHTML = input_date % 7;
+
+        document.getElementById("2_day_total").innerHTML = mod_string((century_item + year_total + month_item + input_date), 7);
+
+        // Total up
+        let total = century_item + year_total + month_item + input_date;
+        document.getElementById("3_total").innerHTML = mod_string(total, 7);
+
+        // Correct for leap years
+        let corrected = total
+        if (corrected == 0)
+            corrected += 7;
+
+        //if (input_years > 1752)
+        if (input_month <= 2)
+            if (input_years % 4 == 0 && input_years % 400 != 0 || input_years % 1000 == 0)
+                corrected -= 1;
+
+        // Then mod it
+        corrected %= 7;
+        document.getElementById("3_total_corrected").innerHTML = corrected;
+
+        // Convert to day of week!
+        document.getElementById("4_day").innerHTML = {
+           0 : "Sunday",
+           1 : "Monday",
+           2 : "Tuesday",
+           3 : "Wednesday",
+           4 : "Thursday",
+           5 : "Friday",
+           6 : "Saturday",
+        }[corrected];
+    }
+  </script>
+</html>
