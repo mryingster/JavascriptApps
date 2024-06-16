@@ -2,19 +2,48 @@
   <head>
     <title>Circles</title>
     <style>
+      body {
+          background:#aaa;
+          color:#000;
+          font-family:sans-serif;
+      }
+
       #content {
           text-align: center;
+          width: 512px;
+          background:#fff;
+          margin: 0 auto 0 auto;
+          padding:15px 15px 15px 15px;
+      }
+
+
+      h1 {
+          margin:10px;
+          font-size:2.5em;
+          text-align: left;
+      }
+
+      button {
+          padding: 3 15;
+      }
+
+      #speed {
+          vertical-align: bottom;
       }
     </style>
   </head>
   <body>
     <div id="content">
+      <h1>Hypnotic Circle Illusion</h1>
       <canvas id="canvas" width="512" height="512"></canvas>
       <br>
-      <button onclick="remove();">-</button>
+    <button onclick="remove();">–</button>
       <button onclick="add();">+</button>
       <input type="checkbox" id="lines" name="lines" value="lines">
       <label for="lines">Lines</label>
+      <input type="checkbox" id="color" name="color" value="color">
+      <label for="color">Color</label>
+      <input type="range" min="1" max="100" value="75" class="slider" id="speed">
     </div>
   </body>
   <script>
@@ -45,6 +74,7 @@
         let r  = (canvas.width / 2) * .9;
 
         let show_lines = document.getElementById("lines").checked;
+        let draw_color = document.getElementById("color").checked;
         if (show_lines) {
             for (let c of circles) {
                 //Translate the canvas
@@ -52,14 +82,14 @@
                 ctx.translate(cx, cy);
 
                 // Rotate
-                let angle = (Math.PI * 2) * (c/2);
-                ctx.rotate(angle);
+                ctx.rotate(c.angle);
 
                 ctx.strokeStyle = "#888";
                 ctx.beginPath();
                 ctx.moveTo(-r, 0);
                 ctx.lineTo(r, 0);
                 ctx.stroke();
+
                 // Unrotate
                 ctx.restore();
 
@@ -72,14 +102,16 @@
             ctx.translate(cx, cy);
 
             // Rotate
-            let angle = (Math.PI * 2) * (c/2);
-            ctx.rotate(angle);
+            ctx.rotate(c.angle);
 
             // Draw stuff
-            let ph = phase + (Math.PI * (c)); // Phase
+            let ph = phase + (Math.PI * (c.p)); // Phase
             let po = Math.sin(ph) * r; // Porportion
 
-            draw_circle(po, 0, 10, "#000", "#000");
+            if (draw_color)
+                draw_circle(po, 0, 10, c.color, 0);
+            else
+                draw_circle(po, 0, 10, "#000", 0);
 
             // Unrotate
             ctx.restore();
@@ -92,6 +124,7 @@
         if (last_frame === undefined) {
             last_frame = timestamp;
         }
+
         let elapsed = timestamp - last_frame;
         if (elapsed != elapsed) elapsed = 0;
 
@@ -100,7 +133,8 @@
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Update phase
-        phase += .001 * elapsed;
+        let speed = document.getElementById("speed").value;
+        phase += .002 * elapsed * ((speed - 50) / 25);
 
         // Redraw
         redraw();
@@ -113,7 +147,13 @@
     function update_max() {
         circles = [];
         for (let i=0; i<max; i++) {
-            circles.push(i / max);
+            let proportion = i / max;
+            circles.push(
+                {
+                    color: "hsl("+(360 * proportion)+",100%,50%)",
+                    angle: (Math.PI * 2) * (proportion/2),
+                    p: proportion,
+                });
         }
     }
 
