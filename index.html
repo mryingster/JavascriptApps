@@ -699,7 +699,9 @@
               this.redraw();
           }
 
-          toggleExtraPieces(){
+          toggleExtraPieces() {
+              if (this.state.game_active == true)
+                  return;
               if (this.settings.useExtraPieces == true)
                   this.settings.useExtraPieces = false;
               else
@@ -728,8 +730,7 @@
                   break
 
               case this.key.e:
-                  if (this.state.game_active == false)
-                      this.toggleExtraPieces();
+                  this.toggleExtraPieces();
                   break;
 
               case this.key.p:
@@ -1662,9 +1663,10 @@
       let tetris_instance = new tetris(document.getElementById("canvas"));
 
       class button {
-          constructor(element, action) {
+          constructor(element, can_repeat, action) {
               this.action = action;
               this.element = element;
+              this.can_repeat = can_repeat;
 
               this.intervalId;
 
@@ -1680,7 +1682,11 @@
               console.log("hi");
               e.preventDefault();
               //navigator.vibrate(200);
-              this.intervalId = setInterval(e => this.do_action(), 70);
+
+              if (this.can_repeat)
+                  this.intervalId = setInterval(e => this.do_action(), 70);
+              else
+                  this.do_action();
           }
 
           do_action(){
@@ -1689,15 +1695,15 @@
       }
 
       // Gamepad Button Definitions
-      let up_button     = new button(document.getElementById("up_button"),     () => tetris_instance.toggleGhostMode());
-      let down_button   = new button(document.getElementById("down_button"),   () => tetris_instance.move(tetris_instance.direction.down));
-      let left_button   = new button(document.getElementById("left_button"),   () => tetris_instance.move(tetris_instance.direction.left));
-      let right_button  = new button(document.getElementById("right_button"),  () => tetris_instance.move(tetris_instance.direction.right))
-      let cw_button     = new button(document.getElementById("cw_button"),     () => tetris_instance.move(tetris_instance.direction.cw));
-      let ccw_button    = new button(document.getElementById("ccw_button"),    () => tetris_instance.move(tetris_instance.direction.ccw));
-      let drop_button   = new button(document.getElementById("drop_button"),   () => tetris_instance.move(tetris_instance.direction.drop));
-      let start_button  = new button(document.getElementById("start_button"),  () => tetris_instance.start(focus=false));
-      let select_button = new button(document.getElementById("select_button"), () => tetris_instance.toggleExtraPieces());
+      let up_button     = new button(document.getElementById("up_button"),     true,  () => tetris_instance.toggleGhostMode());
+      let down_button   = new button(document.getElementById("down_button"),   true,  () => tetris_instance.move(tetris_instance.direction.down));
+      let left_button   = new button(document.getElementById("left_button"),   true,  () => tetris_instance.move(tetris_instance.direction.left));
+      let right_button  = new button(document.getElementById("right_button"),  true,  () => tetris_instance.move(tetris_instance.direction.right))
+      let cw_button     = new button(document.getElementById("cw_button"),     false, () => tetris_instance.move(tetris_instance.direction.cw));
+      let ccw_button    = new button(document.getElementById("ccw_button"),    false, () => tetris_instance.move(tetris_instance.direction.ccw));
+      let drop_button   = new button(document.getElementById("drop_button"),   false, () => tetris_instance.move(tetris_instance.direction.drop));
+      let start_button  = new button(document.getElementById("start_button"),  false, () => tetris_instance.start(focus=false));
+      let select_button = new button(document.getElementById("select_button"), false, () => tetris_instance.toggleExtraPieces());
 
       // Keyboard listeners
       //document.addEventListener('keyup', function(e) {});
