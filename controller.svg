@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+]1;95;0c<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="100%" height="100%" viewBox="0 0 1280 800" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
     <g>
@@ -43,4 +43,7 @@
     <path d="M288.583,280.728L478.049,470.195L534.566,280.728L478.049,91.261L288.583,280.728Z" style="fill:#1f0;"/>
     <path d="M288.583,280.728L99.116,470.195L288.583,526.711L478.049,470.195L288.583,280.728Z" style="fill:#00ffef;"/>
     <path d="M288.583,280.728L99.116,91.261L42.599,280.728L99.116,470.195L288.583,280.728Z" style="fill:#0004ff;"/>
+    <circle cx="782.495" cy="348.905" r="144.214" style="fill:rgb(255,234,0);"/>
+    <circle cx="1078.01" cy="430.263" r="144.214" style="fill:rgb(255,234,0);"/>
+    <circle cx="998.909" cy="133.148" r="144.214" style="fill:rgb(255,234,0);"/>
 </svg>
