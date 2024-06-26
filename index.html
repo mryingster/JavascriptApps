@@ -63,12 +63,12 @@
              style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
 
           <!-- Start/Select -->
-          <g class="button" onclick="tetris_instance.toggleGhostMode();" transform="matrix(1,0,0,1,-50,0)">
+          <g class="button" id="select_button" transform="matrix(1,0,0,1,0,0)">
             <path d="M602.032,587.038C602.032,574.99 592.25,565.208 580.202,565.208L412.402,565.208C400.354,565.208 390.572,574.99 390.572,587.038C390.572,599.087 400.354,608.869 412.402,608.869L580.202,608.869C592.25,608.869 602.032,599.087 602.032,587.038Z" style="fill:#2c2c2c;"/>
             <path d="M602.032,587.038C602.032,574.99 592.25,565.208 580.202,565.208L412.402,565.208C400.354,565.208 390.572,574.99 390.572,587.038C390.572,599.087 400.354,608.869 412.402,608.869L580.202,608.869C592.25,608.869 602.032,599.087 602.032,587.038Z" style="fill:#1b1b1b;"/>
             <path d="M591.167,587.038C591.167,580.629 585.963,575.425 579.554,575.425L413.05,575.425C406.641,575.425 401.437,580.629 401.437,587.038C401.437,593.448 406.641,598.652 413.05,598.652L579.554,598.652C585.963,598.652 591.167,593.448 591.167,587.038Z" style="fill:#272727;"/>
           </g>
-          <g class="button" onclick="tetris_instance.start(focus=false);"  transform="matrix(1,0,0,1,-50,0)">
+          <g class="button" id="start_button" transform="matrix(1,0,0,1,0,0)">
             <path d="M889.428,587.038C889.428,574.99 879.646,565.208 867.598,565.208L699.798,565.208C687.75,565.208 677.968,574.99 677.968,587.038C677.968,599.087 687.75,608.869 699.798,608.869L867.598,608.869C879.646,608.869 889.428,599.087 889.428,587.038Z" style="fill:#2c2c2c;"/>
             <path d="M889.428,587.038C889.428,574.99 879.646,565.208 867.598,565.208L699.798,565.208C687.75,565.208 677.968,574.99 677.968,587.038C677.968,599.087 687.75,608.869 699.798,608.869L867.598,608.869C879.646,608.869 889.428,599.087 889.428,587.038Z" style="fill:#1b1b1b;"/>
             <path d="M878.563,587.038C878.563,580.629 873.359,575.425 866.95,575.425L700.446,575.425C694.037,575.425 688.833,580.629 688.833,587.038C688.833,593.448 694.037,598.652 700.446,598.652L866.95,598.652C873.359,598.652 878.563,593.448 878.563,587.038Z" style="fill:#272727;"/>
@@ -90,19 +90,19 @@
           </g>
 
           <!-- Buttons A/B -->
-          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.ccw);">
+          <g class="button" id="ccw_button">
             <circle cx="782.495" cy="348.905" r="89.751" style="fill:#ab0000;"/>
             <circle cx="782.495" cy="348.905" r="81.358" style="fill:#d20707;"/>
             <path d="M749,341.322L764.476,341.322L738.028,372.18L711.581,341.322L726.471,341.322C730.184,313.481 754.05,291.976 782.899,291.976C814.319,291.976 839.828,317.485 839.828,348.905C839.828,380.325 814.319,405.834 782.899,405.834C767.189,405.834 752.957,399.457 742.652,389.152L758.345,373.459C764.632,379.746 773.315,383.637 782.899,383.637C802.068,383.637 817.63,368.074 817.63,348.905C817.63,329.736 802.068,314.174 782.899,314.174C766.335,314.174 752.463,325.795 749,341.322Z" style="fill:#ab0000;"/>
           </g>
 
-          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.cw);">
+          <g class="button" id="cw_button">
             <circle cx="998.909" cy="133.148" r="89.751" style="fill:#0eab00;"/>
             <circle cx="998.909" cy="133.148" r="81.358" style="fill:#1bd207;"/>
             <path d="M1033.7,125.564L1018.23,125.564L1044.67,156.422L1071.12,125.564L1056.23,125.564C1052.52,97.724 1028.65,76.218 999.803,76.218C968.383,76.218 942.874,101.727 942.874,133.148C942.874,164.568 968.383,190.077 999.803,190.077C1015.51,190.077 1029.75,183.7 1040.05,173.395L1024.36,157.702C1018.07,163.988 1009.39,167.879 999.803,167.879C980.634,167.879 965.072,152.316 965.072,133.148C965.072,113.979 980.634,98.416 999.803,98.416C1016.37,98.416 1030.24,110.037 1033.7,125.564Z" style="fill:#0eab00;"/>
           </g>
 
-          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.drop);">
+          <g class="button" id="drop_button">
             <circle cx="1078.01" cy="428.31" r="89.751" style="fill:#002eab;"/>
             <circle cx="1078.01" cy="428.31" r="81.358" style="fill:#073ad2;"/>
             <path d="M1077.93,472.936L1052.2,442.922L1067.18,442.922L1067.18,372.855L1088.84,372.855L1088.84,442.922L1103.81,442.922L1078.09,472.936L1103.81,472.936L1103.81,483.764L1052.2,483.764L1052.2,472.936L1077.93,472.936Z" style="fill:#002eab;"/>
@@ -110,16 +110,16 @@
           </g>
 
           <!-- D-Pad Sensor Shapes -->
-          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.ccw);">
+          <g class="button" id="up_button">
             <path d="M288.583,280.728L478.049,91.261L288.583,34.745L99.116,91.261L288.583,280.728Z" style="fill:rgba(255,0,0,0);"/>
           </g>
-          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.right);">
+          <g class="button" id="right_button">
             <path d="M288.583,280.728L478.049,470.195L534.566,280.728L478.049,91.261L288.583,280.728Z" style="fill:rgba(17,255,0,0);"/>
           </g>
-          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.down);">
+          <g class="button" id="down_button">
             <path d="M288.583,280.728L99.116,470.195L288.583,526.711L478.049,470.195L288.583,280.728Z" style="fill:rgba(0,255,239,0);"/>
           </g>
-          <g class="button" onclick="tetris_instance.move(tetris_instance.direction.left);">
+          <g class="button" id="left_button">
             <path d="M288.583,280.728L99.116,91.261L42.599,280.728L99.116,470.195L288.583,280.728Z" style="fill:rgba(0,4,255,0);"/>
           </g>
         </svg>
@@ -627,11 +627,11 @@
                   this.state.block_position[3] += 1 // Get point per step for slow dropping
                   /* There's a bug here. The timer should reset when a user pressed the down arrow.
                      But this code isn't doing the trick. Debug this when you have time...
+                  */
                   if (usermove == true) {
                       this.redraw();
-                      resetMainLoopTimeout;
+                      this.resetMainLoopTimeout();
                   }
-                  */
               }
 
               if (dir == this.direction.drop){
@@ -845,7 +845,7 @@
               if (place <= 10) {
                   const nth = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh"]
                   var user_name = null;
-                  
+
                   if (this.state.imacheater == true){
                       alert("You would have gotten a high score, but you're a cheater!");
                       return;
@@ -1659,16 +1659,51 @@
 
       }
 
-var tetris_instance = new tetris(document.getElementById("canvas"));
+      let tetris_instance = new tetris(document.getElementById("canvas"));
 
-// Keyboard listeners
-//document.addEventListener('keyup', function(e) {});
-document.addEventListener('keydown', function(e) {
-    tetris_instance.user_move(e);
-});
+      class button {
+          constructor(element, action) {
+              this.action = action;
+              this.element = element;
 
+              this.intervalId;
 
+              this.element.addEventListener("mousedown",  (event) => this.repeat(event) );
+              this.element.addEventListener("mouseup",    (event) => clearInterval(this.intervalId) );
+              this.element.addEventListener("mouseout",   (event) => clearInterval(this.intervalId) );
 
+              this.element.addEventListener("touchstart", (event) => this.repeat(event) );
+              this.element.addEventListener("touchend",   (event) => clearInterval(this.intervalId) );
+          }
+
+          repeat(e) {
+              console.log("hi");
+              e.preventDefault();
+              //navigator.vibrate(200);
+              this.intervalId = setInterval(e => this.do_action(), 70);
+          }
+
+          do_action(){
+              this.action()
+          }
+      }
+
+      // Gamepad Button Definitions
+      let up_button     = new button(document.getElementById("up_button"),     () => tetris_instance.toggleGhostMode());
+      let down_button   = new button(document.getElementById("down_button"),   () => tetris_instance.move(tetris_instance.direction.down));
+      let left_button   = new button(document.getElementById("left_button"),   () => tetris_instance.move(tetris_instance.direction.left));
+      let right_button  = new button(document.getElementById("right_button"),  () => tetris_instance.move(tetris_instance.direction.right))
+      let cw_button     = new button(document.getElementById("cw_button"),     () => tetris_instance.move(tetris_instance.direction.cw));
+      let ccw_button    = new button(document.getElementById("ccw_button"),    () => tetris_instance.move(tetris_instance.direction.ccw));
+      let drop_button   = new button(document.getElementById("drop_button"),   () => tetris_instance.move(tetris_instance.direction.drop));
+      let start_button  = new button(document.getElementById("start_button"),  () => tetris_instance.start(focus=false));
+      let select_button = new button(document.getElementById("select_button"), () => tetris_instance.toggleExtraPieces());
+
+      // Keyboard listeners
+      //document.addEventListener('keyup', function(e) {});
+      document.addEventListener('keydown', function(e) {
+          tetris_instance.user_move(e);
+      });
 
     </script>
   </body>
