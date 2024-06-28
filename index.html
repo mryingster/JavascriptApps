@@ -6,9 +6,10 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=600px, user-scalable=no" /> <!-- disabled in iOS 10+ -->    <style>
       body {
-          background:#aaa;
+          background:#222;
           color:#000;
           font-family:sans-serif;
+          margin: 0px;
       }
 
       div#content {
@@ -49,18 +50,43 @@
   <body onload="tetris_instance.firstRun();" onresize="tetris_instance.resizeGame()">
 
     <div id="content" style="margin: 0 auto; width:512px;">
-      <canvas id="canvas" width="512" height="512" onclick="tetris_instance.start();" style="border:1px solid black; touch-action: manipulation"></canvas><br>
+      <canvas id="canvas" width="512" height="512" onclick="tetris_instance.start();" style="touch-action: manipulation"></canvas><br>
 
       <div class="mobile">
         <svg width="100%"
              height="100%"
-             viewBox="100 20 1070 600"
+             viewBox="50 0 1170 700"
              version="1.1"
              xmlns="http://www.w3.org/2000/svg"
              xmlns:xlink="http://www.w3.org/1999/xlink"
              xml:space="preserve"
              xmlns:serif="http://www.serif.com/"
              style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+
+          <g id="Background">
+            <path d="M1215.28,14.253L1215.28,670.617C1215.28,678.484 1208.89,684.87 1201.02,684.87L66.529,684.87C58.663,684.87 52.276,678.484 52.276,670.617L52.276,14.253C52.276,6.386 58.663,0 66.529,0L1201.02,0C1208.89,0 1215.28,6.386 1215.28,14.253Z" style="fill:rgb(148,148,148);"/>
+            <rect x="75.27" y="21.271" width="1117.01" height="639.71"/>
+            <rect x="362.449" y="448.221" width="555.101" height="62.243" style="fill:rgb(43,43,43);"/>
+            <rect x="362.449" y="365.05" width="555.101" height="62.243" style="fill:rgb(43,43,43);"/>
+            <rect x="362.449" y="281.879" width="555.101" height="62.243" style="fill:rgb(43,43,43);"/>
+            <rect x="362.449" y="198.709" width="555.101" height="62.243" style="fill:rgb(43,43,43);"/>
+            <rect x="362.449" y="115.538" width="555.101" height="62.243" style="fill:rgb(43,43,43);"/>
+            <rect x="362.449" y="32.367" width="555.101" height="62.243" style="fill:rgb(43,43,43);"/>
+            <g transform="matrix(27.709,0,0,27.709,828.63,491.67)">
+            </g>
+            <text x="738.333px" y="491.67px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:27.709px;fill:rgb(210,7,7);">ST<tspan x="771.684px 791.694px " y="491.67px 491.67px ">AR</tspan>T</text>
+            <g transform="matrix(27.709,0,0,27.709,550.739,491.67)">
+            </g>
+            <text x="441.432px" y="491.67px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:27.709px;fill:rgb(210,7,7);">SELECT</text>
+            <g transform="matrix(21.7598,0,0,21.7598,297.89,643.36)">
+            </g>
+            <text x="90.747px" y="643.36px" style="font-family:'Arial-BoldItalicMT', 'Arial', sans-serif;font-weight:700;font-style:italic;font-size:21.76px;fill:rgb(210,7,7);">COASTALVECTORS</text>
+            <path d="M883.275,266.084L883.275,431.726C883.275,441.638 875.228,449.686 865.316,449.686L699.673,449.686C689.761,449.686 681.714,441.638 681.714,431.726L681.714,266.084C681.714,256.172 689.761,248.125 699.673,248.125L865.316,248.125C875.228,248.125 883.275,256.172 883.275,266.084Z" style="fill:rgb(148,148,148);"/>
+            <path d="M202.873,366.438L103.435,366.438C95.005,366.438 88.161,359.594 88.161,351.164L88.161,210.292C88.161,201.862 95.005,195.018 103.435,195.018L202.873,195.018L202.873,95.58C202.873,87.151 209.717,80.307 218.146,80.307L359.019,80.307C367.448,80.307 374.292,87.151 374.292,95.58L374.292,195.018L473.73,195.018C482.16,195.018 489.004,201.862 489.004,210.292L489.004,351.164C489.004,359.594 482.16,366.438 473.73,366.438L374.292,366.438L374.292,465.876C374.292,474.305 367.448,481.149 359.019,481.149L218.146,481.149C209.717,481.149 202.873,474.305 202.873,465.876L202.873,366.438Z" style="fill:rgb(148,148,148);"/>
+            <path d="M1178.79,345.488L1178.79,511.131C1178.79,521.043 1170.74,529.09 1160.83,529.09L995.187,529.09C985.275,529.09 977.228,521.043 977.228,511.131L977.228,345.488C977.228,335.576 985.275,327.529 995.187,327.529L1160.83,327.529C1170.74,327.529 1178.79,335.576 1178.79,345.488Z" style="fill:rgb(148,148,148);"/>
+            <path d="M1099.69,50.326L1099.69,215.969C1099.69,225.881 1091.64,233.928 1081.73,233.928L916.088,233.928C906.176,233.928 898.129,225.881 898.129,215.969L898.129,50.326C898.129,40.414 906.176,32.367 916.088,32.367L1081.73,32.367C1091.64,32.367 1099.69,40.414 1099.69,50.326Z" style="fill:rgb(148,148,148);"/>
+            <path d="M917.551,539.416L917.551,634.66C917.551,640.359 912.924,644.987 907.224,644.987L372.776,644.987C367.076,644.987 362.449,640.359 362.449,634.66L362.449,539.416C362.449,533.717 367.076,529.09 372.776,529.09L907.224,529.09C912.924,529.09 917.551,533.717 917.551,539.416Z" style="fill:rgb(148,148,148);"/>
+          </g>
 
           <!-- Start/Select -->
           <g class="button" id="select_button" transform="matrix(1,0,0,1,0,0)">
@@ -762,6 +788,7 @@
                   switch(e.keyCode){
                   case this.key.space:
                       direction = this.direction.drop;
+                      e.preventDefault();
                       break;
 
                   case this.key.left_arrow:
@@ -1654,7 +1681,7 @@
               var minGameArea = Math.max(gameWidth, gameHeight);
 
               // Set new square size
-              this.dimension.square_size = Math.floor(maxWindowSize / (minGameArea * 1.1));
+              this.dimension.square_size = Math.floor(maxWindowSize / minGameArea);
               if (this.dimension.square_size < this.dimension.square_min_size)
                   this.dimension.square_size = this.dimension.square_min_size;
 
