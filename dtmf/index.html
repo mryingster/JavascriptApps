@@ -1,77 +1,215 @@
 <html>
   <head>
-    <title>Test Webpage</title>
+    <title>DTMF Simulator</title>
     <style>
-      button {
-          width: 50px;
-          height: 50px;
+      #content {
+          width: 340px;
+          margin: auto;
       }
+
+      button {
+          width: 80px;
+          height: 80px;
+          margin: 2px 0px;
+          font-size: 30px;
+          color: #444;
+
+          border-style: outset;
+          border-width: 10px;
+          border-radius: 10px;
+
+          background: #D8D8D8;
+          border-color: #EEE;
+      }
+
+      button:hover {
+          background: #AAA;
+          border-color: #CCC;
+      }
+
+      button:active, button:focus {
+          background: #888;
+          border-color: #aaa;
+      }
+
+      .special {
+          background: #f00;
+          border-color: #f66;
+          color: #fff;
+      }
+
+      .special:hover {
+          background: #D00;
+          border-color: #E44;
+      }
+
+      .special:active, special:focus {
+          background: #B00;
+          border-color: #D22;
+      }
+
+      .wide {
+          width: 164px;
+          font-size: 20px;
+      }
+
     </style>
   </head>
-
   <body>
-    <h1>Phone Phreak</h1>
-
-    <button onmousedown="playTone(697,1209);" onmouseup="playTone();" onmouseleave="playTone();">1</button>
-    <button onmousedown="playTone(697,1336);" onmouseup="playTone();" onmouseleave="playTone();">2</button>
-    <button onmousedown="playTone(697,1477);" onmouseup="playTone();" onmouseleave="playTone();">3</button>
-    <button onmousedown="playTone(697,1633);" onmouseup="playTone();" onmouseleave="playTone();">A</button>
-    <br>
-    <button onmousedown="playTone(770,1209);" onmouseup="playTone();" onmouseleave="playTone();">4</button>
-    <button onmousedown="playTone(770,1336);" onmouseup="playTone();" onmouseleave="playTone();">5</button>
-    <button onmousedown="playTone(770,1477);" onmouseup="playTone();" onmouseleave="playTone();">6</button>
-    <button onmousedown="playTone(770,1633);" onmouseup="playTone();" onmouseleave="playTone();">B</button>
-    <br>
-    <button onmousedown="playTone(852,1209);" onmouseup="playTone();" onmouseleave="playTone();">7</button>
-    <button onmousedown="playTone(852,1336);" onmouseup="playTone();" onmouseleave="playTone();">8</button>
-    <button onmousedown="playTone(852,1477);" onmouseup="playTone();" onmouseleave="playTone();">9</button>
-    <button onmousedown="playTone(852,1633);" onmouseup="playTone();" onmouseleave="playTone();">C</button>
-    <br>
-    <button onmousedown="playTone(941,1209);" onmouseup="playTone();" onmouseleave="playTone();">*</button>
-    <button onmousedown="playTone(941,1336);" onmouseup="playTone();" onmouseleave="playTone();">0</button>
-    <button onmousedown="playTone(941,1477);" onmouseup="playTone();" onmouseleave="playTone();">#</button>
-    <button onmousedown="playTone(941,1633);" onmouseup="playTone();" onmouseleave="playTone();">D</button>
-    <br>
-
-    <script>
-
-var ctx = new AudioContext();
-
-var oscillator1 = ctx.createOscillator();
-var gainNode1 = ctx.createGain();
-oscillator1.connect(gainNode1);
-gainNode1.connect(ctx.destination);
-
-var oscillator2 = ctx.createOscillator();
-var gainNode2 = ctx.createGain();
-oscillator2.connect(gainNode2);
-gainNode2.connect(ctx.destination);
-
-playTone();
-oscillator1.start(0);
-oscillator2.start(0);
-
-
-function playTone(a=0, b=0){
-    // Mute oscillators
-    gainNode1.gain.setValueAtTime(0, ctx.currentTime);
-    gainNode2.gain.setValueAtTime(0, ctx.currentTime);
-
-    // Exit here if we don't have values
-    if (a == 0 || b == 0)
-	return;
-
-    // Set up oscillators
-    oscillator1.type = "sine";
-    oscillator1.frequency.setValueAtTime(a, ctx.currentTime);
-
-    oscillator2.type = "sine";
-    oscillator2.frequency.setValueAtTime(b, ctx.currentTime);
-
-    // Volume back up
-    gainNode1.gain.setValueAtTime(.1, ctx.currentTime);
-    gainNode2.gain.setValueAtTime(.1, ctx.currentTime);
-}
-    </script>
+    <div id="content">
+      <button id="1">1</button>
+      <button id="2">2</button>
+      <button id="3">3</button>
+      <button class="special" id="a">A</button>
+      <br>
+      <button id="4">4</button>
+      <button id="5">5</button>
+      <button id="6">6</button>
+      <button class="special" id="b">B</button>
+      <br>
+      <button id="7">7</button>
+      <button id="8">8</button>
+      <button id="9">9</button>
+      <button class="special" id="c">C</button>
+      <br>
+      <button id="*">*</button>
+      <button id="0">0</button>
+      <button id="#">#</button>
+      <button class="special" id="d">D</button>
+      <br>
+      <button id="dial" class="wide">Dial Tone</button>
+      <button id="ring" class="wide">Ring Tone</button>
+      <br>
+      <button id="busy" class="wide">Busy Signal</button>
+    </div>
   </body>
+  <script>
+
+    let ctx = new AudioContext();
+
+    let oscillator1 = ctx.createOscillator();
+    let gainNode1 = ctx.createGain();
+    oscillator1.connect(gainNode1);
+    gainNode1.connect(ctx.destination);
+
+    let oscillator2 = ctx.createOscillator();
+    let gainNode2 = ctx.createGain();
+    oscillator2.connect(gainNode2);
+    gainNode2.connect(ctx.destination);
+
+    let active = false;
+
+    let tones = {
+        "1" : [1209, 697],
+        "2" : [1336, 697],
+        "3" : [1477, 697],
+        "a" : [1633, 697],
+        "4" : [1209, 770],
+        "5" : [1336, 770],
+        "6" : [1477, 770],
+        "b" : [1633, 770],
+        "7" : [1209, 852],
+        "8" : [1336, 852],
+        "9" : [1477, 852],
+        "c" : [1633, 852],
+        "*" : [1209, 941],
+        "0" : [1336, 941],
+        "#" : [1477, 941],
+        "d" : [1633, 941],
+    };
+
+    function play_tones(a, b) {
+        oscillator1.frequency.setValueAtTime(a, ctx.currentTime);
+        oscillator2.frequency.setValueAtTime(b, ctx.currentTime);
+        toggle(true);
+    }
+
+    function press_button(b) {
+        play_tones(tones[b][0], tones[b][1]);
+        document.getElementById(b).focus();
+    }
+
+    function toggle(on){
+        if (!active) {
+            oscillator1.start(0);
+            oscillator2.start(0);
+            active = true;
+        }
+
+        if (on) {
+            ctx.resume();
+            gainNode1.gain.setValueAtTime(1, ctx.currentTime);
+            gainNode2.gain.setValueAtTime(1, ctx.currentTime);
+        } else {
+            gainNode1.gain.setValueAtTime(0, ctx.currentTime);
+            gainNode2.gain.setValueAtTime(0, ctx.currentTime);
+            // Set focus then blur on something else
+            document.getElementById("1").focus();
+            document.getElementById("1").blur();
+        }
+    };
+
+    class button {
+        constructor(element, down_action, up_action) {
+            this.down_action = down_action;
+            this.up_action = up_action;
+            this.element = element;
+
+            this.element.addEventListener("mousedown",  (event) => this.perform_action(event) );
+            this.element.addEventListener("mouseup",    (event) => this.up_action() );
+            this.element.addEventListener("mouseout",   (event) => this.up_action() );
+
+            this.element.addEventListener("touchstart", (event) => this.perform_action(event) );
+            this.element.addEventListener("touchend",   (event) => this.up_action() );
+        }
+        perform_action(e) {
+            e.preventDefault();
+            this.down_action();
+        }
+      }
+
+    let buttons = [];
+
+    /*
+    for (key in tones){
+        buttons.push(new button(document.getElementById(key), () => play_tones(tones[key][0], tones[key][1]), () => toggle(false)));
+        console.log(key, tones[key][0], tones[key][1]);
+    }
+    */
+
+    let button_one   = new button(document.getElementById("1"), () => play_tones(1209, 697), () => toggle(false));
+    let button_two   = new button(document.getElementById("2"), () => play_tones(1336, 697), () => toggle(false));
+    let button_three = new button(document.getElementById("3"), () => play_tones(1477, 697), () => toggle(false));
+    let button_a     = new button(document.getElementById("a"), () => play_tones(1633, 697), () => toggle(false));
+
+    let button_four  = new button(document.getElementById("4"), () => play_tones(1209, 770), () => toggle(false));
+    let button_five  = new button(document.getElementById("5"), () => play_tones(1336, 770), () => toggle(false));
+    let button_six   = new button(document.getElementById("6"), () => play_tones(1477, 770), () => toggle(false));
+    let button_b     = new button(document.getElementById("b"), () => play_tones(1633, 770), () => toggle(false));
+
+    let button_seven = new button(document.getElementById("7"), () => play_tones(1209, 852), () => toggle(false));
+    let button_eight = new button(document.getElementById("8"), () => play_tones(1336, 852), () => toggle(false));
+    let button_nine  = new button(document.getElementById("9"), () => play_tones(1477, 852), () => toggle(false));
+    let button_c     = new button(document.getElementById("c"), () => play_tones(1633, 852), () => toggle(false));
+
+    let button_star  = new button(document.getElementById("*"), () => play_tones(1209, 941), () => toggle(false));
+    let button_zero  = new button(document.getElementById("0"), () => play_tones(1336, 941), () => toggle(false));
+    let button_hash  = new button(document.getElementById("#"), () => play_tones(1477, 941), () => toggle(false));
+    let button_d     = new button(document.getElementById("d"), () => play_tones(1633, 941), () => toggle(false));
+
+    let busy_tone    = new button(document.getElementById("busy"), () => play_tones(480, 620), () => toggle(false));
+    let dial_tone    = new button(document.getElementById("dial"), () => play_tones(350, 440), () => toggle(false));
+    let ring_tone    = new button(document.getElementById("ring"), () => play_tones(480, 440), () => toggle(false));
+
+    document.addEventListener('keyup', function(e) {
+        toggle(false);
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key in tones) {
+            press_button(e.key);
+        }
+    });
+
+  </script>
 </html>
