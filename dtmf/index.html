@@ -2,9 +2,16 @@
   <head>
     <title>DTMF Simulator</title>
     <style>
+      body {
+          background: #ccc;
+      }
+
       #content {
+          background: #fff;
           width: 340px;
           margin: auto;
+          padding: 20px;
+          border-radius: 15px;
       }
 
       button {
@@ -53,10 +60,22 @@
           font-size: 20px;
       }
 
+      canvas {
+          border: 1px solid black;
+      }
+
+      h1 {
+          margin: 0px;
+      }
+
     </style>
   </head>
   <body>
     <div id="content">
+      <p>
+        <h1>DTFM Simulator</h1>
+        <i>Dual-tone multi-frequency signaling</i>
+      </p>
       <button id="1">1</button>
       <button id="2">2</button>
       <button id="3">3</button>
@@ -81,6 +100,18 @@
       <button id="ring" class="wide">Ring Tone</button>
       <br>
       <button id="busy" class="wide">Busy Signal</button>
+      <button id="error" class="wide">Error</button>
+
+      <p>Multi-frequency signaling is a group of signaling methods that use a mixture of two pure sine waves. The DTMF system uses a set of eight audio frequencies transmitted in pairs to represent 16 signals. 
+        </p>
+
+      <canvas id="canvas" width="340" height="256"></canvas>
+      <br>
+      Tone 1: <span id="tone1">--Hz</span>
+      <br>
+      Tone 2: <span id="tone2">--Hz</span>
+      <br>
+      Beat Frequency: <span id="beat">--Hz</span>
     </div>
   </body>
   <script>
@@ -122,11 +153,12 @@
         oscillator1.frequency.setValueAtTime(a, ctx.currentTime);
         oscillator2.frequency.setValueAtTime(b, ctx.currentTime);
         toggle(true);
+        update_oscilloscope(a, b);
     }
 
     function press_button(b) {
         play_tones(tones[b][0], tones[b][1]);
-        document.getElementById(b).focus();
+        //document.getElementById(b).focus();
     }
 
     function toggle(on){
@@ -144,10 +176,32 @@
             gainNode1.gain.setValueAtTime(0, ctx.currentTime);
             gainNode2.gain.setValueAtTime(0, ctx.currentTime);
             // Set focus then blur on something else
-            document.getElementById("1").focus();
-            document.getElementById("1").blur();
+            //document.getElementById("1").focus();
+            //document.getElementById("1").blur();
         }
     };
+
+    let timeout;
+    function play_error(s) {
+        let delay;
+        if (s == 0) {
+            play_tones(913.8, 0);
+            delay = 274;
+        }
+        if (s == 1) {
+            play_tones(1370.6, 0);
+            delay = 274;
+        }
+        if (s == 3) {
+            play_tones(1776.7, 0);
+            delay = 380;
+        }
+        if (s == 4) {
+            toggle(false);
+        }
+
+        timeout = setTimeout(() => play_error(s+1), delay);
+    }
 
     class button {
         constructor(element, down_action, up_action) {
@@ -200,6 +254,7 @@
     let busy_tone    = new button(document.getElementById("busy"), () => play_tones(480, 620), () => toggle(false));
     let dial_tone    = new button(document.getElementById("dial"), () => play_tones(350, 440), () => toggle(false));
     let ring_tone    = new button(document.getElementById("ring"), () => play_tones(480, 440), () => toggle(false));
+    let error_tone   = new button(document.getElementById("error"), () => play_error(0), () => {});
 
     document.addEventListener('keyup', function(e) {
         toggle(false);
@@ -210,6 +265,67 @@
             press_button(e.key);
         }
     });
+
+
+    function draw_sine_wave(canvas, ctx, f1, f2) {
+        var h_center  = canvas.height / 2;
+        let fscale = Math.abs(f1 - f2) * 4;
+        var amplitude = h_center / 3;
+
+        // Fill in background color
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw left to right
+        ctx.beginPath();
+        ctx.moveTo(0, h_center);
+
+        for (var x=0; x<canvas.width; x++){
+    	var y = Math.sin(x * f1 / fscale) * amplitude;
+    	ctx.lineTo(x, canvas.height-y - h_center);
+        }
+
+        ctx.strokeStyle = "#ff0000";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Draw left to right
+        ctx.beginPath();
+        ctx.moveTo(0, h_center);
+
+        for (var x=0; x<canvas.width; x++){
+    	var y = Math.sin(x * f2 / fscale) * amplitude;
+    	ctx.lineTo(x, canvas.height-y - h_center);
+        }
+
+        ctx.strokeStyle = "#0000ff";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Draw left to right
+        ctx.beginPath();
+        ctx.moveTo(0, h_center);
+
+        for (var x=0; x<canvas.width; x++){
+    	var y = (Math.sin(x * f1 / fscale) * amplitude) + (Math.sin(x * f2 / fscale) * amplitude);;
+    	ctx.lineTo(x, canvas.height-y - h_center);
+        }
+
+        ctx.strokeStyle = "#ff00ff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    function update_oscilloscope(f1, f2) {
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext("2d");
+
+        draw_sine_wave(canvas, ctx, f1, f2);
+
+        document.getElementById("tone1").innerHTML = f1 + " Hz";
+        document.getElementById("tone2").innerHTML = f2 + " Hz";
+        document.getElementById("beat").innerHTML = Math.abs(f2 - f1) + " Hz";
+    }
 
   </script>
 </html>
