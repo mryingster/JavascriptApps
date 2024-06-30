@@ -8,7 +8,7 @@
 
       #content {
           background: #fff;
-          width: 340px;
+          width: 500px;
           margin: auto;
           padding: 20px;
           border-radius: 15px;
@@ -20,6 +20,7 @@
           margin: 2px 0px;
           font-size: 30px;
           color: #444;
+	  vertical-align: top;
 
           border-style: outset;
           border-width: 10px;
@@ -56,16 +57,29 @@
       }
 
       .wide {
-          width: 164px;
+          width: 160px;
           font-size: 20px;
+	  margin-left: 4px;
       }
 
       canvas {
-          border: 1px solid black;
+          border: 0px solid black;
       }
 
       h1 {
           margin: 0px;
+      }
+
+      #tone1label {
+          color: #f00;
+      }
+
+      #tone2label {
+          color: #00f;
+      }
+
+      #beatlabel {
+          color: #f0f;
       }
 
     </style>
@@ -73,45 +87,43 @@
   <body>
     <div id="content">
       <p>
-        <h1>DTFM Simulator</h1>
+        <h1>DTMF Simulator</h1>
         <i>Dual-tone multi-frequency signaling</i>
       </p>
       <button id="1">1</button>
       <button id="2">2</button>
       <button id="3">3</button>
       <button class="special" id="a">A</button>
+      <button id="dial" class="wide">Dial Tone</button>
       <br>
       <button id="4">4</button>
       <button id="5">5</button>
       <button id="6">6</button>
       <button class="special" id="b">B</button>
+      <button id="ring" class="wide">Ring Tone</button>
       <br>
       <button id="7">7</button>
       <button id="8">8</button>
       <button id="9">9</button>
       <button class="special" id="c">C</button>
+      <button id="busy" class="wide">Busy Signal</button>
       <br>
       <button id="*">*</button>
       <button id="0">0</button>
       <button id="#">#</button>
       <button class="special" id="d">D</button>
-      <br>
-      <button id="dial" class="wide">Dial Tone</button>
-      <button id="ring" class="wide">Ring Tone</button>
-      <br>
-      <button id="busy" class="wide">Busy Signal</button>
       <button id="error" class="wide">Error</button>
 
       <p>Multi-frequency signaling is a group of signaling methods that use a mixture of two pure sine waves. The DTMF system uses a set of eight audio frequencies transmitted in pairs to represent 16 signals. 
         </p>
 
-      <canvas id="canvas" width="340" height="256"></canvas>
+      <canvas id="canvas" width="500" height="256"></canvas>
       <br>
-      Tone 1: <span id="tone1">--Hz</span>
+      <span id="tone1label">Tone 1:</span> <span id="tone1">--Hz</span>
       <br>
-      Tone 2: <span id="tone2">--Hz</span>
+      <span id="tone2label">Tone 2:</span> <span id="tone2">--Hz</span>
       <br>
-      Beat Frequency: <span id="beat">--Hz</span>
+      <span id="beatlabel">Beat Frequency:</span> <span id="beat">--Hz</span>
     </div>
   </body>
   <script>
@@ -147,6 +159,9 @@
         "0" : [1336, 941],
         "#" : [1477, 941],
         "d" : [1633, 941],
+        "busy" : [480, 620],
+        "dial" : [350, 440],
+        "ring" : [480, 440],
     };
 
     function play_tones(a, b) {
@@ -224,37 +239,9 @@
 
     let buttons = [];
 
-    /*
-    for (key in tones){
+    for (let key in tones)
         buttons.push(new button(document.getElementById(key), () => play_tones(tones[key][0], tones[key][1]), () => toggle(false)));
-        console.log(key, tones[key][0], tones[key][1]);
-    }
-    */
-
-    let button_one   = new button(document.getElementById("1"), () => play_tones(1209, 697), () => toggle(false));
-    let button_two   = new button(document.getElementById("2"), () => play_tones(1336, 697), () => toggle(false));
-    let button_three = new button(document.getElementById("3"), () => play_tones(1477, 697), () => toggle(false));
-    let button_a     = new button(document.getElementById("a"), () => play_tones(1633, 697), () => toggle(false));
-
-    let button_four  = new button(document.getElementById("4"), () => play_tones(1209, 770), () => toggle(false));
-    let button_five  = new button(document.getElementById("5"), () => play_tones(1336, 770), () => toggle(false));
-    let button_six   = new button(document.getElementById("6"), () => play_tones(1477, 770), () => toggle(false));
-    let button_b     = new button(document.getElementById("b"), () => play_tones(1633, 770), () => toggle(false));
-
-    let button_seven = new button(document.getElementById("7"), () => play_tones(1209, 852), () => toggle(false));
-    let button_eight = new button(document.getElementById("8"), () => play_tones(1336, 852), () => toggle(false));
-    let button_nine  = new button(document.getElementById("9"), () => play_tones(1477, 852), () => toggle(false));
-    let button_c     = new button(document.getElementById("c"), () => play_tones(1633, 852), () => toggle(false));
-
-    let button_star  = new button(document.getElementById("*"), () => play_tones(1209, 941), () => toggle(false));
-    let button_zero  = new button(document.getElementById("0"), () => play_tones(1336, 941), () => toggle(false));
-    let button_hash  = new button(document.getElementById("#"), () => play_tones(1477, 941), () => toggle(false));
-    let button_d     = new button(document.getElementById("d"), () => play_tones(1633, 941), () => toggle(false));
-
-    let busy_tone    = new button(document.getElementById("busy"), () => play_tones(480, 620), () => toggle(false));
-    let dial_tone    = new button(document.getElementById("dial"), () => play_tones(350, 440), () => toggle(false));
-    let ring_tone    = new button(document.getElementById("ring"), () => play_tones(480, 440), () => toggle(false));
-    let error_tone   = new button(document.getElementById("error"), () => play_error(0), () => {});
+    buttons.push(new button(document.getElementById("error"), () => play_error(0), () => {}));
 
     document.addEventListener('keyup', function(e) {
         toggle(false);
@@ -266,10 +253,11 @@
         }
     });
 
-
     function draw_sine_wave(canvas, ctx, f1, f2) {
         var h_center  = canvas.height / 2;
-        let fscale = Math.abs(f1 - f2) * 4;
+        let fscale = Math.abs(f1 - f2) * 16;
+        if (f1 == 0 || f2 == 0)
+            fscale = 16000;
         var amplitude = h_center / 3;
 
         // Fill in background color
@@ -277,43 +265,49 @@
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Draw left to right
-        ctx.beginPath();
-        ctx.moveTo(0, h_center);
+        if (f1 > 0) {
+            ctx.beginPath();
+            ctx.moveTo(0, h_center);
 
-        for (var x=0; x<canvas.width; x++){
-    	var y = Math.sin(x * f1 / fscale) * amplitude;
-    	ctx.lineTo(x, canvas.height-y - h_center);
+            for (var x=0; x<canvas.width; x++){
+    	        var y = Math.sin(x * f1 / fscale) * amplitude;
+    	        ctx.lineTo(x, canvas.height-y - h_center);
+            }
+
+            ctx.strokeStyle = "#ff0000";
+            ctx.lineWidth = 1;
+            ctx.stroke();
         }
-
-        ctx.strokeStyle = "#ff0000";
-        ctx.lineWidth = 1;
-        ctx.stroke();
 
         // Draw left to right
-        ctx.beginPath();
-        ctx.moveTo(0, h_center);
+        if (f2 > 0) {
+            ctx.beginPath();
+            ctx.moveTo(0, h_center);
 
-        for (var x=0; x<canvas.width; x++){
-    	var y = Math.sin(x * f2 / fscale) * amplitude;
-    	ctx.lineTo(x, canvas.height-y - h_center);
+            for (var x=0; x<canvas.width; x++){
+    	        var y = Math.sin(x * f2 / fscale) * amplitude;
+    	        ctx.lineTo(x, canvas.height-y - h_center);
+            }
+
+            ctx.strokeStyle = "#0000ff";
+            ctx.lineWidth = 1;
+            ctx.stroke();
         }
-
-        ctx.strokeStyle = "#0000ff";
-        ctx.lineWidth = 1;
-        ctx.stroke();
 
         // Draw left to right
-        ctx.beginPath();
-        ctx.moveTo(0, h_center);
+        if (f1 > 0 && f2 > 0) {
+            ctx.beginPath();
+            ctx.moveTo(0, h_center);
 
-        for (var x=0; x<canvas.width; x++){
-    	var y = (Math.sin(x * f1 / fscale) * amplitude) + (Math.sin(x * f2 / fscale) * amplitude);;
-    	ctx.lineTo(x, canvas.height-y - h_center);
+            for (var x=0; x<canvas.width; x++){
+    	        var y = (Math.sin(x * f1 / fscale) * amplitude) + (Math.sin(x * f2 / fscale) * amplitude);;
+    	        ctx.lineTo(x, canvas.height-y - h_center);
+            }
+
+            ctx.strokeStyle = "#ff00ff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
         }
-
-        ctx.strokeStyle = "#ff00ff";
-        ctx.lineWidth = 2;
-        ctx.stroke();
     }
 
     function update_oscilloscope(f1, f2) {
@@ -322,9 +316,18 @@
 
         draw_sine_wave(canvas, ctx, f1, f2);
 
-        document.getElementById("tone1").innerHTML = f1 + " Hz";
-        document.getElementById("tone2").innerHTML = f2 + " Hz";
-        document.getElementById("beat").innerHTML = Math.abs(f2 - f1) + " Hz";
+        document.getElementById("tone1").innerHTML = "-- Hz";
+        document.getElementById("tone2").innerHTML = "-- Hz";
+        document.getElementById("beat").innerHTML = "-- Hz";
+
+        if (f1 > 0)
+            document.getElementById("tone1").innerHTML = f1 + " Hz";
+
+        if (f2 > 0)
+            document.getElementById("tone2").innerHTML = f2 + " Hz";
+
+        if (f1 > 0 && f2 > 0)
+            document.getElementById("beat").innerHTML = Math.abs(f2 - f1) + " Hz";
     }
 
   </script>
