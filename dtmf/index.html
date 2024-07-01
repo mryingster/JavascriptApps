@@ -52,7 +52,7 @@
           border-color: #E44;
       }
 
-      .special:active, special:focus {
+      .special:active, .special:focus {
           background: #B00;
           border-color: #D22;
       }
@@ -289,68 +289,50 @@
         }
     });
 
-    function draw_sine_wave(canvas, ctx, f1, f2) {
+    function draw_sine_wave(canvas, ctx, fscale, f1, f2, w, c) {
         var h_center  = canvas.height / 2;
+        var amplitude = h_center / 3;
+
+        ctx.beginPath();
+        ctx.moveTo(0, h_center);
+
+        for (var x=0; x<canvas.width; x++){
+    	    var y = (Math.sin(x * f1 / fscale) * amplitude) + (Math.sin(x * f2 / fscale) * amplitude);
+    	    ctx.lineTo(x, canvas.height - y - h_center);
+        }
+
+        ctx.strokeStyle = c;
+        ctx.lineWidth = w;
+        ctx.stroke();
+    }
+
+    function draw_sine_waves(canvas, ctx, f1, f2) {
         let fscale = Math.abs(f1 - f2) * 16;
         if (f1 == 0 || f2 == 0)
             fscale = 16000;
-        var amplitude = h_center / 3;
 
         // Fill in background color
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw left to right
-        if (f1 > 0) {
-            ctx.beginPath();
-            ctx.moveTo(0, h_center);
+        // Draw sine 1
+        if (f1 > 0)
+            draw_sine_wave(canvas, ctx, fscale, f1, 0, 1, "#ff0000");
 
-            for (var x=0; x<canvas.width; x++){
-    	        var y = Math.sin(x * f1 / fscale) * amplitude;
-    	        ctx.lineTo(x, canvas.height-y - h_center);
-            }
+        // Draw sine 2
+        if (f2 > 0)
+            draw_sine_wave(canvas, ctx, fscale, f2, 0, 1, "#0000ff");
 
-            ctx.strokeStyle = "#ff0000";
-            ctx.lineWidth = 1;
-            ctx.stroke();
-        }
-
-        // Draw left to right
-        if (f2 > 0) {
-            ctx.beginPath();
-            ctx.moveTo(0, h_center);
-
-            for (var x=0; x<canvas.width; x++){
-    	        var y = Math.sin(x * f2 / fscale) * amplitude;
-    	        ctx.lineTo(x, canvas.height-y - h_center);
-            }
-
-            ctx.strokeStyle = "#0000ff";
-            ctx.lineWidth = 1;
-            ctx.stroke();
-        }
-
-        // Draw left to right
-        if (f1 > 0 && f2 > 0) {
-            ctx.beginPath();
-            ctx.moveTo(0, h_center);
-
-            for (var x=0; x<canvas.width; x++){
-    	        var y = (Math.sin(x * f1 / fscale) * amplitude) + (Math.sin(x * f2 / fscale) * amplitude);;
-    	        ctx.lineTo(x, canvas.height-y - h_center);
-            }
-
-            ctx.strokeStyle = "#ff00ff";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
+        // Draw conbined
+        if (f1 > 0 && f2 > 0)
+            draw_sine_wave(canvas, ctx, fscale, f1, f2, 2, "#ff00ff");
     }
 
     function update_oscilloscope(f1, f2) {
         let canvas = document.getElementById("canvas");
         let ctx = canvas.getContext("2d");
 
-        draw_sine_wave(canvas, ctx, f1, f2);
+        draw_sine_waves(canvas, ctx, f1, f2);
 
         document.getElementById("tone1").innerHTML = "-- Hz";
         document.getElementById("tone2").innerHTML = "-- Hz";
@@ -375,7 +357,7 @@
         if (Number(value) > 0 && Number(value) <= 20000) {
             element.classList.remove("invalid");
 
-            document.getElementById(slider).value = value
+            document.getElementById(slider).value = value;
         }
 
     }
