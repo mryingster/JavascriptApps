@@ -1,6 +1,7 @@
 <html>
   <head>
     <title>DTMF Simulator</title>
+    <meta name="viewport" content="width=560px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
     <style>
       body {
           background: #ccc;
@@ -20,7 +21,7 @@
           margin: 2px 0px;
           font-size: 30px;
           color: #444;
-	  vertical-align: top;
+	  vertical-align: middle;
 
           border-style: outset;
           border-width: 10px;
@@ -82,6 +83,25 @@
           color: #f0f;
       }
 
+      .invalid {
+          color:#f00;
+      }
+
+      #userinput {
+          vertical-align: middle;
+          display: inline-block;
+      }
+
+      .textinput {
+          width: 70;
+          vertical-align: middle;
+      }
+
+      .sliderinput {
+          width: 240;
+          vertical-align: middle;
+      }
+
     </style>
   </head>
   <body>
@@ -90,6 +110,9 @@
         <h1>DTMF Simulator</h1>
         <i>Dual-tone multi-frequency signaling</i>
       </p>
+
+      <p>Multi-frequency signaling is a group of signaling methods that use a mixture of two pure sine waves. The DTMF system uses a set of eight audio frequencies transmitted in pairs to represent 16 signals.</p>
+
       <button id="1">1</button>
       <button id="2">2</button>
       <button id="3">3</button>
@@ -114,8 +137,7 @@
       <button class="special" id="d">D</button>
       <button id="error" class="wide">Error</button>
 
-      <p>Multi-frequency signaling is a group of signaling methods that use a mixture of two pure sine waves. The DTMF system uses a set of eight audio frequencies transmitted in pairs to represent 16 signals. 
-        </p>
+      <p>A beat is an interference pattern between two sounds of slightly different frequencies, perceived as a periodic variation in volume whose rate is the difference of the two frequencies.</p>
 
       <canvas id="canvas" width="500" height="256"></canvas>
       <br>
@@ -124,6 +146,17 @@
       <span id="tone2label">Tone 2:</span> <span id="tone2">--Hz</span>
       <br>
       <span id="beatlabel">Beat Frequency:</span> <span id="beat">--Hz</span>
+
+      <h2>Make Your Own</h2>
+      <p>Choose two frequencies and see how they sound together.</p>
+      <div id="userinput">
+        <input class="textinput" id="user1" value="0" oninput='validate_user_input("user1", "slider1");'></input>
+        <input class="sliderinput" id="slider1" type="range" value="0" min="0" max="20000" oninput='update_user_input("user1", "slider1");'></input>
+        <br>
+        <input class="textinput" id="user2" value="0" oninput='validate_user_input("user2", "slider2");'></input>
+        <input class="sliderinput" id="slider2" type="range" value="0" min="0" max="20000" oninput='update_user_input("user2", "slider2");'></input>
+      </div>
+      <button class="wide" style="" id="userplay">Play</button>
     </div>
   </body>
   <script>
@@ -248,6 +281,9 @@
     });
 
     document.addEventListener('keydown', function(e) {
+        // Prevent sounds when typing into input field
+        if (document.activeElement.tagName == "INPUT") return;
+
         if (e.key in tones) {
             press_button(e.key);
         }
@@ -329,6 +365,39 @@
         if (f1 > 0 && f2 > 0)
             document.getElementById("beat").innerHTML = Math.abs(f2 - f1) + " Hz";
     }
+
+    function validate_user_input(field, slider) {
+        let element = document.getElementById(field);
+        let value = element.value;
+
+        element.classList.add("invalid");
+
+        if (Number(value) > 0 && Number(value) <= 20000) {
+            element.classList.remove("invalid");
+
+            document.getElementById(slider).value = value
+        }
+
+    }
+
+    function update_user_input(field, slider) {
+        document.getElementById(field).value = document.getElementById(slider).value;
+        validate_user_input(field, slider);
+    }
+
+    function play_user_values() {
+        let t1 = Number(document.getElementById("user1").value);
+        let t2 = Number(document.getElementById("user2").value);
+
+        if (!(t1 > 0 && t1 <= 20000))
+            t1 = 0;
+        if (!(t2 > 0 && t2 <= 20000))
+            t2 = 0;
+
+        play_tones(t1, t2);
+    }
+
+buttons.push(new button(document.getElementById("userplay"), () => play_user_values(), () => toggle(false)));
 
   </script>
 </html>
