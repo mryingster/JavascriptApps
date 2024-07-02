@@ -1,0 +1,242 @@
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>BoogieBoardy</title>
+    <meta name="viewport" content="user-scalable=no">
+    <style>
+      #canvas {
+          border: 0px solid black;
+          touch-action:manipulation;
+          position:absolute;
+          top:0;
+          left:0;
+      }
+
+      body {
+          margin: 0px;
+          height: 100%;
+          background: linear-gradient(red, yellow, purple);
+      }
+
+       button {
+           display: block;
+           position: absolute;
+           width: 100;
+           height: 40;
+       }
+
+       #clear {
+           left: 10px;
+           top: 10px;
+       }
+
+       #full {
+           right: 10px;
+           top: 10px;
+       }
+    </style>
+  </head>
+
+  <body onload="main();" onresize="resize();">
+
+    <canvas id="canvas" width="512" height="512"></canvas>
+
+    <button id="clear" onclick="clear_canvas()">Clear</button>
+    <button id="full" onclick="full_screen()">Full Screen</button>
+
+  </body>
+
+  <script>
+
+// Globals!
+let canvas = document.querySelector('canvas')
+let ctx    = canvas.getContext('2d');
+let pens   = [];
+let MAX_FINGERS = 5;
+let color  = {r:0xff, g:0x00, b:0x00};
+let r      = 20;
+
+// Touch Listeners
+function getTouchPosition(event, finger) {
+    if (!e)
+        var e = event;
+
+    var x = null;
+    var y = null;
+
+    if(e.touches[finger]) {
+        var touch = e.touches[finger];
+        x = touch.pageX-touch.target.offsetLeft;
+        y = touch.pageY-touch.target.offsetTop;
+
+        return {x:x, y:y};
+    }
+
+    return -1;
+}
+
+function input_touch_down(e) {
+    e.preventDefault();
+    for (let i=0; i<MAX_FINGERS; i++) {
+        pens[i].mouse_down = true;
+        pens[i].draw_line(getTouchPosition(e, i));
+    }
+}
+
+function input_touch_move(e) {
+    e.preventDefault();
+    for (let i=0; i<MAX_FINGERS; i++)
+        if (pens[i].mouse_down == true)
+	    pens[i].draw_line(getTouchPosition(e, i));
+}
+
+function input_touch_up(e) {
+    e.preventDefault();
+    for (let i=0; i<MAX_FINGERS; i++) {
+        pens[i].mouse_down = false;
+        pens[i].last_coords = null;
+    }
+}
+
+canvas.addEventListener('touchstart', input_touch_down, false);
+canvas.addEventListener('touchmove',  input_touch_move, false);
+canvas.addEventListener('touchend',   input_touch_up,   false);
+
+// Mouse Listeners
+function getCursorPosition(canvas, event) {
+    // Determine where clicked
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    //document.getElementById("coords").innerHTML = x + ", " + y;
+
+    return {x:x, y:y};
+}
+
+canvas.addEventListener('mousedown', function(e) {
+    pens[0].mouse_down = true;
+    pens[0].draw_line(getCursorPosition(canvas, e));
+});
+
+canvas.addEventListener('mousemove', function(e) {
+    if (pens[0].mouse_down == true)
+	pens[0].draw_line(getCursorPosition(canvas, e));
+});
+
+canvas.addEventListener('mouseup', function(e) {
+    pens[0].mouse_down = false;
+    pens[0].last_coords = null;
+});
+
+canvas.addEventListener('mouseleave', function(e) {
+    pens[0].mouse_down = false;
+    pens[0].last_coords = null;
+});
+
+class pen {
+    constructor(ctx) {
+        this.ctx = ctx;
+        this.last_coords;
+        this.mouse_down = false;
+    }
+
+    draw_line(coords) {
+        if (coords == -1) return;
+
+        if (this.last_coords == undefined)
+	    this.last_coords = {x:coords.x, y:coords.y};
+
+        let dx = coords.x - this.last_coords.x;
+        let dy = coords.y - this.last_coords.y;
+
+        let distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+        for (let i=1; i<distance; i+=3) { // Experiment with this
+	    let p = i / distance;
+	    this.draw_gradient(this.last_coords.x + (dx * p), this.last_coords.y + (dy * p));
+        }
+
+        this.last_coords = {x:coords.x, y:coords.y};
+    }
+
+    draw_gradient(x, y) {
+        let innerRadius = 0;
+        let outerRadius = r;
+
+        var gradient = this.ctx.createRadialGradient(x, y, innerRadius, x, y, outerRadius);
+        gradient.addColorStop( 0, "rgba("+color.r+","+color.g+","+color.b+", 1)");
+        gradient.addColorStop(.25, "rgba("+color.r+","+color.g+","+color.b+",0)");
+        gradient.addColorStop(.75, "rgba("+color.r+","+color.g+","+color.b+",.0)");
+        gradient.addColorStop( 1, "rgba("+color.r+","+color.g+","+color.b+", 0)");
+
+        this.ctx.save();
+        this.ctx.globalCompositeOperation = 'destination-out';
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(x-r, y-r, 2*r, 2*r);
+        this.ctx.restore();
+    }
+
+    redraw_gradient() {
+        if (this.last_coords != undefined)
+            this.draw_gradient(this.last_coords.x, this.last_coords.y);
+    }
+}
+
+function resize() {
+    // Get image data to save contents before scaling
+    let image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Resize
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Reset canvas to black
+    clear_canvas();
+
+    // Paste back what we had before
+    ctx.putImageData(image, 0, 0);
+}
+
+function clear_canvas() {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function main() {
+    // Create pen instances (support 5 fingers)
+    for (let i=0; i<MAX_FINGERS; i++)
+        pens.push(new pen(ctx));
+
+    // Initialize the screen with a white rectangle
+    clear_canvas();
+
+    // Resize canvas
+    resize();
+}
+
+function full_screen() {
+    if ((document.fullScreenElement && document.fullScreenElement !== null) ||  // alternative standard method
+        (!document.mozFullScreen && !document.webkitIsFullScreen)) {            // current working methods
+        if (document.documentElement.requestFullScreen) {
+            document.documentElement.requestFullScreen();
+        } else if (document.documentElement.mozRequestFullScreen) {
+            document.documentElement.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullScreen) {
+            document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        }
+    } else {
+        if (document.cancelFullScreen) {
+            document.cancelFullScreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitCancelFullScreen) {
+            document.webkitCancelFullScreen();
+        }
+    }
+}
+
+
+  </script>
+
+</html>
