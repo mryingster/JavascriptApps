@@ -3,6 +3,7 @@
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>BoogieBoardy</title>
     <meta name="viewport" content="user-scalable=no">
+    <link rel="manifest" href="manifest.json">
     <style>
       #canvas {
           border: 0px solid black;
@@ -51,6 +52,7 @@
 // Globals!
 let canvas = document.querySelector('canvas')
 let ctx    = canvas.getContext('2d');
+    let cursor = null;
 let pens   = [];
 let MAX_FINGERS = 5;
 let color  = {r:0xff, g:0x00, b:0x00};
@@ -75,26 +77,45 @@ function getTouchPosition(event, finger) {
     return -1;
 }
 
+function end_touch(event, finger) {
+    for (let touch of event.changedTouches) {
+        // Get coordinate for ending touch
+        let x = touch.pageX-touch.target.offsetLeft;
+        let y = touch.pageY-touch.target.offsetTop;
+
+        // Compare against all last coordinates and end only that touch
+        for (let i=0; i<pens.length; i++) {
+            if (pens[i].last_coords != null) {
+                if (x == pens[i].last_coords.x && y == pens[i].last_coords.y) {
+                    // End touch by removing pen
+                    pens.splice(i, 1);
+                }
+            }
+        }
+    }
+}
+
 function input_touch_down(e) {
     e.preventDefault();
     for (let i=0; i<MAX_FINGERS; i++) {
-        pens[i].mouse_down = true;
-        pens[i].draw_line(getTouchPosition(e, i));
+        let touch_pos = getTouchPosition(e, i);
+        if (touch_pos != -1) {
+            pens.push(new pen(ctx));
+            pens[i].draw_line(getTouchPosition(e, i));
+        }
     }
 }
 
 function input_touch_move(e) {
     e.preventDefault();
-    for (let i=0; i<MAX_FINGERS; i++)
-        if (pens[i].mouse_down == true)
-	    pens[i].draw_line(getTouchPosition(e, i));
+    for (let i=0; i<pens.length; i++)
+	pens[i].draw_line(getTouchPosition(e, i));
 }
 
 function input_touch_up(e) {
     e.preventDefault();
     for (let i=0; i<MAX_FINGERS; i++) {
-        pens[i].mouse_down = false;
-        pens[i].last_coords = null;
+        end_touch(e, i);
     }
 }
 
@@ -115,23 +136,23 @@ function getCursorPosition(canvas, event) {
 }
 
 canvas.addEventListener('mousedown', function(e) {
-    pens[0].mouse_down = true;
-    pens[0].draw_line(getCursorPosition(canvas, e));
+    cursor.mouse_down = true;
+    cursor.draw_line(getCursorPosition(canvas, e));
 });
 
 canvas.addEventListener('mousemove', function(e) {
-    if (pens[0].mouse_down == true)
-	pens[0].draw_line(getCursorPosition(canvas, e));
+    if (cursor.mouse_down == true)
+	cursor.draw_line(getCursorPosition(canvas, e));
 });
 
 canvas.addEventListener('mouseup', function(e) {
-    pens[0].mouse_down = false;
-    pens[0].last_coords = null;
+    cursor.mouse_down = false;
+    cursor.last_coords = null;
 });
 
 canvas.addEventListener('mouseleave', function(e) {
-    pens[0].mouse_down = false;
-    pens[0].last_coords = null;
+    cursor.mouse_down = false;
+    cursor.last_coords = null;
 });
 
 class pen {
@@ -201,12 +222,18 @@ function resize() {
 function clear_canvas() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Pick random background gradient
+    let colors = ["red", "yellow", "green", "blue", "purple", "pink", "orange", "teal"];
+    let color1 = colors[Math.floor(Math.random() * colors.length)];
+    let color2 = colors[Math.floor(Math.random() * colors.length)];
+    let color3 = colors[Math.floor(Math.random() * colors.length)];
+    document.body.style.background = 'linear-gradient('+color1+','+color2+','+color3+')';
 }
 
 function main() {
-    // Create pen instances (support 5 fingers)
-    for (let i=0; i<MAX_FINGERS; i++)
-        pens.push(new pen(ctx));
+    // Create cursor for mouse users
+    cursor = new pen(ctx);
 
     // Initialize the screen with a white rectangle
     clear_canvas();
