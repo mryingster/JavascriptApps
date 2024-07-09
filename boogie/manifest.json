@@ -1,0 +1,20 @@
+{
+    "name" : "BoogieBoardy",
+    "short_name": "Boogie",
+    "display" : "standalone",
+    "orientation" : "portrait",
+    "start_url" : "https://yingster.net/apps/boogie",
+    "scope" : "https://yingster.net/apps/boogie",
+    "icons" : [
+        {
+            "src" : "https://yingster.net/apps/icons/icon_boogie_1024.png",
+            "sizes" : "1024x1024",
+            "type" : "png"
+        },
+        {
+            "src" : "https://yingster.net/apps/icons/icon_boogie_256.png",
+            "sizes" : "256x256",
+            "type" : "png"
+        }
+    ]
+}
