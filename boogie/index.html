@@ -52,7 +52,7 @@
 // Globals!
 let canvas = document.querySelector('canvas')
 let ctx    = canvas.getContext('2d');
-    let cursor = null;
+let cursor = null;
 let pens   = [];
 let MAX_FINGERS = 5;
 let color  = {r:0xff, g:0x00, b:0x00};
@@ -67,11 +67,13 @@ function getTouchPosition(event, finger) {
     var y = null;
 
     if(e.touches[finger]) {
+        console.log(e);
         var touch = e.touches[finger];
         x = touch.pageX-touch.target.offsetLeft;
         y = touch.pageY-touch.target.offsetTop;
+        z = 1;
 
-        return {x:x, y:y};
+        return {x:x, y:y, z:z};
     }
 
     return -1;
