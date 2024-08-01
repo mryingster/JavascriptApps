@@ -1,0 +1,321 @@
+<html>
+  <head>
+    <title>CandyRain</title>
+    <style>
+      body {
+          background: #A4298C;
+          margin: 0px;
+          padding: 0px;
+          spacing: 0px;
+          color: #fff;
+          font-family: sans-serif;
+      }
+      canvas {
+          border: 0px solid black;
+          margin: 0px;
+      }
+      #title {
+          position: fixed;
+          rotate: -20deg;
+          left: 100px;
+          width:500px;
+          z-index: -1;
+      }
+      #debug {
+          position: fixed;
+          right: 20px;
+          width:200px;
+          top:20px;
+      }
+    </style>
+  </head>
+  <body onload="main();" onresize="resize();">
+    <div id="content">
+      <img id="title" src="CandyRain.svg">
+      <div id="debug">
+        Candies Spawned: <span id="spawned"></span><br>
+        Candies Active: <span id="active"></span><br>
+        Candies Queued: <span id="queued"></span><br>
+        Candies Eaten: <span id="eaten"></span><br>
+        Candies Missed: <span id="missed"></span><br>
+        Current Streak: <span id="cstreak"></span><br>
+        Best Streak: <span id="lstreak"></span><br>
+        Mouse Position: <span id="mousepos"></span><br>
+      </div>
+      <canvas id="canvas">
+    </div>
+  </body>
+  <script>
+
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+let last_frame;
+let candies = [];
+let target = 15;
+let add_delay = 0;
+let max_delay = 700;
+let count = 0; //debug
+let gravity = 9.8;
+let player1;
+let last_pos = {x:100, y:0};
+let eaten = 0;
+let missed = 0;
+let current_streak = 0;
+let longest_streak = 0;
+let paused = false;
+
+// Touch Listeners
+function getTouchPosition(event) {
+    if (!e)
+        var e = event;
+
+    var x = null;
+    var y = null;
+
+    if(e.touches[0]) {
+        var touch = e.touches[0];
+        x = touch.pageX-touch.target.offsetLeft;
+        y = touch.pageY-touch.target.offsetTop;
+
+        return {x:x, y:y};
+    }
+
+    return -1;
+}
+
+function input_touch_down(e) {
+    e.preventDefault();
+    paused = false;
+    last_pos = getTouchPosition(e);
+}
+
+function input_touch_move(e) {
+    e.preventDefault();
+    last_pos = getTouchPosition(e);
+}
+
+function input_touch_up(e) {
+    e.preventDefault();
+    //last_pos = getTouchPosition(e);
+    paused = true;
+}
+
+canvas.addEventListener('touchstart', input_touch_down, false);
+canvas.addEventListener('touchmove',  input_touch_move, false);
+canvas.addEventListener('touchend',   input_touch_up,   false);
+
+// Mouse Listeners
+function getCursorPosition(canvas, event) {
+    // Determine where clicked
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    //document.getElementById("coords").innerHTML = x + ", " + y;
+
+    return {x:x, y:y};
+}
+
+canvas.addEventListener('mousedown', function(e) {
+    paused = !paused;
+    last_pos = getCursorPosition(canvas, e);
+});
+
+canvas.addEventListener('mousemove', function(e) {
+    last_pos = getCursorPosition(canvas, e);
+});
+
+canvas.addEventListener('mouseup', function(e) {
+    last_pos = getCursorPosition(canvas, e);
+});
+
+class candy {
+    constructor(ctx) {
+        this.ctx = ctx;
+
+        this.pos   = {
+            x: Math.random() * this.ctx.canvas.width,
+            y: -50,
+            r: Math.random() * Math.PI * 2
+        };
+
+        this.speed = {
+            x: Math.random() * .1 - .05,
+            y: 0,
+            r: Math.random() * 1 - .5
+        };
+
+        this.color = ["#DF238D", "#FFFFFF"][Math.floor(Math.random() * 2)]
+        this.size = 20;
+
+        this.remove = false
+    }
+
+    move(ms) {
+        if (isNaN(ms)) return;
+        this.pos.r += this.speed.r * ms;
+
+        if (!paused) {
+            this.pos.x += this.speed.x * ms;
+            this.pos.y += this.speed.y * ms;
+            this.speed.y += gravity * ms / 20000;
+        }
+
+        // Mark candies for deletion if the move off the screen
+        if (this.pos.y > this.ctx.canvas.height + 50) {
+            this.remove = true;
+            missed++;
+            reset_streak();
+        }
+
+        if (this.pos.x < -50 ||
+            this.pos.x > this.ctx.canvas.width + 50) {
+            this.remove = true;
+        }
+
+        // Check for collision with pac man
+        let distance = Math.abs(Math.hypot(player1.pos.x - this.pos.x, player1.pos.y - this.pos.y));
+        if (distance < 100) {
+            eat();
+            this.remove = true;
+            player1.phase = -Math.PI;
+        }
+    }
+
+    render() {
+        this.ctx.save();
+
+        this.ctx.translate(this.pos.x, this.pos.y);
+        this.ctx.rotate(this.pos.r * (Math.PI / 180));
+
+        this.ctx.beginPath();
+
+        this.ctx.moveTo(this.size, this.size);
+        this.ctx.lineTo(this.size * -2, this.size);
+        this.ctx.arc(this.size * -2, 0, this.size, Math.PI / 2, Math.PI /-2);
+        this.ctx.lineTo(this.size * 2, this.size * -1);
+        this.ctx.arc(this.size * 2, 0, this.size, Math.PI / -2, Math.PI /2);
+
+        this.ctx.fillStyle = this.color;
+        this.ctx.fill();
+
+        this.ctx.restore();
+    }
+}
+
+class player {
+    constructor(ctx) {
+        this.ctx = ctx;
+        this.radius = 100;
+        this.color = "#ffff00";
+        this.pos = {x:0, y:0};
+        this.phase = 1;
+    }
+
+    move(ms) {
+        if (isNaN(ms)) return;
+        document.getElementById("mousepos").innerHTML = last_pos.x + ", " + last_pos.y;
+        this.pos.x = last_pos.x
+        if (this.phase <  Math.PI)
+            this.phase += ms * .01;
+    }
+
+    render() {
+        // Find bottom of canvas
+        this.pos.y = this.ctx.canvas.height - this.radius;
+
+        let maw = Math.sin(this.phase - Math.PI/2) * 1
+        let maw_start = 0 + maw;
+        let maw_end   = 2 * Math.PI - maw;
+        let mouth_pivot_x = this.pos.x;
+        let mouth_pivot_y = this.pos.y;
+
+        mouth_pivot_y += this.radius / 5;
+        maw_start -= Math.PI / 2;
+        maw_end   -= Math.PI / 2;
+
+        this.ctx.beginPath();
+        this.ctx.arc(this.pos.x, this.pos.y, this.radius, maw_start, maw_end);
+        this.ctx.lineTo(mouth_pivot_x, mouth_pivot_y);
+        this.ctx.fillStyle = this.color;
+        this.ctx.fill();
+    }
+}
+
+function eat() {
+    eaten++;
+    current_streak++;
+
+    if (current_streak > longest_streak)
+        longest_streak = current_streak;
+}
+
+function reset_streak() {
+    current_streak = 0;
+}
+
+function main_loop(timestamp) {
+    if (last_frame === undefined) {
+        last_frame = timestamp;
+    }
+
+    const elapsed = timestamp - last_frame;
+
+    // Clear out candies
+    for (let i=0; i<candies.length; i++) {
+        if (candies[i].remove) {
+            candies.splice(i,1);
+            i--;
+        }
+    }
+
+    // Add more candies
+    if (!isNaN(elapsed) && !paused)
+        add_delay -= elapsed;
+    if (candies.length < target && add_delay <= 0){
+        candies.push(new candy(ctx));
+        count++;
+        add_delay = Math.random() * max_delay;
+    }
+
+    // Debug
+    document.getElementById("spawned").innerHTML = count;
+    document.getElementById("active").innerHTML = candies.length;
+    document.getElementById("queued").innerHTML = target-candies.length;
+    document.getElementById("eaten").innerHTML = eaten;
+    document.getElementById("missed").innerHTML = missed;
+    document.getElementById("cstreak").innerHTML = current_streak;
+    document.getElementById("lstreak").innerHTML = longest_streak;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Move opjects
+    for (let candy of candies)
+        candy.move(elapsed);
+    player1.move(elapsed);
+
+    // Redraw
+    for (let candy of candies)
+        candy.render();
+    player1.render();
+
+    // Loop!
+    last_frame = timestamp;
+    window.requestAnimationFrame(main_loop);
+}
+
+function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+
+function main() {
+    resize();
+    player1 = new player(ctx);
+    main_loop();
+}
+
+  </script>
+</html>
