@@ -137,6 +137,7 @@
         <option>Training (12-15 Min)</option>
         <option>Demonstration (2-6 Sec)</option>
         <option>Thirty Second Timer</option>
+        <option>One Minute Timer</option>
         <option>Custom</option>
       </select>
       <span id="customInput" style="display:none;">
@@ -249,14 +250,15 @@
 
     <script type="text/javascript">
 
-var start = null;
-var duration = null;
-var min = null;
-var mid = null;
-var max = null;
-var status = null;
-var qualified = false;
-var duration_string = null;
+      let start = null;
+      let duration = null;
+      let min = null;
+      let mid = null;
+      let max = null;
+      let status = null;
+      let qualified = false;
+      let duration_string = null;
+      let animation_request = null;
 
       function setInterfaceColors(color) {
           switch (color){
@@ -290,7 +292,6 @@ var duration_string = null;
       }
 
 function nextLoop() {
-    var refresh = 250;
     var duration = (new Date().getTime() - start) / 1000;
 
     // keep track of time, update colors, etc.
@@ -341,7 +342,7 @@ function nextLoop() {
     }
 
     // Keep looping
-    timer = setTimeout(function() { nextLoop() }, refresh);
+    animation_request = window.requestAnimationFrame(nextLoop);
 }
 
 function getTimeSettings(){
@@ -369,15 +370,14 @@ function getTimeSettings(){
     } else if (type.startsWith("Thirty")) {
         min = 30;
         max = 30;
+    } else if (type.startsWith("One Minute")) {
+        min = 60;
+        max = 60;
     } else {
         min = Number(type.slice(type.indexOf("(")+1, type.indexOf(")")-4).split("-")[0]) * 60;
         max = Number(type.slice(type.indexOf("(")+1, type.indexOf(")")-4).split("-")[1]) * 60;
     }
     mid = (max + min) / 2;
-}
-
-function start() {
-    nextLoop();
 }
 
 function startTimer() {
@@ -411,7 +411,7 @@ function addTime(n){
 
 function pauseTimer(){
     // Stop timer
-    clearTimeout(timer);
+    cancelAnimationFrame(animation_request);
 
     // Get the duration
     let now = new Date().getTime();
@@ -438,7 +438,7 @@ function unpauseTimer(){
 
 function stopTimer(recordResults=true) {
     // Stop timer
-    clearTimeout(timer);
+    cancelAnimationFrame(animation_request);
 
     if (recordResults == true) {
         // Record results
@@ -455,7 +455,7 @@ function stopTimer(recordResults=true) {
         }
         
         // Record time if it's not a demonstration or 30 second timer
-        if (! type.startsWith("Demonstration") && ! type.startsWith("Thirty"))
+        if (! type.startsWith("Demonstration") && ! type.startsWith("Thirty") && ! type.startsWith("One"))
             all_results.push([member, type, duration_string, status, qualified]);
         localStorage.setItem('results', JSON.stringify(all_results));
     }
