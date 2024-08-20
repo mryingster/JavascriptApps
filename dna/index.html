@@ -1,0 +1,158 @@
+<html>
+  <head>
+    <title></title>
+    <style>
+      #controls {
+          float: right;
+          text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+
+      <div id="controls">
+
+        <label for="frequency">Frequency</label>
+        <input type="range" min="1" max="100" value="05" class="slider" id="frequency">
+        <br>
+        <label for="amplitude">Amplitude</label>
+        <input type="range" min="1" max="100" value="05" class="slider" id="amplitude">
+        <br>
+        <label for="speed">Speed</label>
+        <input type="range" min="1" max="100" value="05" class="slider" id="speed">
+        <br>
+        <label for="offset">Offset</label>
+        <input type="range" min="1" max="100" value="05" class="slider" id="offset">
+        <br>
+        <label for="spacing">Spacing</label>
+        <input type="range" min="1" max="100" value="05" class="slider" id="spacing">
+
+      </div>
+
+      <canvas id="canvas" width="700" height="700">
+
+    </div>
+  </body>
+  <script>
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
+    let last_frame;
+    let phase = 0;
+
+    function clear_canvas(){
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function redraw(ms){
+        let width = canvas.width;
+        let height = canvas.height;
+
+        // Update Variables
+        let speed     = Number(document.getElementById("speed").value);
+        let amplitude = Number(document.getElementById("amplitude").value);
+        let frequency = Number(document.getElementById("frequency").value);
+        let offset    = Number(document.getElementById("offset").value);
+        let spacing   = Number(document.getElementById("spacing").value);
+
+        // update phase based on milliseconds
+        phase += .002 * ms * ((speed - 50) / 25);
+
+        // Positions for amino acids?
+        let a = [];
+        let b = [];
+
+        // Draw two sine waves
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+	for (let y=0; y<height; y++) {
+	    let x_amp = Math.sin(y * (frequency/1000) + phase) * amplitude;
+            let x = width - x_amp - (width/2);
+            if (y == 0)
+                ctx.moveTo(x, y);
+	    ctx.lineTo(x, y);
+
+            if (y % spacing == 0)
+                a.push(x)
+	}
+        ctx.strokeStyle = "#ccffcc";
+        ctx.stroke();
+
+        ctx.beginPath();
+	for (let y=0; y<height; y++) {
+	    let x_amp = Math.sin(y * (frequency/1000) + phase + offset/frequency) * amplitude;
+            let x = width - x_amp - (width/2);
+            if (y == 0)
+                ctx.moveTo(x, y);
+	    ctx.lineTo(x, y);
+
+            if (y % spacing == 0)
+                b.push(x)
+	}
+        ctx.strokeStyle = "#448844";
+        ctx.stroke();
+
+        // Draw amino acids
+        ctx.lineWidth = 2;
+        let y = 0;
+        for (let i=0; i<a.length; i++) {
+            let half = (a[i] + b[i]) / 2;
+            ctx.beginPath();
+            ctx.moveTo(half, y);
+            ctx.lineTo(a[i], y);
+            ctx.strokeStyle="#1188ff";
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(half, y);
+	    ctx.lineTo(b[i], y);
+            ctx.strokeStyle="#ff1188";
+            ctx.stroke();
+
+            y += spacing;
+        }
+
+        // Redraw the sine wave that is on "top"
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        let drawing = false;
+	for (let y=0; y<height; y++) {
+	    let x_amp = Math.sin(y * (frequency/1000) + phase) * amplitude;
+            let x = width - x_amp - (width/2);
+            if (x_amp > 0 && !drawing) {
+                drawing = true;
+                ctx.moveTo(x, y);
+            }
+            if (drawing)
+	        ctx.lineTo(x, y);
+            if (x_amp < 0 && drawing) {
+                drawing = false;
+                ctx.strokeStyle = "#ccffcc";
+                ctx.stroke();
+            }
+	}
+}
+
+    function main_loop(timestamp) {
+        if (last_frame === undefined) {
+            last_frame = timestamp;
+        }
+
+        let elapsed = timestamp - last_frame;
+        if (elapsed != elapsed) elapsed = 0;
+
+        // Clear canvas
+        clear_canvas();
+
+        // Redraw
+        redraw(elapsed);
+
+        // Loop!
+        last_frame = timestamp;
+        window.requestAnimationFrame(main_loop);
+    }
+
+    main_loop(0);
+  </script>
+</html>
