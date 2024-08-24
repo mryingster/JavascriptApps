@@ -14,19 +14,22 @@
       <div id="controls">
 
         <label for="frequency">Frequency</label>
-        <input type="range" min="1" max="100" value="05" class="slider" id="frequency">
+        <input type="range" min="1" max="100" value="25" class="slider" id="frequency">
         <br>
         <label for="amplitude">Amplitude</label>
-        <input type="range" min="1" max="100" value="05" class="slider" id="amplitude">
+        <input type="range" min="1" max="100" value="100" class="slider" id="amplitude">
         <br>
         <label for="speed">Speed</label>
-        <input type="range" min="1" max="100" value="05" class="slider" id="speed">
+        <input type="range" min="1" max="100" value="25" class="slider" id="speed">
         <br>
         <label for="offset">Offset</label>
-        <input type="range" min="1" max="100" value="05" class="slider" id="offset">
+        <input type="range" min="1" max="100" value="50" class="slider" id="offset">
         <br>
         <label for="spacing">Spacing</label>
-        <input type="range" min="1" max="100" value="05" class="slider" id="spacing">
+        <input type="range" min="1" max="100" value="25" class="slider" id="spacing">
+        <br>
+        <label for="thickness">thickness</label>
+        <input type="range" min="1" max="100" value="50" class="slider" id="thickness">
 
       </div>
 
@@ -40,6 +43,11 @@
     let last_frame;
     let phase = 0;
 
+// front load some random random amino acids
+let acids = [];
+for (let i=0; i<100; i++)
+    acids.push([[50, 150],[150, 50],[0, 270],[270, 0]][Math.floor(Math.random() * 4)]);
+console.log(acids)
     function clear_canvas(){
         ctx.fillStyle = "#fff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -55,84 +63,124 @@
         let frequency = Number(document.getElementById("frequency").value);
         let offset    = Number(document.getElementById("offset").value);
         let spacing   = Number(document.getElementById("spacing").value);
+        let thickness = Number(document.getElementById("thickness").value)/25;
+
+        let aacount = 0;
 
         // update phase based on milliseconds
         phase += .002 * ms * ((speed - 50) / 25);
 
-        // Positions for amino acids?
-        let a = [];
-        let b = [];
+        // List of points to draw once we calculate all the positions
+        let points = [];
 
-        // Draw two sine waves
-        ctx.lineWidth = 4;
-        ctx.beginPath();
 	for (let y=0; y<height; y++) {
-	    let x_amp = Math.sin(y * (frequency/1000) + phase) * amplitude;
-            let x = width - x_amp - (width/2);
-            if (y == 0)
-                ctx.moveTo(x, y);
-	    ctx.lineTo(x, y);
+            // Sinewave 1
+	    let x1_amp = Math.sin(y * (frequency/1000) + phase) * amplitude;
+            let x1 = width - x1_amp - (width/2);
 
-            if (y % spacing == 0)
-                a.push(x)
+            let z1 = thickness * Math.sin(y * (frequency/1000) + phase + Math.PI/2) + (thickness * 2);
+            let l1 = (thickness * Math.sin(y * (frequency/1000) + phase + Math.PI/2) / (thickness * 4) * 100) + 50;
+
+            points.push({
+                x:x1,
+                y:y,
+                z:z1,
+                c:{h:200, s:100, l:l1} //"#1188ff"
+            });
+
+            // Sinewave 2
+	    let x2_amp = Math.sin(y * (frequency/1000) + phase + offset/frequency) * amplitude;
+            let x2 = width - x2_amp - (width/2);
+
+            let z2 = thickness * Math.sin(y * (frequency/1000) + phase + offset/frequency + Math.PI/2) + (thickness * 2);
+            let l2 = (thickness * Math.sin(y * (frequency/1000) + phase + offset/frequency + Math.PI/2) / (thickness * 4) * 100) + 50;
+
+            points.push({
+                x:x2,
+                y:y,
+                z:z2,
+                c:{h:30, s:100, l:l2} //"#ff8811"
+            });
+
+            // Amino Acids
+            if (y % spacing == 0) {
+                aacount++;
+
+                let s1, s2;
+                let left, right;
+                let h1, h2;
+                let l1, l2;
+
+                if (x1 < x2) {
+                    left = x1;
+                    right = x2
+                    s1 = z2;
+                    s2 = z1;
+                    h1 = acids[aacount % acids.length][0];
+                    h2 = acids[aacount % acids.length][1];
+                    l1 = 25;
+                    l2 = 75;
+                } else {
+                    left = x2;
+                    right = x1;
+                    s1 = z1;
+                    s2 = z2;
+                    h1 = acids[aacount % acids.length][1];
+                    h2 = acids[aacount % acids.length][0];
+                    l1 = 75;
+                    l2 = 25;
+                }
+
+                for (let a1=left; a1<right; a1++) {
+                    // Get proportion of position from left to right
+                    let p = (a1-right)/(left-right);
+                    // Set z to the proportion from s1 to s2
+                    let z = ((s2 - s1) * p) + s1;
+                    z *= .5
+                    let l = ((l2 - l1) * p) + l1;
+
+                    // Color the left and right amino acids differently
+                    let h = h1;
+                    if (p > .5)
+                        h = h2;
+
+                    points.push({
+                        x:a1,
+                        y:y,
+                        z:z,
+                        c:{h:h, s:100, l:l}
+                    });
+                }
+            }
 	}
-        ctx.strokeStyle = "#ccffcc";
-        ctx.stroke();
 
-        ctx.beginPath();
-	for (let y=0; y<height; y++) {
-	    let x_amp = Math.sin(y * (frequency/1000) + phase + offset/frequency) * amplitude;
-            let x = width - x_amp - (width/2);
-            if (y == 0)
-                ctx.moveTo(x, y);
-	    ctx.lineTo(x, y);
+        draw_circles(points);
+    }
 
-            if (y % spacing == 0)
-                b.push(x)
-	}
-        ctx.strokeStyle = "#448844";
-        ctx.stroke();
+    function draw_circles(circles){
+        // Sort circles by z-index
+        circles.sort(function(a,b) {
+            return a.z - b.z
+        });
 
-        // Draw amino acids
-        ctx.lineWidth = 2;
-        let y = 0;
-        for (let i=0; i<a.length; i++) {
-            let half = (a[i] + b[i]) / 2;
-            ctx.beginPath();
-            ctx.moveTo(half, y);
-            ctx.lineTo(a[i], y);
-            ctx.strokeStyle="#1188ff";
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(half, y);
-	    ctx.lineTo(b[i], y);
-            ctx.strokeStyle="#ff1188";
-            ctx.stroke();
-
-            y += spacing;
+        // Draw them in order
+        for (let circle of circles) {
+            draw_circle(
+                circle.x,
+                circle.y,
+                circle.z,
+                circle.c
+            );
         }
+    }
 
-        // Redraw the sine wave that is on "top"
-        ctx.lineWidth = 4;
+    function draw_circle(x, y, r, c){
         ctx.beginPath();
-        let drawing = false;
-	for (let y=0; y<height; y++) {
-	    let x_amp = Math.sin(y * (frequency/1000) + phase) * amplitude;
-            let x = width - x_amp - (width/2);
-            if (x_amp > 0 && !drawing) {
-                drawing = true;
-                ctx.moveTo(x, y);
-            }
-            if (drawing)
-	        ctx.lineTo(x, y);
-            if (x_amp < 0 && drawing) {
-                drawing = false;
-                ctx.strokeStyle = "#ccffcc";
-                ctx.stroke();
-            }
-	}
-}
+        ctx.moveTo(x, y);
+        ctx.arc(x, y, r, 0, 2*Math.PI);
+        ctx.fillStyle = "hsl("+c.h+","+c.s+"%,"+c.l+"%)";
+        ctx.fill();
+    }
 
     function main_loop(timestamp) {
         if (last_frame === undefined) {
