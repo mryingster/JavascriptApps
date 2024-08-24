@@ -2,16 +2,27 @@
   <head>
     <title></title>
     <style>
-      #controls {
-          float: right;
-          text-align: right;
-      }
+
+body {
+    background: #000;
+}
+
+#controls {
+    color: #fff;
+    float: right;
+    text-align: right;
+}
+
+.hidden {
+    display: none;
+}
+
     </style>
   </head>
   <body>
     <div id="content">
 
-      <div id="controls">
+      <div id="controls" class="hidden">
 
         <label for="frequency">Frequency</label>
         <input type="range" min="1" max="100" value="25" class="slider" id="frequency">
@@ -38,169 +49,179 @@
     </div>
   </body>
   <script>
-    let canvas = document.getElementById("canvas");
-    let ctx = canvas.getContext("2d");
-    let last_frame;
-    let phase = 0;
+
+// Keyboard Listeners
+document.addEventListener('keydown', function(e) {
+    switch (e.key) {
+    case "d":
+        document.getElementById("controls").classList.toggle("hidden");
+        break;
+    }
+});
+
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+let last_frame;
+let phase = 0;
 
 // front load some random random amino acids
 let acids = [];
 for (let i=0; i<100; i++)
     acids.push([[50, 150],[150, 50],[0, 270],[270, 0]][Math.floor(Math.random() * 4)]);
-console.log(acids)
-    function clear_canvas(){
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
 
-    function redraw(ms){
-        let width = canvas.width;
-        let height = canvas.height;
+function clear_canvas(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
 
-        // Update Variables
-        let speed     = Number(document.getElementById("speed").value);
-        let amplitude = Number(document.getElementById("amplitude").value);
-        let frequency = Number(document.getElementById("frequency").value);
-        let offset    = Number(document.getElementById("offset").value);
-        let spacing   = Number(document.getElementById("spacing").value);
-        let thickness = Number(document.getElementById("thickness").value)/25;
+function redraw(ms){
+    let width = canvas.width;
+    let height = canvas.height;
 
-        let aacount = 0;
+    // Update Variables
+    let speed     = Number(document.getElementById("speed").value);
+    let amplitude = Number(document.getElementById("amplitude").value);
+    let frequency = Number(document.getElementById("frequency").value);
+    let offset    = Number(document.getElementById("offset").value);
+    let spacing   = Number(document.getElementById("spacing").value);
+    let thickness = Number(document.getElementById("thickness").value)/25;
 
-        // update phase based on milliseconds
-        phase += .002 * ms * ((speed - 50) / 25);
+    let aacount = 0;
 
-        // List of points to draw once we calculate all the positions
-        let points = [];
+    // update phase based on milliseconds
+    phase += .002 * ms * ((speed - 50) / 25);
 
-	for (let y=0; y<height; y++) {
-            // Sinewave 1
-	    let x1_amp = Math.sin(y * (frequency/1000) + phase) * amplitude;
-            let x1 = width - x1_amp - (width/2);
+    // List of points to draw once we calculate all the positions
+    let points = [];
 
-            let z1 = thickness * Math.sin(y * (frequency/1000) + phase + Math.PI/2) + (thickness * 2);
-            let l1 = (thickness * Math.sin(y * (frequency/1000) + phase + Math.PI/2) / (thickness * 4) * 100) + 50;
+    for (let y=0; y<height; y++) {
+        // Sinewave 1
+	let x1_amp = Math.sin(y * (frequency/1000) + phase) * amplitude;
+        let x1 = width - x1_amp - (width/2);
 
-            points.push({
-                x:x1,
-                y:y,
-                z:z1,
-                c:{h:200, s:100, l:l1} //"#1188ff"
-            });
+        let z1 = thickness * Math.sin(y * (frequency/1000) + phase + Math.PI/2) + (thickness * 2);
+        let l1 = (thickness * Math.sin(y * (frequency/1000) + phase + Math.PI/2) / (thickness * 4) * 100) + 50;
 
-            // Sinewave 2
-	    let x2_amp = Math.sin(y * (frequency/1000) + phase + offset/frequency) * amplitude;
-            let x2 = width - x2_amp - (width/2);
-
-            let z2 = thickness * Math.sin(y * (frequency/1000) + phase + offset/frequency + Math.PI/2) + (thickness * 2);
-            let l2 = (thickness * Math.sin(y * (frequency/1000) + phase + offset/frequency + Math.PI/2) / (thickness * 4) * 100) + 50;
-
-            points.push({
-                x:x2,
-                y:y,
-                z:z2,
-                c:{h:30, s:100, l:l2} //"#ff8811"
-            });
-
-            // Amino Acids
-            if (y % spacing == 0) {
-                aacount++;
-
-                let s1, s2;
-                let left, right;
-                let h1, h2;
-                let l1, l2;
-
-                if (x1 < x2) {
-                    left = x1;
-                    right = x2
-                    s1 = z2;
-                    s2 = z1;
-                    h1 = acids[aacount % acids.length][0];
-                    h2 = acids[aacount % acids.length][1];
-                    l1 = 25;
-                    l2 = 75;
-                } else {
-                    left = x2;
-                    right = x1;
-                    s1 = z1;
-                    s2 = z2;
-                    h1 = acids[aacount % acids.length][1];
-                    h2 = acids[aacount % acids.length][0];
-                    l1 = 75;
-                    l2 = 25;
-                }
-
-                for (let a1=left; a1<right; a1++) {
-                    // Get proportion of position from left to right
-                    let p = (a1-right)/(left-right);
-                    // Set z to the proportion from s1 to s2
-                    let z = ((s2 - s1) * p) + s1;
-                    z *= .5
-                    let l = ((l2 - l1) * p) + l1;
-
-                    // Color the left and right amino acids differently
-                    let h = h1;
-                    if (p > .5)
-                        h = h2;
-
-                    points.push({
-                        x:a1,
-                        y:y,
-                        z:z,
-                        c:{h:h, s:100, l:l}
-                    });
-                }
-            }
-	}
-
-        draw_circles(points);
-    }
-
-    function draw_circles(circles){
-        // Sort circles by z-index
-        circles.sort(function(a,b) {
-            return a.z - b.z
+        points.push({
+            x:x1,
+            y:y,
+            z:z1,
+            c:{h:200, s:100, l:l1} //"#1188ff"
         });
 
-        // Draw them in order
-        for (let circle of circles) {
-            draw_circle(
-                circle.x,
-                circle.y,
-                circle.z,
-                circle.c
-            );
+        // Sinewave 2
+	let x2_amp = Math.sin(y * (frequency/1000) + phase + offset/frequency) * amplitude;
+        let x2 = width - x2_amp - (width/2);
+
+        let z2 = thickness * Math.sin(y * (frequency/1000) + phase + offset/frequency + Math.PI/2) + (thickness * 2);
+        let l2 = (thickness * Math.sin(y * (frequency/1000) + phase + offset/frequency + Math.PI/2) / (thickness * 4) * 100) + 50;
+
+        points.push({
+            x:x2,
+            y:y,
+            z:z2,
+            c:{h:30, s:100, l:l2} //"#ff8811"
+        });
+
+        // Amino Acids
+        if (y % spacing == 0 && y > 0) {
+            aacount++;
+
+            let s1, s2;
+            let left, right;
+            let h1, h2;
+            let l1, l2;
+
+            if (x1 < x2) {
+                left = x1;
+                right = x2
+                s1 = z2;
+                s2 = z1;
+                h1 = acids[aacount % acids.length][0];
+                h2 = acids[aacount % acids.length][1];
+                l1 = 25;
+                l2 = 75;
+            } else {
+                left = x2;
+                right = x1;
+                s1 = z1;
+                s2 = z2;
+                h1 = acids[aacount % acids.length][1];
+                h2 = acids[aacount % acids.length][0];
+                l1 = 75;
+                l2 = 25;
+            }
+
+            for (let a1=left; a1<right; a1++) {
+                // Get proportion of position from left to right
+                let p = (a1-right)/(left-right);
+                // Set z to the proportion from s1 to s2
+                let z = ((s2 - s1) * p) + s1;
+                z *= .5
+                let l = ((l2 - l1) * p) + l1;
+
+                // Color the left and right amino acids differently
+                let h = h1;
+                if (p > .5)
+                    h = h2;
+
+                points.push({
+                    x:a1,
+                    y:y,
+                    z:z,
+                    c:{h:h, s:100, l:l}
+                });
+            }
         }
     }
 
-    function draw_circle(x, y, r, c){
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.arc(x, y, r, 0, 2*Math.PI);
-        ctx.fillStyle = "hsl("+c.h+","+c.s+"%,"+c.l+"%)";
-        ctx.fill();
+    draw_circles(points);
+}
+
+function draw_circles(circles){
+    // Sort circles by z-index
+    circles.sort(function(a,b) {
+        return a.z - b.z
+    });
+
+    // Draw them in order
+    for (let circle of circles) {
+        draw_circle(
+            circle.x,
+            circle.y,
+            circle.z,
+            circle.c
+        );
     }
+}
 
-    function main_loop(timestamp) {
-        if (last_frame === undefined) {
-            last_frame = timestamp;
-        }
+function draw_circle(x, y, r, c){
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.arc(x, y, r, 0, 2*Math.PI);
+    ctx.fillStyle = "hsl("+c.h+","+c.s+"%,"+c.l+"%)";
+    ctx.fill();
+}
 
-        let elapsed = timestamp - last_frame;
-        if (elapsed != elapsed) elapsed = 0;
-
-        // Clear canvas
-        clear_canvas();
-
-        // Redraw
-        redraw(elapsed);
-
-        // Loop!
+function main_loop(timestamp) {
+    if (last_frame === undefined) {
         last_frame = timestamp;
-        window.requestAnimationFrame(main_loop);
     }
 
-    main_loop(0);
+    let elapsed = timestamp - last_frame;
+    if (elapsed != elapsed) elapsed = 0;
+
+    // Clear canvas
+    clear_canvas();
+
+    // Redraw
+    redraw(elapsed);
+
+    // Loop!
+    last_frame = timestamp;
+    window.requestAnimationFrame(main_loop);
+}
+
+main_loop(0);
+
   </script>
 </html>
