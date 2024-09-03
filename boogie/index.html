@@ -17,6 +17,7 @@
           margin: 0px;
           height: 100%;
           background: linear-gradient(red, yellow, purple);
+          overflow: hidden;
       }
 
        button {
@@ -42,8 +43,8 @@
 
     <canvas id="canvas" width="512" height="512"></canvas>
 
-    <button id="clear" onclick="clear_canvas()">Clear</button>
-    <button id="full" onclick="full_screen()">Full Screen</button>
+    <button id="clear" onclick="clear_button()">Clear</button>
+    <!--<button id="full" onclick="full_screen()">Full Screen</button>-->
 
   </body>
 
@@ -211,8 +212,8 @@ function resize() {
     let image = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
     // Resize
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width  = Math.max(window.innerWidth, window.innerHeight);
+    canvas.height = Math.max(window.innerWidth, window.innerHeight);
 
     // Reset canvas to black
     clear_canvas();
@@ -221,10 +222,7 @@ function resize() {
     ctx.putImageData(image, 0, 0);
 }
 
-function clear_canvas() {
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+function random_background() {
     // Pick random background gradient
     let colors = ["red", "yellow", "green", "blue", "purple", "pink", "orange", "teal"];
     let color1 = colors[Math.floor(Math.random() * colors.length)];
@@ -233,12 +231,23 @@ function clear_canvas() {
     document.body.style.background = 'linear-gradient('+color1+','+color2+','+color3+')';
 }
 
+function clear_canvas() {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function clear_button() {
+    clear_canvas();
+    random_background();
+}
+
 function main() {
     // Create cursor for mouse users
     cursor = new pen(ctx);
 
     // Initialize the screen with a white rectangle
     clear_canvas();
+    random_background();
 
     // Resize canvas
     resize();
