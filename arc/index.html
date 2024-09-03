@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Test</title>
+    <meta charset="utf-8">
+    <style>
+      body {
+          #background:#aaa;
+          color:#000;
+	  font-family:sans-serif;
+      }
+
+      div#content {
+	  background:#fff;
+      }
+
+      h1 {
+	  margin:10px;
+	  font-size:3em;
+      }
+      canvas {
+          border:1px solid black;
+          touch-action: manipulation;
+          width: 100%;
+      }
+      label {
+          width: 140px;
+          display: inline-block;
+          text-align: right;
+          vertical-align: middle;
+      }
+      input {
+          vertical-align: middle;
+      }
+      span {
+          vertical-align: middle;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <div id="content">
+      <h1>Golf Ball Arc</h1>
+      <label for="wind">Wind</label>
+      <input id="wind" oninput="update();" type="range" min="-100" max="100" value="0">
+      <span id="wind_span" class="value">0</span> MPH
+      <br>
+
+      <label for="gravity">Gravity</label>
+      <input id="gravity" oninput="update();" type="range" min="0" max="100" value="32">
+      <span id="gravity_span" class="value">32</span> feet per second per second
+      <br>
+
+      <label for="drag">Drag Coefficient</label>
+      <input id="drag" oninput="update();" type="range" min="0" max="100" value="5">
+      <span id="drag_span" class="value"></span>
+      <br>
+
+      <label for="speed">Drive Speed</label>
+      <input id="speed" oninput="update();" type="range" min="0" max="200" value="120">
+      <span id="speed_span" class="value"></span> MPH
+      <br>
+
+      <label for="angle">Angle</label>
+      <input id="angle" oninput="update();" type="range" min="0" max="180" value="20">
+      <span id="angle_span" class="value"></span>
+      <br>
+
+      <h3>Start Position (pixels)</h3>
+      <label for="start_x">x</label>
+      <input id="start_x" value="50">
+      <br>
+      <label for="start_y">y</label>
+      <input id="start_y" value="300">
+      <br>
+
+      <h3>Target 1 (feet relative to start)</h3>
+      <label for="target_1_x">x</label>
+      <input id="target_1_x" value="500">
+      <br>
+      <label for="target_1_y">y</label>
+      <input id="target_1_y" value="0">
+      <br>
+
+      <h3>Target 2 (feet relative to start)</h3>
+      <label for="target_2_x">x</label>
+      <input id="target_2_x" value="2700">
+      <br>
+      <label for="target_2_y">y</label>
+      <input id="target_2_y" value="-900">
+      <br>
+
+      <canvas id="canvas" width="3000" height="1500"></canvas>
+    </div>
+
+    <script>
+
+      let canvas = document.querySelector('canvas')
+      let ctx    = canvas.getContext("2d");
+      let width  = canvas.width;
+      let height = canvas.height;
+
+      let wind;
+      let gravity;
+      let speed;
+      let angle;
+      let drag;
+
+      function draw_x(coords, color) {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(coords.x - 5, coords.y - 5);
+          ctx.lineTo(coords.x + 5, coords.y + 5);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(coords.x - 5, coords.y + 5);
+          ctx.lineTo(coords.x + 5, coords.y - 5);
+          ctx.stroke();
+      }
+
+      function draw_arc(coords) {
+          // Get x/y speed components
+          let vx = Math.cos(angle * (Math.PI / 180)) * speed;
+          let vy = Math.sin(angle * (Math.PI / 180)) * speed;
+
+          // Convert from MPH to feet per second
+          vx = vx * 5280 / (60 * 60);
+          vy = vy * 5280 / (60 * 60);
+          let w = wind * 5280 / (60 * 60);
+
+          // Invert Y values
+          vy += -1;
+
+          // Start Coordinates
+          let px = coords.x;
+          let py = coords.y;
+
+          // Begin drawing
+          ctx.strokeStyle = "#555";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+
+          while (py < canvas.height && px < canvas.width) {
+              vy -= gravity;
+              //vx *= (1 - drag);
+              vx += w*drag;
+
+              px += vx;
+              py -= vy;
+
+              ctx.lineTo(px, py);
+              console.log(px, py, vx, vy)
+          }
+
+          ctx.stroke();
+
+      }
+
+      function clear() {
+          ctx.clearRect(0, 0, width, height);
+      }
+
+      function update() {
+          wind    = document.getElementById("wind").value;
+          document.getElementById("wind_span").innerHTML = wind;
+
+          gravity = document.getElementById("gravity").value;
+          document.getElementById("gravity_span").innerHTML = gravity;
+
+          speed   = document.getElementById("speed").value;
+          document.getElementById("speed_span").innerHTML = speed;
+
+          angle   = document.getElementById("angle").value;
+          document.getElementById("angle_span").innerHTML = angle;
+
+          drag    = document.getElementById("drag").value / 10;
+          document.getElementById("drag_span").innerHTML = drag;
+
+          clear();
+
+          let start = {
+              x: Number(document.getElementById("start_x").value),
+              y: Number(document.getElementById("start_y").value)
+          };
+          draw_x(start, "#00ff00");
+
+          let target1 = {
+              x: start.x + Number(document.getElementById("target_1_x").value),
+              y: start.y + (-1 * Number(document.getElementById("target_1_y").value))
+          };
+          draw_x(target1, "#0000ff");
+
+          let target2 = {
+              x: start.x + Number(document.getElementById("target_2_x").value),
+              y: start.y + (-1 * Number(document.getElementById("target_2_y").value))
+          };
+          draw_x(target2, "#ff0000");
+
+          draw_arc(start);
+      }
+
+      update();
+
+    </script>
+  </body>
+</html>
