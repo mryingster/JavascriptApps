@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Since Waves</title>
+    <meta charset="utf-8">
+    <style>
+      body {
+          background:#aaa;
+          color:#000;
+	  font-family:sans-serif;
+      }
+
+      div#content {
+	  background:#fff;
+          width: 1024px;
+          margin: auto;
+          padding: 20px;
+      }
+
+      h1 {
+	  margin:10px;
+	  font-size:3em;
+      }
+      canvas {
+          border:1px solid black;
+          touch-action: manipulation;
+      }
+      label {
+          width: 140px;
+          display: inline-block;
+          text-align: right;
+          vertical-align: middle;
+      }
+      input {
+          vertical-align: middle;
+      }
+      span {
+          vertical-align: middle;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <div id="content">
+      <h1>Sine Waves</h1>
+      <label for="radius">Radius</label>
+      <input id="radius" oninput="update();" type="range" min="1" max="250" value="75">
+      <span id="radius_span" class="value">0</span> pixels
+      <br>
+
+      <label for="speed">Speed</label>
+      <input id="speed" oninput="update();" type="range" min="-120" max="120" value="60">
+      <span id="speed_span" class="value">32</span> rotations per minute
+      <br>
+
+      <label for="angle">Angle</label>
+      <span id="angle_span" class="value"></span>
+      <br>
+
+      <label for="rise" style="color:#0f0;">Rise</label>
+      <span id="rise_span" class="value"></span>
+      <br>
+
+      <label for="run" style="color:#f00;">Run</label>
+      <span id="run_span" class="value"></span>
+      <br>
+      <!--
+      <label for="drag">Drag Coefficient</label>
+      <input id="drag" oninput="update();" type="range" min="0" max="100" value="5">
+      <span id="drag_span" class="value"></span>
+      <br>
+      -->
+
+      <canvas id="canvas" width="1024" height="512"></canvas>
+    </div>
+
+    <script>
+
+      let canvas = document.querySelector('canvas')
+      let ctx    = canvas.getContext("2d");
+      let width  = canvas.width;
+      let height = canvas.height;
+      let last_frame;
+
+      let radius;
+      let speed;
+      let rotation = 0;
+      let history = [];
+
+      function update() {
+          radius = Number(document.getElementById("radius").value);
+          document.getElementById("radius_span").innerHTML = radius;
+
+          speed = Number(document.getElementById("speed").value);
+          document.getElementById("speed_span").innerHTML = speed;
+      }
+
+      function draw_circle(x, y, r, c1, t, c2) {
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, 2*Math.PI);
+
+          ctx.fillStyle = c1;
+          ctx.fill();
+
+          if (t > 0) {
+              ctx.strokeStyle = c2;
+              ctx.lineWidth = t;
+              ctx.stroke();
+          }
+      }
+
+      function draw_unit_circle() {
+          // Center it in the right half of the frame
+          let cy = height / 2;
+          let cx = width * 3 / 4;
+
+          draw_circle(cx, cy, radius, "#ffffff", 3, "#000000");
+
+          let x1 = Math.cos(rotation * (Math.PI / 180)) * radius;
+          let y1 = Math.sin(rotation * (Math.PI / 180)) * radius;
+
+          draw_circle(cx + x1, cy + y1, 7, "#0000FF", 0, "");
+
+          ctx.lineWidth = 1;
+
+          ctx.beginPath();
+          ctx.strokeStyle = "#ff0000";
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + x1, cy);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.strokeStyle = "#00ff00";
+          ctx.moveTo(cx + x1, cy);
+          ctx.lineTo(cx + x1, cy + y1);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.strokeStyle = "#00ffff";
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + x1, cy + y1);
+          ctx.stroke();
+
+          document.getElementById("rise_span").innerHTML  = (y1 * -1).toFixed(2);
+          document.getElementById("run_span").innerHTML   = x1.toFixed(2);
+          document.getElementById("angle_span").innerHTML = (Math.atan2(y1*-1, x1) * 180 / Math.PI).toFixed(2);
+      }
+
+      function draw_pen() {
+          let cy = height / 2;
+          let cx = width / 2;
+
+          let y1 = Math.sin(rotation * (Math.PI / 180)) * radius;
+          draw_circle(cx, cy + y1, 7, "#0000FF", 0, "");
+      }
+
+      function draw_history() {
+          if (history.length == 0) return;
+
+          let cy = height / 2;
+          let cx = width / 2;
+
+          ctx.moveTo(cx, cy);
+          ctx.strokeStyle = "#000000";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+
+          let x = cx;
+          for (i=history.length-1; x>0&&i>=0; i--) {
+              ctx.lineTo(x, cy + history[i].y)
+              x -= history[i].t;
+          }
+
+          ctx.stroke();
+      }
+
+      function clear_canvas() {
+          ctx.clearRect(0, 0, width, height);
+      }
+
+      function rotate(ms) {
+          if (isNaN(ms)) return;
+          if (isNaN(rotation)) rotation = 0;
+          rotation += ms / 180 * speed;
+          rotation %= 360;
+      }
+
+      function record(ms) {
+          if (isNaN(ms)) return;
+          let cy = height / 2;
+          let y1 = Math.sin(rotation * (Math.PI / 180)) * radius;
+
+          let dx = ms / 10;
+
+          history.push({y:y1, t:dx});
+      }
+
+      function main_loop(timestamp) {
+          if (last_frame === undefined) {
+              last_frame = timestamp;
+          }
+
+          const elapsed = timestamp - last_frame;
+          last_frame = timestamp;
+
+          // Advance the rotation
+          rotate(elapsed);
+
+          // Advance the history
+          record(elapsed);
+
+          // Clear the canvas
+          clear_canvas();
+
+          // Draw the unit circle
+          draw_unit_circle();
+
+          // Draw the oscillating pen
+          draw_pen();
+
+          // Draw the sine wave history
+          draw_history();
+
+          // Loop
+          window.requestAnimationFrame(main_loop);
+      }
+
+      function main() {
+          //resize();
+          update();
+          main_loop();
+      }
+
+      main();
+
+    </script>
+  </body>
+</html>
