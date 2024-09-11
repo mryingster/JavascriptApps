@@ -66,21 +66,40 @@
 
     <script>
 
-      function cmyk_to_rgb(mix) {
+      function cmyk_to_rgb(raw) {
+          let mix = normalize_array(raw);
+
           let c = mix[0];
           let m = mix[1];
           let y = mix[2];
           let k = mix[3];
+          let w = mix[4];
 
+          // Black darkens everything
           let r = 255 * (1-k);
           let g = 255 * (1-k);
           let b = 255 * (1-k);
+
+          // White brightens everything
+          r += 255 * (w);
+          g += 255 * (w);
+          b += 255 * (w);
 
           r -= 255 * c;
           g -= 255 * m;
           b -= 255 * y;
 
           return "rgb("+r+","+g+","+b+")";
+      }
+
+      function format_formula(m) {
+          let pigments = ["cyan", "magenta", "yellow", "black", "white"];
+          let output = "";
+          for (let i=0; i<m.length; i++) {
+              if (m[i] > 0)
+                  output += m[i]+" parts "+pigments[i]+"\n";
+          }
+          return output;
       }
 
       function add_swatch(mixture, name) {
@@ -91,19 +110,21 @@
           swatch.style.setProperty("background", cmyk_to_rgb(mixture));
           swatch.onclick = function() { return function () {this.classList.toggle("selected")} } ();
           swatch.setAttribute("mixture", JSON.stringify(mixture));
+          swatch.setAttribute("title", format_formula(mixture));
 
           paints.appendChild(swatch);
       }
 
       function first_load() {
-          add_swatch([1, 0, 0, 0], "Cyan");
-          add_swatch([0, 1, 0, 0], "Magenta");
-          add_swatch([0, 0, 1, 0], "Yellow");
-          add_swatch([0, 0, 0, 1], "Black");
-          add_swatch([0, 0, 0, 0], "White");
-          add_swatch([1, 1, 0, 0], "Blue");
-          add_swatch([0, 1, 1, 0], "Red");
-          add_swatch([1, 0, 1, 0], "Green");
+          add_swatch([1, 0, 0, 0, 0], "Cyan");
+          add_swatch([0, 1, 0, 0, 0], "Magenta");
+          add_swatch([0, 0, 1, 0, 0], "Yellow");
+          //add_swatch([1, 1, 1, 0, 0], "Black");
+          add_swatch([0, 0, 0, 1, 0], "Black");
+          add_swatch([0, 0, 0, 0, 1], "White");
+          add_swatch([1, 1, 0, 0, 0], "Blue");
+          add_swatch([0, 1, 1, 0, 0], "Red");
+          add_swatch([1, 0, 1, 0, 0], "Green");
       }
 
       function add_array(a, b) {
@@ -114,15 +135,40 @@
 
       function normalize_array(a) {
           let max = 0;
+          let out = [];
           for (let i=0; i<a.length; i++)
               max = Math.max(max, a[i]);
           for (let i=0; i<a.length; i++)
-              a[i] /= max;
+              out.push(a[i] / max);
+          return out;
+      }
+
+      function lcd_array(a) {
+          let d = 2;
+          let m = Math.max.apply(Math, a);
+
+          while (d <= m) {
+              let divide = true;
+              for (let i=0; i<a.length; i++) {
+                  if (a[i] % d != 0) {
+                      divide = false;
+                      break;
+                  }
+              }
+
+              if (divide) {
+                  for (let i=0; i<a.length; i++) {
+                      a[i] /= d;
+                  }
+              }
+
+              d++;
+          }
           return a;
       }
 
       function mix() {
-          let new_mixture = [0, 0, 0, 0];
+          let new_mixture = [0, 0, 0, 0, 0];
 
           for (let c of document.getElementsByClassName("swatch")) {
               if (c.classList.contains("selected")) {
@@ -132,7 +178,7 @@
               }
           }
 
-          add_swatch(normalize_array(new_mixture), "new color");
+          add_swatch(lcd_array(new_mixture), "new color");
       }
 
     </script>
