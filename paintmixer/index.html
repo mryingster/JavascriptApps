@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Paint Mixer</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=768px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
+    <style>
+      body {
+          background:#eee;
+          color:#000;
+          font-family:sans-serif;
+      }
+
+      div#content {
+          background :#fff;
+          margin: 0px auto;
+          width: 640px;
+          padding: 30px;
+      }
+
+      h1 {
+          margin:10px;
+          font-size:3em;
+      }
+
+      h1, h2 {
+          color:#991700;
+      }
+
+      .swatch {
+          width: 100px;
+          height: 100px;
+          #border: 1px solid black;
+          border-radius: 10px;
+          display: inline-block;
+          margin: 10px;
+          box-shadow: 0px 2px 5px lightgray;
+      }
+
+      .selected {
+          box-shadow: 0px 5px 10px gray;
+          border: 2px solid red;
+      }
+
+      button {
+          touch-action: manipulation;
+          font-size: 1.5em;
+          padding: 17px;
+          width: 150px;
+          height: 60px;
+          font-size: 1.15em;
+
+    </style>
+  </head>
+
+  <body onload="first_load()" onresize="">
+    <div id="content">
+      <h1>Paint Mixer</h1>
+      <p>Select some colors and press the mix button to make a new color!</p>
+      <button id="mix" onclick="mix();">Mix!</button>
+
+      <div id="paints">
+      </div>
+    </div>
+
+    <script>
+
+      function cmyk_to_rgb(mix) {
+          let c = mix[0];
+          let m = mix[1];
+          let y = mix[2];
+          let k = mix[3];
+
+          let r = 255 * (1-k);
+          let g = 255 * (1-k);
+          let b = 255 * (1-k);
+
+          r -= 255 * c;
+          g -= 255 * m;
+          b -= 255 * y;
+
+          return "rgb("+r+","+g+","+b+")";
+      }
+
+      function add_swatch(mixture, name) {
+          let paints = document.getElementById("paints");
+
+          let swatch = document.createElement("div");
+          swatch.classList.add("swatch");
+          swatch.style.setProperty("background", cmyk_to_rgb(mixture));
+          swatch.onclick = function() { return function () {this.classList.toggle("selected")} } ();
+          swatch.setAttribute("mixture", JSON.stringify(mixture));
+
+          paints.appendChild(swatch);
+      }
+
+      function first_load() {
+          add_swatch([1, 0, 0, 0], "Cyan");
+          add_swatch([0, 1, 0, 0], "Magenta");
+          add_swatch([0, 0, 1, 0], "Yellow");
+          add_swatch([0, 0, 0, 1], "Black");
+          add_swatch([0, 0, 0, 0], "White");
+          add_swatch([1, 1, 0, 0], "Blue");
+          add_swatch([0, 1, 1, 0], "Red");
+          add_swatch([1, 0, 1, 0], "Green");
+      }
+
+      function add_array(a, b) {
+          for (let i=0; i<a.length; i++)
+              a[i] += b[i];
+          return a;
+      }
+
+      function normalize_array(a) {
+          let max = 0;
+          for (let i=0; i<a.length; i++)
+              max = Math.max(max, a[i]);
+          for (let i=0; i<a.length; i++)
+              a[i] /= max;
+          return a;
+      }
+
+      function mix() {
+          let new_mixture = [0, 0, 0, 0];
+
+          for (let c of document.getElementsByClassName("swatch")) {
+              if (c.classList.contains("selected")) {
+                  let mixture = JSON.parse(c.getAttribute("mixture"));
+                  new_mixture = add_array(new_mixture, mixture);
+                  c.classList.toggle("selected");
+              }
+          }
+
+          add_swatch(normalize_array(new_mixture), "new color");
+      }
+
+    </script>
+  </body>
+</html>
