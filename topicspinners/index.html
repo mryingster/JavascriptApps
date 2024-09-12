@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Broadly Speaking Timer</title>
+    <meta charset="utf-8"/>
+    <style>
+      body {
+      background:#000;
+      color:#fff;
+      padding:0px;
+      spacing:0px;
+      margin:0px;
+      font-family: sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!--<form>-->
+    <span id="settings" style="display:inline-block; position:absolute; top:25px; left:25px; border:1px solid #888; padding:13px; z-index:1; background-color:#333">
+      Spinner 1:<br>
+      <input id="topic_1_1" type="text"><br>
+      <input id="topic_1_2" type="text"><br>
+      <input id="topic_1_3" type="text"><br>
+      <input id="topic_1_4" type="text"><br>
+      <input id="topic_1_5" type="text"><br>
+      <input id="topic_1_6" type="text"><br>
+
+      Spinner 2:<br>
+      <input id="topic_2_1" type="text"><br>
+      <input id="topic_2_2" type="text"><br>
+      <input id="topic_2_3" type="text"><br>
+      <input id="topic_2_4" type="text"><br>
+      <input id="topic_2_5" type="text"><br>
+      <input id="topic_2_6" type="text"><br>
+    </span>
+    <!--</form>-->
+
+    <!-- SVG Spinner -->
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+    <svg
+      width="100%"
+      height="100%"
+      viewBox="0 0 1280 720"
+      version="1.1"
+      xmlns="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      xml:space="preserve"
+      xmlns:serif="http://www.serif.com/"
+      style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;">
+
+      <g id="spinner_1" transform="matrix(1,0,0,1,0,0)">
+        <g>
+            <path d="M392.08,170.015L392.08,360.008L227.496,264.985C262.669,204.121 326.47,170.056 392.08,170.015Z" style="fill:rgb(242,13,13);"/>
+            <g transform="matrix(-0.5,-0.866025,0.866025,-0.5,-224.976,2624.17)">
+                <text id="pie_1_1" x="1823.92px" y="1672.5px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:22.953px; text-anchor:end;">TOPIC_1</text>
+            </g>
+        </g>
+        <g>
+            <path d="M556.63,265.018L392.091,360.014L392.091,169.97C462.388,169.998 523.79,208.219 556.63,265.018Z" style="fill:rgb(242,94,13);"/>
+            <g transform="matrix(0.5,-0.866025,0.866025,0.5,-1122.94,230.17)">
+                <text id="pie_1_2" x="816.733px" y="1383.05px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:22.953px; text-anchor:end;">TOPIC_1</text>
+            </g>
+        </g>
+        <g>
+            <path d="M556.59,455.04L392.052,360.044L556.635,265.021C591.759,325.914 589.36,398.2 556.59,455.04Z" style="fill:rgb(229,242,13);"/>
+            <text id="pie_1_3" x="564.294px" y="366.14px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:22.953px; text-anchor:end;">TOPIC_1</text>
+        </g>
+        <g>
+            <path d="M392.04,550.043L392.04,360.05L556.624,455.072C521.451,515.937 457.65,550.002 392.04,550.043Z" style="fill:rgb(67,242,13);"/>
+            <g transform="matrix(0.5,0.866025,-0.866025,0.5,-501.726,-448.884)">
+                <text id="pie_1_4" x="1316.75px" y="-363.482px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:22.953px; text-anchor:end;">TOPIC_1</text>
+            </g>
+        </g>
+        <g>
+            <path d="M227.496,455.056L392.035,360.06L392.035,550.105C321.738,550.076 260.336,511.855 227.496,455.056Z" style="fill:rgb(13,121,242);"/>
+            <g transform="matrix(-0.5,0.866025,-0.866025,-0.5,1401.13,-1548.07)">
+                <text id="pie_1_5" x="2326.33px" y="-74.095px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:22.953px; text-anchor:end;">TOPIC_1</text>
+            </g>
+        </g>
+        <g>
+            <path d="M227.496,265.05L392.035,360.047L227.451,455.069C192.328,394.176 194.727,321.89 227.496,265.05Z" style="fill:rgb(66,13,242);"/>
+            <g transform="matrix(-1,-1.22465e-16,1.22465e-16,-1,2797.36,1298.89)">
+                <text id="pie_1_6" x="2577.55px" y="944.913px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:22.953px; text-anchor:end;">TOPIC_1</text>
+            </g>
+        </g>
+	<animateTransform
+	  id="spinner_1_animation"
+          attributeName="transform"
+          begin="indefinite"
+          dur="3s"
+          type="rotate"
+          from="0 392 360"
+          to="360 392 360"
+          repeatCount="1"
+	  fill="freeze"
+          />
+      </g>
+      
+      <g id="spinner_2" tranform="1,0,0,1,0,0">
+	<g>
+	  <path d="M887.92,550.059L887.92,360.066L1052.5,455.089C1017.33,515.953 953.53,550.019 887.92,550.059Z" style="fill:#f20d0d;"/>
+	  <g transform="matrix(-0.5,-0.866025,0.866025,-0.5,518.908,3651.07)">
+	    <text id="pie_2_1" x="2492.3px" y="1971.21px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:22.953px;">Topic 1</text>
+	  </g>
+	</g>
+	<g>
+	  <path d="M723.37,455.056L887.909,360.06L887.909,550.105C817.612,550.076 756.21,511.855 723.37,455.056Z" style="fill:#f25e0d;"/>
+	  <g transform="matrix(0.5,-0.866025,0.866025,0.5,-1220,659.606)">
+	    <text id="pie_2_2" x="1140.11px" y="1681.82px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:22.953px;">Topic 2</text>
+	  </g>
+	</g>
+	<g>
+	  <path d="M723.41,265.034L887.948,360.031L723.365,455.053C688.241,394.16 690.64,321.874 723.41,265.034Z" style="fill:#e5f20d;"/>
+	  <text id="pie_2_3" x="714.63px" y="366.094px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:22.953px;">Topic 3</text>
+	</g>
+	<g>
+	  <path d="M887.96,170.031L887.96,360.024L723.376,265.002C758.549,204.137 822.35,170.072 887.96,170.031Z" style="fill:#43f20d;"/>
+	  <g transform="matrix(0.5,0.866025,-0.866025,0.5,-596.434,-878.366)">
+	    <text id="pie_2_4" x="1641.34px" y="-660.243px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:22.953px;">Topic 4</text>
+	  </g>
+	</g>
+	<g>
+	  <path d="M1052.5,265.018L887.965,360.014L887.965,169.97C958.262,169.998 1019.66,208.219 1052.5,265.018Z" style="fill:#0d79f2;"/>
+	  <g transform="matrix(-0.5,0.866025,-0.866025,-0.5,2144.94,-2571.03)">
+	    <text id="pie_2_5" x="2993.53px" y="-370.856px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:22.953px;">Topic 5</text>
+	  </g>
+	</g>
+	<g>
+	  <path d="M1052.5,455.024L887.965,360.027L1052.55,265.005C1087.67,325.898 1085.27,398.184 1052.5,455.024Z" style="fill:#420df2;"/>
+	  <g transform="matrix(-1,1.22465e-16,-1.22465e-16,-1,4480.28,1298.8)">
+	    <text id="pie_2_6" x="3419.01px" y="944.868px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:22.953px;">Topic 6</text>
+	  </g>
+	</g>
+        <animateTransform
+	  id="spinner_2_animation"
+          attributeName="transform"
+          begin="indefinite"
+          dur="3s"
+          type="rotate"
+          from="0 888 360"
+          to="360 888 360"
+          repeatCount="1"
+	  fill="freeze"
+          />
+      </g>
+
+      <path d="M718.091,360.074L640,383.595L640,336.553L718.091,360.074ZM561.909,360L640,336.479L640,383.521L561.909,360Z" style="fill:#747474;"/>
+
+      <g id="button_spin" onclick="spin()">
+	<path d="M752.138,588.167C752.138,578.173 744.024,570.058 734.03,570.058L545.97,570.058C535.976,570.058 527.862,578.173 527.862,588.167L527.862,624.384C527.862,634.379 535.976,642.493 545.97,642.493L734.03,642.493C744.024,642.493 752.138,634.379 752.138,624.384L752.138,588.167Z" style="fill:#43f20d;"/>
+	<text x="592.754px" y="621px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:41.14px;">SPIN</text>
+      </g>
+
+      <g id="button_fullscreen" onclick="fullscreen()">
+	<circle cx="1238.71" cy="43.36" r="17.956" style="fill:#747474;"/>
+	<path d="M1237.17,52.142L1237.17,44.856L1229.94,44.856L1229.94,41.811L1237.17,41.811L1237.17,34.579L1240.26,34.579L1240.26,41.811L1247.49,41.811L1247.49,44.856L1240.26,44.856L1240.26,52.142L1237.17,52.142Z" style="fill:#ebebeb;fill-rule:nonzero;"/>
+      </g>
+
+      <g id="button_configure" onclick="toggle_config()">
+	<path d="M1210.05,34.383C1210.05,29.427 1206.03,25.405 1201.08,25.405L1083.34,25.405C1078.39,25.405 1074.37,29.427 1074.37,34.383L1074.37,52.338C1074.37,57.294 1078.39,61.316 1083.34,61.316L1201.08,61.316C1206.03,61.316 1210.05,57.294 1210.05,52.338L1210.05,34.383Z" style="fill:#747474;"/>
+	<g>
+	  <path d="M1099,45.252L1100.67,45.675C1100.32,47.048 1099.69,48.095 1098.78,48.816C1097.87,49.538 1096.76,49.898 1095.44,49.898C1094.08,49.898 1092.97,49.621 1092.12,49.066C1091.27,48.512 1090.62,47.709 1090.17,46.657C1089.72,45.606 1089.5,44.477 1089.5,43.27C1089.5,41.954 1089.75,40.806 1090.26,39.827C1090.76,38.847 1091.47,38.103 1092.4,37.594C1093.33,37.086 1094.35,36.831 1095.47,36.831C1096.73,36.831 1097.79,37.153 1098.66,37.797C1099.52,38.44 1100.12,39.345 1100.46,40.512L1098.81,40.9C1098.52,39.98 1098.09,39.311 1097.54,38.891C1096.98,38.472 1096.28,38.262 1095.43,38.262C1094.46,38.262 1093.65,38.495 1093,38.96C1092.35,39.426 1091.89,40.051 1091.62,40.835C1091.36,41.619 1091.23,42.428 1091.23,43.261C1091.23,44.336 1091.38,45.274 1091.7,46.076C1092.01,46.877 1092.5,47.476 1093.16,47.873C1093.82,48.269 1094.53,48.467 1095.3,48.467C1096.24,48.467 1097.03,48.197 1097.68,47.657C1098.33,47.117 1098.77,46.315 1099,45.252Z" style="fill:#ebebeb;fill-rule:nonzero;"/>
+	  <path d="M1102.22,43.529C1102.22,41.431 1102.79,39.789 1103.91,38.603C1105.04,37.416 1106.49,36.823 1108.28,36.823C1109.44,36.823 1110.49,37.102 1111.43,37.659C1112.37,38.216 1113.08,38.993 1113.57,39.99C1114.06,40.987 1114.31,42.118 1114.31,43.382C1114.31,44.663 1114.05,45.81 1113.53,46.821C1113.02,47.832 1112.28,48.598 1111.34,49.118C1110.39,49.638 1109.36,49.898 1108.27,49.898C1107.08,49.898 1106.01,49.611 1105.08,49.036C1104.14,48.462 1103.43,47.677 1102.95,46.683C1102.47,45.689 1102.22,44.638 1102.22,43.529ZM1103.95,43.554C1103.95,45.077 1104.36,46.277 1105.18,47.153C1106,48.029 1107.02,48.467 1108.26,48.467C1109.52,48.467 1110.55,48.025 1111.37,47.14C1112.18,46.255 1112.59,45 1112.59,43.373C1112.59,42.345 1112.41,41.447 1112.06,40.68C1111.71,39.913 1111.21,39.318 1110.54,38.896C1109.87,38.473 1109.12,38.262 1108.28,38.262C1107.1,38.262 1106.08,38.669 1105.23,39.482C1104.38,40.295 1103.95,41.652 1103.95,43.554Z" style="fill:#ebebeb;fill-rule:nonzero;"/>
+	  <path d="M1116.45,49.683L1116.45,37.047L1118.16,37.047L1124.8,46.968L1124.8,37.047L1126.4,37.047L1126.4,49.683L1124.69,49.683L1118.05,39.753L1118.05,49.683L1116.45,49.683Z" style="fill:#ebebeb;fill-rule:nonzero;"/>
+	  <path d="M1129.3,49.683L1129.3,37.047L1137.82,37.047L1137.82,38.538L1130.97,38.538L1130.97,42.451L1136.9,42.451L1136.9,43.942L1130.97,43.942L1130.97,49.683L1129.3,49.683Z" style="fill:#ebebeb;fill-rule:nonzero;"/>
+	  <rect x="1140.28" y="37.047" width="1.672" height="12.636" style="fill:#ebebeb;fill-rule:nonzero;"/>
+	  <path d="M1150.81,44.727L1150.81,43.244L1156.16,43.236L1156.16,47.924C1155.34,48.579 1154.49,49.072 1153.62,49.403C1152.75,49.733 1151.85,49.898 1150.93,49.898C1149.69,49.898 1148.56,49.632 1147.55,49.101C1146.53,48.569 1145.77,47.801 1145.25,46.795C1144.73,45.79 1144.48,44.666 1144.48,43.425C1144.48,42.195 1144.73,41.048 1145.25,39.982C1145.76,38.916 1146.5,38.124 1147.47,37.607C1148.43,37.09 1149.54,36.831 1150.8,36.831C1151.72,36.831 1152.54,36.979 1153.28,37.275C1154.02,37.571 1154.6,37.984 1155.02,38.512C1155.44,39.041 1155.76,39.73 1155.97,40.581L1154.46,40.995C1154.28,40.351 1154.04,39.845 1153.76,39.478C1153.48,39.11 1153.08,38.815 1152.55,38.594C1152.03,38.373 1151.45,38.262 1150.81,38.262C1150.05,38.262 1149.39,38.379 1148.83,38.611C1148.27,38.844 1147.82,39.15 1147.48,39.529C1147.14,39.909 1146.87,40.325 1146.68,40.779C1146.36,41.561 1146.2,42.408 1146.2,43.322C1146.2,44.448 1146.39,45.39 1146.78,46.149C1147.17,46.907 1147.73,47.47 1148.48,47.838C1149.22,48.206 1150,48.39 1150.84,48.39C1151.56,48.39 1152.27,48.25 1152.96,47.972C1153.65,47.693 1154.17,47.396 1154.53,47.08L1154.53,44.727L1150.81,44.727Z" style="fill:#ebebeb;fill-rule:nonzero;"/>
+	  <path d="M1166.92,37.047L1168.59,37.047L1168.59,44.347C1168.59,45.617 1168.45,46.626 1168.16,47.373C1167.87,48.12 1167.36,48.727 1166.61,49.196C1165.86,49.664 1164.87,49.898 1163.65,49.898C1162.47,49.898 1161.5,49.694 1160.75,49.286C1160,48.878 1159.46,48.288 1159.14,47.515C1158.82,46.742 1158.65,45.686 1158.65,44.347L1158.65,37.047L1160.33,37.047L1160.33,44.339C1160.33,45.436 1160.43,46.245 1160.63,46.765C1160.84,47.285 1161.19,47.686 1161.68,47.967C1162.18,48.249 1162.79,48.39 1163.51,48.39C1164.74,48.39 1165.61,48.111 1166.14,47.554C1166.66,46.996 1166.92,45.925 1166.92,44.339L1166.92,37.047Z" style="fill:#ebebeb;fill-rule:nonzero;"/>
+	  <path d="M1171.4,49.683L1171.4,37.047L1177,37.047C1178.13,37.047 1178.99,37.16 1179.57,37.387C1180.16,37.614 1180.63,38.015 1180.98,38.59C1181.33,39.164 1181.5,39.799 1181.5,40.495C1181.5,41.391 1181.21,42.147 1180.63,42.761C1180.05,43.376 1179.16,43.767 1177.94,43.934C1178.39,44.146 1178.72,44.356 1178.95,44.563C1179.44,45.011 1179.9,45.571 1180.34,46.244L1182.54,49.683L1180.43,49.683L1178.76,47.054C1178.27,46.295 1177.87,45.715 1177.56,45.313C1177.24,44.911 1176.96,44.629 1176.71,44.468C1176.46,44.307 1176.2,44.195 1175.94,44.132C1175.76,44.092 1175.44,44.072 1175.01,44.072L1173.07,44.072L1173.07,49.683L1171.4,49.683ZM1173.07,42.624L1176.67,42.624C1177.43,42.624 1178.03,42.545 1178.46,42.387C1178.89,42.229 1179.22,41.976 1179.44,41.628C1179.67,41.28 1179.78,40.903 1179.78,40.495C1179.78,39.897 1179.56,39.406 1179.13,39.021C1178.69,38.636 1178.01,38.443 1177.07,38.443L1173.07,38.443L1173.07,42.624Z" style="fill:#ebebeb;fill-rule:nonzero;"/>
+	  <path d="M1184.16,49.683L1184.16,37.047L1193.3,37.047L1193.3,38.538L1185.83,38.538L1185.83,42.408L1192.82,42.408L1192.82,43.891L1185.83,43.891L1185.83,48.192L1193.59,48.192L1193.59,49.683L1184.16,49.683Z" style="fill:#ebebeb;fill-rule:nonzero;"/>
+	</g>
+      </g>
+
+    </svg>
+
+    <div id="footer" style="position:fixed; bottom:0px; left:0px; padding:5px; opacity:.25;">
+      Made for Broadly Speaking, Club 01540787
+    </div>
+
+    <script type="text/javascript">
+
+var show_config = true;
+
+function toggle_config(){
+    var selection = document.getElementById('settings');
+    if (show_config == true) {
+	document.getElementById('settings').style.display = "none";
+	show_config = false;
+    } else {
+	document.getElementById('settings').style.display = "inline-block";
+	show_config = true;
+    }
+    console.log()
+    document.getElementById('pie_1_1').innerHTML = document.getElementById('topic_1_1').value;
+    document.getElementById('pie_1_2').innerHTML = document.getElementById('topic_1_2').value;
+    document.getElementById('pie_1_3').innerHTML = document.getElementById('topic_1_3').value;
+    document.getElementById('pie_1_4').innerHTML = document.getElementById('topic_1_4').value;
+    document.getElementById('pie_1_5').innerHTML = document.getElementById('topic_1_5').value;
+    document.getElementById('pie_1_6').innerHTML = document.getElementById('topic_1_6').value;
+    document.getElementById('pie_2_1').innerHTML = document.getElementById('topic_2_1').value;
+    document.getElementById('pie_2_2').innerHTML = document.getElementById('topic_2_2').value;
+    document.getElementById('pie_2_3').innerHTML = document.getElementById('topic_2_3').value;
+    document.getElementById('pie_2_4').innerHTML = document.getElementById('topic_2_4').value;
+    document.getElementById('pie_2_5').innerHTML = document.getElementById('topic_2_5').value;
+    document.getElementById('pie_2_6').innerHTML = document.getElementById('topic_2_6').value;
+}
+
+function spin() {
+    var spinner_1_rot = Math.floor(Math.random() * 6) * 60 + (360 * 8);
+    var spinner_2_rot = Math.floor(Math.random() * 6) * 60 + (360 * 8);
+    console.log(spinner_1_rot, spinner_2_rot);
+    document.getElementById("spinner_1_animation").setAttribute("to", spinner_1_rot + " 392 360");
+    document.getElementById("spinner_2_animation").setAttribute("to", spinner_2_rot + " 888 360");
+    document.getElementById("spinner_1_animation").beginElement();
+    document.getElementById("spinner_2_animation").beginElement();
+}
+
+function fullscreen(){
+    if ((document.fullScreenElement && document.fullScreenElement !== null) ||  // alternative standard method
+	(!document.mozFullScreen && !document.webkitIsFullScreen)) {            // current working methods
+	if (document.documentElement.requestFullScreen) {
+	    document.documentElement.requestFullScreen();
+	} else if (document.documentElement.mozRequestFullScreen) {
+	    document.documentElement.mozRequestFullScreen();
+	} else if (document.documentElement.webkitRequestFullScreen) {
+	    document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+	}
+    } else {
+	if (document.cancelFullScreen) {
+	    document.cancelFullScreen();
+	} else if (document.mozCancelFullScreen) {
+	    document.mozCancelFullScreen();
+	} else if (document.webkitCancelFullScreen) {
+	    document.webkitCancelFullScreen();
+	}
+    }
+}
+    </script>
+  </body>
+</html>
