@@ -209,14 +209,14 @@
 
       <button id="start" onclick="startTimer()" style="display: inline;">Start</button>
       <span id="active_controls" style="display: none;">
+
+        <button id="removeTime" onclick="addTime(-5)">-5</button>
         <button id="resume" onclick="unpauseTimer()" style="display: none;">Resume</button>
         <button id="pause" onclick="pauseTimer()">Pause</button>
+        <button id="addTime" onclick="addTime(5)">+5</button>
+
         <button id="stop" onclick="stopTimer()">Stop</button>
         <button id="discard" onclick="stopTimer(false)" style="display: none;">Discard</button>
-        <span id="debug" style="display: none;">
-          <button id="addTime" onclick="addTime(5)">+5</button>
-          <button id="removeTime" onclick="addTime(-5)">-5</button>
-        </span>
       </span>
       <button id="results" onclick="showResults()">Show Report</button>
       <button id="toggle_fullscreen" onclick="fullscreen()" title="Toggle Fullscreen">⤢</button>
@@ -448,12 +448,12 @@ function stopTimer(recordResults=true) {
         if (type == "Custom") {
             type += " (" + min/60 + "-" + max/60 + " Min)";
         }
-        
+
         var all_results = JSON.parse(localStorage.getItem('results'))
         if (all_results == null) {
             all_results = [];
         }
-        
+
         // Record time if it's not a demonstration or 30 second timer
         if (! type.startsWith("Demonstration") && ! type.startsWith("Thirty") && ! type.startsWith("One"))
             all_results.push([member, type, duration_string, status, qualified]);
