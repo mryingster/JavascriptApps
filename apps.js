@@ -1,3 +1,7 @@
+const COMPLETE    = 1;
+const IDEA        = 2;
+const DEVELOPMENT = 3;
+
 const apps = [
     { "name" : "3-Tris",               "location" : "tetriscubed",             "category" : "Games",     "icon" : "icon_3tris",     "status" : COMPLETE,    "description" : "Top-down 3D Tetris-style game. It's very much inspired by the old Macintosh game 3Tris/3Wiz! " },
     { "name" : "3072",                 "location" : "3072",                    "category" : "Games",     "icon" : "icon_missing",   "status" : IDEA,        "description" : "A game like 2048, but with hexagons!" },
@@ -22,7 +26,7 @@ const apps = [
     { "name" : "Codey",                "location" : "mastermind/",             "category" : "Games",     "icon" : "icon_codey",     "status" : COMPLETE,    "description" : "Guess the color code within 10 guesses to win!" },
     { "name" : "Color Survey",         "location" : "color",                   "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Identify colors to see where you precieve one color to start and the other to end." },
     { "name" : "DNA",                  "location" : "dna",                     "category" : "Toys",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "Simple model of a DNA strand" },
-    { "name" : "DTFM Simulator",       "location" : "dtfm",                    "category" : "Toys",      "icon" : "icon_dtfm",      "status" : COMPLETE,    "description" : "Generate dual tone signals like the good old days" },
+    { "name" : "DTMF Simulator",       "location" : "dtmf",                    "category" : "Toys",      "icon" : "icon_dtmf",      "status" : COMPLETE,    "description" : "Generate dual tone signals like the good old days" },
     { "name" : "DVD Screensaver",      "location" : "dvd",                     "category" : "Toys",      "icon" : "icon_dvd",       "status" : COMPLETE,    "description" : "A reimagining of the classic DVD screensaver" },
     { "name" : "Day Calculator",       "location" : "date",                    "category" : "Misc",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "Calculate the day of the week using Lewis Carrol's method" },
     { "name" : "DecimalTime",          "location" : "decimaltime/",            "category" : "Misc",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "The calendar should be made of 13 28 day months, and days should just have 10 hours. Here's what time it would be." },
