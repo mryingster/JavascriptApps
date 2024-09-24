@@ -23,7 +23,7 @@ const apps = [
     { "name" : "Circle Illusion",      "location" : "circle",                  "category" : "Toys",      "icon" : "icon_circle",    "status" : COMPLETE,    "description" : "The appearance of a circle generated with only linear motion" },
     { "name" : "CircleMan",            "location" : "circleman",               "category" : "Games",     "icon" : "icon_missing",   "status" : IDEA,        "description" : "Move CircleMan around in his circular world" },
     { "name" : "Clue Sheet",           "location" : "clue",                    "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Digital clue sheet for the board game, Clue" },
-    { "name" : "Codey",                "location" : "mastermind/",             "category" : "Games",     "icon" : "icon_codey",     "status" : COMPLETE,    "description" : "Guess the color code within 10 guesses to win!" },
+    { "name" : "Codey",                "location" : "codey/",                  "category" : "Games",     "icon" : "icon_codey",     "status" : COMPLETE,    "description" : "Guess the color code within 10 guesses to win!" },
     { "name" : "Color Survey",         "location" : "color",                   "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Identify colors to see where you precieve one color to start and the other to end." },
     { "name" : "DNA",                  "location" : "dna",                     "category" : "Toys",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "Simple model of a DNA strand" },
     { "name" : "DTMF Simulator",       "location" : "dtmf",                    "category" : "Toys",      "icon" : "icon_dtmf",      "status" : COMPLETE,    "description" : "Generate dual tone signals like the good old days" },
@@ -54,7 +54,7 @@ const apps = [
     { "name" : "Multiplayer Snakey",   "location" : "snake/snake4.html",       "category" : "Games",     "icon" : "icon_snakey",    "status" : DEVELOPMENT, "description" : "4 Player version fo Snakey" },
     { "name" : "N-Tris",               "location" : "ntris/",                  "category" : "Games",     "icon" : "icon_ntris",     "status" : COMPLETE,    "description" : "Tetris clone that uses all possible shapes using up to 5 blocks." },
     { "name" : "N^2-Tris",             "location" : "nntris",                  "category" : "Games",     "icon" : "icon_ntris",     "status" : DEVELOPMENT, "description" : "Play N-Tris head-to-head locally on the same computer" },
-    { "name" : "Nomis",                "location" : "simon",                   "category" : "Games",     "icon" : "icon_nomis",     "status" : COMPLETE,    "description" : "You had better do what Nomis says in this classic game of repeating button presses" },
+    { "name" : "Nomis",                "location" : "nomis",                   "category" : "Games",     "icon" : "icon_nomis",     "status" : COMPLETE,    "description" : "You had better do what Nomis says in this classic game of repeating button presses" },
     { "name" : "Paint Mixer",          "location" : "paintmixer/",             "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Mix CMYK paints to make new colors!" },
     { "name" : "Poll",                 "location" : "poll/",                   "category" : "Utilities", "icon" : "icon_missing",   "status" : IDEA,        "description" : "Simple polling with bars that update as you tally votes" },
     { "name" : "Radical",              "location" : "radical",                 "category" : "Games",     "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Space fighting game meant to resemble the 80's game, Awesome" },
@@ -86,9 +86,9 @@ function compare(a, b){
     return 0;
 }
 
-function populate_apps(show_unreleased=false){
-    // Top level
-    let content = document.getElementById("content");
+function populate_apps(div, prefix, show_unreleased=false){
+    // Clear out div first
+    div.innerHTML = "";
 
     for (let status of [COMPLETE, DEVELOPMENT, IDEA]) {
         if (status > COMPLETE) {
@@ -96,7 +96,7 @@ function populate_apps(show_unreleased=false){
                 break;
             let unreleased_title = document.createElement("h1");
             unreleased_title.innerHTML = status == DEVELOPMENT ? "In Development" : "Ideas";
-            content.appendChild(unreleased_title);
+            div.appendChild(unreleased_title);
         }
 
         // Find all the populated categories
@@ -127,14 +127,14 @@ function populate_apps(show_unreleased=false){
                     continue;
 
                 let link = document.createElement("a");
-                link.href = app.location;
+                link.href = prefix+app.location;
 
                 let div = document.createElement("div");
                 div.classList.add("app")
 
                 let icon = document.createElement("img");
                 icon.classList.add("icon");
-                icon.src = "icons/"+app.icon+"_256.png";
+                icon.src = prefix+"icons/"+app.icon+"_256.png";
 
                 let title = document.createElement("h2");
                 title.classList.add("title");
@@ -151,7 +151,7 @@ function populate_apps(show_unreleased=false){
                 category.appendChild(div);
             }
 
-            content.appendChild(category);
+            div.appendChild(category);
         }
     }
 }

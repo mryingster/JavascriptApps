@@ -8,12 +8,13 @@
     <div id="content">
 
       <div id="webapps">
+        <p>Javascript must be enabled to load app list.</p>
       </div>
 
     </div>
 
     <script>
-      window.onload = () => populate_apps(true);
+      window.onload = () => populate_apps(document.getElementById("webapps"), "", true);
     </script>
 
   </body>
