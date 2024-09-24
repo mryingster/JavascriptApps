@@ -1,71 +1,14 @@
 <!DOCTYPE html>
-<html class=" mmuageppa idc0_343"><head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Codey</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=820px, user-scalable=no"> <!-- disabled in iOS 10+ -->
-    <style>
-      body {
-          background:#fff;
-          color:#000;
-          font-family:sans-serif;
-      }
-
-      #content{
-          text-align: left;
-      }
-
-      #header{
-          width: 768px;
-          margin: auto;
-      }
-
-      h1 {
-          margin:10px;
-          font-size:3em;
-          display: inline-block;
-          vertical-align:middle
-      }
-
-      #canvas_container {
-          position: absolute;
-          margin: 10px auto 0 auto;
-          width: 768px;
-          height: calc(100% - 100px);
-          display: inline-block;
-      }
-
-      canvas {
-          touch-action: manipulation;
-          position: absolute;
-          top: 0;
-          left: 0;
-          border: 0px solid black;
-          height: 100%;
-      }
-
-      #settings {
-          display: inline-block;
-          vertical-align:middle
-      }
-
-      .column {
-          #border:1px solid red;
-          display: inline-block;
-          margin-left: 20px;
-          vertical-align:middle
-      }
-
-      button {
-          height:40px;
-      }
-
-      .hidden{
-          display: none;
-      }
-    </style>
+    <script src="/apps/shared/confetti.js"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="style.css">
   </head>
-    <body onresize="resize_canvas();">
+  <body onresize="resize_canvas();">
     <div id="content">
 
       <div id="header">
@@ -107,7 +50,7 @@
           </div>
 
           <div class="column">
-            <span id="sharespan"><a href="https://yingster.net/apps/codey/?eyJwZWdzIjo0LCJjb2xvcnMiOjEwLCJkdXBsaWNhdGVzIjp0cnVlLCJlbXB0aWVzIjp0cnVlLCJzb2x1dGlvbiI6WzEsMiw3LDldfQ==" id="share">Share</a></span>
+            <span id="sharespan"><a href="#" id="share">Share</a></span>
           </div>
 
           <div class="column">
@@ -127,15 +70,14 @@
         </div>
       </div>
 
-      <div id="canvas_container" style="width: 768px; height: 1024px; left: 241.5px;">
+      <div id="canvas_container" style="width: 603px; height: 804px; left: 599.5px;">
         <canvas id="canvas" width="768px" height="1024px"></canvas>
         <canvas id="overlay" width="768px" height="1024px"></canvas>
       </div>
     </div>
-  
-  <script>
-// comment
+  </body>
 
+  <script>
 // Canvas
 var canvas  = document.getElementById("canvas");
 var ctx     = canvas.getContext("2d");
@@ -151,6 +93,7 @@ let num_guesses = 10;
 let num_pegs = 4;
 let num_colors = 6;
 let guesses = [];
+let buttons = [];
 let current_guess = 0;
 let game_active = false;
 let peg_radius = 15;
@@ -271,18 +214,22 @@ function input_down(pos){
     mouse_pos = pos;
 
     // Check if button pressed - has precidence
-    if(!submit.press(pos)){
+    let press_button = false;
+    for (let button of buttons)
+        if(button.press(pos))
+            press_button = true;
 
+    if (!press_button)
         // Try selecting a peg
         selected_color = select_color(pos);
-    }
 
     redraw_game();
 }
 
 function input_move(pos){
     mouse_pos = pos;
-    submit.move(pos);
+    for (let button of buttons)
+        button.move(pos);
     redraw_game();
 }
 
@@ -291,7 +238,19 @@ function input_up(pos){
     mouse_pos = pos;
 
     // Try pressing the button
-    if (submit.unpress(pos)) guesses[current_guess].score();
+    for (let b of buttons)
+        if (b.unpress(pos))
+            if (b.type == "submit") {
+                guesses[current_guess].score();
+                // Add new button for copying
+                buttons.push(new button(octx, "▲", "#888888", b.row, "copy", "30px Arial"));
+                // Move submit button
+                b.row++;
+            } else if (b.type == "copy"){
+                guesses[current_guess].guess_pegs = [];
+                for (let peg of guesses[b.row].guess_pegs)
+                    guesses[current_guess].guess_pegs.push(peg)
+            }
 
     // Try placing a peg
     if (selected_color != -1)
@@ -361,11 +320,15 @@ function place_peg(p, c){
 }
 
 class button{
-    constructor(ctx, icon){
+    constructor(ctx, icon, color, row, type, style){
         this.ctx = ctx;
         this.pressed = false;
         this.hover = false
-        this.icon = icon
+        this.icon = icon;
+        this.type = type;
+            this.color = color;
+            this.style = style;
+        this.row = row;
         this.position = {
             x:60,
             y:0,
@@ -375,10 +338,10 @@ class button{
     }
 
     inbounds(p){
-        if (p.x >= submit.position.x &&
-            p.y >= submit.position.y &&
-            p.x <= submit.position.x + submit.position.w &&
-            p.y <= submit.position.y + submit.position.h)
+        if (p.x >= this.position.x &&
+            p.y >= this.position.y &&
+            p.x <= this.position.x + this.position.w &&
+            p.y <= this.position.y + this.position.h)
             return true;
         return false;
     }
@@ -408,7 +371,7 @@ class button{
     }
 
     render(){
-        this.position.y = 932 - (87 * current_guess);
+        this.position.y = 932 - (87 * this.row);
 
         draw_rounded_rect(
             this.ctx,
@@ -460,9 +423,10 @@ class button{
             0
         );
 
-        this.ctx.font = "30px Arial";
-        this.ctx.fillStyle = "#00DD22";
-        this.ctx.fillText(this.icon, this.position.x + 10, this.position.y + 35);
+        this.ctx.font = this.style;
+        this.ctx.textAlign = "center";
+        this.ctx.fillStyle = this.color;
+        this.ctx.fillText(this.icon, this.position.x + (this.position.w / 2), this.position.y + 35);
     }
 }
 
@@ -786,7 +750,8 @@ function redraw_game(){
 
     // Draw button
     if (game_active)
-        submit.render();
+        for (let button of buttons)
+            button.render();
 
     // Draw peg that user is moving
     if (mouse_down == true && selected_color != -1)
@@ -863,7 +828,7 @@ function new_game(gamestate=null){
     // Clear variables
     game_active = true;
     mouse_down = false;
-    selected_color = 0;
+    selected_color = -1;
     current_guess = 0;
 
     if (gamestate != null) {
@@ -915,6 +880,10 @@ function new_game(gamestate=null){
         solution   : solution.guess_pegs
     });
 
+    // Create first submit button
+    buttons = [];
+    buttons.push(new button(octx, "✔︎", "#00DD22", 0, "submit", "30px Arial"));
+
     redraw_game();
 }
 
@@ -924,13 +893,12 @@ function game_over(win){
 
     //redraw_game();
 
-    //if (win)
+    if (win)
+        make_confetti();
     //    alert("You won!");
     //else
     //    alert("You lose!");
 }
-
-let submit = new button(octx, "✔︎");
 
 function first_load(){
     // Check for URL to see if there is existing game
@@ -976,5 +944,4 @@ function resize_canvas(){
 first_load();
 
   </script>
-
-</body></html>
+</html>

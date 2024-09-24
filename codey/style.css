@@ -1,0 +1,58 @@
+body {
+    background:#fff;
+    color:#000;
+    font-family:sans-serif;
+}
+
+#content{
+    text-align: left;
+}
+
+#header{
+    width: 768px;
+    margin: auto;
+}
+
+h1 {
+    margin:10px;
+    font-size:3em;
+    display: inline-block;
+    vertical-align:middle
+}
+
+#canvas_container {
+    position: absolute;
+    margin: 10px auto 0 auto;
+    width: 768px;
+    height: calc(100% - 100px);
+    display: inline-block;
+}
+
+canvas {
+    touch-action: manipulation;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 0px solid black;
+    height: 100%;
+}
+
+#settings {
+    display: inline-block;
+    vertical-align:middle
+}
+
+.column {
+    #border:1px solid red;
+    display: inline-block;
+    margin-left: 20px;
+    vertical-align:middle
+}
+
+button {
+    height:40px;
+}
+
+.hidden{
+    display: none;
+}
