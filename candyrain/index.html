@@ -64,6 +64,8 @@ let themes = [
     { name : "goodandplenty", background : "#A4298C", colors : ["#DF238D", "#FFFFFF"] },
     { name : "mikeandike",    background : "#3DA741", colors : ["#F68651", "#FDD94B", "#DE1822", "#9FC434", "#EA5044"] },
     { name : "hottomales",    background : "#F10210", colors : ["#C60B12"] },
+    { name : "berryblast",    background : "#0287CC", colors : ["#044c8c", "#e57ba2", "#e4753d", "#07a2b2", "#543c86"] },
+    { anme : "tropical",      background : "#fd0e31", colors : ["#a5de5b", "#fa6769", "#fba22b", "#f87f90", "#0ebdd8"] },
     //"" : { background : "", candycolors : [""] },
 ];
 
@@ -84,15 +86,13 @@ let current_streak = 0;
 let longest_streak = 0;
 let paused = false;
 let theme = 0;
+let overlays = [];
 
 // Keyboard Listeners
 document.addEventListener('keydown', function(e) {
     switch (e.key) {
     case "d":
         document.getElementById("debug").classList.toggle("hidden");
-        break;
-    case "s":
-        change_theme();
         break;
     }
 });
@@ -178,7 +178,7 @@ class candy {
             r: Math.random() * 1 - .5
         };
 
-        this.color = themes[theme].colors[Math.floor(Math.random() * themes[theme].colors.length)];
+        this.color = Math.floor(Math.random() * 5);
         this.size = 20;
 
         this.remove = false
@@ -201,6 +201,14 @@ class candy {
             reset_streak();
         }
 
+        // If candies hit the edge, bounce back the other direction
+        if (this.pos.x < 50 && this.speed.x < 0 ||
+            this.pos.x > this.ctx.canvas.width - 50 && this.speed.x > 0) {
+            this.speed.x *= -1;
+            this.speed.r *= -1;
+        }
+
+        // Remove any that end up off screen somehow
         if (this.pos.x < -50 ||
             this.pos.x > this.ctx.canvas.width + 50) {
             this.remove = true;
@@ -229,7 +237,7 @@ class candy {
         this.ctx.lineTo(this.size * 2, this.size * -1);
         this.ctx.arc(this.size * 2, 0, this.size, Math.PI / -2, Math.PI /2);
 
-        this.ctx.fillStyle = this.color;
+        this.ctx.fillStyle = themes[theme].colors[this.color % themes[theme].colors.length];
         this.ctx.fill();
 
         this.ctx.restore();
@@ -275,9 +283,40 @@ class player {
     }
 }
 
+function draw_overlays(ms) {
+    if (isNaN(ms)) return;
+
+
+    for (let i=0; i<overlays.length; i++) {
+        let s = ((1 - Math.min(overlays[i].d / 750)) * 30) + 40;
+        ctx.font = s+"px Arial"
+
+        let a = Math.min(1, overlays[i].d / 500);
+        ctx.fillStyle = "rgba(0, 0, 0, "+a+")"
+        ctx.strokeStyle = "rgba(255, 255, 255, "+a+")"
+        ctx.strokeText(overlays[i].t, overlays[i].x, overlays[i].y);
+        ctx.fillText(overlays[i].t, overlays[i].x, overlays[i].y);
+
+        overlays[i].d -= ms;
+
+        if (overlays[i].d < 0) {
+            overlays.splice(i, 1);
+            i--;
+        }
+    }
+}
+
 function eat() {
     eaten++;
     current_streak++;
+
+
+    overlays.push({
+        x: player1.pos.x,
+        y: player1.pos.y,
+        t: current_streak,
+        d: 750,
+    });
 
     if (current_streak > longest_streak) {
         longest_streak = current_streak;
@@ -303,6 +342,12 @@ function main_loop(timestamp) {
             i--;
         }
     }
+
+    // Update spawn rate/level settings
+    let level = Math.floor(current_streak / 10);
+    max_delay = Math.max(350, 1000 - (100 * level));
+    target = 5 + (level * 5);
+    change_theme(level % themes.length);
 
     // Add more candies
     if (!isNaN(elapsed) && !paused)
@@ -338,6 +383,8 @@ function main_loop(timestamp) {
         candy.render();
     player1.render();
 
+    draw_overlays(elapsed);
+
     // Loop!
     last_frame = timestamp;
     window.requestAnimationFrame(main_loop);
@@ -363,8 +410,11 @@ function load_score() {
     longest_streak = localStorage.getItem("candyrain");
 }
 
-function change_theme() {
-    theme = (theme + 1 ) % themes.length;
+function change_theme(n=null) {
+    if (n == null)
+        theme = (theme + 1 ) % themes.length;
+    else
+        theme = n;
     document.body.style.background = themes[theme].background;
 }
 
