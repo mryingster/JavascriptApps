@@ -1,0 +1,20 @@
+{
+    "name" : "Candy Rain",
+    "short_name": "Candy",
+    "display" : "standalone",
+    "orientation" : "portrait",
+    "start_url" : "https://yingster.net/apps/candyrain",
+    "scope" : "https://yingster.net/apps/candyrain",
+    "icons" : [
+        {
+            "src" : "https://yingster.net/apps/icons/icon_candyrain_1024.png",
+            "sizes" : "1024x1024",
+            "type" : "png"
+        },
+        {
+            "src" : "https://yingster.net/apps/icons/icon_candyrain_256.png",
+            "sizes" : "256x256",
+            "type" : "png"
+        }
+    ]
+}

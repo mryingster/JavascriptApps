@@ -1,43 +1,8 @@
 <html>
   <head>
     <title>CandyRain</title>
-    <style>
-      body {
-          background: #A4298C;
-          margin: 0px;
-          padding: 0px;
-          spacing: 0px;
-          color: #fff;
-          font-family: sans-serif;
-      }
-      canvas {
-          border: 0px solid black;
-          margin: 0px;
-      }
-      #title {
-          position: fixed;
-          rotate: -20deg;
-          left: 100px;
-          width:500px;
-          z-index: -1;
-      }
-      #debug {
-          position: fixed;
-          right: 20px;
-          width: 200px;
-          bottom: 20px;
-      }
-      #score {
-          font-size: 1.5em;
-          position: fixed;
-          right: 20px;
-          width: 250px;
-          top: 20px;
-      }
-      .hidden {
-          display: none;
-      }
-    </style>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" type="text/css" media="screen" href="style.css">
   </head>
   <body onload="main();" onresize="resize();">
     <div id="content">
