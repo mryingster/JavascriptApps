@@ -256,15 +256,25 @@ class player {
     move(ms) {
         if (isNaN(ms)) return;
         document.getElementById("mousepos").innerHTML = last_pos.x + ", " + last_pos.y;
+
+        // Move vertically
+        this.pos.y = last_pos.y
+        // Don't go off bottom of screen
+        this.pos.y = Math.min(this.pos.y, this.ctx.canvas.height - this.radius);
+        // Don't go more than 1/4 up the screen
+        this.pos.y = Math.max(this.pos.y, this.ctx.canvas.height/4*3);
+
+        // Move horizontally
         this.pos.x = last_pos.x
+        // Don't move off the screen sides
+        this.pos.x = Math.min(this.pos.x, this.ctx.canvas.width - this.radius);
+        this.pos.x = Math.max(this.pos.x, this.radius);
+
         if (this.phase <  Math.PI)
             this.phase += ms * .01;
     }
 
     render() {
-        // Find bottom of canvas
-        this.pos.y = this.ctx.canvas.height - this.radius;
-
         let maw = Math.sin(this.phase - Math.PI/2) * 1
         let maw_start = 0 + maw;
         let maw_end   = 2 * Math.PI - maw;
