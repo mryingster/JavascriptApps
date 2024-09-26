@@ -1,0 +1,20 @@
+{
+    "name" : "Hue're Adorable",
+    "short_name": "Huey",
+    "display" : "standalone",
+    "orientation" : "portrait",
+    "start_url" : "http://yingster.net/apps/huey",
+    "scope" : "http://yingster.net/apps/huey",
+    "icons" : [
+        {
+            "src" : "https://yingster.net/apps/icons/icon_hue_1024.png",
+            "sizes" : "1024x1024",
+            "type" : "png"
+        },
+        {
+            "src" : "https://yingster.net/apps/icons/icon_hue_256.png",
+            "sizes" : "256x256",
+            "type" : "png"
+        }
+    ]
+}
