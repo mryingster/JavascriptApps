@@ -1,0 +1,20 @@
+{
+    "name" : "Nomis",
+    "short_name": "Nomis",
+    "display" : "standalone",
+    "orientation" : "portrait",
+    "start_url" : "http://yingster.net/apps/nomis",
+    "scope" : "http://yingster.net/apps/nomis",
+    "icons" : [
+        {
+            "src" : "https://yingster.net/apps/icons/icon_nomis_1024.png",
+            "sizes" : "1024x1024",
+            "type" : "png"
+        },
+        {
+            "src" : "https://yingster.net/apps/icons/icon_nomis_256.png",
+            "sizes" : "256x256",
+            "type" : "png"
+        }
+    ]
+}
