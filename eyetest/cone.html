@@ -1,26 +1,50 @@
-<html>
+<!DOCTYPE html>
   <head>
     <title>Cone Screening Test</title>
+    <style>
+    body {
+        background: #707070;
+    }
+    #content {
+        width:768px; margin: 0 auto 0 auto;
+    }
+    canvas {
+        display:block;
+        #outline:1px solid #606060;
+        margin:0 auto 0 auto;
+        padding: 0px;
+        border-radius: 50px;
+    }
+    #controlDiv {
+        margin: -30px auto 0 auto;
+        text-align: center;
+    }
+    .hidden {
+        display:none;
+    }
+    </style>
   </head>
-  <body style="background:#707070;">
+  <body>
+    <div id="content">
+      <canvas id="myCanvas" width="768px" height="768px"></canvas>
 
-    <input id="myInput" type="text" onkeydown="updateTest(event)" style="position:relative; left:-10000px;">
-    <canvas id="myCanvas" width=768px height=768px style="display:block; outline:1px solid #606060; margin:0 auto 0 auto; padding: 0px;"></canvas>
-
-    <div id="content" style="width:768px; margin: 0 auto 0 auto;">
-
-      <div id="controlDiv" style="margin:0 auto 0 auto; text-align:center;">
+      <div id="controlDiv">
         <form>
           <input type="radio" id="eyeSelect_left"  name="eyeSelect" value="left" checked>O.S. (Left Eye)
           <input type="radio" id="eyeSelect_right" name="eyeSelect" value="right">O.D. (Right Eye)
         </form>
       </div>
 
-      <p>Debug: <span id="debug"></span></p>
+      <p id="debugcontainer" class="hidden">Debug: <span id="debug"></span></p>
+
       <h2>Instructions</h2>
-      <p>Cover one eye and focus on the small black dot. Place the cursor in the text box, and press the arrow key corresponding to the direction that the notch is on the cirecle relative to the black dot.</p>
+      <p>Cover one eye and focus on the small black dot. Place the cursor in the text box, and press the arrow key corresponding to the direction that the notch is on the circle relative to the black dot.</p>
+
       <h2>Description</h2>
       <p>The cones are the cells in the eye that detect color. There are typically three different colors that cones repond to; red, green, and blue. This test will check each eye for responsiveness to each color. This can help to determine color blindness and other potential issues with the eye.</p>
+
+      <h2>Disclaimer</h2>
+      <p>This is for novelty use only and not meant to be used as a medical diagnostic tool.</p>
     </div>
 
     <script>
@@ -46,8 +70,6 @@ const RIGHT_EYE  = 1;
 const intensities   = [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 112, 127];
 const MAX_INTENSITY = intensities.length;
 
-document.getElementById("myInput").focus()
-
 var canvas       = document.getElementById("myCanvas");
 var width        = canvas.width;
 var height       = canvas.height;
@@ -63,16 +85,7 @@ var hist         = [];
 var testing      = false;
 var current_eye  = LEFT_EYE;
 
-//$(window).resize(function() {
-//    canvas.setAttribute('width', window.innerWidth);
-//    canvas.setAttribute('height', window.innerHeight);
-//    var width = canvas.width;
-//    var height = canvas.height;
-//});
-
 myCanvas.onclick = function() {
-    myInput.focus();
-
     if (testing == true)
         return;
 
@@ -157,12 +170,12 @@ function numberOfItems(list, item) {
     return count;
 }
 
-function validateInput(key) {
-    valid = false;
-    if (key == UP || key == DOWN || key == LEFT || key == RIGHT || key == null)
-        valid = true;
-    return valid;
-}
+document.addEventListener('keydown', function(e) {
+    if ([UP,DOWN,LEFT,RIGHT].includes(e.keyCode)) {
+        e.preventDefault();
+        updateTest(e);
+    }
+});
 
 function getSelectedEye() {
     if (document.getElementById("eyeSelect_left").checked)
@@ -183,7 +196,7 @@ function getErrorRate(a){
 }
 
 function updateTest(event=0) {
-    if (testing == false || validateInput(event.keyCode) == false) {
+    if (testing == false) {
         return;
     }
 
@@ -278,7 +291,7 @@ function displayResult(eye, x, y){
     ctx.moveTo(x, y);
     ctx.lineTo(x,              y + graph_height);
     ctx.lineTo(x + bar_length, y + graph_height);
-    ctx.stroke(); 
+    ctx.stroke();
 
     // Label Graph
     ctx.font = "20px Arial";

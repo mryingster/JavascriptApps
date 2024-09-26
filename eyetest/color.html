@@ -7,50 +7,31 @@
   </head>
   <body style="background:#707070;">
 
-    <input id="myInput" type="text" onkeydown="resetDrawing(event)" style="position:relative; left:-10000px;">
     <canvas id="myCanvas" width=768px height=768px style="display:block; outline:0px solid #606060; margin:0 auto 0 auto; padding: 0px;"></canvas>
 
     <div id="content" style="width:768px; margin: 0 auto 0 auto;">
 
-    <!--
-      <div id="controlDiv" style="margin:0 auto 0 auto; text-align:center;">
-        <form>
-          <input type="radio" id="eyeSelect_left"  name="eyeSelect" value="left" checked>O.S. (Left Eye)
-          <input type="radio" id="eyeSelect_right" name="eyeSelect" value="right">O.D. (Right Eye)
-        </form>
-      </div>
-    -->
-
-      <p>Debug: <span id="debug"></span></p>
+      <p><span id="results"></span></p>
       <h2>Instructions</h2>
-      <p>Click to generate a new Ishihara plate</p>
+      <p>Click to generate a new Ishihara plate. Enter the number you see using your keyboard. Your accuracy will be shown below the plate.</p>
       <h2>Description</h2>
       <p>The Ishihara test is a color vision test for detection of red–green color deficiencies. Each plate depicts a solid circle of colored dots appearing randomized in color and size. Within the pattern are dots which form a number or shape clearly visible to those with normal color vision, and invisible, or difficult to see, to those with a red–green color vision defect.</p>
+      <h2>Disclaimer</h2>
+      <p>This is for novelty use only and not meant to be used as a medical diagnostic tool.</p>
     </div>
 
     <script>
 
-const background = "#707070"
-const black      = "#000000";
-const red        = "#FF0000";
-const green      = "#00FF00";
-const blue       = "#0000FF";
-
-const LEFT_EYE   = 0;
-const RIGHT_EYE  = 1;
-const testSize = 10;
-
-document.getElementById("myInput").focus()
+const BLACK      = "#000000";
+const WHITE      = "#ffffff";
 
 var canvas       = document.getElementById("myCanvas");
 var width        = canvas.width;
 var height       = canvas.height;
 var ctx          = canvas.getContext("2d");
 
-// Click to start test and reset focus
+// Click to start test
 myCanvas.onclick = function() {
-    myInput.focus();
-
     resetDrawing();
     return;
 }
@@ -68,9 +49,9 @@ function rgbToHex(r, g, b) {
 }
 
 function resetScreen() {
-    ctx.fillStyle = background;
-    ctx.fillRect(0, 0, width, height);    ctx.font = "30px Arial";
-    ctx.fillStyle = black;
+    ctx.clearRect(0, 0, width, height);
+    ctx.font = "30px Arial";
+    ctx.fillStyle = BLACK;
     ctx.textAlign = "center";
     ctx.fillText("Click to Begin", width/2, height/2);
 }
@@ -87,8 +68,8 @@ function noIntersection(xIn, yIn, r) {
     var rSquared = r*r;
     for (var x=0; x<2*r; x++){
         var xSquared = (r-x)*(r-x);
-        for (var y=0; y<2*r; y++){
-            if (xSquared + ((r-y)*(r-y)) < rSquared){
+        for (var y=0; y<2*r; y++) {
+            if (xSquared + ((r-y)*(r-y)) < rSquared) {
                 if (ctxData[(pixelSize * y * 2*r) + (pixelSize * x)] != 255) {
                     return false;
                 }
@@ -99,7 +80,7 @@ function noIntersection(xIn, yIn, r) {
     return true;
 }
 
-function chooseRandomColor(set=0, isGlyph=false){
+function chooseRandomColor(set=0, isGlyph=false) {
     colorGroups = [
         [
             [
@@ -143,7 +124,7 @@ function chooseRandomColor(set=0, isGlyph=false){
     return rgbToHex(color[i][0], color[i][1], color[i][2]);
 }
 
-function isInGlyph(x, y, glyph){
+function isInGlyph(x, y, glyph) {
     var pixelSize = 4; //(R, G, B, A)
     var rowSize = width * pixelSize;
 
@@ -155,7 +136,7 @@ function isInGlyph(x, y, glyph){
 
 }
 
-function drawRandomCircles(count, radius, glyph, colorGroup){
+function drawRandomCircles(count, radius, glyph, colorGroup) {
     var tries = 0;
     while (count > 0 & tries < count * 2) {
         x = Math.floor(Math.random() * width);
@@ -175,7 +156,11 @@ var impressions = 0;
 var randInt = -1;
 var correct = 0;
 
-function resetDrawing(event=0){
+document.addEventListener('keydown', function(e) {
+    resetDrawing(e);
+});
+
+function resetDrawing(event=0) {
     // Keep score?
     if (event != 0) {
         // Check if valid key; if not, do nothing
@@ -189,17 +174,16 @@ function resetDrawing(event=0){
             correct += 1;
         }
 
-        document.getElementById("debug").innerHTML = "Correct: " + correct + "; Impressions: " + impressions + "; Percent Correct: " + correct * 100 / impressions;
+        document.getElementById("results").innerHTML = "Correct: " + correct + "; Impressions: " + impressions + "; Percent Correct: " + (correct * 100 / impressions).toFixed(2) + "%";
     }
     impressions += 1;
 
     // New drawing
-    ctx.fillStyle = background;
-    ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
 
     // Draw glyph for deciding colors
     ctx.font = "700px Arial";
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = WHITE;
     ctx.textAlign = "center";
     randInt = Math.floor(Math.random() * 10);
     ctx.fillText(randInt, width/2, height - ((height-500)/2));
