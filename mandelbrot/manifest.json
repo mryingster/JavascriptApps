@@ -1,0 +1,20 @@
+{
+    "name" : "Mandelbrot",
+    "short_name": "Mandelbrot",
+    "display" : "standalone",
+    "orientation" : "portrait",
+    "start_url" : "http://yingster.net/apps/mandelbrot",
+    "scope" : "http://yingster.net/apps/mandelbrot",
+    "icons" : [
+        {
+            "src" : "https://yingster.net/apps/icons/icon_mandley_1024.png",
+            "sizes" : "1024x1024",
+            "type" : "png"
+        },
+        {
+            "src" : "https://yingster.net/apps/icons/icon_mandley_256.png",
+            "sizes" : "256x256",
+            "type" : "png"
+        }
+    ]
+}

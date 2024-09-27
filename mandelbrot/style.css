@@ -1,0 +1,56 @@
+body {
+    margin: 0px;
+}
+
+canvas {
+    margin : 0px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+#controls {
+    display: block;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    background:#ffffff;
+    width:100%;
+    outline:1px solid #606060;
+    padding: 5px;
+}
+
+.note {
+    color:#fff;
+    font-style: italic;
+    float: right;
+}
+
+.coord {
+    width:75px;
+}
+
+#coords {
+    font-family: monospace;
+}
+
+#coords_div {
+    position: fixed;
+    bottom: 5px;
+    left:5px;
+}
+
+#elapsed_div {
+    position: fixed;
+    bottom: 5px;
+    right:5px;
+}
+
+.zoom {
+    width: 32px;
+}
+
+#download, #share {
+    float: right;
+    margin-right: 12px;
+}

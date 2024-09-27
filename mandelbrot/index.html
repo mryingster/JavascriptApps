@@ -1,57 +1,11 @@
 <!DOCTYPE html>
-<html class=" usiwyfbdk idc0_343"><head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Mandelbrot</title>
-     <meta charset="utf-8">
-     <style>
-body {
-    margin: 0px;
-}
-canvas {
-    margin : 0px;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-}
-#controls {
-    display: block;
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    background:#ffffff;
-    width:100%;
-    outline:1px solid #606060;
-    padding: 5px;
-}
-.note {
-    color:#fff;
-    font-style: italic;
-    float: right;
-}
-.coord {
-    width:75px;
-}
-#coords {
-    font-family: monospace;
-}
-#coords_div {
-    position: fixed;
-    bottom: 5px;
-    left:5px;
-}
-#elapsed_div {
-    position: fixed;
-    bottom: 5px;
-    right:5px;
-}
-.zoom {
-    width: 32px;
-}
-#download {
-    float: right;
-    margin-right: 12px;
-}
-     </style>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" type="text/css" media="screen" href="style.css">
+    <meta charset="utf-8">
   </head>
   <body onresize="resize_canvas();" onload="first_run();">
 
@@ -82,13 +36,16 @@ canvas {
         <option>2</option>
         <option>4</option>
         <option>8</option>
-    </select>
-    <!--
-      Center Coordinates:
-      <input onchange="recenterFromUserCoords();" class="coord" id="x_coord"></input>,
-    <input onchange="recenterFromUserCoords();" class="coord" id="y_coord"></input>
-    -->
-    <span id="download"><a href="#" id="download_link" onclick="save_image();" download="mandelbrot.png">Download PNG</a></span>
+      </select>
+
+      <!--
+          Center Coordinates:
+          <input onchange="recenterFromUserCoords();" class="coord" id="x_coord"></input>,
+          <input onchange="recenterFromUserCoords();" class="coord" id="y_coord"></input>
+          -->
+
+      <span id="share"><a href="#" id="share_link">Share Link</a></span>
+      <span id="download"><a href="#" id="download_link" onclick="save_image();" download="mandelbrot.png">Download PNG</a></span>
     </div>
 
     <div id="coords_div" class="note">
@@ -303,7 +260,10 @@ function update_coords(coords){
     string += (-1 * coords.y.toFixed(5));
     while (string.length < 17)
 	string += "0";
+
     document.getElementById("coords").innerHTML = string;
+    let url = window.location.href.split('?')[0];
+    document.getElementById("share_link").href = url+"?"+coords.x+":"+coords.y;//+":"+"ZOOOOOOM";
 }
 
 function render(reset_preview_request = false){
@@ -475,7 +435,7 @@ function getPixelPosition(canvas, event){
 
     return {x:x_pixel, y:y_pixel};
 }
-
+ 
 function getCursorPosition(canvas, event){
     // Determine pixel location
     const rect = canvas.getBoundingClientRect()
@@ -536,10 +496,17 @@ function save_image(){
 
 function first_run(){
     resize_canvas(false);
+    // Check if the URL contains coordinates
+    let url = window.location.href;
+    if (url.indexOf('?') > -1) {
+        let coords = url.split('?')[1];
+        let x = coords.split(":")[0];
+        let y = coords.split(":")[1];
+
+        recenter(x, y);
+    }
 }
 
-
-</script>
-  
-
-</body></html>
+    </script>
+  </body>
+</html>
