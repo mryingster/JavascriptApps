@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Test</title>
+    <title>Hearing Test</title>
     <style>
       body {
           background: #aaa;
@@ -41,15 +41,24 @@
       #controldiv {
           text-align: center;
       }
+      #progressdiv {
+          text-align: center;
+          margin: 30px;
+          font-size: 2em;
+      }
     </style>
   </head>
   <body>
     <div id="content">
       <h1>Hearing Threshold Test</h1>
       <h2>Instructions</h2>
-      <p>Lorem Ipsum</p>
+    <p>For best results, make sure you are in a quiet environment with over-the-ear headphones, and your system volume set to 50%. Once the test begins, different frequencies will be played in the left or right ears randomly. If you hear a tone, indicate which ear you heard it in using the buttons on screen, or the left and right arrows. When the test is complete, a graph will show your results.</p>
+
+      <h2>Description</h2>
+      <p>This pure sine tone test measures the user's response to various frequencies at different amplitudes with the goal of detecting any deficiencies in the normal range of human hearing. This test is NOT calibrated in any way, so the results are basically meaningless, though it may show relatively weak areas for a user's hearing.</p>
+
       <h2>Disclaimer</h2>
-      <p>Lorum Ipsum</p>
+      <p>This is for novelty use only and not meant to be used as a medical diagnostic tool.</p>
 
       <div id="startdiv">
         <button onclick="begin_test();" id="test">Begin Test</button>
@@ -61,9 +70,12 @@
         <button onclick="stop();" id="stop">Stop Test</button>
       </div>
 
+      <div id="progressdiv" class="hidden">
+        <span id="progress"></span>
+      </div>
       <div id="resultsdiv" class="hidden">
         <h2>Results</h2>
-        <canvas id="canvas"></canvas>
+        <canvas id="canvas" width="768px" height="512px"></canvas>
       </div>
     </div>
   </body>
@@ -112,6 +124,10 @@
     let heard_right = false;
 
     let tones = [250, 500, 1000, 1500, 2000, 3000, 4000, 8000];
+    let amplitudes = [.001, .005, .01, .05, .1, .25, .5, 1];
+    let max_amplitude_index = amplitudes.length - 1;
+    let min_amplitude_index = 0;
+    let start_amplitude_index = 2;
     let results = [];
     let current_test_index;
 
@@ -135,35 +151,50 @@
     }
 
     function is_finished() {
-        for (let t of results)
-            if (t.threshold == -1)
-                return false;
+        let count = 0;
+        let complete = 0;
+        for (let t of results) {
+            count++;
+            if (t.threshold != -1) {
+                complete++;
+            }
+        }
+
+        document.getElementById("progress").innerHTML = "Test in progress...<br>" + (100 * complete / count).toFixed(2)+"% complete."
+
+        if (complete < count)
+            return false;
+
         return true;
     }
 
     function initiate_tone_test() {
         // Pick an ear & tone randomly; verify they are not complete yet
         current_test_index = Math.floor(Math.random() * results.length);
+        let r = results[current_test_index].test;
         let ear  = results[current_test_index].side;
 
         // Only test if a threshold has not been achieved
         if (results[current_test_index].threshold == -1) {
 
             // Pick the next threshold to test
-            let v = .1; // starting volume
-            if (results[current_test_index].test.length > 0)
-                if (results[current_test_index].test[results[current_test_index].test.length - 1].h == true) {
-                    v = results[current_test_index].test[results[current_test_index].test.length - 1].v * .5;
+            let vi = start_amplitude_index;
+            if (r.length > 0) {
+                vi = r[r.length - 1].vi;
+                if (r[r.length - 1].h == true) {
+                    vi = Math.max(min_amplitude_index, vi-1);
                 } else {
-                    v = results[current_test_index].test[results[current_test_index].test.length - 1].v * 1.5;
+                    vi = Math.min(max_amplitude_index, vi+1);
                 }
+            }
 
             // Clear out response
             heard_left = false;
             heard_right = false;
 
             // Prep results
-            results[current_test_index].test.push({v:v, h:-1});
+            let v = amplitudes[vi];
+            results[current_test_index].test.push({vi:vi, h:-1});
 
             // Play tone
             console.log("Testing " + (ear == LEFT ? "left" : "right") + " ear, " + results[current_test_index].tone + " at " + v*100 + " % volume");
@@ -176,9 +207,9 @@
     }
 
     function complete_tone_test() {
-        let ear  = results[current_test_index].side;
+        let ear = results[current_test_index].side;
         let r = results[current_test_index].test;
-        let v = r[r.length - 1].v;
+        let vi = r[r.length - 1].vi;
 
         // Check for response & mark result
         if (ear == LEFT)
@@ -186,15 +217,22 @@
         if (ear == RIGHT)
             r[r.length - 1].h = heard_right;
 
-        // See if we are finished with this ear/tone combination
-        // If we can hear all the way here, then let's call it good.
-        if (v < .001 && r[r.length - 1].h == true)
-            results[current_test_index].threshold = .001;
+        // If we heard the last tone....
+        if (r[r.length - 1].h == true) {
+            // If this is the lowest we can go, then good enough!
+            if (vi == min_amplitude_index) {
+                results[current_test_index].threshold = amplitudes[vi];
+            }
 
-        // If we heard the last tone, but not this one, then let's call it good.
-        if (v.length > 1)
-            if (r[r.length - 2].h == true && r[r.length - 1].h == false)
-                results[current_test_index].threshold = r[r.length - 2].v;
+        // If we didn't hear the last tone...
+        } else {
+            // and if we have missed this tone before, then threshold is the previous amplitude
+            for (let ri = 0; ri<r.length-1; ri++)
+                if (r[ri].vi == vi && r[ri].h == false) {
+                    results[current_test_index].threshold = amplitudes[r[r.length-1].vi];
+                    break;
+                }
+        }
 
         // If not finished, do next tone
         if (!is_finished())
@@ -222,9 +260,105 @@
         document.getElementById("startdiv").classList.add("hidden");
         document.getElementById("controldiv").classList.remove("hidden");
         document.getElementById("resultsdiv").classList.add("hidden");
+        document.getElementById("progressdiv").classList.remove("hidden");
+
+        is_finished();
 
         // Start
         initiate_tone_test();
+    }
+
+    function draw_x(ctx, x, y, c, s) {
+        ctx.strokeStyle = c;
+        ctx.beginPath();
+        ctx.moveTo(x-(s/2), y-(s/2));
+        ctx.lineTo(x+(s/2), y+(s/2));
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x-(s/2), y+(s/2));
+        ctx.lineTo(x+(s/2), y-(s/2));
+        ctx.stroke();
+    }
+
+    function draw_circle(ctx, x, y, c, r) {
+        ctx.strokeStyle = c;
+        ctx.moveTo(x, y);
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, 2*Math.PI);
+        ctx.stroke();
+    }
+
+    function plot_results() {
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext("2d");
+        let width = canvas.width;
+        let height = canvas.height;
+
+        let color_left = "#440088"
+        let color_right = "#aaaa00"
+
+        let margin = 50;
+
+        ctx.clearRect(0, 0, width, height);
+
+        ctx.beginPath();
+        ctx.moveTo(margin, height-margin);
+        ctx.lineTo(width-margin, height-margin);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+
+        let x_spacing = (width - (2 * margin)) / tones.length;
+        let x = margin + (x_spacing/2)
+        ctx.strokeStyle = "black";
+        ctx.textAlign = "center";
+        ctx.font = "13px Arial";
+        for (let xi=0; xi<tones.length; xi++) {
+            ctx.beginPath();
+            ctx.moveTo(x, margin);
+            ctx.lineTo(x, height - margin);
+            ctx.stroke();
+
+            ctx.fillText(tones[xi] + "Hz", x, height - margin + 15);
+
+            x += x_spacing;
+        }
+
+        let y_spacing = (height - (2 * margin)) / amplitudes.length;
+        let y = margin + (y_spacing/2);
+        ctx.strokeStyle = "grey";
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "right";
+        ctx.font = "13px Arial";
+        for (let yi=0; yi<amplitudes.length; yi++) {
+            ctx.beginPath();
+            ctx.moveTo(margin, y);
+            ctx.lineTo(width - margin, y);
+            ctx.stroke();
+
+            ctx.fillText(amplitudes[yi]*100 + "%", margin, y);
+
+            y += y_spacing;
+        }
+
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "right";
+        ctx.font = "15px Arial";
+        ctx.fillText("LEFT", 135, margin/2);
+        draw_x(ctx, 150, margin/2, color_left, 15);
+        ctx.fillText("RIGHT", 230, margin/2);
+        draw_circle(ctx, 250, margin/2, color_right, 12);
+
+        for (let result of results) {
+            if (result.threshold == -1) continue;
+
+            y = amplitudes.indexOf(result.threshold) * y_spacing + (y_spacing/2) + margin;
+            x = tones.indexOf(result.tone) * x_spacing + (x_spacing/2) + margin;
+            if (result.side == -1)
+                draw_x(ctx, x, y, color_left, 25);
+            else
+                draw_circle(ctx, x, y, color_right, 20);
+        }
     }
 
     function test_complete() {
@@ -232,8 +366,10 @@
         document.getElementById("startdiv").classList.remove("hidden");
         document.getElementById("controldiv").classList.add("hidden");
         document.getElementById("resultsdiv").classList.remove("hidden");
+        document.getElementById("progressdiv").classList.add("hidden");
 
         console.log(results);
+        plot_results();
     }
 
     function stop() {
@@ -245,7 +381,26 @@
     }
 
     function debug() {
-        play_tone(440, .1, RIGHT, 500)
+        results = [
+            { side: -1, tone:250, threshold:.005 },
+            { side: -1, tone:500, threshold:.005 },
+            { side: -1, tone:1000, threshold:.001 },
+            { side: -1, tone:1500, threshold:.001 },
+            { side: -1, tone:2000, threshold:.001 },
+            { side: -1, tone:3000, threshold:.005 },
+            { side: -1, tone:4000, threshold:.001 },
+            { side: -1, tone:8000, threshold:.001 },
+            { side: 1,  tone:250, threshold:.01 },
+            { side: 1,  tone:500, threshold:.01 },
+            { side: 1,  tone:1000, threshold:.005 },
+            { side: 1,  tone:1500, threshold:.005 },
+            { side: 1,  tone:2000, threshold:.01 },
+            { side: 1,  tone:3000, threshold:.001 },
+            { side: 1,  tone:4000, threshold:.001 },
+            { side: 1,  tone:8000, threshold:.005 }
+        ];
+
+        //play_tone(440, .1, RIGHT, 500)
     }
 
     function heard(e) {
