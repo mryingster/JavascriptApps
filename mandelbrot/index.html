@@ -37,6 +37,14 @@
         <option>4</option>
         <option>8</option>
       </select>
+      Scheme:
+      <select onchange="update_gradient()" id="scheme">
+        <option selected="selected">Rainbow</option>
+        <option>Red</option>
+        <option>Green</option>
+        <option>Blue</option>
+        <option>Zebra</option>
+      </select>
 
       <!--
           Center Coordinates:
@@ -81,6 +89,9 @@ let start_zoom    = null;
 
 var render_preview = false;
 var final_render_timer = null;
+
+let gradient;
+let proportional_color = true;
 
 // Touch listeners
 canvas.addEventListener('touchstart', input_start_touch, false);
@@ -317,7 +328,11 @@ function render(reset_preview_request = false){
             // Choose a color
             var finalColor = "#000000";
             if (result != -1)
-                finalColor = chooseColor(result, depth);
+                if (proportional_color) {
+                    finalColor = gradient[Math.floor(gradient.length / depth * result)];
+                } else {
+                    finalColor = gradient[result % 2];
+                }
 
             // Draw the pixel too all the pixels necessary
             buffer.data[buffer_index + 0] = finalColor.r; // R
@@ -365,41 +380,6 @@ function mandel(x, y, depth){
         yP = yT;
     }
     return -1;
-}
-
-function chooseColor(i, d) {
-    var r = 0;
-    var g = 0;
-    var b = 0;
-
-    const band = d / 6;
-
-    if (i >= band * 0 & i < band * 1){
-        r = 0xff;
-        g = 0xff * i / band;
-    }
-    if (i >= band * 1 & i < band * 2) {
-        g = 0xff;
-        r = 0xff * ((band - (i % band)) / band);
-    }
-    if (i >= band * 2 & i < band * 3) {
-        g = 0xff;
-        b = 0xff * (i % band) / band;
-    }
-    if (i >= band * 3 & i < band * 4) {
-        b = 0xff;
-        g = 0xff * ((band - (i % band)) / band);
-    }
-    if (i >= band * 4 & i < band * 5) {
-        b = 0xff;
-        r = 0xff * (i % band) / band;
-    }
-    if (i >= band * 5 & i < band * 6) {
-        r = 0xff;
-        b = 0xff * ((band - (i % band)) / band);
-    }
-
-    return {r:r, g:g, b:b};
 }
 
 function hexString(n) {
@@ -494,8 +474,88 @@ function save_image(){
     document.getElementById("download_link").href = canvas.toDataURL("image/png").replace(/^data:image\/[^;]/, 'data:application/octet-stream');
 }
 
-function first_run(){
+function create_rainbow() {
+    gradient = [];
+    proportional_color = true;
+
+    let d = 256*6;
+    for (let i=0; i<d; i++) {
+        var r = 0;
+        var g = 0;
+        var b = 0;
+
+        const band = d / 6;
+
+        if (i >= band * 0 & i < band * 1){
+            r = 0xff;
+            g = 0xff * i / band;
+        }
+        if (i >= band * 1 & i < band * 2) {
+            g = 0xff;
+            r = 0xff * ((band - (i % band)) / band);
+        }
+        if (i >= band * 2 & i < band * 3) {
+            g = 0xff;
+            b = 0xff * (i % band) / band;
+        }
+        if (i >= band * 3 & i < band * 4) {
+            b = 0xff;
+            g = 0xff * ((band - (i % band)) / band);
+        }
+        if (i >= band * 4 & i < band * 5) {
+            b = 0xff;
+            r = 0xff * (i % band) / band;
+        }
+        if (i >= band * 5 & i < band * 6) {
+            r = 0xff;
+            b = 0xff * ((band - (i % band)) / band);
+        }
+
+        gradient.push({r:r, g:g, b:b});
+    }
+}
+
+
+function create_gradient(c1, c2) {
+    gradient = [];
+    proportional_color = true;
+    for (let i=0; i<255; i++) {
+        let color = {}
+        for (let component of ["r", "g", "b"]) {
+            let d = c1[component] - c2[component];
+            color[component] = c1[component] - (d / 255 * i);
+        }
+        gradient.push(color);
+    }
+}
+
+function create_zebra() {
+    gradient = [{r:0,g:0,b:0},{r:255,g:255,b:255}];
+    proportional_color = false;
+}
+
+function update_gradient() {
+    let selection = document.getElementById("scheme").value;
+
+    if (selection == "Rainbow")
+        create_rainbow();
+    if (selection == "Red")
+        create_gradient({r:0,g:0,b:0}, {r:255,g:0,b:0});
+    if (selection == "Green")
+        create_gradient({r:0,g:0,b:0}, {r:0,g:255,b:0});
+    if (selection == "Blue")
+        create_gradient({r:0,g:0,b:0}, {r:0,g:0,b:255});
+    if (selection == "Zebra")
+        create_zebra();
+
+    render();
+}
+
+function first_run() {
+    update_gradient();
+
     resize_canvas(false);
+
     // Check if the URL contains coordinates
     let url = window.location.href;
     if (url.indexOf('?') > -1) {
