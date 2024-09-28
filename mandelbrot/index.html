@@ -43,7 +43,11 @@
         <option>Red</option>
         <option>Green</option>
         <option>Blue</option>
+        <option>White</option>
+        <option>Sunset</option>
+        <option>Cycle</option>
         <option>Zebra</option>
+        <option>Set Only</option>
       </select>
 
       <!--
@@ -329,7 +333,7 @@ function render(reset_preview_request = false) {
                 if (proportional_color) {
                     finalColor = gradient[Math.floor(gradient.length / depth * result)];
                 } else {
-                    finalColor = gradient[result % 2];
+                    finalColor = gradient[result % gradient.length];
                 }
 
             // Draw the pixel too all the pixels necessary
@@ -517,22 +521,20 @@ function create_rainbow() {
 }
 
 
-function create_gradient(c1, c2) {
+
+function create_gradient(colors) {
     gradient = [];
     proportional_color = true;
-    for (let i=0; i<255; i++) {
-        let color = {}
-        for (let component of ["r", "g", "b"]) {
-            let d = c1[component] - c2[component];
-            color[component] = c1[component] - (d / 255 * i);
+    for (let j=0; j<colors.length-1; j++) {
+        for (let i=0; i<255; i++) {
+            let color = {}
+            for (let component of ["r", "g", "b"]) {
+                let d = colors[j][component] - colors[j+1][component];
+                color[component] = colors[j][component] - (d / 255 * i);
+            }
+            gradient.push(color);
         }
-        gradient.push(color);
     }
-}
-
-function create_zebra() {
-    gradient = [{r:0,g:0,b:0},{r:255,g:255,b:255}];
-    proportional_color = false;
 }
 
 function update_gradient() {
@@ -541,13 +543,27 @@ function update_gradient() {
     if (selection == "Rainbow")
         create_rainbow();
     if (selection == "Red")
-        create_gradient({r:0,g:0,b:0}, {r:255,g:0,b:0});
+        create_gradient([{r:0,g:0,b:0}, {r:255,g:0,b:0}]);
     if (selection == "Green")
-        create_gradient({r:0,g:0,b:0}, {r:0,g:255,b:0});
+        create_gradient([{r:0,g:0,b:0}, {r:0,g:255,b:0}]);
     if (selection == "Blue")
-        create_gradient({r:0,g:0,b:0}, {r:0,g:0,b:255});
-    if (selection == "Zebra")
-        create_zebra();
+        create_gradient([{r:0,g:0,b:0}, {r:0,g:0,b:255}]);
+    if (selection == "White")
+        create_gradient([{r:0,g:0,b:0}, {r:255,g:255,b:255}]);
+    if (selection == "Sunset")
+        create_gradient([{r:255,g:255,b:0}, {r:255,g:0,b:255}, {r:0,g:0,b:255}]);
+    if (selection == "Cycle") {
+        gradient = [{r:255,g:0,b:0}, {r:255,g:255,b:0}, {r:0,g:255,b:0}, {r:0,g:255,b:255}, {r:0,g:0,b:255}, {r:255,g:0,b:255}];
+        proportional_color = false;
+    }
+    if (selection == "Zebra") {
+        gradient = [{r:0,g:0,b:0}, {r:255,g:255,b:255}];
+        proportional_color = false;
+    }
+    if (selection == "Set Only") {
+        gradient = [{r:255,g:255,b:255}, {r:255,g:255,b:255}];
+        proportional_color = false;
+    }
 
     render();
 }
