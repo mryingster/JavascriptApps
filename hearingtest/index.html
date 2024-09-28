@@ -123,11 +123,12 @@
     let heard_left = false;
     let heard_right = false;
 
-    let tones = [250, 500, 1000, 1500, 2000, 3000, 4000, 8000];
-    let amplitudes = [.001, .005, .01, .05, .1, .25, .5, 1];
-    let max_amplitude_index = amplitudes.length - 1;
-    let min_amplitude_index = 0;
-    let start_amplitude_index = 2;
+    let tones      = [  250, 500, 1000, 1500, 2000, 3000, 4000, 8000];
+    let decibels   = [  -80,    -70,   -60,   -50,  -40,  -30,  -20,   -10,  -6, -3, 0];
+    let amplitudes = [.0001, .00032, .0001, .0032,  .01,  .03,   .1,  .316,  .5, .7, 1];
+    let max_amplitude_index   = amplitudes.length - 1;
+    let min_amplitude_index   = 0;
+    let start_amplitude_index = 4;
     let results = [];
     let current_test_index;
 
@@ -160,7 +161,7 @@
             }
         }
 
-        document.getElementById("progress").innerHTML = "Test in progress...<br>" + (100 * complete / count).toFixed(2)+"% complete."
+        document.getElementById("progress").innerHTML = "Test in progress...<br>" + (100 * complete / count).toFixed(2) + "% complete."
 
         if (complete < count)
             return false;
@@ -194,11 +195,12 @@
 
             // Prep results
             let v = amplitudes[vi];
+            let t = results[current_test_index].tone;
             results[current_test_index].test.push({vi:vi, h:-1});
 
             // Play tone
-            console.log("Testing " + (ear == LEFT ? "left" : "right") + " ear, " + results[current_test_index].tone + " at " + v*100 + " % volume");
-            play_tone(results[current_test_index].tone, v, ear, 1000);
+            console.log("Testing " + (ear == LEFT ? "left" : "right") + " ear, " + tones[results[current_test_index].tone] + "hz at " + decibels[vi] + "db (" + v*100 + " % volume)");
+            play_tone(tones[t], v, ear, 1000);
 
         } else {
             // Try again
@@ -221,7 +223,7 @@
         if (r[r.length - 1].h == true) {
             // If this is the lowest we can go, then good enough!
             if (vi == min_amplitude_index) {
-                results[current_test_index].threshold = amplitudes[vi];
+                results[current_test_index].threshold = vi;
             }
 
         // If we didn't hear the last tone...
@@ -229,7 +231,7 @@
             // and if we have missed this tone before, then threshold is the previous amplitude
             for (let ri = 0; ri<r.length-1; ri++)
                 if (r[ri].vi == vi && r[ri].h == false) {
-                    results[current_test_index].threshold = amplitudes[r[r.length-1].vi];
+                    results[current_test_index].threshold = r[r.length-1].vi;
                     break;
                 }
         }
@@ -248,7 +250,7 @@
         // reset the results
         results = [];
         for (let s of [LEFT, RIGHT])
-            for (let t of tones)
+            for (let t in tones)
                 results.push({
                     tone       : t,
                     side       : s,
@@ -336,7 +338,7 @@
             ctx.lineTo(width - margin, y);
             ctx.stroke();
 
-            ctx.fillText(amplitudes[yi]*100 + "%", margin, y);
+            ctx.fillText(decibels[yi]+ "db", margin, y);
 
             y += y_spacing;
         }
@@ -352,8 +354,8 @@
         for (let result of results) {
             if (result.threshold == -1) continue;
 
-            y = amplitudes.indexOf(result.threshold) * y_spacing + (y_spacing/2) + margin;
-            x = tones.indexOf(result.tone) * x_spacing + (x_spacing/2) + margin;
+            y = result.threshold * y_spacing + (y_spacing/2) + margin;
+            x = result.tone * x_spacing + (x_spacing/2) + margin;
             if (result.side == -1)
                 draw_x(ctx, x, y, color_left, 25);
             else
@@ -380,27 +382,27 @@
         test_complete();
     }
 
-    function debug() {
+    function debug_results() {
         results = [
-            { side: -1, tone:250, threshold:.005 },
-            { side: -1, tone:500, threshold:.005 },
-            { side: -1, tone:1000, threshold:.001 },
-            { side: -1, tone:1500, threshold:.001 },
-            { side: -1, tone:2000, threshold:.001 },
-            { side: -1, tone:3000, threshold:.005 },
-            { side: -1, tone:4000, threshold:.001 },
-            { side: -1, tone:8000, threshold:.001 },
-            { side: 1,  tone:250, threshold:.01 },
-            { side: 1,  tone:500, threshold:.01 },
-            { side: 1,  tone:1000, threshold:.005 },
-            { side: 1,  tone:1500, threshold:.005 },
-            { side: 1,  tone:2000, threshold:.01 },
-            { side: 1,  tone:3000, threshold:.001 },
-            { side: 1,  tone:4000, threshold:.001 },
-            { side: 1,  tone:8000, threshold:.005 }
+            { side: -1, tone:0, threshold: 2},
+            { side: -1, tone:1, threshold: 2},
+            { side: -1, tone:2, threshold: 1},
+            { side: -1, tone:3, threshold: 1},
+            { side: -1, tone:4, threshold: 2},
+            { side: -1, tone:5, threshold: 3},
+            { side: -1, tone:6, threshold: 3},
+            { side: -1, tone:7, threshold: 4},
+            { side: 1,  tone:0, threshold: 1},
+            { side: 1,  tone:1, threshold: 1},
+            { side: 1,  tone:2, threshold: 0},
+            { side: 1,  tone:3, threshold: 1},
+            { side: 1,  tone:4, threshold: 2},
+            { side: 1,  tone:5, threshold: 2},
+            { side: 1,  tone:6, threshold: 4},
+            { side: 1,  tone:7, threshold: 4}
         ];
 
-        //play_tone(440, .1, RIGHT, 500)
+        test_complete();
     }
 
     function heard(e) {
