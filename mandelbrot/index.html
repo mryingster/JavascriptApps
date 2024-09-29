@@ -46,6 +46,8 @@
         <option>White</option>
         <option>Sunset</option>
         <option>Cycle</option>
+        <option>Random Gradient</option>
+        <option>Random Colors</option>
         <option>Zebra</option>
         <option>Set Only</option>
       </select>
@@ -537,6 +539,14 @@ function create_gradient(colors) {
     }
 }
 
+function random_color() {
+    return {
+        r:Math.floor(Math.random() * 255),
+        g:Math.floor(Math.random() * 255),
+        b:Math.floor(Math.random() * 255),
+    };
+}
+
 function update_gradient() {
     let selection = document.getElementById("scheme").value;
 
@@ -554,6 +564,14 @@ function update_gradient() {
         create_gradient([{r:255,g:255,b:0}, {r:255,g:0,b:255}, {r:0,g:0,b:255}]);
     if (selection == "Cycle") {
         gradient = [{r:255,g:0,b:0}, {r:255,g:255,b:0}, {r:0,g:255,b:0}, {r:0,g:255,b:255}, {r:0,g:0,b:255}, {r:255,g:0,b:255}];
+        proportional_color = false;
+    }
+    if (selection == "Random Gradient")
+        create_gradient([random_color(), random_color()]);
+    if (selection == "Random Colors") {
+        gradient = [];
+        for (let i=0; i<256; i++)
+            gradient.push(random_color());
         proportional_color = false;
     }
     if (selection == "Zebra") {
