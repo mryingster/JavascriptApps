@@ -595,11 +595,11 @@ function first_run() {
     let url = window.location.href;
     if (url.indexOf('?') > -1) {
         let coords = url.split('?')[1];
-        let x = coords.split(":")[0];
-        let y = coords.split(":")[1];
+        let x = Number(coords.split(":")[0]);
+        let y = Number(coords.split(":")[1]);
 
         // We are only scaling on width, so we need to get the window aspect ratio and make the pixels square
-        view_width = coords.split(":")[2];
+        view_width = Number(coords.split(":")[2]);
         view_height = view_width / width * height;
 
         recenter(x, y);
