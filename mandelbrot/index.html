@@ -5,6 +5,7 @@
     <title>Mandelbrot</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" type="text/css" media="screen" href="style.css">
+    <script src='mandelbrot.js'></script>~
     <meta charset="utf-8">
   </head>
   <body onresize="resize_canvas();" onload="first_run();">
@@ -15,7 +16,7 @@
     <button class="zoom" onclick="zoom(false, null)">-</button>
     <button class="zoom" onclick="zoom(true, null)">+</button>
       Depth:
-      <select onchange="render()" id="depthSelection">
+      <select onchange="rerender()" id="depthSelection">
         <option>1</option>
         <option>2</option>
         <option>4</option>
@@ -31,7 +32,9 @@
         <option>4096</option>
       </select>
       Scale:
-      <select onchange="render()" id="renderScale">
+      <select onchange="rerender()" id="scaleSelection">
+        <option>.25</option>
+        <option>.5</option>
         <option selected="selected">1</option>
         <option>2</option>
         <option>4</option>
@@ -52,12 +55,6 @@
         <option>Set Only</option>
       </select>
 
-      <!--
-          Center Coordinates:
-          <input onchange="recenterFromUserCoords();" class="coord" id="x_coord"></input>,
-          <input onchange="recenterFromUserCoords();" class="coord" id="y_coord"></input>
-          -->
-
       <span id="share"><a href="#" id="share_link">Share Link</a></span>
       <span id="download"><a href="#" id="download_link" onclick="save_image();" download="mandelbrot.png">Download PNG</a></span>
     </div>
@@ -72,461 +69,37 @@
 
     <script>
 
-let canvas        = document.getElementById("canvas");
-let ctx           = canvas.getContext("2d");
-let width         = canvas.width;
-let height        = canvas.height;
-
-let view_x_center = 0;
-let view_y_center = 0;
-let view_width    = 4.5;
-let view_height   = 4.5;
-
-let depth         = 10;
-let mouse_down    = false;
-let mouse_moved   = false;
-let start_coord   = null;
-let x_diff        = 0;
-let y_diff        = 0;
-
-let start_pinch   = null
-let pinch         = false;
-let start_zoom    = null;
-
-let render_preview = false;
-let final_render_timer = null;
-
-let gradient;
-let proportional_color = true;
-
-// Touch listeners
-canvas.addEventListener('touchstart', input_start_touch, false);
-canvas.addEventListener('touchmove',  input_move_touch, false);
-canvas.addEventListener('touchend',   input_end_touch, false);
-
-function getTouchPosition(canvas, event) {
-    if (!e)
-        var e = event;
-
-    let x_coord = null;
-    let y_coord = null;
-
-    let coords=[];
-
-    if(e.touches) {
-        for (let i=0; i<e.touches.length; i++) {
-            let touch = e.touches[i];
-            let x_pixel = touch.pageX-touch.target.getBoundingClientRect().left;
-            let y_pixel = touch.pageY-touch.target.getBoundingClientRect().top;
-
-            // Determine scale
-            const x_scale = view_width / width;
-            const y_scale = view_height / height;
-
-            // Update label
-            let view_left = view_x_center - (view_width / 2);
-            let view_top  = view_y_center - (view_height / 2);
-            x_coord = x_pixel * x_scale + view_left;
-            y_coord = y_pixel * y_scale + view_top;
-
-            coords.push({x:x_coord, y:y_coord});
-        }
-    }
-
-    return coords;
+function format_time(d) {
+    let minutes = Math.floor(d/1000/60);
+    let seconds = Math.floor(d/1000) % 60;
+    let miliseconds = (Math.floor(d) % 1000).toString();
+    if (seconds < 10) seconds = "0" + seconds;
+    if (minutes < 10) minutes = "0" + minutes;
+    while (miliseconds.length < 3) miliseconds = "0" + miliseconds;
+    return minutes +":"+ seconds +"."+ miliseconds;
 }
 
-function input_start_touch(e) {
-    e.preventDefault();
-    let coords = getTouchPosition(canvas, e);
+let mandelbrot = new Mandelbrot(
+    document.getElementById("canvas"),
+    document.getElementById("depthSelection"),
+    document.getElementById("scaleSelection"),
+    document.getElementById("coords"),
+)
 
-    // Normal scrolling with one finger
-    if (coords.length == 1) {
-        start_coord = coords[0]
-        update_coords(start_coord);
-        mouse_down = true;
-    }
-
-    // Pinching
-    if (coords.length == 2) {
-        start_pinch = coords;
-        pinch = true;
-        start_zoom = {vw:view_width, vh:view_height};
-    }
+function zoom(z) {
+    mandelbrot.update_zoom(z);
 }
 
-function input_move_touch(e) {
-    e.preventDefault();
-
-    if (mouse_down == true) {
-        mouse_moved = true;
-
-        // Get current coords
-        let current_coord = getTouchPosition(canvas, e)[0]
-
-	// Find difference
-	x_diff = current_coord.x - start_coord.x;
-	y_diff = current_coord.y - start_coord.y;
-
-	render();
-    }
-
-    if (pinch == true) {
-        let current_coords = getTouchPosition(canvas, e);
-
-        // If we are down to 1 finger, dont do anything
-        if (current_coords.length < 2) return;
-
-        // Find distance between fingers in start and current positions
-        let d_start   = Math.abs(Math.hypot(start_pinch[0].x - start_pinch[1].x, start_pinch[0].y - start_pinch[1].y));
-        let d_current = Math.abs(Math.hypot(current_coords[0].x - current_coords[1].x, current_coords[0].y - current_coords[1].y));
-
-        // Find how much bigger we should be
-        let zoom = d_current / d_start;
-
-        // Maybe guess where we should center eventually?
-
-        // And zoom
-        view_width  = start_zoom.vw / zoom;
-        view_height = start_zoom.vh / zoom;
-        rerender();
-    }
+function rerender() {
+    mandelbrot.render();
 }
 
-function input_end_touch(e) {
-    e.preventDefault();
-    input_up_mouse(e);
+function resize_canvas() {
+    mandelbrot.render();
 }
-
-
-// Mouse listeners
-canvas.addEventListener('mousedown',  input_down_mouse);
-canvas.addEventListener('mousemove',  input_move_mouse);
-canvas.addEventListener('mouseup',    input_up_mouse);
-canvas.addEventListener('wheel',      input_wheel);
-
-function input_down_mouse(e) {
-    start_coord = getCursorPosition(canvas, e);
-    mouse_down = true;
-}
-
-function input_move_mouse(e) {
-    if (mouse_down == true) {
-	mouse_moved = true;
-	render_preview = true
-	// Get current coords
-	let current_coord = getCursorPosition(canvas, e);
-
- 	// Find difference
-	x_diff = current_coord.x - start_coord.x;
-	y_diff = current_coord.y - start_coord.y;
-
-	render();
-    } else {
-	update_coords(getCursorPosition(canvas, e));
-    }
-}
-
-function input_up_mouse(e) {
-    if (mouse_down == true) {
-	if (mouse_moved == true) {
-	    // Recenter using offsets
-	    recenter(
-		view_x_center - x_diff,
-		view_y_center - y_diff
-	    );
-
-	} else {
-	    // Recenter to mouse position
-	    recenter(
-		start_coord.x,
-		start_coord.y
-	    );
-	}
-
-	// Reset offsets
-	x_diff = 0;
-	y_diff = 0;
-
-	// Stop moving
-	mouse_down = false;
-	mouse_moved = false;
-	render_preview = false;
-
-	// Rerender
-	render();
-    }
-}
-
-function input_wheel(e) {
-    render_preview = true;
-    if (Math.abs(e.deltaY) >= 16)
-    zoom(e.deltaY < 0, getCursorPosition(canvas, e));
-}
-
-function update_coords(coords) {
-    let string = ""
-    if (coords.x > 0)
-	string += "+"
-    string += coords.x.toFixed(5);
-    while (string.length < 8)
-	string += "0";
-    string += ",";
-    if (coords.y < 0)
-	string += "+"
-    string += (-1 * coords.y.toFixed(5));
-    while (string.length < 17)
-	string += "0";
-
-    document.getElementById("coords").innerHTML = string;
-}
-
-function render(reset_preview_request = false) {
-    // Set settings
-    depth = Number(document.getElementById("depthSelection").value);
-    scale = Number(document.getElementById("renderScale").value);
-
-    // Deal with preview renders
-    // Clear existing timeouts (requests for final frames)
-    clearTimeout(final_render_timer);
-
-    // If final frame requested, clear the preview flag
-    if (reset_preview_request == true) {
-	render_preview = false;
-    }
-
-    // If preview requested...
-    if (render_preview == true) {
-	scale = 8;
-	// If there is a render preview request, set a timeout to render actual image after 1/2 second
-	if (mouse_down != true) {
-	    final_render_timer = setTimeout(() => render(true), 250);
-	}
-    }
-
-    // Start timer
-    let start = new Date().getTime();
-
-    // Decide on effective center position
-    let effective_x_center = view_x_center - x_diff;
-    let effective_y_center = view_y_center - y_diff;
-
-    // Render
-    let scaled_x  = view_width / width;
-    let scaled_y  = view_height / height;
-    let view_left = effective_x_center - (view_width / 2);
-    let view_top  = effective_y_center - (view_height / 2);
-
-    // Draw into an offscreen canvas
-    let buffer_canvas = new OffscreenCanvas(Math.ceil(width/scale), Math.ceil(height/scale));
-    let buffer_ctx    = buffer_canvas.getContext("2d");
-    let buffer        = buffer_ctx.getImageData(0, 0, buffer_canvas.width, buffer_canvas.height);
-    let buffer_index  = 0;
-
-    for (let y=0; y<height; y+=scale) {
-        for (let x=0; x<width; x+=scale) {
-            let xValue = (x * scaled_x) + (view_left);
-            let yValue = (y * scaled_y) + (view_top);
-            let result = mandel(xValue, yValue, depth);
-
-            // Choose a color
-            let finalColor = "#000000";
-            if (result != -1)
-                if (proportional_color) {
-                    finalColor = gradient[Math.floor(gradient.length / depth * result)];
-                } else {
-                    finalColor = gradient[result % gradient.length];
-                }
-
-            // Draw the pixel too all the pixels necessary
-            buffer.data[buffer_index + 0] = finalColor.r; // R
-            buffer.data[buffer_index + 1] = finalColor.g; // G
-            buffer.data[buffer_index + 2] = finalColor.b; // B
-            buffer.data[buffer_index + 3] = 255; // A
-
-            buffer_index += 4;
-
-        }
-    }
-
-    // Draw back to the onscreen canvas
-    buffer_ctx.putImageData(buffer, 0, 0);
-    ctx.drawImage(buffer_canvas,0,0,width,height);
-
-    // End timer
-    let duration = (new Date().getTime() - start);
-    let minutes = Math.floor(duration/1000/60);
-    let seconds = Math.floor(duration/1000) % 60;
-    let miliseconds = Math.floor(duration) % 1000;
-    if (seconds < 10) { seconds = "0" + seconds; }
-    if (minutes < 10) { minutes = "0" + minutes; }
-    let duration_string = minutes +":"+ seconds +"."+ miliseconds;
-    document.getElementById("elapsed").innerHTML = duration_string;
-
-    // Update share link
-    let url = window.location.href.split('?')[0];
-    document.getElementById("share_link").href = url+"?"+effective_x_center+":"+effective_y_center+":"+view_width;
-}
-
-function mandel(x, y, depth) {
-    // Prime Values
-    let xP=0;
-    let yP=0;
-    // Temporary Values
-    let xT=0;
-    let yT=0;
-    let i=0;
-
-    for (i=0; i<depth; i++)
-    {
-        xT = (Math.pow(xP, 2)) + x - (Math.pow(yP, 2));
-        yT = 2 * xP * yP + y;
-        if (Math.pow(Math.abs(xT),2) + Math.pow(Math.abs(yT),2) > 4)
-            return i;
-        xP = xT;
-        yP = yT;
-    }
-    return -1;
-}
-
-function hexString(n) {
-    t = Math.floor(n).toString(16)
-    if (t.length % 2) {
-        t = "0" + t;
-    }
-    return t;
-}
-
-function recenterFromUserCoords() {
-    let x = Number(document.getElementById("x_coord").value);
-    let y = Number(document.getElementById("y_coord").value);
-
-    recenter(x, y);
-}
-
-function recenter(x, y) {
-    view_x_center = x;
-    view_y_center = y;
-
-    //document.getElementById("x_coord").value = x.toFixed(3);
-    //document.getElementById("y_coord").value = y.toFixed(3);
-
-    render();
-}
-
-function getPixelPosition(canvas, event) {
-    // Determine pixel location
-    const rect = canvas.getBoundingClientRect()
-    const x_pixel = event.clientX - rect.left
-    const y_pixel = event.clientY - rect.top
-
-    return {x:x_pixel, y:y_pixel};
-}
-
-function getCursorPosition(canvas, event) {
-    // Determine pixel location
-    const rect = canvas.getBoundingClientRect()
-    const x_pixel = event.clientX - rect.left
-    const y_pixel = event.clientY - rect.top
-
-    // Determine scale
-    const x_scale = view_width / width;
-    const y_scale = view_height / height;
-
-    // Update label
-    let view_left = view_x_center - (view_width / 2);
-    let view_top  = view_y_center - (view_height / 2);
-    let x_coord = x_pixel * x_scale + view_left;
-    let y_coord = y_pixel * y_scale + view_top;
-
-    return {x:x_coord, y:y_coord};
-}
-
-function zoom(zoom_in, coords) {
-    if (zoom_in == true) {
-	view_width /= 2;
-	view_height /= 2;
-        if (coords != null)
-            recenter((coords.x - view_x_center) / 2 + view_x_center, (coords.y - view_y_center) / 2 + view_y_center);
-        else
-            render();
-    } else {
-	view_width *= 2;
-	view_height *= 2;
-        if (coords != null)
-            recenter(view_x_center - (coords.x - view_x_center), view_y_center - (coords.y - view_y_center));
-        else
-            render();
-    }
-}
-
-function resize_canvas(preview = true) {
-    width  = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width  = width;
-    canvas.height = height;
-
-    // Keep view height the same, but change view width to match aspect ratio
-    let t = height / view_height;
-    view_width = width / t;
-
-    // Set render_preview to make update faster
-    render_preview = preview;
-
-    render();
-}
-
-function save_image() {
-    document.getElementById("download_link").download = "image.png";
-    document.getElementById("download_link").href = canvas.toDataURL("image/png").replace(/^data:image\/[^;]/, 'data:application/octet-stream');
-}
-
-function create_rainbow() {
-    gradient = [];
-    proportional_color = true;
-
-    let d = 256*6;
-    for (let i=0; i<d; i++) {
-        let r = 0;
-        let g = 0;
-        let b = 0;
-
-        const band = d / 6;
-
-        if (i >= band * 0 & i < band * 1) {
-            r = 0xff;
-            g = 0xff * i / band;
-        }
-        if (i >= band * 1 & i < band * 2) {
-            g = 0xff;
-            r = 0xff * ((band - (i % band)) / band);
-        }
-        if (i >= band * 2 & i < band * 3) {
-            g = 0xff;
-            b = 0xff * (i % band) / band;
-        }
-        if (i >= band * 3 & i < band * 4) {
-            b = 0xff;
-            g = 0xff * ((band - (i % band)) / band);
-        }
-        if (i >= band * 4 & i < band * 5) {
-            b = 0xff;
-            r = 0xff * (i % band) / band;
-        }
-        if (i >= band * 5 & i < band * 6) {
-            r = 0xff;
-            b = 0xff * ((band - (i % band)) / band);
-        }
-
-        gradient.push({r:r, g:g, b:b});
-    }
-}
-
-
 
 function create_gradient(colors) {
-    gradient = [];
-    proportional_color = true;
+    let gradient = [];
     for (let j=0; j<colors.length-1; j++) {
         for (let i=0; i<255; i++) {
             let color = {}
@@ -537,6 +110,7 @@ function create_gradient(colors) {
             gradient.push(color);
         }
     }
+    return gradient;
 }
 
 function random_color() {
@@ -549,27 +123,42 @@ function random_color() {
 
 function update_gradient() {
     let selection = document.getElementById("scheme").value;
+    let gradient = [];
+    let proportional_color;
 
-    if (selection == "Rainbow")
-        create_rainbow();
-    if (selection == "Red")
-        create_gradient([{r:0,g:0,b:0}, {r:255,g:0,b:0}]);
-    if (selection == "Green")
-        create_gradient([{r:0,g:0,b:0}, {r:0,g:255,b:0}]);
-    if (selection == "Blue")
-        create_gradient([{r:0,g:0,b:0}, {r:0,g:0,b:255}]);
-    if (selection == "White")
-        create_gradient([{r:0,g:0,b:0}, {r:255,g:255,b:255}]);
-    if (selection == "Sunset")
-        create_gradient([{r:255,g:255,b:0}, {r:255,g:0,b:255}, {r:0,g:0,b:255}]);
+    if (selection == "Rainbow") {
+        gradient = create_gradient([{r:255,g:0,b:0}, {r:255,g:255,b:0}, {r:0,g:255,b:0}, {r:0,g:255,b:255}, {r:0,g:0,b:255}, {r:255,g:0,b:255}]);
+        proportional_color = true;
+    }
+    if (selection == "Red") {
+        gradient = create_gradient([{r:0,g:0,b:0}, {r:255,g:0,b:0}]);
+        proportional_color = true;
+    }
+    if (selection == "Green") {
+        gradient = create_gradient([{r:0,g:0,b:0}, {r:0,g:255,b:0}]);
+        proportional_color = true;
+    }
+    if (selection == "Blue") {
+        gradient = create_gradient([{r:0,g:0,b:0}, {r:0,g:0,b:255}]);
+        proportional_color = true;
+    }
+    if (selection == "White") {
+        gradient = create_gradient([{r:0,g:0,b:0}, {r:255,g:255,b:255}]);
+        proportional_color = true;
+    }
+    if (selection == "Sunset") {
+        gradient = create_gradient([{r:255,g:255,b:0}, {r:255,g:0,b:255}, {r:0,g:0,b:255}]);
+        proportional_color = true;
+    }
     if (selection == "Cycle") {
         gradient = [{r:255,g:0,b:0}, {r:255,g:255,b:0}, {r:0,g:255,b:0}, {r:0,g:255,b:255}, {r:0,g:0,b:255}, {r:255,g:0,b:255}];
         proportional_color = false;
     }
-    if (selection == "Random Gradient")
-        create_gradient([random_color(), random_color()]);
+    if (selection == "Random Gradient") {
+        gradient = create_gradient([random_color(), random_color()]);
+        proportional_color = true;
+    }
     if (selection == "Random Colors") {
-        gradient = [];
         for (let i=0; i<256; i++)
             gradient.push(random_color());
         proportional_color = false;
@@ -583,28 +172,36 @@ function update_gradient() {
         proportional_color = false;
     }
 
-    render();
+    mandelbrot.gradient = gradient;
+    mandelbrot.proportional_color = proportional_color;
+    mandelbrot.render();
+}
+
+function save_image() {
+    let canvas = document.getElementById("canvas");
+    document.getElementById("download_link").download = "image.png";
+    document.getElementById("download_link").href = canvas.toDataURL("image/png").replace(/^data:image\/[^;]/, 'data:application/octet-stream');
 }
 
 function first_run() {
-    update_gradient();
-
-    resize_canvas(false);
-
     // Check if the URL contains coordinates
     let url = window.location.href;
     if (url.indexOf('?') > -1) {
         let coords = url.split('?')[1];
         let x = Number(coords.split(":")[0]);
         let y = Number(coords.split(":")[1]);
+        let z = Number(coords.split(":")[2]);
+        let d = Number(coords.split(":")[3]);
 
-        // We are only scaling on width, so we need to get the window aspect ratio and make the pixels square
-        view_width = Number(coords.split(":")[2]);
-        view_height = view_width / width * height;
+        mandelbrot.recenter(x, y);
+        mandelbrot.zoom = z;
 
-        recenter(x, y);
+        document.getElementById("depthSelection").value = d;
     }
+
+    update_gradient();
 }
+
 
     </script>
   </body>
