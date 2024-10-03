@@ -52,10 +52,11 @@
     <div id="content">
       <h1>Hearing Threshold Test</h1>
       <h2>Instructions</h2>
-    <p>For best results, make sure you are in a quiet environment with over-the-ear headphones, and your system volume set to 50%. Once the test begins, different frequencies will be played in the left or right ears randomly. If you hear a tone, indicate which ear you heard it in using the buttons on screen, or the left and right arrows. When the test is complete, a graph will show your results.</p>
+    <p>For best results, make sure you are in a quiet environment with over-the-ear headphones, and your system volume set to 100%. Once the test begins, different frequencies will be played in the left or right ears randomly. If you hear a tone, indicate which ear you heard it in using the buttons on screen, or the left and right arrows. When the test is complete, a graph will show your results.</p>
 
       <h2>Description</h2>
-      <p>This pure sine tone test measures the user's response to various frequencies at different amplitudes with the goal of detecting any deficiencies in the normal range of human hearing. This test is NOT calibrated in any way, so the results are basically meaningless, though it may show relatively weak areas for a user's hearing.</p>
+      <p>This pure sine tone test measures the user's response to various frequencies at different amplitudes with the goal of detecting any deficiencies in the normal range of human hearing. The results are presented in relative decibels (db) where 0db is full amplification and -100 db is .001% amplification.</p>
+      <p>This test is NOT calibrated in any way, so the results are basically meaningless, though it may show relatively weak areas for a user's hearing.</p>
 
       <h2>Disclaimer</h2>
       <p>This is for novelty use only and not meant to be used as a medical diagnostic tool.</p>
@@ -123,12 +124,12 @@
     let heard_left = false;
     let heard_right = false;
 
-    let tones      = [  250, 500, 1000, 1500, 2000, 3000, 4000, 8000];
-    let decibels   = [  -80,    -70,   -60,   -50,  -40,  -30,  -20,   -10,  -6, -3, 0];
-    let amplitudes = [.0001, .00032, .0001, .0032,  .01,  .03,   .1,  .316,  .5, .7, 1];
+    let tones      = [250, 500, 1000, 1500, 2000, 3000, 4000, 8000];
+    let decibels   = [  -100,     -90,   -80,    -70,   -60,   -50,  -40,  -30,  -20,   -10,  -6, -3, 0];
+    let amplitudes = [.00001, .000032, .0001, .00032, .0001, .0032,  .01,  .03,   .1,  .316,  .5, .7, 1];
     let max_amplitude_index   = amplitudes.length - 1;
     let min_amplitude_index   = 0;
-    let start_amplitude_index = 4;
+    let start_amplitude_index = 5;
     let results = [];
     let current_test_index;
 
