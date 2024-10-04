@@ -106,6 +106,7 @@ let tray_positions = [];
 let selected_color = 0;
 let peg_taken = null;
 let mouse_down = false;
+let mouse_start;
 let mouse_pos;
 
 const colors = [
@@ -212,6 +213,7 @@ function input_up_mouse(e){
 
 function input_down(pos){
     mouse_down = true;
+    mouse_start = pos;
     mouse_pos = pos;
 
     // Check if button pressed - has precidence
@@ -257,6 +259,10 @@ function input_up(pos){
     if (selected_color != -1)
         place_peg(pos, selected_color);
 
+    // If this was a click, let's place the color in the next available slot
+    if (mouse_pos.x == mouse_start.x && mouse_pos.y == mouse_start.y && selected_color != -1)
+        place_peg(-1, selected_color);
+
     // Clear selected color
     selected_color = -1;
 
@@ -298,21 +304,30 @@ function select_color(p){
 }
 
 function place_peg(p, c){
-    // See if we are hovering over current guess row
-    if (p.x >= guesses[current_guess].boundaries.x &&
-        p.y >= guesses[current_guess].boundaries.y &&
-        p.x <= guesses[current_guess].boundaries.x + guesses[current_guess].boundaries.w &&
-        p.y <= guesses[current_guess].boundaries.y + guesses[current_guess].boundaries.h) {
-
-        // Place the peg
-        let pos = guesses[current_guess].normalize(p);
-        if (pos >= 0){
-            // See if we need to switch a peg
-            let peg = guesses[current_guess].get(pos);
-            if (peg.c >= 0 && peg_taken >= 0) {
-                guesses[current_guess].place(peg_taken, peg.c)
+    // No peg specified, so put it in first empty hole
+    if (p == -1) {
+        for (let peg=0; peg<guesses[current_guess].guess_pegs.length; peg++)
+            if (guesses[current_guess].guess_pegs[peg] == -1) {
+                guesses[current_guess].place(peg, c);
+                break;
             }
-            guesses[current_guess].place(pos, c);
+    } else {
+        // See if we are hovering over current guess row
+        if (p.x >= guesses[current_guess].boundaries.x &&
+            p.y >= guesses[current_guess].boundaries.y &&
+            p.x <= guesses[current_guess].boundaries.x + guesses[current_guess].boundaries.w &&
+            p.y <= guesses[current_guess].boundaries.y + guesses[current_guess].boundaries.h) {
+
+            // Place the peg
+            let pos = guesses[current_guess].normalize(p);
+            if (pos >= 0){
+                // See if we need to switch a peg
+                let peg = guesses[current_guess].get(pos);
+                if (peg.c >= 0 && peg_taken >= 0) {
+                    guesses[current_guess].place(peg_taken, peg.c)
+                }
+                guesses[current_guess].place(pos, c);
+            }
         }
 
         // reset taken peg
