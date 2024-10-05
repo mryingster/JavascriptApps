@@ -2,85 +2,88 @@
   <head>
     <title>Bayes Factor</title>
     <style>
-body{
-    background: #eee;
-}
-#content {
-    width: 620px;
-    margin: auto;
-    background: #fff;
-    padding: 20px;
-    border-radius: 20px;
-}
-h1 {
-    margin: 10 0 -10 0;
-}
-.box {
-    display: inline-block;
-    border-radius: 10px;
-    border: 1px solid;
-    padding: 10px;
-    margin: 10px;
-    text-align: center;
-    font-style: italic;
-    font-size: .75em;
-}
-.boxes {
-    text-align: center;
-}
-.percent {
-    background-color: #ffffee;
-    border-color: #ffff00;
-    color: #aaaa00;
-}
-.odds {
-    background-color: #eeffff;
-    border-color: #00ffff;
-    color: #00aaaa;
-}
-.false {
-    background-color: #ffeeee;
-    border-color: #ff0000;
-    color: #aa0000;
-}
-.true {
-    background-color: #eeffee;
-    border-color: #00ff00;
-    color: #00aa00;
-}
-.bayes, .sample {
-    background-color: #eeeeee;
-    border-color: #777777;
-    color: #777777;
-}
-.value {
-    color: #000000;
-    font-style: normal;
-    font-size: 1.25em;
-}
-.slider {
-    width : 500px;
-    vertical-align: middle;
-}
-label{
-    vertical-align: middle;
-    display: inline-block;
-    width: 100px;
-    text-align: right;
-}
-.input {
-    display: block;
-}
-.emphasis {
-    font-weight: bold;
-    background-color: #ffffff;
-}
+      body{
+          background: #ddd;
+      }
+      #content {
+          width: 620px;
+          margin: auto;
+          background: #fff;
+          padding: 20px;
+          border-radius: 20px;
+      }
+      h1 {
+          margin: 10 0 -10 0;
+      }
+      .box {
+          display: inline-block;
+          border-radius: 10px;
+          border: 1px solid;
+          padding: 10px;
+          margin: 10px;
+          text-align: center;
+          font-style: italic;
+          font-size: .75em;
+      }
+      .boxes {
+          text-align: center;
+      }
+      .percent {
+          background-color: #ffffee;
+          border-color: #ffff00;
+          color: #aaaa00;
+      }
+      .odds {
+          background-color: #eeffff;
+          border-color: #00ffff;
+          color: #00aaaa;
+      }
+      .false {
+          background-color: #ffeeee;
+          border-color: #ff0000;
+          color: #aa0000;
+      }
+      .true {
+          background-color: #eeffee;
+          border-color: #00ff00;
+          color: #00aa00;
+      }
+      .bayes, .sample {
+          background-color: #eeeeee;
+          border-color: #777777;
+          color: #777777;
+      }
+      .value {
+          color: #000000;
+          font-style: normal;
+          font-size: 1.25em;
+      }
+      .slider {
+          width : 500px;
+          vertical-align: middle;
+      }
+      label{
+          vertical-align: middle;
+          display: inline-block;
+          width: 100px;
+          text-align: right;
+      }
+      .input {
+          display: block;
+      }
+      .emphasis {
+          font-weight: bold;
+          background-color: #ffffff;
+      }
     </style>
   </head>
   <body>
     <div id="content">
       <div id="priors">
-        <h1>Prior</h1>
+        <h1>The Bayes Factor</h1>
+        <p>Bayes Factor is defined as the ratio of the likelihood of one particular hypothesis to the likelihood of another hypothesis. In the context of understanding a test result, the Bayes factor can translate the sensitivity and specificity of a test to a percentage that represents the likelihood that a positive result is accurate.</p>
+
+        <h2>Prior</h2>
         <p>This describes the probability of having a disease prior to screening</p>
 
         <div class="input">
@@ -101,7 +104,7 @@ label{
       </div>
 
       <div id="sensitivity">
-        <h1>Sensitivity</h1>
+        <h2>Sensitivity</h2>
         <p>This describes what percentage of subjects with the disease are correctly flagged by the screening. This represents the amount of <span class="emphasis true">True Positives</span> and <span class="emphasis false">False Negatives</span></p>
 
         <div class="input">
@@ -118,7 +121,7 @@ label{
       </div>
 
       <div id="specificity">
-        <h1>Specificity</h1>
+        <h2>Specificity</h2>
         <p>This describes what percentage of subjects without the disease are correctly cleared by the screening. This represents the amount of <span class="emphasis true">True Negatives</span> and <span class="emphasis false">False Positives</span></p>
 
         <div class="input">
@@ -135,7 +138,7 @@ label{
       </div>
 
       <div id="results">
-	<h1>Results</h1>
+	<h2>Results</h2>
 	<p>The bayes factor is calculated by dividing the <span class="emphasis">Sensitivity</span> by the <span class="emphasis false">False Positive</span> rate</p>
         <div class="boxes">
           <span class="box bayes">Bayes Factor<br><span class="value" id="bayes"></span></span>
