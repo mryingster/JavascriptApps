@@ -6,6 +6,7 @@
   </head>
   <body onload="main();" onresize="resize();">
     <div id="content">
+      <canvas id="background"></canvas>
       <img id="title" src="CandyRain.svg">
       <div id="debug" class="hidden">
         Candies Spawned: <span id="spawned"></span><br>
@@ -20,22 +21,25 @@
         Current Streak: <span id="cstreak"></span><br>
         Best Streak: <span id="lstreak"></span><br>
       </div>
-      <canvas id="canvas">
+      <canvas id="canvas"></canvas>
     </div>
   </body>
   <script>
 
 let themes = [
-    { name : "goodandplenty", background : "#A4298C", colors : ["#DF238D", "#FFFFFF"] },
-    { name : "mikeandike",    background : "#3DA741", colors : ["#F68651", "#FDD94B", "#DE1822", "#9FC434", "#EA5044"] },
-    { name : "hottomales",    background : "#F10210", colors : ["#C60B12"] },
-    { name : "berryblast",    background : "#0287CC", colors : ["#044c8c", "#e57ba2", "#e4753d", "#07a2b2", "#543c86"] },
-    { anme : "tropical",      background : "#fd0e31", colors : ["#a5de5b", "#fa6769", "#fba22b", "#f87f90", "#0ebdd8"] },
+    { name : "goodandplenty", background : "#A4298C", colors : [{r:0xdf,g:0x23,b:0x8d},{r:0xff,g:0xff,b:0xff}] },
+    { name : "mikeandike",    background : "#3DA741", colors : [{r:0xf6,g:0x86,b:0x51},{r:0xfd,g:0xd9,b:0x4b},{r:0xde,g:0x18,b:0x22},{r:0x9f,g:0xc4,b:0x32},{r:0xea,g:0x50,b:0x44}] },
+    { name : "hottomales",    background : "#F10210", colors : [{r:0xc6,g:0x0b,b:0x12}] },
+    { name : "berryblast",    background : "#0287CC", colors : [{r:0x04,g:0x4c,b:0x8c},{r:0xe5,g:0x7b,b:0xa2},{r:0xe4,g:0x75,b:0x3d},{r:0x07,g:0xa2,b:0xb2},{r:0x54,g:0x3c,b:0x86}] },
+    { anme : "tropical",      background : "#fd0e31", colors : [{r:0xa5,g:0xde,b:0x5b},{r:0xfa,g:0x67,b:0x69},{r:0xfb,g:0xa2,b:0x2b},{r:0xf8,g:0x7f,b:0x90},{r:0x0e,g:0xbd,b:0xd8}] },
     //"" : { background : "", candycolors : [""] },
 ];
 
 let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
+let background_canvas = document.getElementById("background");
+let bctx = background_canvas.getContext("2d");
+
 let last_frame;
 let candies = [];
 let target = 15;
@@ -48,9 +52,9 @@ let last_pos = {x:100, y:0};
 let eaten = 0;
 let missed = 0;
 let current_streak = 0;
+let current_candy_count = 0;
 let longest_streak = 0;
 let paused = false;
-let theme = 0;
 let overlays = [];
 
 // Keyboard Listeners
@@ -128,7 +132,7 @@ canvas.addEventListener('mouseup', function(e) {
 });
 
 class candy {
-    constructor(ctx) {
+    constructor(ctx, color) {
         this.ctx = ctx;
 
         this.pos   = {
@@ -143,15 +147,20 @@ class candy {
             r: Math.random() * 1 - .5
         };
 
-        this.color = Math.floor(Math.random() * 5);
+        this.color = color
         this.size = 20;
 
+        this.alpha = 1;
+        this.can_eat = true;
         this.remove = false
     }
 
     move(ms) {
         if (isNaN(ms)) return;
         this.pos.r += this.speed.r * ms;
+
+        if (!this.can_eat)
+            this.alpha -= .002 * ms;
 
         if (!paused) {
             this.pos.x += this.speed.x * ms;
@@ -162,8 +171,10 @@ class candy {
         // Mark candies for deletion if the move off the screen
         if (this.pos.y > this.ctx.canvas.height + 50) {
             this.remove = true;
-            missed++;
-            reset_streak();
+            if (this.can_eat) {
+                missed++;
+                reset_streak();
+            }
         }
 
         // If candies hit the edge, bounce back the other direction
@@ -181,7 +192,7 @@ class candy {
 
         // Check for collision with pac man
         let distance = Math.abs(Math.hypot(player1.pos.x - this.pos.x, player1.pos.y - this.pos.y));
-        if (distance < 100) {
+        if (distance < 100 && this.can_eat) {
             eat(this.pos);
             this.remove = true;
             player1.phase = -Math.PI;
@@ -202,10 +213,44 @@ class candy {
         this.ctx.lineTo(this.size * 2, this.size * -1);
         this.ctx.arc(this.size * 2, 0, this.size, Math.PI / -2, Math.PI /2);
 
-        this.ctx.fillStyle = themes[theme].colors[this.color % themes[theme].colors.length];
+        this.ctx.fillStyle = "rgba("+this.color.r+","+this.color.g+","+this.color.b+","+this.alpha+")";;
         this.ctx.fill();
 
         this.ctx.restore();
+    }
+}
+
+class background {
+    constructor(ctx) {
+        this.ctx = ctx;
+
+        this.levels = [];
+        this.reset();
+    }
+
+    add_level(c) {
+        this.levels.push({c:c, p:-100, s:0})
+    }
+
+    reset() {
+        this.levels = [{c:"#A4298C", p:this.ctx.canvas.height, s:0}]
+    }
+
+    move(ms) {
+        if (isNaN(ms)) return;
+        if (!paused) {
+            for (let l of this.levels) {
+                l.s += gravity * ms / 20000;
+                l.p += l.s * ms;
+            }
+        }
+    }
+
+    render() {
+        for (let l=0; l<this.levels.length; l++) {
+            this.ctx.fillStyle = this.levels[l].c;
+            this.ctx.fillRect(0,0, this.ctx.canvas.width, Math.min(this.ctx.canvas.height, this.levels[l].p));
+        }
     }
 }
 
@@ -261,7 +306,6 @@ class player {
 function draw_overlays(ms) {
     if (isNaN(ms)) return;
 
-
     for (let i=0; i<overlays.length; i++) {
         let s = ((1 - Math.min(overlays[i].d / 750)) * 30) + 40;
         ctx.font = s+"px Arial"
@@ -301,8 +345,16 @@ function eat(p) {
     }
 }
 
+function make_candies_inedible()  {
+    for (let candy of candies)
+        candy.can_eat = false;
+}
+
 function reset_streak() {
+    make_candies_inedible();
     current_streak = 0;
+    current_candy_count = 0;
+    background1.reset();
 }
 
 function main_loop(timestamp) {
@@ -321,18 +373,23 @@ function main_loop(timestamp) {
     }
 
     // Update spawn rate/level settings
-    let level = Math.floor(current_streak / 10);
+    let level = Math.floor(current_candy_count / 10);
+    let current_theme = level % themes.length
     max_delay = Math.max(350, 1000 - (100 * level));
     target = 5 + (level * 5);
-    change_theme(level % themes.length);
 
     // Add more candies
     if (!isNaN(elapsed) && !paused)
         add_delay -= elapsed;
     if (candies.length < target && add_delay <= 0){
-        candies.push(new candy(ctx));
+        candies.push(new candy(ctx, themes[current_theme].colors[Math.floor(Math.random() * themes[current_theme].colors.length)]));
+        current_candy_count++;
         count++;
         add_delay = Math.random() * max_delay;
+        if (current_candy_count % 10 == 0) {
+            background1.add_level(themes[(level + 1) % themes.length].background);
+            console.log(level % themes.length, themes[level % themes.length].background, background1.levels);
+        }
     }
 
     // Debug
@@ -354,11 +411,13 @@ function main_loop(timestamp) {
     for (let candy of candies)
         candy.move(elapsed);
     player1.move(elapsed);
+    background1.move(elapsed);
 
     // Redraw
     for (let candy of candies)
         candy.render();
     player1.render();
+    background1.render();
 
     draw_overlays(elapsed);
 
@@ -370,12 +429,15 @@ function main_loop(timestamp) {
 function resize() {
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
+    background_canvas.width  = window.innerWidth;
+    background_canvas.height = window.innerHeight;
 }
 
 function main() {
     resize();
     load_score();
     player1 = new player(ctx);
+    background1 = new background(bctx);
     main_loop();
 }
 
@@ -385,14 +447,6 @@ function save_score() {
 
 function load_score() {
     longest_streak = localStorage.getItem("candyrain");
-}
-
-function change_theme(n=null) {
-    if (n == null)
-        theme = (theme + 1 ) % themes.length;
-    else
-        theme = n;
-    document.body.style.background = themes[theme].background;
 }
 
   </script>
