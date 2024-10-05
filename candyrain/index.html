@@ -182,7 +182,7 @@ class candy {
         // Check for collision with pac man
         let distance = Math.abs(Math.hypot(player1.pos.x - this.pos.x, player1.pos.y - this.pos.y));
         if (distance < 100) {
-            eat();
+            eat(this.pos);
             this.remove = true;
             player1.phase = -Math.PI;
         }
@@ -267,6 +267,8 @@ function draw_overlays(ms) {
         ctx.font = s+"px Arial"
 
         let a = Math.min(1, overlays[i].d / 500);
+        ctx.textAlign = "center";
+        ctx.textBaseline = 'middle';
         ctx.fillStyle = "rgba(0, 0, 0, "+a+")"
         ctx.strokeStyle = "rgba(255, 255, 255, "+a+")"
         ctx.strokeText(overlays[i].t, overlays[i].x, overlays[i].y);
@@ -281,14 +283,14 @@ function draw_overlays(ms) {
     }
 }
 
-function eat() {
+function eat(p) {
     eaten++;
     current_streak++;
 
 
     overlays.push({
-        x: player1.pos.x,
-        y: player1.pos.y,
+        x: p.x,
+        y: p.y,
         t: current_streak,
         d: 750,
     });
