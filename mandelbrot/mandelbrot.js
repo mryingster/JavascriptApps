@@ -1,5 +1,5 @@
 class Mandelbrot {
-    constructor(canvas, depth_selection, scale_selection, coord_display) {
+    constructor(canvas, depth_selection, scale_selection, coord_display, preview_cb) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
 
@@ -10,6 +10,8 @@ class Mandelbrot {
 
         this.scale_selection = scale_selection;
         this.scale = 1;
+
+        this.preview_cb = preview_cb;
 
         this.zoom = .004;
 
@@ -246,8 +248,23 @@ class Mandelbrot {
         this.coord_display.innerHTML = string;
     }
 
+    read_slider() {
+        let slider = this.depth_selection;
+        let minp = slider.min;
+        let maxp = slider.max;
+
+        let minv = Math.log(1);
+        let maxv = Math.log(4096);
+
+        let scale = (maxv - minv) / (maxp - minp);
+
+        let value = Math.floor(Math.exp(minv + scale * (slider.value - minp)));
+        return value;
+    }
+
     read_settings() {
-        this.depth = Number(this.depth_selection.value);
+        this.depth = this.read_slider();
+        this.preview_enabled = this.preview_cb.checked;
         this.scale = Number(this.scale_selection.value);
     }
 
@@ -265,11 +282,10 @@ class Mandelbrot {
         clearTimeout(this.final_render_timer);
 
         // If preview requested...
-        if (preview == true) {
+        if (preview == true && this.preview_enabled && this.scale != 8) {
 	    this.scale = 8;
 	    // If there is a render preview request, set a timeout to render actual image after 1/2 second
 	    if (this.mouse_down != true) {
-                console.log("setting timer");
 	        this.final_render_timer = setTimeout(() => this.render(), 250);
 	    }
         }
@@ -297,7 +313,7 @@ class Mandelbrot {
                 let result = this.mandel(xValue, yValue, this.depth);
 
                 // Choose a color
-                let finalColor = "#000000";
+                let finalColor = {r:0, g:0, b:0, a:255};
                 if (result != -1)
                     if (this.proportional_color) {
                         finalColor = this.gradient[Math.floor(this.gradient.length / this.depth * result)];
@@ -309,7 +325,7 @@ class Mandelbrot {
                 buffer.data[buffer_index + 0] = finalColor.r; // R
                 buffer.data[buffer_index + 1] = finalColor.g; // G
                 buffer.data[buffer_index + 2] = finalColor.b; // B
-                buffer.data[buffer_index + 3] = 255; // A
+                buffer.data[buffer_index + 3] = finalColor.a == undefined ? 255 : finalColor.a; // A
 
                 buffer_index += 4;
             }

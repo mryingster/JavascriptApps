@@ -59,4 +59,9 @@ canvas {
 #download, #share {
     float: right;
     margin-right: 12px;
+    margin-top: 2px;
+}
+
+input {
+    vertical-align: middle;
 }

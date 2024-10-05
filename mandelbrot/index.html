@@ -16,21 +16,8 @@
     <button class="zoom" onclick="zoom(false, null)">-</button>
     <button class="zoom" onclick="zoom(true, null)">+</button>
       Depth:
-      <select onchange="rerender()" id="depthSelection">
-        <option>1</option>
-        <option>2</option>
-        <option>4</option>
-        <option>8</option>
-        <option>16</option>
-        <option selected="selected">32</option>
-        <option>64</option>
-        <option>128</option>
-        <option>256</option>
-        <option>512</option>
-        <option>1024</option>
-        <option>2048</option>
-        <option>4096</option>
-      </select>
+      <input type="range" min="1" max="512" value="214" width="512" oninput="slide_depth();" id="depthSelection">
+      <span id="depth">32</span>
       Scale:
       <select onchange="rerender()" id="scaleSelection">
         <option>.25</option>
@@ -42,18 +29,19 @@
       </select>
       Scheme:
       <select onchange="update_gradient()" id="scheme">
-        <option selected="selected">Rainbow</option>
+        <option selected="selected">Spectrum</option>
         <option>Red</option>
         <option>Green</option>
         <option>Blue</option>
         <option>White</option>
         <option>Sunset</option>
-        <option>Cycle</option>
         <option>Random Gradient</option>
+        <option>Spectrum Cycle</option>
         <option>Random Colors</option>
         <option>Zebra</option>
         <option>Set Only</option>
-      </select>
+    </select>
+    <input type="checkbox" id="preview" name="preview" value="preview" checked><label for="preview">Preview</label>
 
       <span id="share"><a href="#" id="share_link">Share Link</a></span>
       <span id="download"><a href="#" id="download_link" onclick="save_image();" download="mandelbrot.png">Download PNG</a></span>
@@ -84,14 +72,34 @@ let mandelbrot = new Mandelbrot(
     document.getElementById("depthSelection"),
     document.getElementById("scaleSelection"),
     document.getElementById("coords"),
+    document.getElementById("preview"),
 )
 
 function zoom(z) {
     mandelbrot.update_zoom(z);
 }
 
-function rerender() {
-    mandelbrot.render();
+function rerender(preview=false) {
+    mandelbrot.render(preview);
+}
+
+function slide_depth() {
+    rerender(true);
+    document.getElementById("depth").innerHTML = mandelbrot.depth;
+}
+
+function set_slider(value) {
+    let slider = document.getElementById("depthSelection");
+    let minp = slider.min;
+    let maxp = slider.max;
+
+    let minv = Math.log(1);
+    let maxv = Math.log(4096);
+
+    let scale = (maxv - minv) / (maxp - minp);
+
+    slider.value = (Math.log(value) - minv) / scale + minp;
+    document.getElementById("depth").innerHTML = value;
 }
 
 function resize_canvas() {
@@ -126,7 +134,7 @@ function update_gradient() {
     let gradient = [];
     let proportional_color;
 
-    if (selection == "Rainbow") {
+    if (selection == "Spectrum") {
         gradient = create_gradient([{r:255,g:0,b:0}, {r:255,g:255,b:0}, {r:0,g:255,b:0}, {r:0,g:255,b:255}, {r:0,g:0,b:255}, {r:255,g:0,b:255}]);
         proportional_color = true;
     }
@@ -146,17 +154,29 @@ function update_gradient() {
         gradient = create_gradient([{r:0,g:0,b:0}, {r:255,g:255,b:255}]);
         proportional_color = true;
     }
+    if (selection == "Red/White") {
+        gradient = create_gradient([{r:0,g:0,b:0}, {r:255,g:0,b:0}, {r:255,g:255,b:255}]);
+        proportional_color = true;
+    }
+    if (selection == "Green/White") {
+        gradient = create_gradient([{r:0,g:0,b:0}, {r:0,g:255,b:0}, {r:255,g:255,b:255}]);
+        proportional_color = true;
+    }
+    if (selection == "Blue/White") {
+        gradient = create_gradient([{r:0,g:0,b:0}, {r:0,g:0,b:255}, {r:255,g:255,b:255}]);
+        proportional_color = true;
+    }
     if (selection == "Sunset") {
         gradient = create_gradient([{r:255,g:255,b:0}, {r:255,g:0,b:255}, {r:0,g:0,b:255}]);
         proportional_color = true;
     }
-    if (selection == "Cycle") {
-        gradient = [{r:255,g:0,b:0}, {r:255,g:255,b:0}, {r:0,g:255,b:0}, {r:0,g:255,b:255}, {r:0,g:0,b:255}, {r:255,g:0,b:255}];
-        proportional_color = false;
-    }
     if (selection == "Random Gradient") {
         gradient = create_gradient([random_color(), random_color()]);
         proportional_color = true;
+    }
+    if (selection == "Spectrum Cycle") {
+        gradient = [{r:255,g:0,b:0}, {r:255,g:255,b:0}, {r:0,g:255,b:0}, {r:0,g:255,b:255}, {r:0,g:0,b:255}, {r:255,g:0,b:255}];
+        proportional_color = false;
     }
     if (selection == "Random Colors") {
         for (let i=0; i<256; i++)
@@ -168,7 +188,7 @@ function update_gradient() {
         proportional_color = false;
     }
     if (selection == "Set Only") {
-        gradient = [{r:255,g:255,b:255}, {r:255,g:255,b:255}];
+        gradient = [{r:255,g:255,b:255,a:0}, {r:255,g:255,b:255,a:0}];
         proportional_color = false;
     }
 
@@ -193,10 +213,14 @@ function first_run() {
         let z = Number(coords.split(":")[2]);
         let d = Number(coords.split(":")[3]);
 
-        mandelbrot.recenter(x, y);
-        mandelbrot.zoom = z;
+        if (!isNaN(x) && !isNaN(y))
+            mandelbrot.recenter(x, y);
 
-        document.getElementById("depthSelection").value = d;
+        if (!isNaN(z))
+            mandelbrot.zoom = z;
+
+        if (!isNaN(d))
+            set_slider(d);
     }
 
     update_gradient();
