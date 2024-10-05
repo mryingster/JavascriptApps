@@ -9,13 +9,16 @@ body {
 canvas {
     border: 0px solid black;
     margin: 0px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
 }
 #title {
     position: fixed;
     rotate: -20deg;
     left: 100px;
     width:500px;
-    z-index: -1;
+    #z-index: -1;
 }
 #debug {
     position: fixed;
