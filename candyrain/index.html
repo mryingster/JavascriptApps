@@ -267,8 +267,8 @@ class player {
         if (isNaN(ms)) return;
         document.getElementById("mousepos").innerHTML = last_pos.x + ", " + last_pos.y;
 
-        // Move vertically
-        this.pos.y = last_pos.y
+        // Move vertically (Subtract half a radius to make finger not cover player entirely)
+        this.pos.y = last_pos.y - (this.radius/2);
         // Don't go off bottom of screen
         this.pos.y = Math.min(this.pos.y, this.ctx.canvas.height - this.radius);
         // Don't go more than 1/4 up the screen
