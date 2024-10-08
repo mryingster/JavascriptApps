@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Stripe-ify</title>
+    <style>
+      body {
+          background:#eee;
+          color:#000;
+          font-family : sans-serif;
+          text-align: center;
+      }
+
+      #content {
+          background :#fff;
+          margin: auto;
+          width: 768px;
+          padding: 10px;
+      }
+
+      #header {
+          width: 512px;
+          text-align: left;
+          margin: auto;
+      }
+
+      #output_canvas {
+          #width: 100%;
+      }
+
+      .hidden {
+          display: none;
+      }
+
+      .slider {
+          vertical-align: middle;
+      }
+
+      input, .slider_label{
+          vertical-align: bottom;
+          margin-top: 10px;
+      }
+    </style>
+  </head>
+
+  <body onload="first_run();" onresize="">
+    <div id="content">
+      <div id="header">
+        <h1>Stripe-ify</h1>
+        <p>This takes an input image and reduces it to horizontal lines of varying thickness to represent the original image.</p>
+      </div>
+
+      <h3>Input</h3>
+      <canvas id="input_canvas"></canvas>
+      <br>
+      <input type="file" id="load"/>
+
+      <h3>Controls</h3>
+      <input type="range" min="1" max="25" value="4" id="scale" oninput="generate()">
+
+      <h3>Output</h3>
+      <canvas id="output_canvas"></canvas>
+
+    </div>
+  </body>
+
+  <script>
+
+// comment
+
+document.getElementById('load').addEventListener('change', load, false);
+//document.getElementById("save").onclick = () => { save() };
+
+function save(){
+    window.open(document.getElementById("output_canvas").toDataURL('image/png'));
+}
+
+let loaded = false;
+
+function load(e){
+    // Get image from user & Load it into main canvas
+    var reader = new FileReader();
+    reader.onload = function(event){
+        var img = new Image();
+        img.onload = function(){
+            load_image("input_canvas", img);
+        }
+        img.src = event.target.result;
+    }
+    reader.readAsDataURL(e.target.files[0]);
+}
+
+function load_image(canvas_name, image){
+    let canvas = document.getElementById(canvas_name);
+    let ctx = canvas.getContext("2d");
+
+    // Resize
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw!
+    ctx.drawImage(image, 0, 0);
+
+    // Mark as loaded
+    if (canvas == "depth_canvas")
+        depth_loaded = true;
+    if (canvas == "tile_canvas")
+        tile_loaded = true;
+
+    // Try rendering
+    generate();
+}
+
+function generate(){
+    let output_canvas = document.getElementById("output_canvas")
+    let output_ctx = output_canvas.getContext("2d");
+
+    let input_canvas = document.getElementById("input_canvas")
+    let input_ctx = input_canvas.getContext("2d");
+
+    let scale = Number(document.getElementById("scale").value);
+    let positioning = -1; // -1 bottom, 0 middle, 1 top;
+
+    // Resize output canvas to match input canvas times scale
+    output_canvas.width  = input_canvas.width;
+    output_canvas.height = input_canvas.height;
+
+    // Read through our input canvas 1 pixel at a time
+    let input  = input_ctx.getImageData( 0, 0, input_canvas.width,  input_canvas.height);
+    let output = output_ctx.getImageData(0, 0, output_canvas.width, output_canvas.height);
+
+    // Convert input buffer to 2D array
+    let image = [];
+    let line = [];
+    for (let i=0; i<input.data.length; i+=4) {
+        if (i > 0 && i % (input_canvas.width * 4) == 0) {
+            image.push(line);
+            line = [];
+        }
+
+        let pixel = {
+            r: input.data[i + 0],
+            g: input.data[i + 1],
+            b: input.data[i + 2],
+            a: input.data[i + 3],
+        }
+        line.push(pixel);
+    }
+    image.push(line);
+
+    // Process the image and save to new array
+    let obuff = [];
+    let oline = [];
+    for (let y=0; y<image.length; y+=scale) {
+        for (let x=0; x<image[0].length; x++) {
+            let values = [];
+            for (let z=0; z<scale && y+z<image.length; z++) {
+                values.push(image[y+z][x]);
+            }
+
+            let average = 0;
+            for (let n of values)
+                average += n.r + n.g, + n.b;
+            average /= (values.length / 3);
+
+            oline.push(average);
+        }
+        obuff.push(oline);
+        oline = [];
+    }
+
+    // Convert new array into lines for output
+    let i = 0;
+    for (let y=0; y<obuff.length; y++) {
+        for (let z=scale; z>0; z--) {
+            for (let x=0; x<obuff[y].length; x++) {
+                let color = 255;
+                if (obuff[y][x] / 255 < z / scale)
+                    color = 0;
+                output.data[i + 0] = color;
+                output.data[i + 1] = color;
+                output.data[i + 2] = color;
+                output.data[i + 3] = 255;
+                i += 4;
+            }
+        }
+    }
+
+    output_ctx.putImageData(output, 0, 0);
+}
+
+function first_run(){
+    // Load sample image
+    let image = new Image();
+    image.onload = function() {
+        load_image("input_canvas", image);
+        generate();
+    }
+    image.src = "sample.jpg";
+}
+
+first_run();
+
+  </script>
+</html>
