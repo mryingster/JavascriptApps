@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <title>Angled Line</title>
+    <style>
+      body {
+          background:#aaa;
+          color:#000;
+	  font-family:sans-serif;
+      }
+
+      div#content {
+	  background:#fff;
+          width:512px;
+          margin: 0 auto 0 auto;
+          padding:15px;
+          border-radius: 20px;
+          text-align: center;
+      }
+
+      h1 {
+	  margin:10px;
+	  font-size:3em;
+      }
+      input {
+          vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <h1>Angled Line</h1>
+      <canvas id="canvas" width="512" height="512"></canvas>
+      <br>
+      Angle:<input type="range" min="0" max="180" width="512px" id="angleslider" oninput="update();" value="60"> <span id="anglespan"></span>
+      <br>
+      Span:<input type="range" min="1" max="200" width="512px" id="spanslider" oninput="update();" value="100"> <span id="spanspan"></span>
+      <br>
+      Segments:<input type="range" min="1" max="100" width="512px" id="segmentslider" oninput="update();" value="10"> <span id="segmentspan"></span>
+    </div>
+  </body>
+  <script>
+    function update() {
+        let angle = document.getElementById("angleslider").value;
+        document.getElementById("anglespan").innerHTML = angle;
+
+        let span = document.getElementById("spanslider").value;
+        document.getElementById("spanspan").innerHTML = span;
+
+        let segments = document.getElementById("segmentslider").value;
+        document.getElementById("segmentspan").innerHTML = segments;
+
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext("2d");
+
+        ctx.clearRect(-400, -400, canvas.width + 400, canvas.height + 400);
+
+        for (let i=0; i<segments; i++) {
+            ctx.translate(span, 0);
+            ctx.rotate((Math.PI / 180) * angle);
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(span, 0);
+            ctx.strokeStyle = "#00ff00";
+            ctx.stroke();
+        }
+        ctx.setTransform(1, 0, 0, 1, 200, 50);
+    }
+
+    update();
+  </script>
+</html>
