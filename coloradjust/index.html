@@ -71,7 +71,7 @@
         <h3>Output</h3>
         <canvas id="output_canvas"></canvas>
         <br>
-    <button onclick="save();">Save</button>
+        <button onclick="save();">Save</button>
       </div>
 
       <h3>Channels</h3>
@@ -101,9 +101,14 @@
         <span id="b_range"></span>
       </div>
 
+      <div style="margin-top: 10px;">
+        <button id="reset" onclick="reset();">Reset</button>
+        <button id="optimize" onclick="optimize();">Optimize</button>
+      </div>
+
       <div id="histogram_div">
         <h3>Histogram</h3>
-    <canvas id="histogramcanvas" width="512" height="256"></canvas>
+        <canvas id="histogramcanvas" width="512" height="256"></canvas>
       </div>
 
     </div>
@@ -114,13 +119,9 @@
 // comment
 
 document.getElementById('load').addEventListener('change', load, false);
-//document.getElementById("save").onclick = () => { save() };
-
-function save(){
-    window.open(document.getElementById("output_canvas").toDataURL('image/png'));
-}
 
 let loaded = false;
+let range = {r:[0,255],g:[0,255],b:[0,255]};
 
 function load(e){
     // Get image from user & Load it into main canvas
@@ -249,9 +250,11 @@ function generate(){
     let output    = output_ctx.getImageData(0, 0, output_canvas.width, output_canvas.height);
 
     // Keep track of our min and max values for science
-    let range_r = [255,0];
-    let range_g = [255,0];
-    let range_b = [255,0];
+    range = {
+        r:[255,0],
+        g:[255,0],
+        b:[255,0],
+    };
 
     // tally values for histogram and science
     let hist_scale = 1;
@@ -278,12 +281,12 @@ function generate(){
         let new_b = Math.min(Math.max(Math.floor(b * b_scale / 100) + b_shift, 0), 255);
 
         // Tracking extremes
-        range_r[0] = Math.min(range_r[0], new_r);
-        range_r[1] = Math.max(range_r[1], new_r);
-        range_g[0] = Math.min(range_g[0], new_g);
-        range_g[1] = Math.max(range_g[1], new_g);
-        range_b[0] = Math.min(range_b[0], new_b);
-        range_b[1] = Math.max(range_b[1], new_b);
+        range.r[0] = Math.min(range.r[0], new_r);
+        range.r[1] = Math.max(range.r[1], new_r);
+        range.g[0] = Math.min(range.g[0], new_g);
+        range.g[1] = Math.max(range.g[1], new_g);
+        range.b[0] = Math.min(range.b[0], new_b);
+        range.b[1] = Math.max(range.b[1], new_b);
 
         // Tracking trends
         hist.r[Math.floor(new_r / hist_scale)]++;
@@ -312,9 +315,9 @@ function generate(){
         output.data[i + 3] = a;
     }
 
-    document.getElementById("r_range").innerHTML = "Min:"+range_r[0]+", Max:"+range_r[1];
-    document.getElementById("g_range").innerHTML = "Min:"+range_g[0]+", Max:"+range_g[1];
-    document.getElementById("b_range").innerHTML = "Min:"+range_b[0]+", Max:"+range_b[1];
+    document.getElementById("r_range").innerHTML = "Min:"+range.r[0]+", Max:"+range.r[1];
+    document.getElementById("g_range").innerHTML = "Min:"+range.g[0]+", Max:"+range.g[1];
+    document.getElementById("b_range").innerHTML = "Min:"+range.b[0]+", Max:"+range.b[1];
 
     update_histogram(hist, hist_scale);
 
@@ -323,6 +326,45 @@ function generate(){
     g_ctx.putImageData(channel_g, 0, 0);
     b_ctx.putImageData(channel_b, 0, 0);
     output_ctx.putImageData(output, 0, 0);
+}
+
+function update_sliders(r1, r2, g1, g2, b1, b2) {
+    document.getElementById("multiply_r").value = r1;
+    document.getElementById("add_r").value = r2;
+    document.getElementById("mult_r_span").innerHTML = (r1 / 100).toFixed(2);
+    document.getElementById("add_r_span").innerHTML = r2;
+
+    document.getElementById("multiply_g").value = g1;
+    document.getElementById("add_g").value = g2;
+    document.getElementById("mult_g_span").innerHTML = (g1 / 100).toFixed(2);
+    document.getElementById("add_g_span").innerHTML = g2;
+
+    document.getElementById("multiply_b").value = b1;
+    document.getElementById("add_b").value = b2;
+    document.getElementById("mult_b_span").innerHTML = (b1 / 100).toFixed(2);
+    document.getElementById("add_b_span").innerHTML = b2;
+
+}
+
+function reset() {
+    update_sliders(100, 0, 100, 0, 100, 0);
+    generate();
+}
+
+function optimize() {
+    reset();
+
+    update_sliders(
+        Math.floor(255 * 100 / (range.r[1] - range.r[0])),
+        range.r[0] * -1,
+        Math.floor(255 * 100 / (range.g[1] - range.g[0])),
+        range.g[0] * -1,
+        Math.floor(255 * 100 / (range.b[1] - range.b[0])),
+        range.b[0] * -1,
+    );
+
+    generate();
+
 }
 
 function save(){
@@ -334,7 +376,6 @@ function first_run(){
     let image = new Image();
     image.onload = function() {
         load_image("input_canvas", image);
-        generate();
     }
     image.src = "sample.jpg";
 }
