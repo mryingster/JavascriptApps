@@ -10,13 +10,13 @@
   </head>
   <body onresize="resize_canvas();" onload="first_run();">
 
-    <canvas id="canvas" width="1660" height="1085"></canvas>
+    <canvas id="canvas"></canvas>
 
     <div id="controls">
     <button class="zoom" onclick="zoom(false, null)">-</button>
     <button class="zoom" onclick="zoom(true, null)">+</button>
       Depth:
-      <input type="range" min="1" max="512" value="214" width="512" oninput="slide_depth();" id="depthSelection">
+      <input type="range" min="1" max="512" value="214" oninput="slide_depth();" id="depthSelection">
       <span id="depth">32</span>
       Scale:
       <select onchange="rerender()" id="scaleSelection">
@@ -94,7 +94,7 @@ function set_slider(value) {
     let maxp = slider.max;
 
     let minv = Math.log(1);
-    let maxv = Math.log(4096);
+    let maxv = Math.log(10000);
 
     let scale = (maxv - minv) / (maxp - minp);
 
@@ -103,6 +103,7 @@ function set_slider(value) {
 }
 
 function resize_canvas() {
+    mandelbrot.resize_canvas();
     mandelbrot.render();
 }
 
@@ -133,6 +134,7 @@ function update_gradient() {
     let selection = document.getElementById("scheme").value;
     let gradient = [];
     let proportional_color;
+    let clear_canvas = false;
 
     if (selection == "Spectrum") {
         gradient = create_gradient([{r:255,g:0,b:0}, {r:255,g:255,b:0}, {r:0,g:255,b:0}, {r:0,g:255,b:255}, {r:0,g:0,b:255}, {r:255,g:0,b:255}]);
@@ -190,11 +192,13 @@ function update_gradient() {
     if (selection == "Set Only") {
         gradient = [{r:255,g:255,b:255,a:0}, {r:255,g:255,b:255,a:0}];
         proportional_color = false;
+        clear_canvas = true;
     }
 
     mandelbrot.gradient = gradient;
     mandelbrot.proportional_color = proportional_color;
-    mandelbrot.render();
+    mandelbrot.clear_canvas_on_redraw = clear_canvas;
+    mandelbrot.render(true);
 }
 
 function save_image() {
@@ -223,6 +227,7 @@ function first_run() {
             set_slider(d);
     }
 
+    mandelbrot.resize_canvas();
     update_gradient();
 }
 

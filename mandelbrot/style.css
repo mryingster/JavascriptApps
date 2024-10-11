@@ -30,6 +30,7 @@ canvas {
     color:#fff;
     font-style: italic;
     float: right;
+    text-shadow: 0px 1px 5px black;
 }
 
 .coord {
@@ -64,4 +65,8 @@ canvas {
 
 input {
     vertical-align: middle;
+}
+
+#depthSelection {
+    width: 512px;
 }

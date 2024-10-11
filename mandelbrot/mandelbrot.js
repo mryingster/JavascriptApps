@@ -17,6 +17,7 @@ class Mandelbrot {
 
         this.gradient = [{r:0,g:0,b:0}, {r:255,g:255,b:255}];
         this.proportional_color = false;
+        this.clear_canvas_on_redraw = false;
 
         this.coord_display = coord_display;
         this.mouse_down = false;
@@ -27,6 +28,8 @@ class Mandelbrot {
         this.touch_zoom_start;
 
         this.final_render_timer;
+        this.requests = [];
+        this.render_start_time;
 
         // Mouse listeners
         this.canvas.addEventListener('mousedown',  (event) => this.input_mouse_down(event));
@@ -81,7 +84,7 @@ class Mandelbrot {
                 this.coords.y -= y_diff * this.zoom;
             }
 
-            this.render();
+            this.render(true);
         }
     }
 
@@ -254,7 +257,7 @@ class Mandelbrot {
         let maxp = slider.max;
 
         let minv = Math.log(1);
-        let maxv = Math.log(4096);
+        let maxv = Math.log(10000);
 
         let scale = (maxv - minv) / (maxp - minp);
 
@@ -269,8 +272,16 @@ class Mandelbrot {
     }
 
     resize_canvas() {
-        this.canvas.width  = Math.ceil(window.innerWidth/this.scale);
-        this.canvas.height = Math.ceil(window.innerHeight/this.scale);
+        // Get image data to save contents before scaling
+        let buffer_canvas = new OffscreenCanvas(this.canvas.width, this.canvas.height);
+        let buffer_ctx    = buffer_canvas.getContext("2d");
+        buffer_ctx.putImageData(this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height), 0, 0);
+
+        this.canvas.width  = Math.ceil(window.innerWidth  / this.scale);
+        this.canvas.height = Math.ceil(window.innerHeight / this.scale);
+
+        // Paste back what we had before (but scaled for the new canvas size)
+        this.ctx.drawImage(buffer_canvas, 0, 0, canvas.width, canvas.height);
     }
 
     render(preview = false, x_offset = 0, y_offset = 0) {
@@ -291,25 +302,97 @@ class Mandelbrot {
         }
 
         // Start timer
-        let start = new Date().getTime();
+        this.render_start_time = new Date().getTime();
 
         // Resize canvas according to scale
         this.resize_canvas();
-        let buffer         = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        let buffer_index   = 0;
 
-        // Shift x and y so coordinates are centered in window
-        let shifted_x = this.coords.x - (this.canvas.width  / 2 * this.zoom * this.scale);
-        let shifted_y = this.coords.y - (this.canvas.height / 2 * this.zoom * this.scale);
+        // Split canvas into sections a certain size
+        let qwidth  = this.canvas.width;
+        let qheight = this.canvas.height;
 
-        // Shift by our offset in case of panning
-        shifted_x -= x_offset * this.zoom;
-        shifted_y -= y_offset * this.zoom;
+        if (!preview && this.scale < 8) {
+            if (this.depth > 128) {
+                qwidth = 512;
+                qheight = 512;
+            }
 
-        for (let y=0; y<this.canvas.height; y++) {
-            for (let x=0; x<this.canvas.width; x++) {
-                let xValue = shifted_x + (x * this.zoom * this.scale);
-                let yValue = shifted_y + (y * this.zoom * this.scale);
+            if (this.depth > 512) {
+                qwidth = 256;
+                qheight = 256;
+            }
+
+            if (this.depth > 1024) {
+                qwidth = 128;
+                qheight = 128;
+            }
+        }
+
+        let to_render = [];
+        for (let qy = 0; qy * qheight<this.canvas.height; qy++)
+            for (let qx = 0; qx * qwidth<this.canvas.width; qx++) {
+                // Shift x and y so coordinates are centered in window
+                let shifted_x = this.coords.x - (this.canvas.width  / 2 * this.zoom * this.scale);
+                let shifted_y = this.coords.y - (this.canvas.height / 2 * this.zoom * this.scale);
+
+                // Shift by our offset in case of panning
+                shifted_x -= x_offset * this.zoom;
+                shifted_y -= y_offset * this.zoom;
+
+                // Cut down to our quadrant
+                shifted_x += qx * qwidth  * this.zoom * this.scale;
+                shifted_y += qy * qheight * this.zoom * this.scale;
+
+                to_render.push(
+                    {
+                        x: shifted_x,
+                        y: shifted_y,
+                        w: qwidth,
+                        h: qheight,
+                        s: this.zoom * this.scale,
+                        fx: qx * qwidth,
+                        fy: qy * qheight,
+                        fw: qwidth,
+                        fh: qheight
+
+                    }
+                );
+            }
+
+        for (let request of this.requests) {
+            cancelAnimationFrame(request);
+            this.requests.shift();
+        }
+
+        this.requests.push(window.requestAnimationFrame(() => this.animate(to_render)));
+
+        // Update share link
+        let url = window.location.href.split('?')[0];
+        document.getElementById("share_link").href = url+"?"+this.coords.x+":"+this.coords.y+":"+this.zoom+":"+this.depth;
+    }
+
+    animate(quadrants) {
+        if (quadrants.length == 0) return;
+
+        let x = quadrants[0].x;
+        let y = quadrants[0].y;
+        let w = quadrants[0].w;
+        let h = quadrants[0].h;
+        let s = quadrants[0].s;
+        let fx = quadrants[0].fx;
+        let fy = quadrants[0].fy;
+        let fw = quadrants[0].fw;
+        let fh = quadrants[0].fh;
+
+        let buffer_canvas = new OffscreenCanvas(w, h);
+        let buffer_ctx    = buffer_canvas.getContext("2d");
+        let buffer        = buffer_ctx.getImageData(0, 0, w, h);
+        let buffer_index  = 0;
+
+        for (let cy=0; cy<h; cy++) {
+            for (let cx=0; cx<w; cx++) {
+                let xValue = x + (cx * s);
+                let yValue = y + (cy * s);
                 let result = this.mandel(xValue, yValue, this.depth);
 
                 // Choose a color
@@ -331,16 +414,22 @@ class Mandelbrot {
             }
         }
 
+        // If clear canvas enabled
+        if (this.clear_canvas_on_redraw)
+            this.ctx.clearRect(fx, fy, fw, fh);
+
         // Draw back to the onscreen canvas
-        this.ctx.putImageData(buffer, 0, 0);
+        buffer_ctx.putImageData(buffer, 0, 0);
+        this.ctx.drawImage(buffer_canvas, fx, fy, fw, fh);
 
         // End timer
-        let duration = (new Date().getTime() - start);
+        let duration = (new Date().getTime() - this.render_start_time);
         document.getElementById("elapsed").innerHTML = format_time(duration);
 
-        // Update share link
-        let url = window.location.href.split('?')[0];
-        document.getElementById("share_link").href = url+"?"+this.coords.x+":"+this.coords.y+":"+this.zoom+":"+this.depth;
+        // Recurse
+        quadrants.shift()
+        this.requests.shift()
+        this.requests.push(window.requestAnimationFrame(() => this.animate(quadrants)));
     }
 
     mandel(x, y, depth) {
