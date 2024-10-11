@@ -6,6 +6,12 @@ body {
     color: #fff;
     font-family: sans-serif;
 }
+
+@font-face {
+    font-family: "Frankfurter";
+    src: url('fonts//OPTIFrankfurter-Medium.otf');
+}
+
 canvas {
     border: 0px solid black;
     margin: 0px;
@@ -13,6 +19,7 @@ canvas {
     top: 0px;
     left: 0px;
 }
+
 #title {
     position: fixed;
     rotate: -20deg;
@@ -20,19 +27,15 @@ canvas {
     width:500px;
     #z-index: -1;
 }
+
 #debug {
-    position: fixed;
-    right: 20px;
-    width: 200px;
-    bottom: 20px;
-}
-#score {
     font-size: 1.5em;
     position: fixed;
     right: 20px;
-    width: 250px;
+    width: 300px;
     top: 20px;
 }
+
 .hidden {
     display: none;
 }
