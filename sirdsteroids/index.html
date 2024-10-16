@@ -1,0 +1,359 @@
+<html>
+  <head>
+    <title>Sirdstroids</title>
+  </head>
+  <body>
+    <div id="content">
+      <canvas id="canvas_composite"></canvas>
+      <br>
+      <canvas id="canvas_final"></canvas>
+    </div>
+  </body>
+  <script>
+
+    let canvas = document.getElementById("canvas_composite");
+    let ctx = canvas.getContext("2d");
+
+    let canvas_final = document.getElementById("canvas_final");
+    let ctx_final = canvas_final.getContext("2d");
+
+    let sirds;
+
+    let player_1;
+    let asteroids = [];
+    let projectiles = [];
+
+    let animation_request;
+    let last_frame;
+
+    function color_map(z) {
+        return "hsl(0, 0%, "+(z+128)/256*100+"%)";
+    }
+
+    class player {
+        constructor(ctx) {
+            this.ctx = ctx;
+
+            this.pos = {
+                x: this.ctx.canvas.width / 2,
+                y: this.ctx.canvas.height / 2,
+                z: 64,
+                r: 0,
+            };
+
+            this.speed = {
+                t: 0,
+                r: 0,
+            };
+
+            this.forward = false;
+            this.backward = false;
+            this.clockwise = false;
+            this.counterclockwise = false
+            this.fire = false;
+
+            this.acceleration = 0;
+            this.momentum = 0;
+            this.rot_accel = 0;
+            this.rot_momentum = 0;
+
+            this.forward_thrust = 1.08;
+            this.reverse_thrust = 1.01;
+            this.rotational_thrust = 1.01;
+            this.deceleration = .95;
+            this.max_forward_speed = 12;
+            this.max_rotational_speed = 3;
+            this.max_reverse_speed = -7;
+
+            this.ship_color   = ["#00ff00", "#00aa00"];
+            this.thrust_color = ["#ffff00", "#aaaa00"];
+            this.size = 25;
+        }
+
+        move(ms) {
+            if (isNaN(ms)) return;
+
+            if (this.forward && !this.backward){
+                if (this.acceleration <= 0)
+                    this.acceleration = .15;
+                this.acceleration *= this.forward_thrust;
+                this.momentum += this.acceleration;
+            }
+
+            if (this.backward && !this.forward){
+                if (this.acceleration >= 0)
+                    this.acceleration = -.15;
+                this.acceleration *= this.reverse_thrust;
+                this.momentum += this.acceleration;
+            }
+
+            // set max speed
+            if (this.momentum > this.max_forward_speed)
+                this.momentum = this.max_forward_speed;
+            if (this.momentum < this.max_reverse_speed)
+                this.momentum = this.max_reverse_speed;
+
+            // Coasting
+            if (!this.backward && !this.forward){
+                this.acceleration = 0;
+                this.momentum *= this.deceleration;
+                if (this.momentum < .1 && this.momentum > -.1)
+                    this.momentum = 0;
+            }
+
+            // Get x/y components of movement vector
+            this.pos.y -= Math.cos(Math.PI / 180 * this.pos.r) * this.momentum;
+            this.pos.x += Math.sin(Math.PI / 180 * this.pos.r) * this.momentum;
+
+            // Keep position within bounds of arena (wrap)
+            while (this.pos.x < 0) this.pos.x += this.ctx.canvas.width;
+            while (this.pos.y < 0) this.pos.y += this.ctx.canvas.height;
+            while (this.pos.x > this.ctx.canvas.width) this.pos.x -= this.ctx.canvas.width;
+            while (this.pos.y > this.ctx.canvas.height) this.pos.y -= this.ctx.canvas.height;
+
+            // Rotational momentum
+            if (this.clockwise && !this.counterclockwise){
+                if (this.rot_accel <= 0)
+                    this.rot_accel = .15;
+                this.rot_accel *= this.rotational_thrust;
+                this.rot_momentum += this.rot_accel;
+            }
+            if (this.counterclockwise && !this.clockwise){
+                if (this.rot_accel >= 0)
+                    this.rot_accel = -.15;
+                this.rot_accel *= this.rotational_thrust;
+                this.rot_momentum += this.rot_accel;
+            }
+
+            if (this.rot_momentum > this.max_rotational_speed)
+                this.rot_momentum = this.max_rotational_speed;
+            if (this.rot_momentum < -1 * this.max_rotational_speed)
+                this.rot_momentum = -1 * this.max_rotational_speed;
+
+            if (!this.counterclockwise && !this.clockwise){
+                this.rot_accel = 0;
+                this.rot_momentum *= this.deceleration;
+                if (this.rot_momentum < .1 && this.rot_momentum > -.1)
+                    this.rot_momentum = 0;
+            }
+
+            this.pos.r += this.rot_momentum;
+
+            // loop r so it is never out of range
+            while (this.pos.r < 0)   this.pos.r += 360;
+            while (this.pos.r > 360) this.pos.r -= 360;
+        }
+
+        draw_fighter(x, y) {
+            let scale = this.size * this.pos.z/128;
+
+            this.ctx.fillStyle = color_map(this.pos.z);
+
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, y - scale);
+            this.ctx.lineTo(x - scale, y + scale);
+            this.ctx.lineTo(x, y);
+            this.ctx.lineTo(x + scale, y + scale);
+            this.ctx.lineTo(x, y - scale);
+            this.ctx.fill();
+
+            if (this.forward) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y + scale*.5);
+                this.ctx.lineTo(x - scale/2, y + scale);
+                this.ctx.lineTo(x, y + scale * 2);
+                this.ctx.lineTo(x + scale/2, y + scale);
+                this.ctx.fill();
+            }
+       }
+
+        render() {
+            let cx = this.ctx.canvas.width / 2;
+            let cy = this.ctx.canvas.height / 2;
+
+            ctx.save()
+            ctx.translate(this.pos.x, this.pos.y);
+            ctx.rotate(this.pos.r * Math.PI / 180);
+            //ctx.translate(this.pos.x, this.pos.y);
+
+            this.draw_fighter(0, 0);
+
+            // Unrotate
+            ctx.restore();
+        }
+    }
+
+    class sirds_generator {
+        constructor(ctx_in, ctx_out) {
+            this.ctx_in  = ctx_in;
+            this.ctx_out = ctx_out;
+
+            this.tile_size   = 128;
+            this.tile_canvas = new OffscreenCanvas(this.tile_size, this.tile_size);
+            this.tile_ctx    = this.tile_canvas.getContext("2d");
+
+            this.monochrome = false;
+            this.invert = false;
+            this.depth = 25;
+            this.static_noise = true;//false;
+
+            this.generate_noise();
+        }
+
+        random_color() {
+            let r = (Math.floor(Math.random() * 255)).toString(16)
+            if (r.length < 2) r = "0" + r;
+            let g = (Math.floor(Math.random() * 255)).toString(16)
+            if (g.length < 2) g = "0" + g;
+            let b = (Math.floor(Math.random() * 255)).toString(16)
+            if (b.length < 2) b = "0" + b;
+
+            if (this.monochrome)
+                return "#" + r + r + r;
+            return "#" + r + g + b;
+        }
+
+        generate_noise() {
+            for (let y=0; y<this.tile_canvas.height; y++)
+                for (let x=0; x<this.tile_canvas.width; x++) {
+                    let color = this.random_color();
+                    this.tile_ctx.fillStyle = color;
+	            this.tile_ctx.fillRect(x, y, 1, 1);
+                }
+        }
+
+        draw_circle(ctx, x, y, radius, color){
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        generate(){
+            if (!this.static_noise)
+                this.generate_noise();
+            /*
+            // Adjust map canvas and buffer if there is padding
+            if (pad){
+                let map = ctx_in.getImageData(0, 0, depth_canvas.width, depth_canvas.height);
+                depth_canvas.width += tile_canvas.width;
+                ctx_in.fillStyle = "#000";
+                ctx_in.fillRect(0, 0, depth_canvas.width, depth_canvas.height);
+                ctx_in.putImageData(map, tile_canvas.width, 0);
+                }
+            */
+
+            // Draw pattern accross entire canvas
+            let y = 0;
+            while (y < this.ctx_out.canvas.height){
+                let x = 0;
+                while (x < this.ctx_out.canvas.width){
+                    this.ctx_out.drawImage(this.tile_canvas, 0, 0, this.tile_size, this.tile_size, x, y, this.tile_size, this.tile_size);
+                    x += this.tile_size;
+                }
+                y += this.tile_size;
+            }
+
+            // Grab the patternized canvas buffer
+            let map    = this.ctx_in.getImageData( 0, 0, this.ctx_in.canvas.width,  this.ctx_in.canvas.height);
+            let buffer = this.ctx_out.getImageData(0, 0, this.ctx_out.canvas.width, this.ctx_out.canvas.height);
+
+            // Process the buffer
+            let line_len = this.ctx_out.canvas.width * 4; // RGBA
+            for (let i=0; i<buffer.data.length; i+=4){
+                let offset_i = i
+                let depth_pixel = map.data[i]
+
+                // Handle inverting the image if necessary
+                if (this.invert)
+                    offset_i = Math.floor(this.depth * (1 - (depth_pixel / 255)));
+                else
+                    offset_i = Math.floor(this.depth * (depth_pixel / 255));
+
+                // Look one tile to the left
+                let line_pos = i % line_len;
+                let tile_offset = (this.tile_size * 4);
+                if (line_pos < this.tile_size * 4)
+                    tile_offset = 0;
+
+                // Shift pixel data
+                buffer.data[i - (offset_i * 4) + 0] = buffer.data[i + 0 - tile_offset]; // R
+                buffer.data[i - (offset_i * 4) + 1] = buffer.data[i + 1 - tile_offset]; // G
+                buffer.data[i - (offset_i * 4) + 2] = buffer.data[i + 2 - tile_offset]; // B
+                buffer.data[i - (offset_i * 4) + 3] = buffer.data[i + 3 - tile_offset]; // A
+            }
+
+            // Write it out to canvas
+            this.ctx_out.putImageData(buffer, 0, 0, 0, 0, this.ctx_out.canvas.width, this.ctx_out.canvas.height);
+
+            // Place helper dots at the bottom
+            this.draw_circle(this.ctx_out, (this.ctx_out.canvas.width / 2) - (this.tile_size / 2), 15, 10, "#fff");
+            this.draw_circle(this.ctx_out, (this.ctx_out.canvas.width / 2) + (this.tile_size / 2), 15, 10, "#fff");
+        }
+    }
+
+    function main_loop(timestamp) {
+        if (last_frame === undefined) {
+            last_frame = timestamp;
+        }
+        const elapsed = timestamp - last_frame;
+        last_frame = timestamp;
+
+        // Move items
+        player_1.move(elapsed);
+
+        // Clear canvas
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw items
+        player_1.render();
+
+        // Create sirds view
+        sirds.generate();
+
+        // Call for new frame
+        animation_request = window.requestAnimationFrame(main_loop);
+    }
+
+// Keyboard listeners
+document.addEventListener('keydown', function(e) {
+    // console.log(e);
+
+    // IJKL
+    if (e.keyCode == 73) {e.preventDefault(); player_1.forward = true};
+    if (e.keyCode == 76) {e.preventDefault(); player_1.clockwise = true};
+    if (e.keyCode == 75) {e.preventDefault(); player_1.backward = true};
+    if (e.keyCode == 74) {e.preventDefault(); player_1.counterclockwise = true};
+    //if (e.keyCode == 32) {e.preventDefault(); player_1.fire = true}; // space
+
+    //if (e.keyCode == 78) new_game();    // n
+    //if (e.keyCode == 46) toggle_debug();     // forward delete
+});
+
+document.addEventListener('keyup', function(e) {
+    // IJKL
+    if (e.keyCode == 73) {e.preventDefault(); player_1.forward = false};
+    if (e.keyCode == 76) {e.preventDefault(); player_1.clockwise = false};
+    if (e.keyCode == 75) {e.preventDefault(); player_1.backward = false};
+    if (e.keyCode == 74) {e.preventDefault(); player_1.counterclockwise = false};
+    //if (e.keyCode == 32) {e.preventDefault(); player_1.fire = false}; // space
+});
+
+    function first_run() {
+        canvas.width = 768;
+        canvas.height = 512;
+
+        canvas_final.width = 768;
+        canvas_final.height = 512;
+
+        player_1 = new player(ctx);
+        sirds = new sirds_generator(ctx, ctx_final);
+
+        main_loop();
+    }
+
+    first_run();
+
+  </script>
+</html>
