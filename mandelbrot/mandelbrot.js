@@ -47,6 +47,9 @@ class Mandelbrot {
 
     // Mouse Input
     input_mouse_down(e) {
+        // Ignore right clicks
+        if (e.button > 1)
+            return;
         this.mouse_start_pos = this.get_cursor_position(e);
         this.mouse_down = true;
     }
