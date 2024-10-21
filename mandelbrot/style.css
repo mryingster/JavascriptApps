@@ -70,3 +70,29 @@ input {
 #depthSelection {
     width: max(100px, calc(100% - 800px));
 }
+
+.hidden  {
+    display: none;
+}
+
+#customgradient{
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, .75);
+    padding: 20px;
+}
+
+h2 {
+    margin: 0px;
+    display: inline-block;
+}
+
+.jscolor {
+    margin-bottom: 3px;
+}
+
+#close {
+    float: right;
+}

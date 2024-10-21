@@ -5,7 +5,8 @@
     <title>Mandelbrot</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" type="text/css" media="screen" href="style.css">
-    <script src='mandelbrot.js'></script>~
+    <script src="mandelbrot.js"></script>~
+    <script src="/apps/shared/jscolor.js"></script>
     <meta charset="utf-8">
   </head>
   <body onresize="resize_canvas();" onload="first_run();">
@@ -40,11 +41,32 @@
         <option>Random Colors</option>
         <option>Zebra</option>
         <option>Set Only</option>
-    </select>
-    <input type="checkbox" id="preview" name="preview" value="preview" checked><label for="preview">Preview</label>
+      </select>
+      <button id="editgradient" onclick="document.getElementById('customgradient').classList.remove('hidden')">Edit</button>
+      <input type="checkbox" id="preview" name="preview" value="preview" checked><label for="preview">Preview</label>
 
       <span id="share"><a href="#" id="share_link">Share Link</a></span>
       <span id="download"><a href="#" id="download_link" onclick="save_image();" download="mandelbrot.png">Download PNG</a></span>
+    </div>
+
+    <div class="hidden" id="customgradient">
+      <h2>Color Scheme</h2>
+      <span id="close" onclick="document.getElementById('customgradient').classList.add('hidden')">X</span>
+
+      <br>
+      Mandelbrot Color:
+      <div id="mandelbrotcolordiv">
+      </div>
+
+      <hr>
+      Gradient Colors:
+      <div id="gradientstops">
+      </div>
+    <button onclick="add_color_stop('gradientstops', '#ffffff');">Add Color</button>
+
+      <hr>
+      <input type="checkbox" id="gradient" name="gradient" value="gradient" onchange="update_custom();" checked><label for="gradient">Gradient</label>
+      <input type="checkbox" id="proportional" name="proportional" value="proportional" onchange="update_custom();" checked><label for="proportional">Proportional</label>
     </div>
 
     <div id="coords_div" class="note">
@@ -111,7 +133,7 @@ function create_gradient(colors) {
     let gradient = [];
     for (let j=0; j<colors.length-1; j++) {
         for (let i=0; i<255; i++) {
-            let color = {}
+            let color = {a:1}
             for (let component of ["r", "g", "b"]) {
                 let d = colors[j][component] - colors[j+1][component];
                 color[component] = colors[j][component] - (d / 255 * i);
@@ -123,82 +145,157 @@ function create_gradient(colors) {
 }
 
 function random_color() {
-    return {
-        r:Math.floor(Math.random() * 255),
-        g:Math.floor(Math.random() * 255),
-        b:Math.floor(Math.random() * 255),
-    };
+    return "rgba(" + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + ",1)";
+}
+
+function update_custom() {
+    let colorstops = [];
+    let is_gradient = document.getElementById("gradient").checked;
+
+    let is_proportional = false;
+    document.getElementById("proportional").disabled = true;
+    if (is_gradient) {
+        document.getElementById("proportional").disabled = false;
+        is_proportional = document.getElementById("proportional").checked;
+    }
+
+    let mandelbrot_color;
+
+    for (let stop of document.getElementsByClassName("jscolor")) {
+        if (stop.classList.contains("mandelbrot_color"))
+            mandelbrot_color = stop.jscolor.channels;
+        else
+            colorstops.push(stop.jscolor.channels);
+    }
+
+    mandelbrot.mandelbrot_color = mandelbrot_color;
+    if (is_gradient)
+        mandelbrot.gradient = create_gradient(colorstops);
+    else
+        mandelbrot.gradient = colorstops;
+    mandelbrot.proportional_color = is_proportional;
+    mandelbrot.clear_canvas_on_redraw = false;
+    mandelbrot.render(true);
+}
+
+function add_color_stop(divname, color) {
+    let div = document.getElementById(divname);
+
+    let stop = document.createElement("button");
+    stop.classList.add("jscolor", "{value:'" + color + "',position:'bottom',paletteCols:13,hideOnPaletteClick:true,onInput:'update_custom();'}");
+    if (divname == "mandelbrotcolordiv")
+        stop.classList.add("mandelbrot_color");
+
+    div.appendChild(stop);
+
+    div.appendChild(document.createElement("br"));
+
+    jscolor.install()
+
+    update_custom();
+}
+
+function clear_div(divname) {
+    document.getElementById(divname).innerHTML = "";
+}
+
+function clear_color_stops() {
+    clear_div("mandelbrotcolordiv");
+    clear_div("gradientstops");
+}
+
+function remove_stop() {
 }
 
 function update_gradient() {
     let selection = document.getElementById("scheme").value;
-    let gradient = [];
+    let mandelcolor;
+    let stops = [];
     let proportional_color;
+    let graident;
     let clear_canvas = false;
 
     if (selection == "Spectrum") {
-        gradient = create_gradient([{r:255,g:0,b:0}, {r:255,g:255,b:0}, {r:0,g:255,b:0}, {r:0,g:255,b:255}, {r:0,g:0,b:255}, {r:255,g:0,b:255}]);
+        mandelcolor = "rgba(0,0,0,1)";
+        stops = ["rgba(255,0,0,1)","rgba(255,255,0,1)","rgba(0,255,0,1)","rgba(0,255,255,1)","rgba(0,0,255,1)","rgba(255,0,255,1)","rgba(255,0,0,1)"];
         proportional_color = true;
+        gradient = true;
     }
     if (selection == "Red") {
-        gradient = create_gradient([{r:0,g:0,b:0}, {r:255,g:0,b:0}]);
+        mandelcolor = "rgba(0,0,0,1)";
+        stops = ["rgba(0,0,0,1)","rgba(255,0,0,1)"];
         proportional_color = true;
+        gradient = true;
     }
     if (selection == "Green") {
-        gradient = create_gradient([{r:0,g:0,b:0}, {r:0,g:255,b:0}]);
+        mandelcolor = "rgba(0,0,0,1)";
+        stops = ["rgba(0,0,0,1)","rgba(0,255,0,1)"];
         proportional_color = true;
+        gradient = true;
     }
     if (selection == "Blue") {
-        gradient = create_gradient([{r:0,g:0,b:0}, {r:0,g:0,b:255}]);
+        mandelcolor = "rgba(0,0,0,1)";
+        stops = ["rgba(0,0,0,1)","rgba(0,0,255,1)"];
         proportional_color = true;
+        gradient = true;
     }
     if (selection == "White") {
-        gradient = create_gradient([{r:0,g:0,b:0}, {r:255,g:255,b:255}]);
+        mandelcolor = "rgba(0,0,0,1)";
+        stops = ["rgba(0,0,0,1)","rgba(255,255,255,1)"];
         proportional_color = true;
-    }
-    if (selection == "Red/White") {
-        gradient = create_gradient([{r:0,g:0,b:0}, {r:255,g:0,b:0}, {r:255,g:255,b:255}]);
-        proportional_color = true;
-    }
-    if (selection == "Green/White") {
-        gradient = create_gradient([{r:0,g:0,b:0}, {r:0,g:255,b:0}, {r:255,g:255,b:255}]);
-        proportional_color = true;
-    }
-    if (selection == "Blue/White") {
-        gradient = create_gradient([{r:0,g:0,b:0}, {r:0,g:0,b:255}, {r:255,g:255,b:255}]);
-        proportional_color = true;
+        gradient = true;
     }
     if (selection == "Sunset") {
-        gradient = create_gradient([{r:255,g:255,b:0}, {r:255,g:0,b:255}, {r:0,g:0,b:255}]);
+        mandelcolor = "rgba(0,0,0,1)";
+        stops = ["rgba(255,255,0,1)","rgba(255,0,255,1)","rgba(0,0,255,1)"];
         proportional_color = true;
+        gradient = true;
     }
     if (selection == "Random Gradient") {
-        gradient = create_gradient([random_color(), random_color()]);
+        mandelcolor = "rgba(0,0,0,1)";
+        stops = [random_color(), random_color()];
         proportional_color = true;
+        gradient = true;
     }
     if (selection == "Spectrum Cycle") {
-        gradient = [{r:255,g:0,b:0}, {r:255,g:255,b:0}, {r:0,g:255,b:0}, {r:0,g:255,b:255}, {r:0,g:0,b:255}, {r:255,g:0,b:255}];
+        mandelcolor = "rgba(0,0,0,1)";
+        stops = ["rgba(255,0,0,1)","rgba(255,255,0,1)","rgba(0,255,0,1)","rgba(0,255,255,1)","rgba(0,0,255,1)","rgba(255,0,255,1)"];
         proportional_color = false;
+        gradient = false;
     }
     if (selection == "Random Colors") {
-        for (let i=0; i<256; i++)
-            gradient.push(random_color());
+        mandelcolor = "rgba(0,0,0,1)";
+        for (let i=0; i<10; i++)
+            stops.push(random_color());
         proportional_color = false;
+        gradient = false;
     }
     if (selection == "Zebra") {
-        gradient = [{r:0,g:0,b:0}, {r:255,g:255,b:255}];
+        mandelcolor = "rgba(0,0,0,1)";
+        stops = ["rgba(0,0,0,1)","rgba(255,255,255,1)"];
         proportional_color = false;
+        gradient = false;
     }
     if (selection == "Set Only") {
-        gradient = [{r:255,g:255,b:255,a:0}, {r:255,g:255,b:255,a:0}];
+        mandelcolor = "rgba(0,0,0,1)";
+        stops = ["rgba(0,0,0,0)"];
         proportional_color = false;
+        gradient = false;
         clear_canvas = true;
     }
 
-    mandelbrot.gradient = gradient;
-    mandelbrot.proportional_color = proportional_color;
-    mandelbrot.clear_canvas_on_redraw = clear_canvas;
-    mandelbrot.render(true);
+    clear_color_stops();
+    add_color_stop("mandelbrotcolordiv", mandelcolor);
+    for (let stop of stops)
+        add_color_stop("gradientstops", stop);
+    document.getElementById("proportional").checked = proportional_color;
+    document.getElementById("gradient").checked = gradient;
+
+    update_custom();
+    //mandelbrot.gradient = gradient;
+    //mandelbrot.proportional_color = proportional_color;
+    //mandelbrot.clear_canvas_on_redraw = clear_canvas;
+    //mandelbrot.render(true);
 }
 
 function save_image() {

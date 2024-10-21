@@ -15,7 +15,8 @@ class Mandelbrot {
 
         this.zoom = .004;
 
-        this.gradient = [{r:0,g:0,b:0}, {r:255,g:255,b:255}];
+        this.mandelbrot_color = {r:0, g:0, b:0, a:255};
+        this.gradient = [{r:0,g:0,b:0,a:1}, {r:255,g:255,b:255,1:1}];
         this.proportional_color = false;
         this.clear_canvas_on_redraw = false;
 
@@ -399,7 +400,7 @@ class Mandelbrot {
                 let result = this.mandel(xValue, yValue, this.depth);
 
                 // Choose a color
-                let finalColor = {r:0, g:0, b:0, a:255};
+                let finalColor = this.mandelbrot_color;
                 if (result != -1)
                     if (this.proportional_color) {
                         finalColor = this.gradient[Math.floor(this.gradient.length / this.depth * result)];
@@ -411,15 +412,15 @@ class Mandelbrot {
                 buffer.data[buffer_index + 0] = finalColor.r; // R
                 buffer.data[buffer_index + 1] = finalColor.g; // G
                 buffer.data[buffer_index + 2] = finalColor.b; // B
-                buffer.data[buffer_index + 3] = finalColor.a == undefined ? 255 : finalColor.a; // A
+                buffer.data[buffer_index + 3] = Math.floor(finalColor.a * 255); // A
 
                 buffer_index += 4;
             }
         }
 
         // If clear canvas enabled
-        if (this.clear_canvas_on_redraw)
-            this.ctx.clearRect(fx, fy, fw, fh);
+        //if (this.clear_canvas_on_redraw)
+        this.ctx.clearRect(fx, fy, fw, fh);
 
         // Draw back to the onscreen canvas
         buffer_ctx.putImageData(buffer, 0, 0);
