@@ -1,0 +1,220 @@
+<html>
+  <head>
+    <title>Sparky</title>
+    <style>
+      body {
+          background: #000;
+      }
+      #content {
+          margin: auto;
+          width: 1024px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <canvas id="canvas" width="1024px" height="768px">
+    </div>
+  </body>
+  <script>
+
+// Keyboard listeners
+document.addEventListener('keydown', function(e) {
+    //console.log(e);
+    if (e.keyCode == 37) {e.preventDefault(); player1.dir = LEFT};
+    if (e.keyCode == 38) {e.preventDefault(); player1.dir = UP};
+    if (e.keyCode == 39) {e.preventDefault(); player1.dir = RIGHT};
+    if (e.keyCode == 40) {e.preventDefault(); player1.dir = DOWN};
+});
+
+document.addEventListener('keyup', function(e) {
+    if (e.keyCode == 37) {e.preventDefault(); if (player1.dir == LEFT)  player.dir = -1};
+    if (e.keyCode == 38) {e.preventDefault(); if (player1.dir == UP)    player.dir = -1};
+    if (e.keyCode == 39) {e.preventDefault(); if (player1.dir == RIGHT) player.dir = -1};
+    if (e.keyCode == 40) {e.preventDefault(); if (player1.dir == DOWN)  player.dir = -1};
+});
+
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+let margin = 5;
+let edges = {};
+let last_frame;
+let player1;
+let enemy1;
+let shapes;
+
+const LEFT  = 0;
+const RIGHT = 1;
+const UP    = 2;
+const DOWN  = 3;
+
+function random_color() {
+        let color = "#"
+        for (let c=0; c<3; c++){
+            let t = Math.floor(Math.random() * 255);
+            t = t.toString(16);
+            if (t.length < 2) t = "0" + t;
+            color += t;
+        }
+        return color;
+}
+
+function draw_circle(ctx, x, y, r, c1, c2, l=0){
+    ctx.fillStyle = c1;
+    ctx.lineWidth = l;
+    ctx.strokeStyle = c2;
+
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+
+    ctx.fill();
+    if (l>0)
+        ctx.stroke();
+}
+
+class player {
+    constructor(ctx) {
+        this.ctx = ctx;
+        this.color = "#00ff00";
+        this.size = "3"
+        this.pos = {x:0, y:0};
+
+        this.path = [];
+
+        this.dir = -1;
+        this.last_dir = -1;
+
+        this.speed = .05;
+    }
+
+    move(ms) {
+        if (this.up && this.down) return;
+        if (this.left && this.right) return;
+
+        // Keep track of our path
+        if (this.dir != this.last_dir) {
+            if (this.pos.x != margin && this.pos.x != this.ctx.canvas.width - margin &&
+                this.pos.y != margin && this.pos.y != this.ctx.canvas.height - margin)
+                this.path.push({x:this.pos.x, y:this.pos.y});
+            else {
+                if (this.path.length > 0) {
+                    // Close our shape
+                    if (this.path[0].x != this.path[this.path.length-1].x)
+                        this.path.push({x:this.path[0].x, y:this.path[this.path.length-1].y});
+                    if (this.path[0].y != this.path[this.path.length-1].y)
+                        this.path.push({x:this.path[this.path.length-1].x, y:this.path[0].y});
+                    shapes.push({c: random_color(), p: this.path})
+                }
+                this.path = [];
+            }
+        }
+
+        if (this.dir == LEFT)
+            this.pos.x -= this.speed * ms;
+        if (this.dir == RIGHT)
+            this.pos.x += this.speed * ms;
+        if (this.dir == UP)
+            this.pos.y -= this.speed * ms;
+        if (this.dir == DOWN)
+            this.pos.y += this.speed * ms;
+
+        if (this.pos.x < margin) this.pos.x = margin;
+        if (this.pos.x > this.ctx.canvas.width - margin) this.pos.x = this.ctx.canvas.width - margin;
+        if (this.pos.y < margin) this.pos.y = margin;
+        if (this.pos.y > this.ctx.canvas.height - margin) this.pos.y = this.ctx.canvas.height - margin;
+
+    }
+
+    render() {
+        // Draw path if we are out and about
+        if (this.path.length > 0) {
+            this.ctx.beginPath()
+            this.ctx.moveTo(this.path[0].x, this.path[0].y);
+            for (let point of this.path)
+                ctx.lineTo(point.x, point.y);
+            ctx.strokeStyle = "#00ffff";
+            ctx.stroke();
+        }
+
+        // Draw player
+        draw_circle(this.ctx, this.pos.x, this.pos.y, this.size, this.color, this.color, 0);
+    }
+}
+
+class enemy {
+    constructor(ctx) {
+        this.ctx = ctx;
+    }
+
+    move(ms) {
+    }
+
+    render() {
+    }
+}
+
+function reset_canvas() {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#fff";
+    ctx.strokeRect(edges.left, edges.top, edges.width, edges.height);
+}
+
+function main_loop(timestamp) {
+    if (last_frame === undefined) {
+        last_frame = timestamp;
+    }
+    const elapsed = timestamp - last_frame;
+
+    // Clear canvas
+    reset_canvas();
+
+    // Redraw cleared spaces
+    for (let shape of shapes.slice().reverse()) {
+        ctx.beginPath()
+        ctx.moveTo(shape.p[0].x, shape.p[0].y);
+        for (let point of shape.p)
+            ctx.lineTo(point.x, point.y);
+        ctx.fillStyle = shape.c;
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.stroke();
+    }
+
+    // Move player
+    player1.move(elapsed);
+
+    // Redraw player
+    player1.render();
+
+    // Loop!
+    last_frame = timestamp;
+    window.requestAnimationFrame(main_loop);
+}
+
+function main() {
+    canvas.width  = 1024;
+    canvas.height = 768;
+
+    edges = {
+        left   : margin,
+        right  : canvas.width - margin,
+        top    : margin,
+        bottom : canvas.height - margin,
+        width  : canvas.width - (margin * 2),
+        height : canvas.height - (margin * 2),
+    };
+
+    enemy1  = new enemy(ctx);
+    player1 = new player(ctx);
+
+    shapes = [];
+
+    main_loop();
+}
+
+main();
+
+  </script>
+</html>
