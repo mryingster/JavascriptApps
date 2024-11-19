@@ -154,6 +154,7 @@ function input_down(coords){
 }
 
 function new_game() {
+    document.getElementById("result").classList.add("hidden");
     read_settings();
     update_size();
     game_active = true;
@@ -245,7 +246,7 @@ function render_game(){
 
 function resize_canvas() {
     canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight - document.getElementById("settings").getBoundingClientRect().height;
+    canvas.height = window.innerHeight - document.getElementById("settings").getBoundingClientRect().height-10;
 
     if (game_active) {
         update_size();
