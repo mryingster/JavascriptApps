@@ -1,7 +1,9 @@
+<!DOCTYPE html>
 <html>
   <head>
     <title>Dots</title>
     <link rel="stylesheet" id="style" type="text/css" media="screen" href="style.css">
+    <script src="/apps/shared/confetti.js"></script>
   </head>
 
   <body onresize="resize_canvas();">
@@ -29,6 +31,11 @@
         <button id="start" onclick="new_game();">Start</button>
 
         <p><span id="scores">&nbsp;</span></p>
+      </div>
+
+      <div id="result" class="hidden" onclick="this.classList.add('hidden');">
+        <a href="#" style="float:right;">[X]</a>
+        <p id="result_content"></p>
       </div>
 
       <canvas id="canvas"></canvas>
@@ -216,6 +223,7 @@
 
         // Check for game over
         if (gameover) {
+            make_confetti();
 	    let highest_score = 0;
             let winners = [];
             for (let i=0; i<scores.length; i++) {
@@ -229,9 +237,9 @@
 	    }
             game_active = false;
 	    if (winners.length == 1)
-		window.alert("Game Over! Player " + winners[0] + " wins!");
+		updateAlert("Game Over! Player " + winners[0] + " wins!");
 	    else
-		window.alert("Game Over! Players " + winners.join(" and ") + " win!");
+		updateAlert("Game Over! Players " + winners.join(" and ") + " win!");
         }
     }
 
@@ -281,7 +289,6 @@
 	    padding_x: 0,
 	    padding_y: 0,
 	}
-
     }
 
     function update_size() {
@@ -297,6 +304,11 @@
 	// Determine how much margin we need in each dimension
 	size.padding_x = Math.floor((canvas.width  - (size.width  * size.square_size)) / 2);
         size.padding_y = Math.floor((canvas.height - (size.height * size.square_size)) / 2);
+    }
+
+    function updateAlert(m){
+	document.getElementById("result_content").innerHTML = m;
+	document.getElementById("result").classList.remove("hidden");
     }
 
     class square {

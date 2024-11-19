@@ -70,3 +70,25 @@ h1 {
     border-color: #ff00ff;
     background: #ff88ff;
 }
+
+#result {
+    position: absolute;
+    background: #eee;
+    padding: 10px 15px;
+    border-radius: 15px;
+    border: 1px solid #ddd;
+    display: block;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0px 5px 20px gray;
+    left: calc(50% - 165px);
+    top: 150px;
+}
+
+#result_content {
+    font-size: 50px;
+}
+
+.hidden {
+    display: none !important;
+}
