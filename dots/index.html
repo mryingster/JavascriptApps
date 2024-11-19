@@ -44,398 +44,398 @@
   </body>
   <script>
 
-    let canvas = document.getElementById("canvas");
-    let ctx = canvas.getContext("2d");
-    let size;
-    let game;
-    let num_players;
-    let current_player;
-    let game_active = false;
-    let mouse_down = false;
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+let size;
+let game;
+let num_players;
+let current_player;
+let game_active = false;
+let mouse_down = false;
 
-    let colors = [
-        ["#880000","#ff0000","#ff8888"],
-        ["#008800","#00ff00","#88ff88"],
-        ["#000088","#0000ff","#8888ff"],
-        ["#888800","#ffff00","#ffff88"],
-        ["#008888","#00ffff","#88ffff"],
-        ["#880088","#ff00ff","#ff88ff"],
-        ["#000000","#000000","#888888"]
-    ];
+let colors = [
+    ["#880000","#ff0000","#ff8888"],
+    ["#008800","#00ff00","#88ff88"],
+    ["#000088","#0000ff","#8888ff"],
+    ["#888800","#ffff00","#ffff88"],
+    ["#008888","#00ffff","#88ffff"],
+    ["#880088","#ff00ff","#ff88ff"],
+    ["#000000","#000000","#888888"]
+];
 
-    // Touch listeners
-    canvas.addEventListener('touchstart', input_down_touch, false);
-    canvas.addEventListener('touchmove',  input_move_touch, false);
-    canvas.addEventListener('touchend',   input_up_touch, false);
+// Touch listeners
+canvas.addEventListener('touchstart', input_down_touch, false);
+canvas.addEventListener('touchmove',  input_move_touch, false);
+canvas.addEventListener('touchend',   input_up_touch, false);
 
-    function getTouchPosition(canvas, event){
-        if (!e)
-            var e = event;
+function getTouchPosition(canvas, event){
+    if (!e)
+        var e = event;
 
-        var x = null;
-        var y = null;
+    var x = null;
+    var y = null;
 
-        if(e.touches) {
-            if (e.touches.length == 1) { // Only deal with one finger
-                var touch = e.touches[0]; // Get the information for finger #1
-                x = touch.pageX-touch.target.getBoundingClientRect().left;
-                y = touch.pageY-touch.target.getBoundingClientRect().top;
-            }
+    if(e.touches) {
+        if (e.touches.length == 1) { // Only deal with one finger
+            var touch = e.touches[0]; // Get the information for finger #1
+            x = touch.pageX-touch.target.getBoundingClientRect().left;
+            y = touch.pageY-touch.target.getBoundingClientRect().top;
         }
-
-        // Scale input
-        let scale = canvas.height / canvas.getBoundingClientRect().height;
-
-        return {x:x * scale, y:y * scale};
     }
 
-    function input_down_touch(e){
+    // Scale input
+    let scale = canvas.height / canvas.getBoundingClientRect().height;
+
+    return {x:x * scale, y:y * scale};
+}
+
+function input_down_touch(e){
     if (!game_active) return;
-        input_down(getTouchPosition(canvas, e));
-        e.preventDefault();
+    input_down(getTouchPosition(canvas, e));
+    e.preventDefault();
+}
+
+function input_move_touch(e){
+    if (!mouse_down) return;
+    input_move(getTouchPosition(canvas, e));
+    e.preventDefault();
+}
+
+function input_up_touch(e){
+    if (!mouse_down) return;
+    input_up(mouse_pos);
+    e.preventDefault();
+}
+
+// Mouse listeners
+canvas.addEventListener("contextmenu", (e) => {e.preventDefault()}); // Disable context menu on canvas
+canvas.addEventListener('mousedown',  input_down_mouse);
+canvas.addEventListener('mousemove',  input_move_mouse);
+canvas.addEventListener('mouseup',    input_up_mouse);
+
+function getCursorPosition(canvas, event){
+    // Determine where clicked
+    const rect = canvas.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+
+    return {x:x, y:y};
+}
+
+function input_down_mouse(e){
+    if (!game_active) return;
+    input_down(getCursorPosition(canvas, e))
+}
+
+function input_move_mouse(e){
+    if (!mouse_down) return;
+    if (!game_active) return;
+}
+
+function input_up_mouse(e){
+    mouse_down = false;
+}
+
+function input_down(coords){
+    mouse_down = true;
+
+    let moved = 0;
+    for (let square of game){
+        moved = Math.max(moved, square.clicked(coords, current_player));
     }
 
-    function input_move_touch(e){
-        if (!mouse_down) return;
-        input_move(getTouchPosition(canvas, e));
-        e.preventDefault();
+    // Advance Character
+    if (moved == 1)
+        current_player++;
+    current_player %= num_players;
+
+    // Redraw
+    render_game();
+}
+
+function new_game() {
+    read_settings();
+    update_size();
+    game_active = true;
+    current_player = 0;
+
+    // Create game
+    game = [];
+
+    for (let x=0; x<size.width; x++)
+        for (let y=0; y<size.height; y++)
+            game.push(new square(ctx, x, y));
+
+
+    // Draw game to canvas
+    render_game();
+}
+
+function clear_canvas(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function draw_circle(ctx, x, y, r, c1, c2, l=0){
+    ctx.fillStyle = c1;
+    ctx.lineWidth = l;
+    ctx.strokeStyle = c2;
+
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+
+    ctx.fill();
+    if (l>0)
+        ctx.stroke();
+}
+
+function render_game(){
+    clear_canvas();
+
+    // Draw squares
+    for (let square of game){
+        square.render();
     }
 
-    function input_up_touch(e){
-        if (!mouse_down) return;
-        input_up(mouse_pos);
-        e.preventDefault();
+    // Tabulate scores
+    let scores = [0,0,0,0,0,0,0,0];
+    let gameover = true
+    for (let square of game)
+        if (square.closer >= 0)
+            scores[square.closer]++
+    else
+        gameover = false;
+
+    // Update scores etc
+    //document.getElementById("player").innerHTML = current_player + 1;
+
+    let score_div = document.getElementById("scores");
+    score_div.innerHTML = "";
+
+    for (let i=0; i<num_players; i++) {
+        let player_div = document.createElement("div");
+        player_div.innerHTML = scores[i];
+        if (current_player == i)
+            player_div.classList.add("currentplayer");
+        player_div.classList.add("player"+i);
+        player_div.classList.add("player");
+        score_div.appendChild(player_div);
     }
 
-    // Mouse listeners
-    canvas.addEventListener("contextmenu", (e) => {e.preventDefault()}); // Disable context menu on canvas
-    canvas.addEventListener('mousedown',  input_down_mouse);
-    canvas.addEventListener('mousemove',  input_move_mouse);
-    canvas.addEventListener('mouseup',    input_up_mouse);
-
-    function getCursorPosition(canvas, event){
-        // Determine where clicked
-        const rect = canvas.getBoundingClientRect()
-        const x = event.clientX - rect.left
-        const y = event.clientY - rect.top
-
-        return {x:x, y:y};
-    }
-
-    function input_down_mouse(e){
-        if (!game_active) return;
-        input_down(getCursorPosition(canvas, e))
-    }
-
-    function input_move_mouse(e){
-        if (!mouse_down) return;
-        if (!game_active) return;
-    }
-
-    function input_up_mouse(e){
-        mouse_down = false;
-    }
-
-    function input_down(coords){
-        mouse_down = true;
-
-        let moved = 0;
-        for (let square of game){
-            moved = Math.max(moved, square.clicked(coords, current_player));
-        }
-
-        // Advance Character
-        if (moved == 1)
-            current_player++;
-        current_player %= num_players;
-
-        // Redraw
-        render_game();
-    }
-
-    function new_game() {
-        read_settings();
-	update_size();
-        game_active = true;
-        current_player = 0;
-
-        // Create game
-        game = [];
-
-        for (let x=0; x<size.width; x++)
-            for (let y=0; y<size.height; y++)
-                game.push(new square(ctx, x, y));
-
-
-        // Draw game to canvas
-        render_game();
-    }
-
-    function clear_canvas(){
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function draw_circle(ctx, x, y, r, c1, c2, l=0){
-        ctx.fillStyle = c1;
-        ctx.lineWidth = l;
-        ctx.strokeStyle = c2;
-
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, 2 * Math.PI);
-
-        ctx.fill();
-        if (l>0)
-            ctx.stroke();
-    }
-
-    function render_game(){
-        clear_canvas();
-
-        // Draw squares
-        for (let square of game){
-            square.render();
-        }
-
-        // Tabulate scores
-        let scores = [0,0,0,0,0,0,0,0];
-        let gameover = true
-        for (let square of game)
-            if (square.closer >= 0)
-                scores[square.closer]++
-            else
-                gameover = false;
-
-        // Update scores etc
-        //document.getElementById("player").innerHTML = current_player + 1;
-
-	let score_div = document.getElementById("scores");
-	score_div.innerHTML = "";
-
-        for (let i=0; i<num_players; i++) {
-	    let player_div = document.createElement("div");
-	    player_div.innerHTML = scores[i];
-	    if (current_player == i)
-		player_div.classList.add("currentplayer");
-	    player_div.classList.add("player"+i);
-	    player_div.classList.add("player");
-	    score_div.appendChild(player_div);
-	}
-
-        // Check for game over
-        if (gameover) {
-            make_confetti();
-	    let highest_score = 0;
-            let winners = [];
-            for (let i=0; i<scores.length; i++) {
-		if (scores[i] == highest_score) {
-		    winners.push(i+1);
-		}
-                if (scores[i] > highest_score) {
-                    highest_score = scores[i];
-		    winners = [i+1];
-		}
-	    }
-            game_active = false;
-	    if (winners.length == 1)
-		updateAlert("Game Over! Player " + winners[0] + " wins!");
-	    else
-		updateAlert("Game Over! Players " + winners.join(" and ") + " win!");
-        }
-    }
-
-    function resize_canvas() {
-	canvas.width  = window.innerWidth;
-	canvas.height = window.innerHeight - document.getElementById("settings").getBoundingClientRect().height;
-
-	if (game_active) {
-	    update_size();
-	    for (let cell of game)
-		cell.update_size();
-	    render_game();
-	}
-    }
-
-    function first_run() {
-	resize_canvas();
-    }
-
-    function read_settings() {
-        num_players = Number(document.getElementById("players").value);
-        let size_value = document.getElementById("size").value;
-
-	let width = 12;
-	switch (size_value) {
-	case "Large":
-	    width = 25;
-	    break;
-	case "Medium":
-	    width = 12;
-	    break;
-	case "Small":
-	    width = 7;
-	    break;
-	case "Tiny":
-	    width = 3;
-	    break;
-	}
-
-	// Calculate height based on current aspect ratio
-	let height = Math.floor(width / canvas.width * canvas.height);
-
-	size = {
-	    square_size: 0,
-	    width: width,
-	    height: height,
-	    padding_x: 0,
-	    padding_y: 0,
-	}
-    }
-
-    function update_size() {
-	let padding = 50;
-
-	// Find the max size squares can be in each dimension
-        let max_x = Math.floor((canvas.width  - padding) / size.width);
-        let max_y = Math.floor((canvas.height - padding) / size.height);
-
-	// Choose the smaller size as our square size
-	size.square_size = Math.min(max_x, max_y);
-
-	// Determine how much margin we need in each dimension
-	size.padding_x = Math.floor((canvas.width  - (size.width  * size.square_size)) / 2);
-        size.padding_y = Math.floor((canvas.height - (size.height * size.square_size)) / 2);
-    }
-
-    function updateAlert(m){
-	document.getElementById("result_content").innerHTML = m;
-	document.getElementById("result").classList.remove("hidden");
-    }
-
-    class square {
-        constructor(ctx, x, y) {
-            this.ctx  = ctx;
-
-            this.closer = -1;
-	    this.pos = { x:x, y:y};
-            this.pix_pos = { x:0, y:0, w:0, h:0 };
-
-            this.lines = [
-                {x1: 0, y1: 0, x2: 0, y2: 0, o: -1}, // Top
-                {x1: 0, y1: 0, x2: 0, y2: 0, o: -1}, // Right
-                {x1: 0, y1: 0, x2: 0, y2: 0, o: -1}, // Bottom
-                {x1: 0, y1: 0, x2: 0, y2: 0, o: -1}  // Left
-            ];
-
-	    this.update_size();
-        }
-
-	update_size() {
-	    let global_size = size.square_size;
-	    let padx = size.padding_x;
-	    let pady = size.padding_y;
-
-            // Convert to pixel location
-            let pixx = this.pos.x * global_size + padx;
-            let pixy = this.pos.y * global_size + pady;
-
-	    this.pix_pos.x = pixx;
-	    this.pix_pos.y = pixy;
-	    this.pix_pos.w = global_size;
-	    this.pix_pos.h = global_size;
-
-	    this.lines[0].x1 = pixx
-	    this.lines[0].y1 = pixy
-	    this.lines[0].x2 = pixx + global_size
-	    this.lines[0].y2 = pixy
-
-	    this.lines[1].x1 = pixx + global_size
-	    this.lines[1].y1 = pixy
-	    this.lines[1].x2 = pixx + global_size
-	    this.lines[1].y2 = pixy + global_size
-
-	    this.lines[2].x1 = pixx + global_size
-	    this.lines[2].y1 = pixy + global_size
-	    this.lines[2].x2 = pixx
-	    this.lines[2].y2 = pixy + global_size
-
-	    this.lines[3].x1 = pixx
-	    this.lines[3].y1 = pixy + global_size
-	    this.lines[3].x2 = pixx
-	    this.lines[3].y2 = pixy
-	}
-
-        render_lines() {
-            for (let line of this.lines){
-                if (line.o > -1) {
-                    this.ctx.strokeStyle = colors[line.o][1];
-                    this.ctx.lineWidth = 3;
-
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(line.x1, line.y1);
-                    this.ctx.lineTo(line.x2, line.y2);
-                    this.ctx.stroke();
-                }
+    // Check for game over
+    if (gameover) {
+        make_confetti();
+        let highest_score = 0;
+        let winners = [];
+        for (let i=0; i<scores.length; i++) {
+            if (scores[i] == highest_score) {
+                winners.push(i+1);
+            }
+            if (scores[i] > highest_score) {
+                highest_score = scores[i];
+                winners = [i+1];
             }
         }
+        game_active = false;
+        if (winners.length == 1)
+            updateAlert("Game Over! Player " + winners[0] + " wins!");
+        else
+            updateAlert("Game Over! Players " + winners.join(" and ") + " win!");
+    }
+}
 
-        render_square() {
-            if (this.closer == -1) return;
+function resize_canvas() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight - document.getElementById("settings").getBoundingClientRect().height;
 
-            this.ctx.fillStyle = colors[this.closer][2];
-            this.ctx.fillRect(this.pix_pos.x, this.pix_pos.y, this.pix_pos.w, this.pix_pos.h);
-        }
+    if (game_active) {
+        update_size();
+        for (let cell of game)
+            cell.update_size();
+        render_game();
+    }
+}
 
-        render_dots() {
-            for (let corner of this.lines)
-                draw_circle(this.ctx, corner.x1, corner.y1, 3, "#000000", "#000000", 0);
-        }
+function first_run() {
+    resize_canvas();
+}
 
-        render() {
-            this.render_square();
-            this.render_lines();
-            this.render_dots();
-        }
+function read_settings() {
+    num_players = Number(document.getElementById("players").value);
+    let size_value = document.getElementById("size").value;
 
-        closed(){
-            for (let line of this.lines)
-                if (line.o == -1)
-                    return false;
+    let width = 12;
+    switch (size_value) {
+    case "Large":
+        width = 25;
+        break;
+    case "Medium":
+        width = 12;
+        break;
+    case "Small":
+        width = 7;
+        break;
+    case "Tiny":
+        width = 3;
+        break;
+    }
 
-            return true;
-        }
+    // Calculate height based on current aspect ratio
+    let height = Math.floor(width / canvas.width * canvas.height);
 
-        clicked(p, current_player){
-            let padding = 3;
-            let radius = Math.sqrt(size.square_size**2) / (2 * Math.sqrt(2));
+    size = {
+        square_size: 0,
+        width: width,
+        height: height,
+        padding_x: 0,
+        padding_y: 0,
+    }
+}
 
-            for (let line of this.lines){
-                // Don't process if already drawn
-                if (line.o != -1) continue;
+function update_size() {
+    let padding = 50;
 
-                let center = {
-                    x: (line.x1 + line.x2) / 2,
-                    y: (line.y1 + line.y2) / 2
-                };
+    // Find the max size squares can be in each dimension
+    let max_x = Math.floor((canvas.width  - padding) / size.width);
+    let max_y = Math.floor((canvas.height - padding) / size.height);
 
-                let distance = Math.abs(Math.hypot(center.x - p.x, center.y - p.y));
+    // Choose the smaller size as our square size
+    size.square_size = Math.min(max_x, max_y);
 
-                if (distance < radius) {
-                    line.o = current_player;
+    // Determine how much margin we need in each dimension
+    size.padding_x = Math.floor((canvas.width  - (size.width  * size.square_size)) / 2);
+    size.padding_y = Math.floor((canvas.height - (size.height * size.square_size)) / 2);
+}
 
-                    // Check if box is now closed
-                    if (this.closed()){
-                        this.closer = current_player;
-                        return 2;
-                    }
+function updateAlert(m){
+    document.getElementById("result_content").innerHTML = m;
+    document.getElementById("result").classList.remove("hidden");
+}
 
-                    return 1;
-                }
+class square {
+    constructor(ctx, x, y) {
+        this.ctx  = ctx;
 
+        this.closer = -1;
+        this.pos = { x:x, y:y};
+        this.pix_pos = { x:0, y:0, w:0, h:0 };
+
+        this.lines = [
+            {x1: 0, y1: 0, x2: 0, y2: 0, o: -1}, // Top
+            {x1: 0, y1: 0, x2: 0, y2: 0, o: -1}, // Right
+            {x1: 0, y1: 0, x2: 0, y2: 0, o: -1}, // Bottom
+            {x1: 0, y1: 0, x2: 0, y2: 0, o: -1}  // Left
+        ];
+
+        this.update_size();
+    }
+
+    update_size() {
+        let global_size = size.square_size;
+        let padx = size.padding_x;
+        let pady = size.padding_y;
+
+        // Convert to pixel location
+        let pixx = this.pos.x * global_size + padx;
+        let pixy = this.pos.y * global_size + pady;
+
+        this.pix_pos.x = pixx;
+        this.pix_pos.y = pixy;
+        this.pix_pos.w = global_size;
+        this.pix_pos.h = global_size;
+
+        this.lines[0].x1 = pixx
+        this.lines[0].y1 = pixy
+        this.lines[0].x2 = pixx + global_size
+        this.lines[0].y2 = pixy
+
+        this.lines[1].x1 = pixx + global_size
+        this.lines[1].y1 = pixy
+        this.lines[1].x2 = pixx + global_size
+        this.lines[1].y2 = pixy + global_size
+
+        this.lines[2].x1 = pixx + global_size
+        this.lines[2].y1 = pixy + global_size
+        this.lines[2].x2 = pixx
+        this.lines[2].y2 = pixy + global_size
+
+        this.lines[3].x1 = pixx
+        this.lines[3].y1 = pixy + global_size
+        this.lines[3].x2 = pixx
+        this.lines[3].y2 = pixy
+    }
+
+    render_lines() {
+        for (let line of this.lines){
+            if (line.o > -1) {
+                this.ctx.strokeStyle = colors[line.o][1];
+                this.ctx.lineWidth = 3;
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(line.x1, line.y1);
+                this.ctx.lineTo(line.x2, line.y2);
+                this.ctx.stroke();
             }
-
-            return 0;
         }
     }
+
+    render_square() {
+        if (this.closer == -1) return;
+
+        this.ctx.fillStyle = colors[this.closer][2];
+        this.ctx.fillRect(this.pix_pos.x, this.pix_pos.y, this.pix_pos.w, this.pix_pos.h);
+    }
+
+    render_dots() {
+        for (let corner of this.lines)
+            draw_circle(this.ctx, corner.x1, corner.y1, 3, "#000000", "#000000", 0);
+    }
+
+    render() {
+        this.render_square();
+        this.render_lines();
+        this.render_dots();
+    }
+
+    closed(){
+        for (let line of this.lines)
+            if (line.o == -1)
+                return false;
+
+        return true;
+    }
+
+    clicked(p, current_player){
+        let padding = 3;
+        let radius = Math.sqrt(size.square_size**2) / (2 * Math.sqrt(2));
+
+        for (let line of this.lines){
+            // Don't process if already drawn
+            if (line.o != -1) continue;
+
+            let center = {
+                x: (line.x1 + line.x2) / 2,
+                y: (line.y1 + line.y2) / 2
+            };
+
+            let distance = Math.abs(Math.hypot(center.x - p.x, center.y - p.y));
+
+            if (distance < radius) {
+                line.o = current_player;
+
+                // Check if box is now closed
+                if (this.closed()){
+                    this.closer = current_player;
+                    return 2;
+                }
+
+                return 1;
+            }
+
+        }
+
+        return 0;
+    }
+}
 
     first_run();
   </script>
