@@ -1,9 +1,10 @@
 body {
-    background:#fff;
+    background:#fff url('images/paper.jpg') no-repeat center center fixed;
     padding: 0px;
     margin: 0px;
     spacing: 0px;
     font-family: sans-serif;
+    background-size: cover;
 }
 
 #content {
@@ -18,19 +19,27 @@ hidden {
 }
 
 h1 {
-    margin: 0px 20px 0px 10px;
+    margin: 20px;
+    font-size: 75px;
 }
 
 .settings {
     background: #eee;
     display: inline-block;
     width: 100%;
+    min-height: 100px;
+    font-size: 30px;
 }
 
 .settings * {
     display: inline-block;
     vertical-align: middle;
-    margin-right: 10px;
+    margin: 10px;
+}
+
+.control {
+    padding: 10px;
+    font-size: 30px;
 }
 
 .currentplayer {
@@ -38,36 +47,11 @@ h1 {
 }
 
 .player {
-    width: 50px height: 10px;
-    border: 2px solid;
-    width: 15px;
-    height: 15px;
     text-align: center;
-}
-
-.player0 {
-    border-color: #ff0000;
-    background: #ff8888;
-}
-.player1 {
-    border-color: #00ff00;
-    background: #88ff88;
-}
-.player2 {
-    border-color: #0000ff;
-    background: #8888ff;
-}
-.player3 {
-    border-color: #ffff00;
-    background: #ffff88;
-}
-.player4 {
-    border-color: #00ffff;
-    background: #88ffff;
-}
-.player5 {
-    border-color: #ff00ff;
-    background: #ff88ff;
+    border: 4px solid;
+    min-width: 50px;
+    height: 40px;
+    padding-top: 10px;
 }
 
 #result {
