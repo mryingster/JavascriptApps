@@ -510,6 +510,22 @@
               };
           }
 
+          currentStackHeight() {
+              for (var y=this.state.game_array.length; y>0; y--) {
+                  let empty = true;
+                  for (var x=0; x<this.state.game_array[y-1].length; x++) {
+                      if (this.state.game_array[y-1][x] != this.EMPTY) {
+                          empty = false;
+                          break;
+                      }
+                  }
+                  if (empty) {
+                      return this.state.game_array.length - y;
+                  }
+              }
+              return this.state.game_array.length - 1;
+          }
+
           isGameOver() {
               for (var y=0; y<5; y++){
                   for (var x=0; x<this.state.game_array[y].length; x++){
@@ -789,13 +805,11 @@
 
 	      if (this.state.game_active && this.state.game_paused == false && this.settings.music == true) {
 		  this.music.play();
-		  console.log("play");
 	      }
 	  }
 
 	  stopMusic() {
 	      this.music.stop();
-	      console.log("stop");
 	  }
 
           user_move(e){
@@ -1066,7 +1080,11 @@
                   // Animate blocks scrolling up
                   this.animateUpcomingBlocks(0);
 
-		  // See how many blocks high current state is. Change music temp if above 
+		  // See how many blocks high current state is. Change music temp if above 15 lines
+                  if (this.currentStackHeight() >= 17)
+                      this.music.sound.playbackRate = 1.5;
+                  else
+                      this.music.sound.playbackRate = 1;
 
                   // See if game is over
                   if (this.isGameOver() == true && lines_cleared == 0){
@@ -1780,7 +1798,6 @@
           }
 
           repeat(e) {
-              console.log("hi");
               e.preventDefault();
               //navigator.vibrate(200);
 
