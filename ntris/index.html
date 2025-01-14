@@ -527,13 +527,8 @@
           }
 
           isGameOver() {
-              for (var y=0; y<5; y++){
-                  for (var x=0; x<this.state.game_array[y].length; x++){
-                      if (this.state.game_array[y][x] != this.EMPTY){
-                          return true;
-                      }
-                  }
-              }
+              if (this.currentStackHeight() > 20)
+                  return true;
               return false;
           }
 
