@@ -34,7 +34,7 @@
           src: url('fonts/Digital7Regular.otf');
       }
 
-      g.button{ 
+      g.button {
           touch-action: manipulation;
       }
 
@@ -170,6 +170,21 @@
     <script>
       // Comment
 
+      function sound(src) {
+	  this.sound = document.createElement("audio");
+	  this.sound.src = src;
+	  this.sound.setAttribute("preload", "auto");
+	  this.sound.setAttribute("controls", "none");
+	  this.sound.style.display = "none";
+	  document.body.appendChild(this.sound);
+	  this.play = function(){
+              this.sound.play();
+	  }
+	  this.stop = function(){
+              this.sound.pause();
+	  }
+      }
+
       class tetris {
           constructor(canvas){
               this.canvas = canvas;
@@ -216,6 +231,7 @@
                   showGhostBlock : true,
                   debug          : false,
                   cheat          : false,
+		  music          : false,
               };
 
               // Definitions
@@ -241,6 +257,7 @@
                   j           : 74,
                   k           : 75,
                   l           : 76,
+                  m           : 77,
                   n           : 78,
                   e           : 69,
                   o           : 79,
@@ -321,6 +338,9 @@
                   speedup_multiplier : .86,
                   max_speed          : 50,
               };
+
+	      this.music = new sound("music/8bit_march.mp3");
+	      this.music.sound.loop = true;
 
               this.block_defs = {
                   // Tetrominoes
@@ -750,6 +770,34 @@
               this.redraw();
           }
 
+	  toggleMusicSetting() {
+	      if (this.settings.music == true) {
+		  this.settings.music = false
+		  this.stopMusic();
+	      } else {
+		  this.settings.music = true;
+		  this.startMusic();
+	      }
+	  }
+
+	  startMusic(reset = false) {
+              if (reset) {
+                  // Reset to normal speed and start from beginning
+                  this.music.sound.playbackRate = 1;
+                  this.music.sound.fastSeek(0);
+              }
+
+	      if (this.state.game_active && this.state.game_paused == false && this.settings.music == true) {
+		  this.music.play();
+		  console.log("play");
+	      }
+	  }
+
+	  stopMusic() {
+	      this.music.stop();
+	      console.log("stop");
+	  }
+
           user_move(e){
               // Switch for general commands
               switch (e.keyCode){
@@ -778,6 +826,10 @@
                   if (this.state.game_active == true)
                       this.togglePause();
                   break;
+
+	      case this.key.m:
+		  this.toggleMusicSetting();
+		  break;
 
               case this.key.q:
                   this.endGame();
@@ -959,6 +1011,7 @@
               clearTimeout(this.state.timer);
               this.clearAnimationTimer();
               this.state.game_active = false;
+              this.stopMusic();
               this.game_over_overlay();
           }
 
@@ -1012,6 +1065,8 @@
 
                   // Animate blocks scrolling up
                   this.animateUpcomingBlocks(0);
+
+		  // See how many blocks high current state is. Change music temp if above 
 
                   // See if game is over
                   if (this.isGameOver() == true && lines_cleared == 0){
@@ -1107,6 +1162,7 @@
                   this.state.game_overlay = this.overlays.paused;
                   this.redraw();
                   clearTimeout(this.state.timer);
+		  this.stopMusic();
               }
           }
 
@@ -1116,6 +1172,7 @@
                   this.state.game_overlay = null;
                   this.redraw();
                   this.main_loop();
+		  this.startMusic();
               }
           }
 
@@ -1157,6 +1214,8 @@
                   this.redraw();            // Draw the screen
                   this.main_loop();
               }
+
+	      this.startMusic(true);
           }
 
           drawUpcomingBlocks(offset=0){
