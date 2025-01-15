@@ -232,6 +232,7 @@
                   debug          : false,
                   cheat          : false,
 		  music          : false,
+		  sounds         : false,
               };
 
               // Definitions
@@ -253,19 +254,20 @@
                   right_arrow : 39,
                   down_arrow  : 40,
                   c           : 67,
+                  d           : 68,
+                  e           : 69,
+                  g           : 71,
                   i           : 73,
                   j           : 74,
                   k           : 75,
                   l           : 76,
                   m           : 77,
                   n           : 78,
-                  e           : 69,
                   o           : 79,
-                  g           : 71,
                   p           : 80,
-                  d           : 68,
                   q           : 81,
                   s           : 83,
+                  x           : 88,
                   plus        : 61,
                   minus       : 173,
               };
@@ -344,6 +346,10 @@
 
               this.sounds = [
                   "sounds/short_click.mp3",
+                  "sounds/rotate.mp3",
+                  "sounds/electricity.mp3",
+                  "sounds/level_up.mp3",
+                  "sounds/record_scratch.mp3",
               ];
               this.sfx = [
                   new sound("sounds/short_click.mp3"),
@@ -605,7 +611,7 @@
               }
 
               if (lines_cleared.length > 0) {
-                  this.play_sfx(0);
+                  this.play_sfx(2);
                   this.animateLineClear(lines_cleared, 8*lines_cleared.length);
               }
 
@@ -741,13 +747,13 @@
               }
 
               if (dir == this.direction.ccw){
-                  this.play_sfx(0);
+                  this.play_sfx(1);
                   this.state.block_position[3] = 0; // only get points for how far it dropped without shifting
                   this.state.block_position[2] = this.state.block_position[2] + 1;
               }
 
               if (dir == this.direction.cw){
-                  this.play_sfx(0);
+                  this.play_sfx(1);
                   this.state.block_position[3] = 0; // only get points for how far it dropped without shifting
                   this.state.block_position[2] = this.state.block_position[2] + 3;
               }
@@ -809,6 +815,14 @@
 	      }
 	  }
 
+	  toggleSoundSetting() {
+	      if (this.settings.sounds == true) {
+		  this.settings.sounds = false
+	      } else {
+		  this.settings.sounds = true;
+	      }
+	  }
+
 	  startMusic(reset = false) {
               if (reset) {
                   // Reset to normal speed and start from beginning
@@ -826,6 +840,8 @@
 	  }
 
           play_sfx(sound_index) {
+              if (this.settings.sounds == false) return;
+
               //console.log(sound_index, this.sounds[sound_index], this.sfx_index);
               this.sfx[this.sfx_index].sound.src = this.sounds[sound_index];
               this.sfx[this.sfx_index].sound.volume = .5;
@@ -867,6 +883,10 @@
 
 	      case this.key.m:
 		  this.toggleMusicSetting();
+		  break;
+
+	      case this.key.s:
+		  this.toggleSoundSetting();
 		  break;
 
               case this.key.q:
@@ -920,7 +940,7 @@
                       }
                       break;
 
-                  case this.key.s:
+                  case this.key.x:
                       if (this.settings.cheat == true) {
                           // Replace current block definition with an empty block
                           this.state.block_history[this.state.block_history.length-1] = {
@@ -1050,6 +1070,7 @@
               this.clearAnimationTimer();
               this.state.game_active = false;
               this.stopMusic();
+              this.play_sfx(4);
               this.game_over_overlay();
           }
 
@@ -1093,6 +1114,7 @@
                   this.state.score += this.rules.line_scores[lines_cleared] * this.state.level;
                   if (Math.floor(this.state.lines / 10) < Math.floor((this.state.lines + lines_cleared) / 10)){
                       this.state.level += 1;
+                      this.play_sfx(3);
                       this.redrawFrame();
                   }
                   this.state.lines += lines_cleared;
@@ -1436,7 +1458,8 @@
                   "(q) Quit Game",
                   "(e) Extra Pieces",
                   "(g) Ghost Mode",
-                  "(m) Music"
+                  //"(m) Music",
+                  //"(s) Sounds"
               ];
               for (var i=0; i<notes.length; i++)
                   this.ctx.fillText(notes[i], ralign, y - ((notes.length - i) * note_spacing));
