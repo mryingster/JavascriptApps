@@ -961,6 +961,9 @@
           }
 
           check_high_score() {
+	      // Don't check when there is no score
+	      if (this.state.score <= 0) return;
+
               // Retrieve Scores
               var high_scores = localStorage.getItem("ntris");
 
@@ -1024,10 +1027,11 @@
               }
           }
 
-          game_over_overlay(printed_score=3){
-              var wait = 15; // miliseconds
-              if (printed_score < this.state.score) {
-                  printed_score *= 2;
+          game_over_overlay(printed_score=0){
+              var wait = 50; // miliseconds
+	      console.log(printed_score, this.state.score);
+              if (printed_score < this.state.score || this.state.score == 0) {
+                  printed_score = Math.floor(printed_score * 1.4);
                   printed_score += Math.floor(Math.random() * 5);
                   if (printed_score > this.state.score) {
                       printed_score = this.state.score;
@@ -1058,7 +1062,8 @@
                   ],
 
                   this.redraw();
-                  this.state.timer = setTimeout(() => this.game_over_overlay(printed_score), wait);
+		  if (this.state.score != 0)
+                      this.state.timer = setTimeout(() => this.game_over_overlay(printed_score), wait);
               } else {
                   this.check_high_score();
               }
