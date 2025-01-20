@@ -1028,10 +1028,10 @@
           }
 
           game_over_overlay(printed_score=0){
-              var wait = 50; // miliseconds
-	      console.log(printed_score, this.state.score);
+              var wait = 25; // miliseconds
+
               if (printed_score < this.state.score || this.state.score == 0) {
-                  printed_score = Math.floor(printed_score * 1.4);
+                  printed_score = Math.floor(printed_score * 1.6);
                   printed_score += Math.floor(Math.random() * 5);
                   if (printed_score > this.state.score) {
                       printed_score = this.state.score;
@@ -1881,6 +1881,12 @@
       document.addEventListener('keydown', function(e) {
           tetris_instance.user_move(e);
       });
+
+      // Redraw once fonts have loaded!
+      document.fonts.ready.then(function () {
+	  tetris_instance.redraw();
+      });
+
 
     </script>
   </body>
