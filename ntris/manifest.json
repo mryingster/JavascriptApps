@@ -3,8 +3,8 @@
     "short_name": "N-Tris",
     "display" : "standalone",
     "orientation" : "portrait",
-    "start_url" : "http://yingster.net/apps/tetris",
-    "scope" : "http://yingster.net/apps/tetris",
+    "start_url" : "http://yingster.net/apps/ntris",
+    "scope" : "http://yingster.net/apps/ntris",
     "icons" : [
         {
             "src" : "https://yingster.net/apps/icons/icon_ntris_1024.png",
