@@ -23,12 +23,17 @@ h1, h2 {
 .button {
     touch-action: manipulation;
     font-size: 1.5em;
-    padding: 17px;
     color: #991700;
+    width: 100px;
+    height: 67px;
 }
 
 .button:disabled {
     color: #AA7777;
+}
+
+#controls {
+    height: 70px;
 }
 
 table {
@@ -65,4 +70,19 @@ td.score, td.score button {
 #score_wrapper {
     font-size: 1.5em;
     color:#991700;
+}
+
+@media (max-width: 991px) {
+    .score_button {
+        height: 70px;
+    }
+
+    .button {
+        height: 100px;
+        width: 150px;
+    }
+
+    #controls {
+        height: 120px;
+    }
 }
