@@ -391,7 +391,10 @@ function update_score_buttons(show_score_only=false){
     // Override scores for already scored buttons
     for (let button_name in this_score){
         if (this_score[button_name] != null){
-            document.getElementById(button_name).innerHTML = this_score[button_name];
+	    if (this_score[button_name] == 0)
+		document.getElementById(button_name).innerHTML = "&mdash;";
+	    else
+		document.getElementById(button_name).innerHTML = this_score[button_name];
         }
     }
 }
