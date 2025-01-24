@@ -24,7 +24,7 @@ h1, h2 {
     touch-action: manipulation;
     font-size: 1.5em;
     color: #991700;
-    width: 100px;
+    padding: 0px 30px;
     height: 67px;
 }
 
@@ -79,7 +79,7 @@ td.score, td.score button {
 
     .button {
         height: 100px;
-        width: 150px;
+        padding: 0px 50px;
     }
 
     #controls {
