@@ -633,6 +633,14 @@ class tetris {
         this.redraw();
     }
 
+    select_button() {
+	if (this.state.game_active == true) {
+	    this.toggleMusicSetting();
+	    this.toggleSoundSetting();
+	} else
+	    this.toggleExtraPieces();
+    }
+
     toggleMusicSetting() {
 	if (this.settings.music == true) {
 	    this.settings.music = false
@@ -1716,7 +1724,7 @@ let cw_button     = new button(document.getElementById("cw_button"),     false, 
 let ccw_button    = new button(document.getElementById("ccw_button"),    false, () => tetris_instance.move(tetris_instance.direction.ccw));
 let drop_button   = new button(document.getElementById("drop_button"),   false, () => tetris_instance.move(tetris_instance.direction.drop));
 let start_button  = new button(document.getElementById("start_button"),  false, () => tetris_instance.start(focus=false));
-let select_button = new button(document.getElementById("select_button"), false, () => tetris_instance.toggleExtraPieces());
+let select_button = new button(document.getElementById("select_button"), false, () => tetris_instance.select_button());
 
 // Keyboard listeners
 //document.addEventListener('keyup', function(e) {});
