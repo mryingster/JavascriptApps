@@ -688,6 +688,12 @@ class tetris {
         this.sfx_index %= this.sfx.length;
     }
 
+    onscreen_gamepad_move(d) {
+	if (this.state.game_active == true && this.isAnimating() == false && this.state.game_paused == false) {
+	    this.move(d, true);
+	}
+    }
+
     user_move(e){
         // Switch for general commands
         switch (e.keyCode){
@@ -1717,12 +1723,12 @@ class button {
 
 // Gamepad Button Definitions
 let up_button     = new button(document.getElementById("up_button"),     true,  () => tetris_instance.toggleGhostMode());
-let down_button   = new button(document.getElementById("down_button"),   true,  () => tetris_instance.move(tetris_instance.direction.down));
-let left_button   = new button(document.getElementById("left_button"),   true,  () => tetris_instance.move(tetris_instance.direction.left));
-let right_button  = new button(document.getElementById("right_button"),  true,  () => tetris_instance.move(tetris_instance.direction.right))
-let cw_button     = new button(document.getElementById("cw_button"),     false, () => tetris_instance.move(tetris_instance.direction.cw));
-let ccw_button    = new button(document.getElementById("ccw_button"),    false, () => tetris_instance.move(tetris_instance.direction.ccw));
-let drop_button   = new button(document.getElementById("drop_button"),   false, () => tetris_instance.move(tetris_instance.direction.drop));
+let down_button   = new button(document.getElementById("down_button"),   true,  () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.down));
+let left_button   = new button(document.getElementById("left_button"),   true,  () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.left));
+let right_button  = new button(document.getElementById("right_button"),  true,  () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.right))
+let cw_button     = new button(document.getElementById("cw_button"),     false, () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.cw));
+let ccw_button    = new button(document.getElementById("ccw_button"),    false, () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.ccw));
+let drop_button   = new button(document.getElementById("drop_button"),   false, () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.drop));
 let start_button  = new button(document.getElementById("start_button"),  false, () => tetris_instance.start(focus=false));
 let select_button = new button(document.getElementById("select_button"), false, () => tetris_instance.select_button());
 
