@@ -1,0 +1,88 @@
+body {
+    background:#eee;
+    color:#000;
+    font-family:sans-serif;
+}
+
+div#content {
+    background :#fff;
+    margin: 0px auto;
+    width: 640px;
+    padding: 30px;
+}
+
+h1 {
+    margin:10px;
+    font-size:3em;
+}
+
+h1, h2 {
+    color:#991700;
+}
+
+.button {
+    touch-action: manipulation;
+    font-size: 1.5em;
+    color: #991700;
+    padding: 0px 30px;
+    height: 67px;
+}
+
+.button:disabled {
+    color: #AA7777;
+}
+
+#controls {
+    height: 70px;
+}
+
+table {
+    display: inline-block;
+    margin: 10px;
+}
+
+td {
+    padding-left: 5px;
+}
+
+td.underline {
+    border-bottom : 2px solid #ccc;
+}
+
+td.score, td.score button {
+    font-style: italic;
+    color: #666 !important;
+}
+
+.score_button {
+    touch-action: manipulation;
+    width: 150px;
+    height: 30px;
+    font-size: 1.15em;
+}
+
+.score_button:disabled {
+    background: #fff;
+    color: #000000;
+    border: 0px;
+}
+
+#score_wrapper {
+    font-size: 1.5em;
+    color:#991700;
+}
+
+@media (max-width: 991px) {
+    .score_button {
+        height: 70px;
+    }
+
+    .button {
+        height: 100px;
+        padding: 0px 50px;
+    }
+
+    #controls {
+        height: 120px;
+    }
+}

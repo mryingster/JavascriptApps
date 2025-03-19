@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Dicey Delux</title>
+    <meta charset="utf-8"/>
+    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=768px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
+    <link rel="stylesheet" type="text/css" href="dicey.css" id="style">
+  </head>
+
+  <body>
+    <div id="content">
+      <h1>Dicey Delux</h1>
+
+      <div id="dice">
+      </div>
+
+      <canvas id="canvas"  width="640px" height="130px" style="touch-action:manipulation;"></canvas>
+
+      <div id="controls">
+        <button class="button" id="roll">Roll</button>
+        <button class="button" id="reset" style="display:none;">New Game</button>
+        <span id="score_wrapper">Score: <span id="score"></span></span>
+      </div>
+
+      <div id="scores">
+        </table>
+
+      </div>
+    </div>
+
+    <script src="dicey.js" type="module"></script>
+  </body>
+</html>
