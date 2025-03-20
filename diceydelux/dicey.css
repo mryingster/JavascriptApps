@@ -77,8 +77,16 @@ h1, h2 {
 }
 
 #score_wrapper {
-    font-size: 1.5em;
     color:#991700;
+    float: right;
+    margin-top: 6px;
+    text-align: center;
+    margin-right: 30px;
+}
+
+#score {
+    font-size: 1.9em;
+    display: block;
 }
 
 @media (max-width: 991px) {
@@ -94,4 +102,8 @@ h1, h2 {
     #controls {
         height: 120px;
     }
+}
+
+.hidden {
+    display: none;
 }

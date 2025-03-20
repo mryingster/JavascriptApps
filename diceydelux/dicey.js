@@ -182,7 +182,7 @@ class die {
 // Global Settings
 let num_dice = 6;
 let num_rolls = 4;
-let start_values = "DICEY2";
+let start_values = "DICEY!";
 let dice = [];
 
 let rolls_left = 0;
@@ -195,29 +195,31 @@ const INPUT = 0;
 const COMPUTE = 1;
 
 let scores_layout = [
-    {name:"Aces",          column: LEFT,  type: INPUT,   key:"aces", },
-    {name:"Twos",          column: LEFT,  type: INPUT,   key:"twos", },
-    {name:"Threes",        column: LEFT,  type: INPUT,   key:"threes", },
-    {name:"Fours",         column: LEFT,  type: INPUT,   key:"fours", },
-    {name:"Fives",         column: LEFT,  type: INPUT,   key:"fives", },
-    {name:"Sixes",         column: LEFT,  type: INPUT,   key:"sixes", },
+    {name:"Aces",          column: LEFT,  type: INPUT,   sizes:[4,5,6], key:"aces", },
+    {name:"Twos",          column: LEFT,  type: INPUT,   sizes:[4,5,6], key:"twos", },
+    {name:"Threes",        column: LEFT,  type: INPUT,   sizes:[4,5,6], key:"threes", },
+    {name:"Fours",         column: LEFT,  type: INPUT,   sizes:[4,5,6], key:"fours", },
+    {name:"Fives",         column: LEFT,  type: INPUT,   sizes:[4,5,6], key:"fives", },
+    {name:"Sixes",         column: LEFT,  type: INPUT,   sizes:[4,5,6], key:"sixes", },
 
-    {name:"Left Subtotal", column: LEFT,  type: COMPUTE, key:"left_sub", },
-    {name:"Left Bonus",    column: LEFT,  type: COMPUTE, key:"left_bonus", },
-    {name:"Left Total",    column: LEFT,  type: COMPUTE, key:"left_total", },
+    {name:"Left Subtotal", column: LEFT,  type: COMPUTE, sizes:[4,5,6], key:"left_sub", },
+    {name:"Left Bonus",    column: LEFT,  type: COMPUTE, sizes:[4,5,6], key:"left_bonus", },
+    {name:"Left Total",    column: LEFT,  type: COMPUTE, sizes:[4,5,6], key:"left_total", },
 
-    {name:"3 of a kind",   column: RIGHT, type: INPUT,   key:"3oak", },
-    {name:"4 of a kind",   column: RIGHT, type: INPUT,   key:"4oak", },
-    {name:"5 of a kind",   column: RIGHT, type: INPUT,   key:"5oak", },
-    {name:"Full House",    column: RIGHT, type: INPUT,   key:"full_house", },
-    {name:"Small Stright", column: RIGHT, type: INPUT,   key:"small_str", },
-    {name:"Big Straight",  column: RIGHT, type: INPUT,   key:"big_str", },
-    {name:"Huge Straight", column: RIGHT, type: INPUT,   key:"huge_str", },
-    {name:"Dicey",         column: RIGHT, type: INPUT,   key:"dicey", },
-    {name:"Chance",        column: RIGHT, type: INPUT,   key:"chance", },
+    {name:"2 of a kind",   column: RIGHT, type: INPUT,   sizes:[4],     key:"2oak", },
+    {name:"3 of a kind",   column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"3oak", },
+    {name:"4 of a kind",   column: RIGHT, type: INPUT,   sizes:[5,6],   key:"4oak", },
+    {name:"5 of a kind",   column: RIGHT, type: INPUT,   sizes:[6],     key:"5oak", },
+    {name:"Full House",    column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"full_house", },
+    {name:"Tiny Straight", column: RIGHT, type: INPUT,   sizes:[4],     key:"tiny_str", },
+    {name:"Small Straight",column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"small_str", },
+    {name:"Big Straight",  column: RIGHT, type: INPUT,   sizes:[5,6],   key:"big_str", },
+    {name:"Huge Straight", column: RIGHT, type: INPUT,   sizes:[6],     key:"huge_str", },
+    {name:"Dicey",         column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"dicey", },
+    {name:"Chance",        column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"chance", },
 
-    {name:"Dicey Bonus",   column: RIGHT, type: COMPUTE, key:"dicey_bonus", },
-    {name:"Right Total",   column: RIGHT, type: COMPUTE, key:"right_total", },
+    {name:"Dicey Bonus",   column: RIGHT, type: COMPUTE, sizes:[4,5,6], key:"dicey_bonus", },
+    {name:"Right Total",   column: RIGHT, type: COMPUTE, sizes:[4,5,6], key:"right_total", },
 ];
 
 
@@ -259,7 +261,7 @@ function record_score(field) {
 
     if (this_score["dicey"] == 50){
         for (let i of count_occurances(this_roll))
-            if (i == 6)
+            if (i == num_dice)
                 dicies += 1;
         this_score["dicey_bonus"] = (dicies - 1) * 100;
     }
@@ -273,32 +275,45 @@ function record_score(field) {
     document.getElementById('roll').disabled = false;
 
     // See if game over
-    let game_over = true;
     for (let i in this_score)
         if (this_score[i] == null)
-            game_over = false;
-    if (game_over == true) {
-        document.getElementById('roll').disabled = true;
-        document.getElementById('reset').style = "";
-    }
+            return;
+
+    game_over();
 }
 
-function setup_new_game(state=null){
+function game_over() {
+    // Hide roll button
+    document.getElementById('controls').classList.add("hidden");
+
+    // Show start button
+    document.getElementById('start').classList.remove("hidden");
+}
+
+function setup_new_game(size){
+    num_dice = size;
+    num_rolls = size - 2;
+
     // Clearout values
     rolls_left = num_rolls;
     dicies = 0;
     this_score = {};
     for (let score of scores_layout)
-        this_score[score.key] = null;
+        if (score.sizes.includes(size))
+            this_score[score.key] = null;
     this_score.dicey_bonus = 0;
 
-    // Disable Button
+    // Create DICE and Score Cards
+    create_dice(num_dice);
+    create_score_card(num_dice);
+
+    // Get rid of old scores
     enable_disable_score_buttons(true);
     update_score_buttons(true);
 
-    // Get rid of old scores
-    document.getElementById('roll').disabled = false;
-    document.getElementById('reset').style = "display:none;";
+    // Disable Button
+    document.getElementById('controls').classList.remove("hidden");
+    document.getElementById('start').classList.add("hidden");
 }
 
 function enable_disable_score_buttons(disable_all=false){
@@ -339,10 +354,12 @@ function update_score_buttons(show_score_only=false){
     document.getElementById("sixes").innerHTML  = 6 * dice_count[6];
 
     let dice_sum        = sum_dice(this_roll);
+    let two_of_a_kind   = 0;
     let three_of_a_kind = 0;
     let four_of_a_kind  = 0;
     let five_of_a_kind  = 0;
     let full_house      = 25;
+    let tiny_straight   = 0;
     let small_straight  = 0;
     let large_straight  = 0;
     let huge_straight   = 0;
@@ -356,9 +373,12 @@ function update_score_buttons(show_score_only=false){
             straight_count++;
         else
             straight_count = 0;
-        if (straight_count > 3) small_straight = 25;
-        if (straight_count > 4) large_straight = 30;
-        if (straight_count > 5) huge_straight = 40;
+        if (straight_count > 2) tiny_straight = 20;
+        if (straight_count > 3) small_straight = 30;
+        if (straight_count > 4) large_straight = 40;
+        if (straight_count > 5) huge_straight  = 50;
+        if (i > 1)
+            two_of_a_kind = dice_sum;
         if (i > 2)
             three_of_a_kind = dice_sum;
         if (i > 3)
@@ -367,19 +387,33 @@ function update_score_buttons(show_score_only=false){
             five_of_a_kind = dice_sum;
         if (i != 0 && i != 2 && i != 3 && i != 4 && i != 6)
             full_house = 0;
-        if (i != 0 && i != 6)
+        if (i != 0 && i != num_dice)
             dicey = 0;
     }
 
-    document.getElementById("3oak").innerHTML       = three_of_a_kind;
-    document.getElementById("4oak").innerHTML       = four_of_a_kind;
-    document.getElementById("5oak").innerHTML       = five_of_a_kind;
-    document.getElementById("chance").innerHTML     = dice_sum;
-    document.getElementById("full_house").innerHTML = full_house;
-    document.getElementById("small_str").innerHTML  = small_straight;
-    document.getElementById("big_str").innerHTML    = large_straight;
-    document.getElementById("huge_str").innerHTML   = huge_straight;
-    document.getElementById("dicey").innerHTML      = dicey;
+    // Only score relavent combinations
+    if (Object.keys(this_score).indexOf("2oak") >= 0)
+        document.getElementById("2oak").innerHTML       = two_of_a_kind;
+    if (Object.keys(this_score).indexOf("3oak") >= 0)
+        document.getElementById("3oak").innerHTML       = three_of_a_kind;
+    if (Object.keys(this_score).indexOf("4oak") >= 0)
+        document.getElementById("4oak").innerHTML       = four_of_a_kind;
+    if (Object.keys(this_score).indexOf("5oak") >= 0)
+        document.getElementById("5oak").innerHTML       = five_of_a_kind;
+    if (Object.keys(this_score).indexOf("chance") >= 0)
+        document.getElementById("chance").innerHTML     = dice_sum;
+    if (Object.keys(this_score).indexOf("full_house") >= 0)
+        document.getElementById("full_house").innerHTML = full_house;
+    if (Object.keys(this_score).indexOf("tiny_str") >= 0)
+        document.getElementById("tiny_str").innerHTML   = tiny_straight;
+    if (Object.keys(this_score).indexOf("small_str") >= 0)
+        document.getElementById("small_str").innerHTML  = small_straight;
+    if (Object.keys(this_score).indexOf("big_str") >= 0)
+        document.getElementById("big_str").innerHTML    = large_straight;
+    if (Object.keys(this_score).indexOf("huge_str") >= 0)
+        document.getElementById("huge_str").innerHTML   = huge_straight;
+    if (Object.keys(this_score).indexOf("dicey") >= 0)
+        document.getElementById("dicey").innerHTML      = dicey;
 
     // Tabulate left score
     let left_score = 0;
@@ -398,7 +432,7 @@ function update_score_buttons(show_score_only=false){
 
     // Tabulate right score
     let right_score = 0;
-    for (let i of ['3oak', '4oak', 'full_house', 'small_str', 'big_str', 'dicey', 'chance', 'dicey_bonus'])
+    for (let i of ['3oak', '4oak', '5oak', 'full_house', 'small_str', 'big_str', 'huge_str', 'dicey', 'chance', 'dicey_bonus'])
         if (this_score[i] != null)
             right_score += this_score[i];
     document.getElementById("right_total").innerHTML = right_total;
@@ -429,13 +463,31 @@ function update_score_buttons(show_score_only=false){
     }
 }
 
-function first_load(){
-    // Create Dice
-    for (let i=0; i<num_dice; i++)
-        dice.push(new die(document.getElementById("dice"), 96, start_values[i]));
+function create_dice(n) {
+    // Delete current dice
+    dice = [];
+    document.getElementById("dice").innerHTML = "";
 
-    // Create Score Card
+    // Sizing guide for dice....
+    let size = {
+        4: 150,
+        5: 115,
+        6: 96,
+    }
+
+    // Make new ones!
+    for (let i=0; i<n; i++)
+        dice.push(new die(document.getElementById("dice"), size[n], start_values[i]));
+
+}
+
+function create_score_card(n) {
     let scores_div = document.getElementById("scores");
+
+    // Empty out current contents of div
+    scores_div.innerHTML = "";
+
+    // Create new score fields
     let left_column = document.createElement("div");
     left_column.id = "left_column";
     let right_column = document.createElement("div");
@@ -444,6 +496,7 @@ function first_load(){
     let last_element = INPUT;
 
     for (let score of scores_layout) {
+        if (!score.sizes.includes(n)) continue;
         let score_group = document.createElement("div");
 
         let name = document.createElement("span");
@@ -452,6 +505,10 @@ function first_load(){
         if (score.type == COMPUTE)
             name.classList.add("compute");
         score_group.appendChild(name);
+
+        // Show the required score for left bonus to be activated
+        if (score.name == "Left Bonus")
+            name.innerHTML = "Left Bonus (>"+(1+2+3+4+5+6) * (n-2)+")";
 
         let button = document.createElement("button");
         button.innerHTML = "0";
@@ -478,13 +535,23 @@ function first_load(){
 
     scores_div.appendChild(left_column);
     scores_div.appendChild(right_column);
+}
+
+function first_load() {
+    // Create Dice
+    create_dice(5);
 
     // Bind Buttons
     document.getElementById("roll").onclick  = function () { roll_dice() };
-    document.getElementById("reset").onclick = function () { setup_new_game() };
+    document.getElementById("start4").onclick = function () { setup_new_game(4) };
+    document.getElementById("start5").onclick = function () { setup_new_game(5) };
+    document.getElementById("start6").onclick = function () { setup_new_game(6) };
+
+    // Hide Roll Button
+    document.getElementById('controls').classList.add("hidden");
 
     // Get game ready
-    setup_new_game();
+    //setup_new_game();
 }
 
 window.onload = function () {
