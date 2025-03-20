@@ -36,20 +36,20 @@ h1, h2 {
     height: 70px;
 }
 
-table {
+#left_column, #right_column {
     display: inline-block;
-    margin: 10px;
+    vertical-align: top;
+    #width: 50%;
+    padding: 15px;
 }
 
-td {
-    padding-left: 5px;
+.name {
+    width: 135px;
+    display: inline-block;
+    margin-top: 15px;
 }
 
-td.underline {
-    border-bottom : 2px solid #ccc;
-}
-
-td.score, td.score button {
+.compute {
     font-style: italic;
     color: #666 !important;
 }
@@ -59,6 +59,11 @@ td.score, td.score button {
     width: 150px;
     height: 30px;
     font-size: 1.15em;
+}
+
+.underline {
+    border-top: 2px solid #ccc;
+    margin-top: 10px;
 }
 
 .score_button:disabled {
