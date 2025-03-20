@@ -11,6 +11,10 @@ div#content {
     padding: 30px;
 }
 
+canvas {
+    touch-action: manipulation;
+}
+
 h1 {
     margin:10px;
     font-size:3em;

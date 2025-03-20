@@ -16,7 +16,7 @@ class die {
         this.canvas.height = this.size + (this.margin * 2);
 
         // Add listeners
-        this.canvas.addEventListener('touchstart', () => this.toggle_selected(), false);
+        this.canvas.addEventListener('touchstart', () => this.touch_start(), false);
         this.canvas.addEventListener('mousedown', () => this.toggle_selected(), false);
 
         this.update();
@@ -26,6 +26,11 @@ class die {
         this.value = this.initial_value;
         this.selected = false;
         this.update();
+    }
+
+    touch_start(e) {
+        e.preventDefault();
+        this.toggle_selected();
     }
 
     toggle_selected(e) {
