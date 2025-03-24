@@ -195,27 +195,27 @@ const INPUT = 0;
 const COMPUTE = 1;
 
 let scores_layout = [
-    {name:"Aces",          column: LEFT,  type: INPUT,   sizes:[4,5,6], key:"aces", },
-    {name:"Twos",          column: LEFT,  type: INPUT,   sizes:[4,5,6], key:"twos", },
-    {name:"Threes",        column: LEFT,  type: INPUT,   sizes:[4,5,6], key:"threes", },
-    {name:"Fours",         column: LEFT,  type: INPUT,   sizes:[4,5,6], key:"fours", },
-    {name:"Fives",         column: LEFT,  type: INPUT,   sizes:[4,5,6], key:"fives", },
-    {name:"Sixes",         column: LEFT,  type: INPUT,   sizes:[4,5,6], key:"sixes", },
+    {name:"Aces",          column: LEFT,  type: INPUT,   key:"aces", },
+    {name:"Twos",          column: LEFT,  type: INPUT,   key:"twos", },
+    {name:"Threes",        column: LEFT,  type: INPUT,   key:"threes", },
+    {name:"Fours",         column: LEFT,  type: INPUT,   key:"fours", },
+    {name:"Fives",         column: LEFT,  type: INPUT,   key:"fives", },
+    {name:"Sixes",         column: LEFT,  type: INPUT,   key:"sixes", },
 
-    {name:"Left Subtotal", column: LEFT,  type: COMPUTE, sizes:[4,5,6], key:"left_sub", },
-    {name:"Left Bonus",    column: LEFT,  type: COMPUTE, sizes:[4,5,6], key:"left_bonus", },
-    {name:"Left Total",    column: LEFT,  type: COMPUTE, sizes:[4,5,6], key:"left_total", },
+    {name:"Left Subtotal", column: LEFT,  type: COMPUTE, key:"left_sub", },
+    {name:"Left Bonus",    column: LEFT,  type: COMPUTE, key:"left_bonus", },
+    {name:"Left Total",    column: LEFT,  type: COMPUTE, key:"left_total", },
 
-    {name:"Small Set",     column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"small_set", },
-    {name:"Large Set",     column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"large_set", },
-    {name:"Full House",    column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"full_house", },
-    {name:"Small Straight",column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"small_str", },
-    {name:"Big Straight",  column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"big_str", },
-    {name:"Dicey",         column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"dicey", },
-    {name:"Chance",        column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"chance", },
+    {name:"Small Set",     column: RIGHT, type: INPUT,   key:"small_set", },
+    {name:"Large Set",     column: RIGHT, type: INPUT,   key:"large_set", },
+    {name:"Full House",    column: RIGHT, type: INPUT,   key:"full_house", },
+    {name:"Small Straight",column: RIGHT, type: INPUT,   key:"small_str", },
+    {name:"Big Straight",  column: RIGHT, type: INPUT,   key:"big_str", },
+    {name:"Dicey",         column: RIGHT, type: INPUT,   key:"dicey", },
+    {name:"Chance",        column: RIGHT, type: INPUT,   key:"chance", },
 
-    {name:"Dicey Bonus",   column: RIGHT, type: COMPUTE, sizes:[4,5,6], key:"dicey_bonus", },
-    {name:"Right Total",   column: RIGHT, type: COMPUTE, sizes:[4,5,6], key:"right_total", },
+    {name:"Dicey Bonus",   column: RIGHT, type: COMPUTE, key:"dicey_bonus", },
+    {name:"Right Total",   column: RIGHT, type: COMPUTE, key:"right_total", },
 ];
 
 
@@ -467,7 +467,6 @@ function create_score_card(n) {
     let last_element = INPUT;
 
     for (let score of scores_layout) {
-        if (!score.sizes.includes(n)) continue;
         let score_group = document.createElement("div");
 
         let name = document.createElement("span");
