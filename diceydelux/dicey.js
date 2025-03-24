@@ -206,15 +206,11 @@ let scores_layout = [
     {name:"Left Bonus",    column: LEFT,  type: COMPUTE, sizes:[4,5,6], key:"left_bonus", },
     {name:"Left Total",    column: LEFT,  type: COMPUTE, sizes:[4,5,6], key:"left_total", },
 
-    {name:"2 of a kind",   column: RIGHT, type: INPUT,   sizes:[4],     key:"2oak", },
-    {name:"3 of a kind",   column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"3oak", },
-    {name:"4 of a kind",   column: RIGHT, type: INPUT,   sizes:[5,6],   key:"4oak", },
-    {name:"5 of a kind",   column: RIGHT, type: INPUT,   sizes:[6],     key:"5oak", },
+    {name:"Small Set",     column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"small_set", },
+    {name:"Large Set",     column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"large_set", },
     {name:"Full House",    column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"full_house", },
-    {name:"Tiny Straight", column: RIGHT, type: INPUT,   sizes:[4],     key:"tiny_str", },
     {name:"Small Straight",column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"small_str", },
-    {name:"Big Straight",  column: RIGHT, type: INPUT,   sizes:[5,6],   key:"big_str", },
-    {name:"Huge Straight", column: RIGHT, type: INPUT,   sizes:[6],     key:"huge_str", },
+    {name:"Big Straight",  column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"big_str", },
     {name:"Dicey",         column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"dicey", },
     {name:"Chance",        column: RIGHT, type: INPUT,   sizes:[4,5,6], key:"chance", },
 
@@ -299,8 +295,7 @@ function setup_new_game(size){
     dicies = 0;
     this_score = {};
     for (let score of scores_layout)
-        if (score.sizes.includes(size))
-            this_score[score.key] = null;
+        this_score[score.key] = null;
     this_score.dicey_bonus = 0;
 
     // Create DICE and Score Cards
@@ -354,15 +349,11 @@ function update_score_buttons(show_score_only=false){
     document.getElementById("sixes").innerHTML  = 6 * dice_count[6];
 
     let dice_sum        = sum_dice(this_roll);
-    let two_of_a_kind   = 0;
-    let three_of_a_kind = 0;
-    let four_of_a_kind  = 0;
-    let five_of_a_kind  = 0;
+    let small_set       = 0;
+    let large_set       = 0;
     let full_house      = 25;
-    let tiny_straight   = 0;
     let small_straight  = 0;
     let large_straight  = 0;
-    let huge_straight   = 0;
     let dicey           = 50;
     let straight_count  = 0;
     let left_bonus      = 0;
@@ -373,47 +364,26 @@ function update_score_buttons(show_score_only=false){
             straight_count++;
         else
             straight_count = 0;
-        if (straight_count > 2) tiny_straight = 20;
-        if (straight_count > 3) small_straight = 30;
-        if (straight_count > 4) large_straight = 40;
-        if (straight_count > 5) huge_straight  = 50;
-        if (i > 1)
-            two_of_a_kind = dice_sum;
-        if (i > 2)
-            three_of_a_kind = dice_sum;
-        if (i > 3)
-            four_of_a_kind = dice_sum;
-        if (i > 4)
-            five_of_a_kind = dice_sum;
-        if (i != 0 && i != 2 && i != 3 && i != 4 && i != 6)
+        if (straight_count > num_dice - 2) small_straight = 30;
+        if (straight_count > num_dice - 1) large_straight = 40;
+        if (i > num_dice - 3)
+            small_set = dice_sum;
+        if (i > num_dice - 2)
+            large_set = dice_sum;
+        if (i == 1)
             full_house = 0;
         if (i != 0 && i != num_dice)
             dicey = 0;
     }
 
     // Only score relavent combinations
-    if (Object.keys(this_score).indexOf("2oak") >= 0)
-        document.getElementById("2oak").innerHTML       = two_of_a_kind;
-    if (Object.keys(this_score).indexOf("3oak") >= 0)
-        document.getElementById("3oak").innerHTML       = three_of_a_kind;
-    if (Object.keys(this_score).indexOf("4oak") >= 0)
-        document.getElementById("4oak").innerHTML       = four_of_a_kind;
-    if (Object.keys(this_score).indexOf("5oak") >= 0)
-        document.getElementById("5oak").innerHTML       = five_of_a_kind;
-    if (Object.keys(this_score).indexOf("chance") >= 0)
-        document.getElementById("chance").innerHTML     = dice_sum;
-    if (Object.keys(this_score).indexOf("full_house") >= 0)
-        document.getElementById("full_house").innerHTML = full_house;
-    if (Object.keys(this_score).indexOf("tiny_str") >= 0)
-        document.getElementById("tiny_str").innerHTML   = tiny_straight;
-    if (Object.keys(this_score).indexOf("small_str") >= 0)
-        document.getElementById("small_str").innerHTML  = small_straight;
-    if (Object.keys(this_score).indexOf("big_str") >= 0)
-        document.getElementById("big_str").innerHTML    = large_straight;
-    if (Object.keys(this_score).indexOf("huge_str") >= 0)
-        document.getElementById("huge_str").innerHTML   = huge_straight;
-    if (Object.keys(this_score).indexOf("dicey") >= 0)
-        document.getElementById("dicey").innerHTML      = dicey;
+    document.getElementById("small_set").innerHTML  = small_set;
+    document.getElementById("large_set").innerHTML  = large_set;
+    document.getElementById("chance").innerHTML     = dice_sum;
+    document.getElementById("full_house").innerHTML = full_house;
+    document.getElementById("small_str").innerHTML  = small_straight;
+    document.getElementById("big_str").innerHTML    = large_straight;
+    document.getElementById("dicey").innerHTML      = dicey;
 
     // Tabulate left score
     let left_score = 0;
@@ -432,9 +402,10 @@ function update_score_buttons(show_score_only=false){
 
     // Tabulate right score
     let right_score = 0;
-    for (let i of ['3oak', '4oak', '5oak', 'full_house', 'small_str', 'big_str', 'huge_str', 'dicey', 'chance', 'dicey_bonus'])
-        if (this_score[i] != null)
-            right_score += this_score[i];
+    for (let s of scores_layout)
+        if (s.column == RIGHT && s.type == INPUT)
+            if (this_score[s.key] != null)
+                right_score += this_score[s.key];
     document.getElementById("right_total").innerHTML = right_total;
     this_score["right_total"] = right_score;
 
@@ -507,8 +478,13 @@ function create_score_card(n) {
         score_group.appendChild(name);
 
         // Show the required score for left bonus to be activated
-        if (score.name == "Left Bonus")
+        if (score.key == "left_bonus")
             name.innerHTML = "Left Bonus (>"+(1+2+3+4+5+6) * (n-2)+")";
+        // Change the name of sets based on how many dice are being used
+        if (score.key == "small_set")
+            name.innerHTML = (n-2) + " of a kind";
+        if (score.key == "large_set")
+            name.innerHTML = (n-1) + " of a kind";
 
         let button = document.createElement("button");
         button.innerHTML = "0";

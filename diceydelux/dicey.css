@@ -9,6 +9,7 @@ div#content {
     margin: 0px auto;
     width: 640px;
     padding: 30px;
+    border-radius: 15px;
 }
 
 canvas {
