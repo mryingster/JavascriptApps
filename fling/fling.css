@@ -1,0 +1,31 @@
+body {
+    background: #486A2E;
+    font-family: Sans-serif;
+}
+
+#content {
+    width: 512px;
+    margin: auto;
+    border: 0px solid red;
+    padding: 20px;
+    background: rgba(255,255,255,.8);
+    border-radius: 15px;
+    filter: drop-shadow(0px 8px 15px black);
+}
+
+canvas {
+    margin: 0px;
+}
+
+#fling_output {
+    width: 524px;
+    margin-top: 12px;
+}
+
+#fling_output canvas {
+    margin-right: 12px;
+}
+
+h1 {
+    margin: 0px 0px 10px 0px;
+}
