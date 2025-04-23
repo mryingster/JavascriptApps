@@ -27,7 +27,7 @@
   <body onload="first_run();">
     <div id="content">
       <h1>Manhattan Distance</h1>
-      <p>Find the number of cells within the specified range of specific (positive) cells.</p>
+      <p>Find the number of cells within the specified distance of positive cells.</p>
 
       <div id="input">
         <canvas id="canvas" width="512" height="512"/>
@@ -57,6 +57,8 @@
     let ctx = canvas.getContext("2d");
 
     let array = [[-1]];
+    let result;
+
     let square_size = 0;
     let distance = 3;
 
@@ -88,9 +90,9 @@
     }
 
     function mouse_down() {
-	mousedown = true;
+        mousedown = true;
         highlight = get_cursor_position(event);
-	update_visual();
+        update_visual();
     }
 
     function mouse_move() {
@@ -101,23 +103,24 @@
     }
 
     function mouse_up() {
-	if (mousedown) {
-	    mousedown = false;
+        if (mousedown) {
+            mousedown = false;
             highlight = null;
-	    toggle_position(get_cursor_position(event));
+            toggle_position(get_cursor_position(event));
+            calculate_result();
             update_visual();
-	}
+        }
     }
 
     function mouse_leave() {
-	mousedown = false;
-	highlight = null;
+        mousedown = false;
+        highlight = null;
         update_visual();
     }
 
     function toggle_position(c) {
         if (c != null) {
-	    if (array[c.y][c.x] > 0)
+            if (array[c.y][c.x] > 0)
                 array[c.y][c.x] = -1;
             else {
                 let n = [];
@@ -168,6 +171,7 @@
 
         square_size = Math.floor(Math.min(canvas_width/width, canvas_height/height));
 
+        calculate_result();
         update_visual();
     }
 
@@ -206,8 +210,8 @@
 
     // Functions for visualization
     function draw_square(x, y, h, l, a) {
-	ctx.fillStyle = "hsla("+h+",100%,"+l+"%,"+a+")";
-	ctx.fillRect(x*square_size, y*square_size, square_size, square_size);
+        ctx.fillStyle = "hsla("+h+",100%,"+l+"%,"+a+")";
+        ctx.fillRect(x*square_size, y*square_size, square_size, square_size);
     }
 
     function number_to_hue(n) {
@@ -217,8 +221,8 @@
     function update_visual() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        let width = array[0].length;
-        let height = array.length;
+        let width = results.array[0].length;
+        let height = results.array.length;
 
         let neighborhoods = 0;
         let members = 0;
@@ -226,32 +230,23 @@
 
         for (let y=0; y<height; y++){
             for (let x=0; x<width; x++){
-                // Positive Numbers
+                // If this is a positive number, then it is a neighborhood center; Draw opaque
                 if (array[y][x] > 0) {
                     neighborhoods++;
-                    members++;
 
                     draw_square(x, y, number_to_hue(array[y][x]), 50, 1);
                 } else {
-                    // Negative Numbers
-                    let m = manhattan_distance(x, y);
-
-                    if (m.length > 0) {
-                        members++;
-
-                        // Shade the colors so we can see which one belong to multiple neighborhoods
-                        for (n of m) {
-                            draw_square(x, y, number_to_hue(n), 50, .25);
-                        }
+                    // For everythign else, find out how many neighborhoods it belongs to
+                    for (n of results.array[y][x]) {
+                        draw_square(x, y, number_to_hue(n), 50, .25);
                     }
 
-                    if (m.length > 1) {
-                        if (multi_members[m.length])
-                            multi_members[m.length]++;
+                    if (results.array[y][x].length > 1) {
+                        if (multi_members[results.array[y][x].length])
+                            multi_members[results.array[y][x].length]++;
                         else
-                            multi_members[m.length] = 1;
+                            multi_members[results.array[y][x].length] = 1;
                     }
-
                 }
 
                 // Outline cell
@@ -272,31 +267,174 @@
             ctx.stroke();
         }
 
-        update_output(neighborhoods, members, multi_members);
+        update_output(neighborhoods, results.count, multi_members);
     }
 
-    // Manhattan Distance function for any given X/Y coordinate
-    function manhattan_distance(x, y) {
-        let neighborhoods = [];
+    // This is a wrapper for the actual calculation function that will use our global array and results used for the GUI
+    function calculate_result() {
+        results = calculate_manhattan(array, distance);
+    }
 
-        // Find valid distance coordiantes
-        for (let dx=distance * -1; dx<=distance; dx++) {
-            for (let dy=distance * -1; dy<=distance; dy++) {
-                let td = Math.abs(dx) + Math.abs(dy);
-                if (td <= distance) {
-                    // Make sure these coords are within bounds of array
-                    if (x + dx >= 0 && x + dx < array[0].length) {
-                        if (y + dy >= 0 && y + dy < array.length) {
-                            // Look for positive values
-                            if (array [y + dy][x + dx] > 0) {
-                                neighborhoods.push(array [y + dy][x + dx]);
+    // This is the actual function. You can run it from the console by passing in a 2D array and a distance, N
+    function calculate_manhattan(a, N) {
+        // Create variables to store our results data
+        let result_array = [];
+        for (let y=0; y<a.length; y++) {
+            let t=[];
+            for (let x=0; x<a[0].length; x++) {
+                t.push([]);
+            }
+            result_array.push(t);
+        }
+
+        let count = 0;
+
+        // Iterate through array, and look for positive values
+        for (let y=0; y<a.length; y++) {
+            for (let x=0; x<a[0].length; x++) {
+                if (a[y][x] > 0) {
+                    let neighborhood_identifier = a[y][x];
+                    // Fill in all the neighboring cells within the specified distance
+
+                    // Find valid distance coordiantes
+                    for (let dx=N * -1; dx<=N; dx++) {
+                        for (let dy=N * -1; dy<=N; dy++) {
+                            let td = Math.abs(dx) + Math.abs(dy);
+
+                            if (td <= N) {
+
+                                // Make sure these coords are within bounds of array
+                                if (x + dx >= 0 && x + dx < a[0].length) {
+                                    if (y + dy >= 0 && y + dy < a.length) {
+
+                                        // if this cell hasn't been counted, count it!
+                                        if (result_array[y + dy][x + dx].length == 0) count++;
+
+                                        // Mark as members of this neighborhood
+                                        result_array[y + dy][x + dx].push(neighborhood_identifier);
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
-        return neighborhoods;
+
+        return {
+            count: count,
+            array: result_array,
+        };
+    }
+
+    function run_test(a, N, c) {
+        let results = calculate_manhattan(a, N);
+        if (results.count != c) {
+            console.log("Expected "+c+" but got "+results.count);
+            return -1;
+        }
+        return 0;
+    }
+
+    function unit_tests() {
+        let status = 0;
+
+        // Test 1 -- Neighborhood in middle of array
+        if (run_test(
+            [
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1, 1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+            ], 3, 25) == 0) {
+            console.log("Test 1 Passed");
+        } else {
+            console.log("Test 1 Failed");
+            status = -1;
+        }
+
+        // Test 2 -- Neighborhood intersecting with edge of array
+        if (run_test(
+            [
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1, 1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+            ], 3, 21) == 0) {
+            console.log("Test 2 Passed");
+        } else {
+            console.log("Test 2 Failed");
+            status = -1;
+        }
+
+        // Test 3 -- Two neighborhoods
+        if (run_test(
+            [
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1, 1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1, 1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+            ], 2, 26) == 0) {
+            console.log("Test 3 Passed");
+        } else {
+            console.log("Test 3 Failed");
+            status = -1;
+        }
+
+        // Test 4 -- Overlapping neighborhoods
+        if (run_test(
+            [
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1, 1,-1,-1,-1,-1,-1],
+                [-1,-1,-1, 1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+            ], 2, 22) == 0) {
+            console.log("Test 4 Passed");
+        } else {
+            console.log("Test 4 Failed");
+            status = -1;
+        }
+
+        // Test 5 -- Odd shape (1 row thick)
+        if (run_test(
+            [
+                [-1,-1,-1,-1,-1, 1,-1,-1,-1,-1,-1]
+            ], 3, 7) == 0) {
+            console.log("Test 5 Passed");
+        } else {
+            console.log("Test 5 Failed");
+            status = -1;
+        }
+
+        return status;
     }
 
     // Set up everything when we first load
