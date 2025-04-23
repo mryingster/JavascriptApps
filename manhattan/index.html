@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Manhattan Distance</title>
+    <meta charset="utf-8"/>
+    <style>
+      body {
+          background: lightgrey;
+          font-family: sans-serif;
+      }
+      #content {
+          width: 512px;
+          margin: auto;
+          background: white;
+          padding: 20px;
+          border-radius: 20px;
+      }
+
+      input {
+          width: 50px;
+          margin-right: 20px;
+      }
+    </style>
+  </head>
+
+  <body onload="first_run();">
+    <div id="content">
+      <h1>Manhattan Distance</h1>
+      <p>Find the number of cells within the specified range of specific (positive) cells.</p>
+
+      <div id="input">
+        <canvas id="canvas" width="512" height="512"/>
+      </div>
+
+      <div id="settings">
+        <h2>Settings</h2>
+        Width: <input id="width" value="11"></input>
+        Height: <input id="height" value="11"></input>
+        Distance: <input id="distance" value="3"></input>
+        <button id="update" onclick="update_settings()">Update</button>
+      </div>
+
+      <div id="output_wrapper">
+        <h2>Results</h2>
+        <div id="output">
+        </div>
+      </div>
+    </div>
+
+  </body>
+
+  <script>
+
+    // Global Variables
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
+
+    let array = [[-1]];
+    let square_size = 0;
+    let distance = 3;
+
+    let mousedown = false;
+    let highlight;
+
+    // Mouse Listeners and interactions
+    canvas.addEventListener('mousedown',  () => mouse_down(), false);
+    canvas.addEventListener('mousemove',  () => mouse_move(), false);
+    canvas.addEventListener('mouseup',    () => mouse_up(), false);
+    canvas.addEventListener('mouseleave', () => mouse_leave(), false);
+
+    function get_cursor_position(event) {
+        // Determine where clicked
+        const rect = this.canvas.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
+
+        var sx = Math.floor(x / square_size);
+        var sy = Math.floor(y / square_size);
+
+        // Ensure we don't toggle anything outside of the array boundaries
+        if (sx >= array[0].length || sy >= array.length)
+            return null;
+
+        // Return X, Y coordinates
+        return {x:sx, y:sy};
+    }
+
+    function mouse_down() {
+	mousedown = true;
+        highlight = get_cursor_position(event);
+	update_visual();
+    }
+
+    function mouse_move() {
+        if (mousedown) {
+            highlight = get_cursor_position(event);
+            update_visual();
+        }
+    }
+
+    function mouse_up() {
+	if (mousedown) {
+	    mousedown = false;
+            highlight = null;
+	    toggle_position(get_cursor_position(event));
+            update_visual();
+	}
+    }
+
+    function mouse_leave() {
+	mousedown = false;
+	highlight = null;
+        update_visual();
+    }
+
+    function toggle_position(c) {
+        if (c != null)
+	    array[c.y][c.x] *= -1;
+    }
+
+    // UI functions for Input and Output
+    function update_settings() {
+        let width = Number(document.getElementById("width").value);
+        let height = Number(document.getElementById("height").value);
+        distance = Number(document.getElementById("distance").value);
+
+        let new_array = [];
+        // Adjust array size
+        for (let y=0; y<height; y++){
+            let new_row = [];
+            for (let x=0; x<width; x++){
+                if (y < array.length && x < array[y].length)
+                    new_row.push(array[y][x]);
+                else
+                    new_row.push(-1);
+            }
+            new_array.push(new_row);
+        }
+        array = new_array;
+
+        let canvas_width = canvas.width;
+        let canvas_height = canvas.height;
+
+        square_size = Math.floor(Math.min(canvas_width/width, canvas_height/height));
+
+        update_visual();
+    }
+
+    function update_output(n, m, mm) {
+        let output = document.getElementById("output");
+        output.innerHTML = "";
+
+        // Show count of neighborhoods
+        let neighborhoods = document.createElement("p");
+        neighborhoods.innerHTML = "Neighborhoods: " + n;
+        output.appendChild(neighborhoods);
+
+
+        // Show the count of members in a neighborhood
+        let members = document.createElement("p");
+        members.innerHTML = "Neighborhood Members: " + m;
+        output.appendChild(members);
+
+        // Show breakdown of members belonging to multiple neighborhoods
+        for (let n in mm) {
+            let t = document.createElement("p");
+            t.innerHTML = "Members of " + n + " neighborhoods: " + mm[n];
+            output.appendChild(t);
+        }
+
+        // Output the resulting array just because we can
+        let output_array = document.createElement("pre");
+        output_array.innerHTML = "[<br>"
+        for (let row of array)
+            output_array.innerHTML += " " + JSON.stringify(row) + ",<br>";
+        output_array.innerHTML += "]<br>"
+        output.appendChild(output_array);
+    }
+
+    // Functions for visualization
+    function update_visual() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        let width = array[0].length;
+        let height = array.length;
+
+        let neighborhoods = 0;
+        let members = 0;
+        let multi_members = {};
+
+        for (let y=0; y<height; y++){
+            for (let x=0; x<width; x++){
+                let color = "white";
+
+                // Positive Numbers
+                if (array[y][x] > 0) {
+                    neighborhoods++;
+                    members++;
+                    color = "red";
+                } else {
+                    // Negative Numbers
+                    let m = manhattan_distance(x, y);
+
+                    if (m > 0) {
+                        members++;
+
+                        // Shade the colors so we can see which one belong to multiple neighborhoods
+                        rgbv = Math.max(0, Math.floor(128 * Math.pow(.7, m-1)));
+                        color = "rgb("+rgbv+","+rgbv+","+rgbv+")";
+                        console.log(rgbv, color)
+                    }
+
+                    if (m > 1) {
+                        if (multi_members[m])
+                            multi_members[m]++;
+                        else
+                            multi_members[m] = 1;
+                    }
+
+                }
+
+                // Draw cell
+	        ctx.fillStyle = color;
+	        ctx.fillRect(x*square_size, y*square_size, square_size, square_size);
+
+                // Outline cell
+                ctx.beginPath();
+                ctx.lineWidth = "2";
+                ctx.strokeStyle = "black";
+                ctx.rect(x*square_size, y*square_size, square_size, square_size);
+                ctx.stroke();
+
+            }
+        }
+
+        if (highlight != null) {
+            ctx.beginPath();
+            ctx.lineWidth = "2";
+            ctx.strokeStyle = "red";
+            ctx.rect(highlight.x*square_size, highlight.y*square_size, square_size, square_size);
+            ctx.stroke();
+        }
+
+        update_output(neighborhoods, members, multi_members);
+    }
+
+    // Manhattan Distance function for any given X/Y coordinate
+    function manhattan_distance(x, y) {
+        let count = 0;
+
+        // Find valid distance coordiantes
+        for (let dx=distance * -1; dx<=distance; dx++) {
+            for (let dy=distance * -1; dy<=distance; dy++) {
+                let td = Math.abs(dx) + Math.abs(dy);
+                if (td <= distance) {
+                    // Make sure these coords are within bounds of array
+                    if (x + dx >= 0 && x + dx < array[0].length) {
+                        if (y + dy >= 0 && y + dy < array.length) {
+                            // Look for positive values
+                            if (array [y + dy][x + dx] > 0) {
+                                count++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return count;
+    }
+
+    // Set up everything when we first load
+    function first_run() {
+        update_settings();
+    }
+
+  </script>
+</html>
