@@ -62,6 +62,7 @@
 
     let mousedown = false;
     let highlight;
+    let debug = false;
 
     // Mouse Listeners and interactions
     canvas.addEventListener('mousedown',  () => mouse_down(), false);
@@ -115,8 +116,31 @@
     }
 
     function toggle_position(c) {
-        if (c != null)
-	    array[c.y][c.x] *= -1;
+        if (c != null) {
+	    if (array[c.y][c.x] > 0)
+                array[c.y][c.x] = -1;
+            else {
+                let n = [];
+                for (y=0; y<array.length; y++)
+                    for (x=0; x<array[0].length; x++)
+                        if (array[y][x] > 0)
+                            n.push(array[y][x]);
+
+                // Sort the neighborhood numbers
+                n.sort(function(a, b){return a - b});
+
+                // Find missing neighborhood and use it
+                for (let i=0; i<n.length; i++) {
+                    if (n[i] != i+1) {
+                        array[c.y][c.x] = i+1;
+                        return;
+                    }
+                }
+
+                // Everything is sequential; make a new number!
+                array[c.y][c.x] = n.length + 1;
+            }
+        }
     }
 
     // UI functions for Input and Output
@@ -170,15 +194,26 @@
         }
 
         // Output the resulting array just because we can
-        let output_array = document.createElement("pre");
-        output_array.innerHTML = "[<br>"
-        for (let row of array)
-            output_array.innerHTML += " " + JSON.stringify(row) + ",<br>";
-        output_array.innerHTML += "]<br>"
-        output.appendChild(output_array);
+        if (debug == true) {
+            let output_array = document.createElement("pre");
+            output_array.innerHTML = "[<br>"
+            for (let row of array)
+                output_array.innerHTML += " " + JSON.stringify(row) + ",<br>";
+            output_array.innerHTML += "]<br>"
+            output.appendChild(output_array);
+        }
     }
 
     // Functions for visualization
+    function draw_square(x, y, h, l, a) {
+	ctx.fillStyle = "hsla("+h+",100%,"+l+"%,"+a+")";
+	ctx.fillRect(x*square_size, y*square_size, square_size, square_size);
+    }
+
+    function number_to_hue(n) {
+        return ((n-1) * 50) % 360;
+    }
+
     function update_visual() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -191,38 +226,33 @@
 
         for (let y=0; y<height; y++){
             for (let x=0; x<width; x++){
-                let color = "white";
-
                 // Positive Numbers
                 if (array[y][x] > 0) {
                     neighborhoods++;
                     members++;
-                    color = "red";
+
+                    draw_square(x, y, number_to_hue(array[y][x]), 50, 1);
                 } else {
                     // Negative Numbers
                     let m = manhattan_distance(x, y);
 
-                    if (m > 0) {
+                    if (m.length > 0) {
                         members++;
 
                         // Shade the colors so we can see which one belong to multiple neighborhoods
-                        rgbv = Math.max(0, Math.floor(128 * Math.pow(.7, m-1)));
-                        color = "rgb("+rgbv+","+rgbv+","+rgbv+")";
-                        console.log(rgbv, color)
+                        for (n of m) {
+                            draw_square(x, y, number_to_hue(n), 50, .25);
+                        }
                     }
 
-                    if (m > 1) {
-                        if (multi_members[m])
-                            multi_members[m]++;
+                    if (m.length > 1) {
+                        if (multi_members[m.length])
+                            multi_members[m.length]++;
                         else
-                            multi_members[m] = 1;
+                            multi_members[m.length] = 1;
                     }
 
                 }
-
-                // Draw cell
-	        ctx.fillStyle = color;
-	        ctx.fillRect(x*square_size, y*square_size, square_size, square_size);
 
                 // Outline cell
                 ctx.beginPath();
@@ -247,7 +277,7 @@
 
     // Manhattan Distance function for any given X/Y coordinate
     function manhattan_distance(x, y) {
-        let count = 0;
+        let neighborhoods = [];
 
         // Find valid distance coordiantes
         for (let dx=distance * -1; dx<=distance; dx++) {
@@ -259,14 +289,14 @@
                         if (y + dy >= 0 && y + dy < array.length) {
                             // Look for positive values
                             if (array [y + dy][x + dx] > 0) {
-                                count++;
+                                neighborhoods.push(array [y + dy][x + dx]);
                             }
                         }
                     }
                 }
             }
         }
-        return count;
+        return neighborhoods;
     }
 
     // Set up everything when we first load
