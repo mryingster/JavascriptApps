@@ -13,91 +13,23 @@
     <div id="content">
       <h1>Dicey</h1>
 
-      <canvas id="canvas"  width="640px" height="130px" style="touch-action:manipulation;"></canvas>
+      <div id="dice"></div>
+
+      <div id="score_wrapper">Score: <span id="score"></span></div>
+
+      <div id="start">
+        <h2>New game</h2>
+        <button class="button" id="start4">4 Dice</button>
+        <button class="button" id="start5">5 Dice</button>
+        <button class="button" id="start6">6 Dice</button>
+      </div>
 
       <div id="controls">
         <button class="button" id="roll">Roll</button>
-        <button class="button" id="reset" style="display:none;">New Game</button>
-        <span id="score_wrapper">Score: <span id="score"></span></span>
       </div>
 
-      <div id="scores">
-        <table>
-          <tr>
-            <td>Aces</td>
-            <td><button class="score_button" id="aces"></button></td>
-          </tr>
-          <tr>
-            <td>Twos</td>
-            <td><button class="score_button" id="twos"></button></td>
-          </tr>
-          <tr>
-            <td>Threes</td>
-            <td><button class="score_button" id="threes"></button></td>
-          </tr>
-          <tr>
-            <td>Fours</td>
-            <td><button class="score_button" id="fours"></button></td>
-          </tr>
-          <tr>
-            <td>Fives</td>
-            <td><button class="score_button" id="fives"></button></td>
-          </tr>
-          <tr>
-            <td class="underline">Sixes</td>
-            <td class="underline"><button class="score_button" id="sixes"></button></td>
-          </tr>
-          <tr>
-            <td class="score">Left Subtotal</td>
-            <td class="score"><button class="score_button" id="left_sub" disabled></button></td>
-          </tr>
-          <tr>
-            <td class="score">Left Bonus</td>
-            <td class="score"><button class="score_button" id="left_bonus" disabled></button></td>
-          </tr>
-          <tr>
-            <td class="score">Left Total</td>
-            <td class="score"><button class="score_button" id="left_total" disabled></button></td>
-          </tr>
-        </table>
 
-        <table>
-          <tr>
-            <td>3 of a kind</td>
-            <td><button class="score_button" id="3oak"></button></td>
-          </tr>
-          <tr>
-            <td>4 of a kind</td>
-            <td><button class="score_button" id="4oak"></button></td>
-          </tr>
-          <tr>
-            <td>Full House</td>
-            <td><button class="score_button" id="full_house"></button></td>
-          </tr>
-          <tr>
-            <td>Small Straight</td>
-            <td><button class="score_button" id="small_str"></button></td>
-          </tr>
-          <tr>
-            <td>Big Straight</td>
-            <td><button class="score_button" id="big_str"></button></td>
-          </tr>
-          <tr>
-            <td>Dicey!</td>
-            <td><button class="score_button" id="dicey"></button></td>
-          </tr>
-          <tr>
-            <td class="underline">Chance</td>
-            <td class="underline"><button class="score_button" id="chance"></button></td>
-          </tr>
-          <tr>
-            <td class="score">Dicey Bonus</td>
-            <td class="score"><button class="score_button" id="dicey_bonus" disabled></button></td>
-          </tr>
-          <tr>
-            <td class="score">Right Total</td>
-            <td class="score"><button class="score_button" id="right_total" disabled></button></td>
-          </tr>
+      <div id="scores">
         </table>
 
       </div>

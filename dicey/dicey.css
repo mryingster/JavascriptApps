@@ -9,6 +9,11 @@ div#content {
     margin: 0px auto;
     width: 640px;
     padding: 30px;
+    border-radius: 15px;
+}
+
+canvas {
+    touch-action: manipulation;
 }
 
 h1 {
@@ -36,20 +41,20 @@ h1, h2 {
     height: 70px;
 }
 
-table {
+#left_column, #right_column {
     display: inline-block;
-    margin: 10px;
+    vertical-align: top;
+    #width: 50%;
+    padding: 15px;
 }
 
-td {
-    padding-left: 5px;
+.name {
+    width: 135px;
+    display: inline-block;
+    margin-top: 15px;
 }
 
-td.underline {
-    border-bottom : 2px solid #ccc;
-}
-
-td.score, td.score button {
+.compute {
     font-style: italic;
     color: #666 !important;
 }
@@ -61,6 +66,11 @@ td.score, td.score button {
     font-size: 1.15em;
 }
 
+.underline {
+    border-top: 2px solid #ccc;
+    margin-top: 10px;
+}
+
 .score_button:disabled {
     background: #fff;
     color: #000000;
@@ -68,21 +78,35 @@ td.score, td.score button {
 }
 
 #score_wrapper {
-    font-size: 1.5em;
     color:#991700;
+    float: right;
+    margin-top: 6px;
+    text-align: center;
+    margin-right: 30px;
+}
+
+#score {
+    font-size: 1.9em;
+    display: block;
 }
 
 @media (max-width: 991px) {
     .score_button {
         height: 70px;
+        font-size: 1.8em;
     }
 
     .button {
         height: 100px;
         padding: 0px 50px;
+        font-size: 1.8em;
     }
 
     #controls {
         height: 120px;
     }
+}
+
+.hidden {
+    display: none;
 }
