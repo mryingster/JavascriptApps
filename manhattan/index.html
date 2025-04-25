@@ -17,9 +17,12 @@
           border-radius: 20px;
       }
 
-      input {
-          width: 50px;
+      .setting {
           margin-right: 20px;
+      }
+
+      input.text {
+          width: 50px;
       }
     </style>
   </head>
@@ -35,9 +38,17 @@
 
       <div id="settings">
         <h2>Settings</h2>
-        Width: <input id="width" value="11"></input>
-        Height: <input id="height" value="11"></input>
-        Distance: <input id="distance" value="3"></input>
+        <p>
+          <span class="setting">Width: <input class="text" id="width" value="11"></input></span>
+          <span class="setting">Height: <input class="text" id="height" value="11"></input></span>
+          <span class="setting">Distance: <input class="text" id="distance" value="3"></input></span>
+        </p>
+        <p>
+          <span class="setting">
+            <input type="checkbox" id="wrap" name="wrap" value="wrap">
+            <label for="wrap">Wrap neighborhoods</label>
+          </span>
+        </p>
         <button id="update" onclick="update_settings()">Update</button>
       </div>
 
@@ -65,6 +76,7 @@
     let mousedown = false;
     let highlight;
     let debug = false;
+    let wrap = false;
 
     // Mouse Listeners and interactions
     canvas.addEventListener('mousedown',  () => mouse_down(), false);
@@ -151,6 +163,7 @@
         let width = Number(document.getElementById("width").value);
         let height = Number(document.getElementById("height").value);
         distance = Number(document.getElementById("distance").value);
+        wrap = document.getElementById("wrap").checked;
 
         let new_array = [];
         // Adjust array size
@@ -272,11 +285,11 @@
 
     // This is a wrapper for the actual calculation function that will use our global array and results used for the GUI
     function calculate_result() {
-        results = calculate_manhattan(array, distance);
+        results = calculate_manhattan(array, distance, wrap);
     }
 
     // This is the actual function. You can run it from the console by passing in a 2D array and a distance, N
-    function calculate_manhattan(a, N) {
+    function calculate_manhattan(a, N, wrap) {
         // Create variables to store our results data
         let result_array = [];
         for (let y=0; y<a.length; y++) {
@@ -299,21 +312,34 @@
                     // Find valid distance coordiantes
                     for (let dx=N * -1; dx<=N; dx++) {
                         for (let dy=N * -1; dy<=N; dy++) {
-                            let td = Math.abs(dx) + Math.abs(dy);
+                            let Math.abs(dx) + Math.abs(dy);
 
                             if (td <= N) {
 
                                 // Make sure these coords are within bounds of array
-                                if (x + dx >= 0 && x + dx < a[0].length) {
-                                    if (y + dy >= 0 && y + dy < a.length) {
+                                let fx = x + dx;
+                                let fy = y + dy;
 
-                                        // if this cell hasn't been counted, count it!
-                                        if (result_array[y + dy][x + dx].length == 0) count++;
 
-                                        // Mark as members of this neighborhood
-                                        result_array[y + dy][x + dx].push(neighborhood_identifier);
-                                    }
+                                // Wrap around if out of bounds
+                                if (wrap) {
+                                    if (fx < 0) fx += a[0].length;
+                                    if (fy < 0) fy += a.length;
+                                    if (fx >= a[0].length) fx -= a[0].length;
+                                    if (fy >= a.length) fy -= a.length;
+                                } else {
+                                    if (fx < 0 || fx >= a[0].length ||
+                                        fy < 0 || fy >= a.length)
+                                        continue;
                                 }
+
+                                // if this cell hasn't been counted, count it!
+                                if (result_array[fy][fx].length == 0) count++;
+
+                                // Mark as members of this neighborhood
+                                result_array[fy][fx].push(neighborhood_identifier);
+                            //}
+                            //}
                             }
                         }
                     }
