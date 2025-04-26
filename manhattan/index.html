@@ -49,6 +49,18 @@
             <label for="wrap">Wrap neighborhoods</label>
           </span>
         </p>
+        <p>
+          <input type="checkbox" id="skew_l" namske="skew_l" value="skew_l">
+          <label for="skew_l">Skew Left</label>
+          <input type="checkbox" id="skew_u" name="skew_u" value="skew_u">
+          <label for="skew_u">Skew Up</label>
+          <input type="checkbox" id="skew_r" name="skew_r" value="skew_r">
+          <label for="skew_r">Skew Right</label>
+          <input type="checkbox" id="skew_d" name="skew_d" value="skew_d">
+          <label for="skew_d">Skew Down</label>
+          <br>
+          <span class="setting">Skew Factor: <input class="text" id="skew_factor" value="2"></input></span>
+        </p>
         <button id="update" onclick="update_settings()">Update</button>
       </div>
 
@@ -76,7 +88,9 @@
     let mousedown = false;
     let highlight;
     let debug = false;
+
     let wrap = false;
+    let skew = {};
 
     // Mouse Listeners and interactions
     canvas.addEventListener('mousedown',  () => mouse_down(), false);
@@ -160,10 +174,20 @@
 
     // UI functions for Input and Output
     function update_settings() {
+        // Geometry Settings
         let width = Number(document.getElementById("width").value);
         let height = Number(document.getElementById("height").value);
         distance = Number(document.getElementById("distance").value);
         wrap = document.getElementById("wrap").checked;
+
+        // Skew settings
+        skew = {
+            up:     document.getElementById("skew_u").checked,
+            down:   document.getElementById("skew_d").checked,
+            right:  document.getElementById("skew_r").checked,
+            left:   document.getElementById("skew_l").checked,
+            factor: Number(document.getElementById("skew_factor").value)
+        };
 
         let new_array = [];
         // Adjust array size
@@ -309,12 +333,33 @@
                     let neighborhood_identifier = a[y][x];
                     // Fill in all the neighboring cells within the specified distance
 
-                    // Find valid distance coordiantes
-                    for (let dx=N * -1; dx<=N; dx++) {
-                        for (let dy=N * -1; dy<=N; dy++) {
-                            let Math.abs(dx) + Math.abs(dy);
+                    // Adjust the distances based on desired skew
+                    let min_x = N * -1;
+                    let max_x = N;
+                    let min_y = N * -1;
+                    let max_y = N;
 
-                            if (td <= N) {
+                    if (skew.up) min_y *= skew.factor;
+                    if (skew.down) max_y *= skew.factor;
+                    if (skew.left) min_x *= skew.factor;
+                    if (skew.right) max_x *= skew.factor;
+
+                    // Find valid distance coordiantes
+                    for (let dx=min_x; dx<=max_x; dx++) {
+                        for (let dy=min_y; dy<=max_y; dy++) {
+                            let td, td1, td2;
+
+                            // This is standard operation for finding the neighbors within appropriate total distance (td)
+                            td = Math.abs(dx) + Math.abs(dy);
+
+                            // For each cardinal direction, treat appropriately for desired skew if applicable
+                            if (skew.up && dy < 0 || skew.down && dy > 0)
+                                td1 = Math.abs(dx) + Math.abs(dy / skew.factor);
+                            if (skew.left && dx < 0 || skew.right && dx > 0)
+                                td2 = Math.abs(dx / skew.factor) + Math.abs(dy);
+
+                            // If we can reach any of the squares with any of the skew amounts, then we can proceed
+                            if (td <= N || td1 <= N || td2 <= N) {
 
                                 // Make sure these coords are within bounds of array
                                 let fx = x + dx;
@@ -338,8 +383,6 @@
 
                                 // Mark as members of this neighborhood
                                 result_array[fy][fx].push(neighborhood_identifier);
-                            //}
-                            //}
                             }
                         }
                     }
