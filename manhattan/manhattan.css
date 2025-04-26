@@ -1,0 +1,19 @@
+body {
+    background: lightgrey;
+    font-family: sans-serif;
+}
+#content {
+    width: 512px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.setting {
+    margin-right: 20px;
+}
+
+input.text {
+    width: 50px;
+}
