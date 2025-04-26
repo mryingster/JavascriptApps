@@ -1,197 +1,109 @@
-<html class=" nyfjjn idc0_343 pgryvpe"><head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Snake</title>
-    <style>
-      body {
-          background:#aaa;
-          color:#000;
-          font-family:sans-serif;
-      }
-
-      div#content {
-          width: 362px;
-          background:#fff;
-          margin: 0 auto 0 auto;
-          padding:15px 15px 30px 15px;
-      }
-
-      #canvas_wrapper {
-          position: relative;
-          width: 360px;
-          height: 360px;
-      }
-
-      canvas {
-          position: absolute;
-          top: 0px;
-          left: 0px;
-      }
-
-      h1 {
-          margin:10px;
-          font-size:3em;
-      }
-
-      #header {
-          text-align:left;
-      }
-
-
-      #debug {
-          background: #eee;
-          text-align: left;
-          border-radius: 15px;
-          margin: 10px;
-          width: fit-content;
-          padding: 5px 30px;
-      }
-
-      input {
-          max-width: 40px;
-      }
-
-      #speed {
-          max-width: 250px;
-      }
-
-      #score_container{
-          float: right;
-          margin-top: -30px;
-      }
-
-      dl {
-          display:flex;
-          flex-flow: row wrap;
-          width:300px;
-      }
-
-      dt{
-          flex-basis:40%;
-          text-align: right;
-      }
-
-      dd {
-          flex-basis:40%;
-          flex-grow: 1;
-          text-align: left;
-          margin: 2px 5px;
-      }
-
-      table {
-          border: 0px;
-      }
-
-      .score {
-          text-align: right;
-      }
-
-      .date {
-          font-style: italic;
-          font-size: .8em;
-      }
-
-      .hidden {
-          display:none;
-      }
-    </style>
+    <link rel="stylesheet" id="style" type="text/css" media="screen" href="snake.css">
   </head>
   <body>
     <div id="content">
-      <div id="header">
-        <h1>Snake</h1>
-      </div>
-
       <div id="canvas_wrapper">
-        <canvas id="background" style="border:1px solid black;" width="360" height="360"></canvas>
-        <canvas id="canvas" style="border:1px solid black;" width="360" height="360"></canvas>
+        <canvas id="background" width="700" height="350"></canvas>
+        <canvas id="canvas" width="700" height="350"></canvas>
       </div>
 
-    <p><button onclick="new_game();">New Game</button>
-    <select id="numplayers" onchange="show_controls();">
-          <option value="1" selected="selected">One Player</option>
-          <option value="2">Two Player</option>
-          <option value="3">Three Player</option>
-          <option value="4">Four Player</option>
-      </select></p>
+      <div id="information">
 
-    <div id="debug" class="hidden">
-        <h2>DEBUG</h2>
-        <h3>Frame Controls</h3>
-        <button onclick="stop_animation();">Stop</button><button onclick="next_frame(true);">Advance Frame</button><button onclick="next_frame();">Continue</button><br>
-        Tick Speed: <input type="range" min="1" max="500" value="1" class="slider" id="speed" onchange="update_tick_speed();">
-        <h3>Canvas Settings</h3>
-        Width:<input id="width" value="360"><br>
-        Height:<input id="height" value="360"><br>
-        <h3>Settings</h3>
-        <input type="checkbox" id="wraparound" onchange="toggle_walls();"><label for="wraparound">Snake wrapsaround</label><br>
-        Number of snacks:<input id="snacks" value="2">
-        </p>
+        <div id="debug" class="info_box hidden">
+          <h2>DEBUG</h2>
+          <h3>Frame Controls</h3>
+          <button onclick="stop_animation();">Stop</button><button onclick="next_frame(true);">Advance Frame</button><button onclick="next_frame();">Continue</button><br>
+          Tick Speed: <input type="range" min="1" max="500" value="1" class="slider" id="speed" onchange="update_tick_speed();">
+          <h3>Canvas Settings</h3>
+          Width:<input id="width" value="1000"><br>
+          Height:<input id="height" value="500"><br>
+          <h3>Settings</h3>
+          <input type="checkbox" id="wraparound" onchange="toggle_walls();"><label for="wraparound">Snake wrapsaround</label><br>
+          Number of snacks:<input id="snacks" onchange="update_snacks()" value="8">
+        </div>
+
+        <div class="info_box" id="p1">
+          <h2>Player 1</h2>
+          <img src="images/player_1_keys.png" width="100px">
+          <p>
+            Score: <span id="score1">0</span><br>
+            Color: <select id="color1">
+              <option value="0" selected="selected">Green</option>
+              <option value="1">Blue</option>
+              <option value="2">Grey</option>
+              <option value="3">Red</option>
+              <option value="4">Yellow</option>
+            </select>
+          </p>
+        </div>
+
+        <div class="info_box" id="p2">
+          <h2>Player 2</h2>
+          <img src="images/player_2_keys.png" width="100px">
+          <p>
+            Score: <span id="score2">0</span><br>
+            Color: <select id="color2">
+              <option value="0">Green</option>
+              <option value="1" selected="selected">Blue</option>
+              <option value="2">Grey</option>
+              <option value="3">Red</option>
+              <option value="4">Yellow</option>
+            </select>
+          </p>
+        </div>
+
+        <div class="info_box" id="p3">
+          <h2>Player 3</h2>
+          <img src="images/player_3_keys.png" width="100px">
+          <p>
+            Score: <span id="score3">0</span><br>
+            Color: <select id="color3">
+              <option value="0">Green</option>
+              <option value="1">Blue</option>
+              <option value="2">Grey</option>
+              <option value="3">Red</option>
+              <option value="4" selected="selected">Yellow</option>
+            </select>
+          </p>
+        </div>
+
+        <div class="info_box" id="p4">
+          <h2>Player 4</h2>
+          <img src="images/player_4_keys.png" width="100px">
+          <p>
+            Score: <span id="score4">0</span><br>
+            Color: <select id="color4">
+              <option value="0">Green</option>
+              <option value="1">Blue</option>
+              <option value="2">Grey</option>
+              <option value="3" selected="selected">Red</option>
+              <option value="4">Yellow</option>
+            </select>
+          </p>
+        </div>
+
+        <div class="info_box" id="score_box">
+          <h2>High Scores</h2>
+          <div id="scores">
+          </div>
+        </div>
+
+        <div class="info_box">
+          <h1>Snake</h1>
+          <h2>Credits</h2>
+          <p id="credits">The snake sprites were created by <a href="http://www.sledd.com/">John Sledd</a> for a video game called Slithereens, by the now-defunct <a href="https://en.wikipedia.org/wiki/Ambrosia_Software">Ambrosia Software</a>. I am using these graphics without express permission from the original IP holder. You can read about decoding the sprites on <a href="https://porkrind.org/missives/decoding-the-sprite-format-of-a-25-year-old-game/">my bother's blog</a>.</p><!--'-->
+        </div>
+
       </div>
-
-    <div id="p1">
-      <h2>Player 1</h2>
-      <p>
-        Score: <span id="score1">0</span><br>
-        Controls: Arrows<br>
-        Player 1 Color: <select id="color1">
-          <option value="0" selected="selected">Green</option>
-          <option value="1">Blue</option>
-          <option value="2">Grey</option>
-          <option value="3">Red</option>
-          <option value="4">Yellow</option>
-      </select></p>
-    </div>
-    <div id="p2">
-      <h2>Player 2</h2>
-      <p>
-        Score: <span id="score2">0</span><br>
-        Controls: I, J, K, and L<br>
-        Player 2 Color: <select id="color2">
-          <option value="0">Green</option>
-          <option value="1" selected="selected">Blue</option>
-          <option value="2">Grey</option>
-          <option value="3">Red</option>
-          <option value="4">Yellow</option>
-      </select></p>
-    </div>
-    <div id="p3">
-      <h2>Player 3</h2>
-      <p>
-        Score: <span id="score3">0</span><br>
-        Controls: W, A, S, and D<br>
-        Player 3 Color: <select id="color3">
-          <option value="0">Green</option>
-          <option value="1">Blue</option>
-          <option value="2">Grey</option>
-          <option value="3">Red</option>
-          <option value="4" selected="selected">Yellow</option>
-      </select></p>
-    </div>
-    <div id="p4">
-      <h2>Player 4</h2>
-      <p>
-        Score: <span id="score4">0</span><br>
-        Controls: Number Pad (8, 4, 5, and 6)<br>
-        Player 4 Color: <select id="color4">
-          <option value="0">Green</option>
-          <option value="1">Blue</option>
-          <option value="2">Grey</option>
-          <option value="3" selected="selected">Red</option>
-          <option value="4">Yellow</option>
-      </select></p>
-    </div>
-
-      <h2>High Scores</h2>
-      <div id="scores">
-      </div>
-
-      <h2>Credits</h2>
-      <p>The snake sprites were created by <a href="http://www.sledd.com/">John Sledd</a> for a video game called Slithereens, by the now-defunct <a href="https://en.wikipedia.org/wiki/Ambrosia_Software">Ambrosia Software</a>. I am using these graphics without express permission from the original IP holder. You can read about decoding the sprites on <a href="https://porkrind.org/missives/decoding-the-sprite-format-of-a-25-year-old-game/">my bother's blog</a>.</p><!--'-->
-
     </div>
 
   <script>
 
+const NONE  = -1;
 const WEST  = 0;
 const NORTH = 1;
 const EAST  = 2;
@@ -200,9 +112,10 @@ const SOUTH = 3;
 const HEAD = 0;
 const BODY = 1;
 
-const ALIVE = 2;
-const DYING = 1;
-const DEAD  = 0;
+const ALIVE   = 3;
+const WAITING = 2;
+const DYING   = 1;
+const DEAD    = 0;
 
 const sprite = new Image();
 sprite.src = "sprites.png";
@@ -240,7 +153,6 @@ let spritesize = 24;
 let width = 0;
 let height = 0;
 let fast = false;
-let players = 1;
 let ignore_walls = true;
 
 let player_1;
@@ -253,30 +165,30 @@ document.addEventListener('keydown', function(e) {
     //console.log(e);
 
     // Arrows
-    if (e.keyCode == 38) {e.preventDefault(); paused = false; player_1.direction = NORTH};
-    if (e.keyCode == 39) {e.preventDefault(); paused = false; player_1.direction = EAST};
-    if (e.keyCode == 40) {e.preventDefault(); paused = false; player_1.direction = SOUTH};
-    if (e.keyCode == 37) {e.preventDefault(); paused = false; player_1.direction = WEST};
-
-    // IJKL
-    if (e.keyCode == 73) {e.preventDefault(); paused = false; player_2.direction = NORTH};
-    if (e.keyCode == 76) {e.preventDefault(); paused = false; player_2.direction = EAST};
-    if (e.keyCode == 75) {e.preventDefault(); paused = false; player_2.direction = SOUTH};
-    if (e.keyCode == 74) {e.preventDefault(); paused = false; player_2.direction = WEST};
+    if (e.keyCode == 38) {e.preventDefault(); paused = false; player_1.change_direction(NORTH)};
+    if (e.keyCode == 39) {e.preventDefault(); paused = false; player_1.change_direction(EAST)};
+    if (e.keyCode == 40) {e.preventDefault(); paused = false; player_1.change_direction(SOUTH)};
+    if (e.keyCode == 37) {e.preventDefault(); paused = false; player_1.change_direction(WEST)};
 
     // WASD
-    if (e.keyCode == 87) {e.preventDefault(); paused = false; player_3.direction = NORTH};
-    if (e.keyCode == 68) {e.preventDefault(); paused = false; player_3.direction = EAST};
-    if (e.keyCode == 83) {e.preventDefault(); paused = false; player_3.direction = SOUTH};
-    if (e.keyCode == 65) {e.preventDefault(); paused = false; player_3.direction = WEST};
+    if (e.keyCode == 87) {e.preventDefault(); paused = false; player_2.change_direction(NORTH)};
+    if (e.keyCode == 68) {e.preventDefault(); paused = false; player_2.change_direction(EAST)};
+    if (e.keyCode == 83) {e.preventDefault(); paused = false; player_2.change_direction(SOUTH)};
+    if (e.keyCode == 65) {e.preventDefault(); paused = false; player_2.change_direction(WEST)};
+
+    // IJKL
+    if (e.keyCode == 73) {e.preventDefault(); paused = false; player_3.change_direction(NORTH)};
+    if (e.keyCode == 76) {e.preventDefault(); paused = false; player_3.change_direction(EAST)};
+    if (e.keyCode == 75) {e.preventDefault(); paused = false; player_3.change_direction(SOUTH)};
+    if (e.keyCode == 74) {e.preventDefault(); paused = false; player_3.change_direction(WEST)};
 
     // 8456
-    if (e.keyCode == 104) {e.preventDefault(); paused = false; player_4.direction = NORTH};
-    if (e.keyCode == 102) {e.preventDefault(); paused = false; player_4.direction = EAST};
-    if (e.keyCode == 101) {e.preventDefault(); paused = false; player_4.direction = SOUTH};
-    if (e.keyCode == 100) {e.preventDefault(); paused = false; player_4.direction = WEST};
+    if (e.keyCode == 104) {e.preventDefault(); paused = false; player_4.change_direction(NORTH)};
+    if (e.keyCode == 102) {e.preventDefault(); paused = false; player_4.change_direction(EAST)};
+    if (e.keyCode == 101) {e.preventDefault(); paused = false; player_4.change_direction(SOUTH)};
+    if (e.keyCode == 100) {e.preventDefault(); paused = false; player_4.change_direction(WEST)};
 
-    if (e.keyCode == 78) new_game();         // n
+    //if (e.keyCode == 78) new_game();       // n
     if (e.keyCode == 80) toggle_pause();     // p
     if (e.keyCode == 46) toggle_debug();     // forward delete
     if (e.keyCode == 32) {e.preventDefault(); fast = true;} // shift
@@ -302,7 +214,7 @@ function new_snack(){
             x = Math.floor(Math.random() * (width  - spritesize));
             y = Math.floor(Math.random() * (height - spritesize));
 
-            /*
+            /* // Prevent snack from spawning near snake segments
               for (let segment of snake){
               if (collided({x:x, y:y}, segment, 15)){
               valid = false;
@@ -310,6 +222,7 @@ function new_snack(){
               }
               }
             */
+
             for (let snack of snacks){
                 if (collided({x:x, y:y}, snack, 20)){
                     valid = false;
@@ -414,6 +327,10 @@ function toggle_walls(){
         ignore_walls = true;
 }
 
+function update_snacks() {
+    max_snacks = Number(document.getElementById("snacks").value);
+}
+
 function intersected(snake){
     let head = snake.snake[0];
 
@@ -424,29 +341,28 @@ function intersected(snake){
             return true;
         }
 
-
     // Look for intersections with snakes
-    if (player_1.status != DEAD)
+    if (player_1.status > WAITING)
         for (let s=0; s<player_1.snake.length; s++)
             if (s!=0 || snake.player != player_1.player)
                 if (collided(head, player_1.snake[s], 8))
                     return true;
 
-    if (players > 1 && player_2.status != DEAD){
+    if (player_2.status > WAITING){
         for (let s=0; s<player_2.snake.length; s++)
             if (s!=0 || snake.player != player_2.player)
                 if (collided(head, player_2.snake[s], 8))
                     return true;
     }
 
-    if (players > 2 && player_3.status != DEAD) {
+    if (player_3.status > WAITING) {
         for (let s=0; s<player_3.snake.length; s++)
             if (s!=0 || snake.player != player_3.player)
                 if (collided(head, player_3.snake[s], 8))
                     return true;
     }
 
-    if (players > 3 && player_4.status != DEAD) {
+    if (player_4.status > WAITING) {
         for (let s=0; s<player_4.snake.length; s++)
             if (s!=0 || snake.player != player_4.player)
                 if (collided(head, player_4.snake[s], 8))
@@ -488,7 +404,7 @@ class snake {
         this.frame = 0;
         this.speed = 0;
         this.direction = d;
-        this.status = ALIVE;
+        this.status = WAITING;
     }
 
     start() {
@@ -498,7 +414,7 @@ class snake {
         ];
 
         this.direction = this.default_dir;
-        this.status = ALIVE;
+        this.status = WAITING;
         this.frame = 0;
         this.update_speed();
         this.score_div.innerHTML = "0";
@@ -506,6 +422,12 @@ class snake {
 
     update_speed(){
         this.speed = Math.pow(1.05, this.score()) * .5;
+    }
+
+    change_direction(d) {
+        this.direction = d;
+        if (this.status == WAITING)
+            this.status = ALIVE;
     }
 
     add_segment(n){
@@ -552,10 +474,10 @@ class snake {
                 for (let s=0; s<this.snake.length; s++)
                     this.snake[s].f++
 
-            // Move from dying to dead once skeleton animation is complete
-            if (this.snake[0].f > 11){
-                this.status = DEAD;
-                active -= 1;
+            // Reset one dying animation is complete
+            if (this.snake[0].f > 8){
+                check_high_score(this.player, this.score())
+                this.start();
             }
             return;
         }
@@ -565,16 +487,18 @@ class snake {
             this.snake[0].e-=.25;
 
         // Eat. Yum.
-        for (let i=0; i<snacks.length; i++){
-            if (collided(this.snake[0], snacks[i], 15)){
-                this.snake[0].e = 11.75; // Setup 11 frames of eating animation
-                this.add_segment(snacks[i].segments);
-                this.update_speed();
-                if (this.speed > 2) this.speed = 2; // Max Speed
+        if (this.status == ALIVE) {
+            for (let i=0; i<snacks.length; i++){
+                if (collided(this.snake[0], snacks[i], 15)){
+                    this.snake[0].e = 11.75; // Setup 11 frames of eating animation
+                    this.add_segment(snacks[i].segments);
+                    this.update_speed();
+                    if (this.speed > 2) this.speed = 2; // Max Speed
 
-                remove_snack(i);
-                new_snack();
-                this.score_div.innerHTML = this.score();
+                    remove_snack(i);
+                    new_snack();
+                    this.score_div.innerHTML = this.score();
+                }
             }
         }
 
@@ -685,31 +609,32 @@ class snake {
         // Apply wraparound to all segments if enabled
         // If the head needs to wrap around, so do all of the moves!
         if (ignore_walls == true){
+            console.log(width, height)
             for (let s=0; s<this.snake.length; s++){
                 if (this.snake[s].x > width){
                     this.snake[s].x -= width;
-                    if (s==0)
+                    if (s == 0)
                         for (let m=0; m<this.snake[0].m.length; m++)
                             this.snake[0].m[m].x -= width;
                     continue;
                 }
                 if (this.snake[s].y > height){
                     this.snake[s].y -= height;
-                    if (s==0)
+                    if (s == 0)
                         for (let m=0; m<this.snake[0].m.length; m++)
-                            this.snake[0].m[m].y -= width;
+                            this.snake[0].m[m].y -= height;
                     continue;
                 }
                 if (this.snake[s].x < 0){
                     this.snake[s].x += width;
-                    if (s==0)
+                    if (s == 0)
                         for (let m=0; m<this.snake[0].m.length; m++)
-                            this.snake[0].m[m].x += height;
+                            this.snake[0].m[m].x += width;
                     continue;
                 }
                 if (this.snake[s].y < 0){
                     this.snake[s].y += height;
-                    if (s==0)
+                    if (s == 0)
                         for (let m=0; m<this.snake[0].m.length; m++)
                             this.snake[0].m[m].y += height;
                     continue;
@@ -727,9 +652,11 @@ class snake {
                     this.snake[s].f = 0;
 
         // Check for intersections
-        if (intersected(this)){
-            this.die();
-            return;
+        if (this.status == ALIVE) {
+            if (intersected(this)) {
+                this.die();
+                return;
+            }
         }
     }
 
@@ -745,7 +672,7 @@ class snake {
         if (this.status == DEAD) return;
 
         // Draw the snake
-        if (this.status == ALIVE)
+        if (this.status >= WAITING)
             this.update_color();
 
         let color_offset = this.color * 20 * 25;
@@ -755,7 +682,7 @@ class snake {
 
             // sx is sprite x offset - Goes left to right, then right to left
             let sx = this.snake[s].f;
-            if (this.status == ALIVE)
+            if (this.status >= WAITING)
                 if (sx >= 7) sx = 13-sx;
             sx *= 25;
 
@@ -779,7 +706,10 @@ class snake {
                     sy += (12 + this.snake[s].d) * 25;
             }
 
+            if (this.status == WAITING)
+                this.ctx.globalAlpha = 0.25;
             this.ctx.drawImage(sprite, sx, sy, 24, 24, this.snake[s].x, this.snake[s].y, 24, 24);
+            this.ctx.globalAlpha = 1;
             animation_offset += 1;
 
             // Debug
@@ -808,31 +738,25 @@ function new_game(){
 
     // Get new settings from debug options
     setup_canvas();
-    max_snacks = Number(document.getElementById("snacks").value);
+
+    update_snacks();
 
     new_snack();
 
     redraw();
 
-    players = document.getElementById("numplayers").value;
-
     player_1.start();
     player_1.draw();
 
-    if (players > 1){
-        player_2.start();
-        player_2.draw();
-    }
-    if (players > 2) {
-        player_3.start();
-        player_3.draw();
-    }
-    if (players > 3) {
-        player_4.start();
-        player_4.draw();
-    }
+    player_2.start();
+    player_2.draw();
 
-    active = players;
+    player_3.start();
+    player_3.draw();
+
+    player_4.start();
+    player_4.draw();
+
     paused = true;
 
     next_frame();
@@ -849,24 +773,14 @@ function next_frame(manual=false){
     player_1.move();
     player_1.draw();
 
-    if (players > 1){
-        player_2.move();
-        player_2.draw();
-    }
-    if (players > 2) {
-        player_3.move();
-        player_3.draw();
-    }
-    if (players > 3) {
-        player_4.move();
-        player_4.draw();
-    }
+    player_2.move();
+    player_2.draw();
 
-    // Check for game over
-    if (active == 0){
-        game_over();
-        return;
-    }
+    player_3.move();
+    player_3.draw();
+
+    player_4.move();
+    player_4.draw();
 
     // Setup next animation
     if (manual == false)
@@ -888,31 +802,8 @@ function redraw(){
     }
 }
 
-function game_over(){
-    clearTimeout(timer);
-
-    check_high_score(player_1);
-    check_high_score(player_2);
-    check_high_score(player_3);
-    check_high_score(player_4);
-}
-
 function toggle_debug(){
     document.getElementById("debug").classList.toggle("hidden");
-}
-
-function show_controls(){
-    let show_player_controls = document.getElementById("numplayers").value;
-    document.getElementById("p2").classList.add("hidden");
-    document.getElementById("p3").classList.add("hidden");
-    document.getElementById("p4").classList.add("hidden");
-
-    if (show_player_controls > 1)
-        document.getElementById("p2").classList.remove("hidden");
-    if (show_player_controls > 2)
-        document.getElementById("p3").classList.remove("hidden");
-    if (show_player_controls > 3)
-        document.getElementById("p4").classList.remove("hidden");
 }
 
 function get_high_scores(){
@@ -964,15 +855,13 @@ function update_high_scores(){
         score_item.appendChild(score_date);
 
         score_list.appendChild(score_item);
-        if (pos > 10) break;
+        if (pos > 5) break;
     }
     scores_div.appendChild(score_list);
 }
 
-function check_high_score(player){
+function check_high_score(player_num, score){
     let high_scores = get_high_scores();
-    let score = player.score();
-    let player_num = player.player;
 
     if (score <= 0)
         return;
@@ -990,7 +879,8 @@ function check_high_score(player){
     }
 
     // Record new score
-    if (place <= 10) {
+    if (place <= 5) {
+        toggle_pause();
         const nth = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh"]
         var user_name = null;
 
@@ -1029,8 +919,8 @@ function first_run(){
         document.getElementById("color2"),
         document.getElementById("score2"),
         WEST,
-        275,
-        275,
+        925,
+        425,
         2
     );
 
@@ -1039,7 +929,7 @@ function first_run(){
         document.getElementById("color3"),
         document.getElementById("score3"),
         SOUTH,
-        275,
+        925,
         50,
         3
     );
@@ -1050,11 +940,10 @@ function first_run(){
         document.getElementById("score4"),
         NORTH,
         50,
-        275,
+        425,
         4
     );
 
-    show_controls();
     toggle_walls();
     update_high_scores();
     new_game();

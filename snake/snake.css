@@ -1,0 +1,104 @@
+body {
+    margin: 0px;
+    padding: 0px;
+    font-family:sans-serif;
+    background: #391801;
+    color: #E3D0AE;
+}
+
+div#content {
+    width: 100%;
+    text-align: center;
+}
+
+#canvas_wrapper {
+}
+
+canvas {
+    top: 0px;
+    left: 0px;
+    width: 100%;
+}
+
+#canvas {
+    position: absolute;
+}
+
+.info_box {
+    display: inline-block;
+    max-width: 300px;
+    vertical-align: top;
+    margin: 10px;
+}
+
+h1 {
+    margin:10px;
+    font-size:3em;
+}
+
+#header {
+    text-align:left;
+}
+
+
+#debug {
+    border: 1px solid red;
+    text-align: left;
+    border-radius: 15px;
+    margin: 10px;
+    width: fit-content;
+    padding: 5px 30px;
+}
+
+input {
+    max-width: 40px;
+}
+
+#speed {
+    max-width: 250px;
+}
+
+#score_container{
+    float: right;
+    margin-top: -30px;
+}
+
+dl {
+    display:flex;
+    flex-flow: row wrap;
+    width:300px;
+}
+
+dt{
+    flex-basis:40%;
+    text-align: right;
+}
+
+dd {
+    flex-basis:40%;
+    flex-grow: 1;
+    text-align: left;
+    margin: 2px 5px;
+}
+
+table {
+    border: 0px;
+}
+
+.score {
+    text-align: right;
+}
+
+.date {
+    font-style: italic;
+    font-size: .8em;
+}
+
+.hidden {
+    display:none;
+}
+
+#credits {
+    font-size: .75em;
+    font-style: italic;
+}
