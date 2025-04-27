@@ -111,8 +111,8 @@ function input_move_touch(e){
     if (mouse_down == true){
 	last_touch_position = getTouchPosition(overlay, e)
         move_tile(last_touch_position);
+        e.preventDefault();
     }
-    e.preventDefault();
 }
 
 function input_end_touch(e){
