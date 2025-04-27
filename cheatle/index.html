@@ -102,6 +102,7 @@ function input_start_touch(e){
     selected = select_move_tile(last_touch_position);
 
     if (selected == null) return;
+    move_tile(last_touch_position);
 
     mouse_down = true;
     e.preventDefault();
@@ -135,16 +136,13 @@ function getCursorPosition(overlay, event){
 }
 
 function input_down_mouse(e){
-    selected = select_move_tile(getCursorPosition(overlay, e));
+    let p = getCursorPosition(overlay, e);
+    selected = select_move_tile(p);
 
     // Didn't click on anything
     if (selected == null) return;
 
-    // Make buttons highlight when clicked
-    if (tiles[selected].type == BUTTON){
-        tiles[selected].state = NOTUSED;
-        draw_state();
-    }
+    move_tile(p);
 
     mouse_down = true;
 }
@@ -265,7 +263,7 @@ function update_user_input(c){
     }
 
     draw_state();
-    update_word_list();    
+    update_word_list();
 }
 
 function pixels_to_coords(coords){
@@ -295,11 +293,12 @@ function select_move_tile(pos){
 function move_tile(pos){
     clear_canvas(overlay, overlay_ctx);
 
-    let half = Math.floor(tile_height / 2);
+    let size = Math.floor(tile_height * 1.1);
+    let half = Math.floor(size / 2);
     let tile = tiles[selected];
 
     if (tile.type == KEY || tile.type == WORD)
-        canvas_draw_tile(overlay_ctx, pos.x-half, pos.y-half, tile_width, tile_height, tile);
+        canvas_draw_tile(overlay_ctx, pos.x-half, pos.y-half, size, size, tile);
 }
 
 // Canvas Functions
@@ -353,14 +352,14 @@ function canvas_draw_tile(ctx, x, y, width, height, tile){
     // Draw caption
     ctx.textAlign = "center";
     ctx.fillStyle = text_color;
-    if (tile.letter.length > 1){
-        ctx.font = "bold "+(.3*tile_height)+"px Arial";
+    if (tile.letter.length > 1) {
+        ctx.font = "bold "+(.3 * height)+"px Arial";
         ctx.fillText(tile.letter, x+.5*width, y+.65*height);
     } else if (tile.letter == UNICODE_DELETE) {
-	ctx.font = "bold "+(.4*tile_height)+"px Arial";
+	ctx.font = "bold "+(.4 * height)+"px Arial";
 	ctx.fillText(tile.letter, x+.5*width, y+.65*height);
     } else {
-        ctx.font = "bold "+(.65*tile_height)+"px Arial";
+        ctx.font = "bold "+(.65 * height)+"px Arial";
         ctx.fillText(tile.letter, x+.5*width, y+.75*height);
     }
 }
