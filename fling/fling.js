@@ -88,7 +88,6 @@ class fling_instance {
     mouse_up() {
         if (!this.interactive) return;
 	if (this.mousedown) {
-	    console.log("test");
 	    this.mousedown = false;
 	    this.toggle_position(this.get_cursor_position(event));
             this.update();
@@ -169,16 +168,170 @@ class fling_instance {
     }
 }
 
+const LEFT  = 0;
+const RIGHT = 1;
+const UP    = 2;
+const DOWN  = 3;
+
 let input;
-let solution_steps = [];
+
+function is_solved(b) {
+    let c = 0;
+    for (let y=0; y<b.length; y++)
+	for (let x=0; x<b[0].length; x++)
+	    if (b[y][x] > -1) {
+		c++;
+
+		if (c > 1)
+		    return false;
+	    }
+
+    return true;
+}
+
+function can_move(b, x, y, d) {
+    // Make sure that we are at least 2 away from an edge
+    if (d == LEFT && x > 1) {
+	// And that there is a gap in the direction we want to go
+	if (b[y][x-1] == -1) {
+	    // And that there is at least 1 furry to bump into
+	    for (let t=0; t<x; t++)
+		if (b[y][t] > -1)
+		    return true;
+	    return false;
+	}
+    }
+
+    // Do the same for the other directions
+    if (d == UP && y > 1) {
+	if (b[y-1][x] == -1) {
+	    for (let t=0; t<y; t++)
+		if (b[t][x] > -1)
+		    return true;
+	    return false;
+	}
+    }
+
+    if (d == DOWN && y < b.length-3) {
+	if (b[y+1][x] == -1) {
+	    for (let t=y+1; t<b.length; t++)
+		if (b[t][x] > -1)
+		    return true;
+	    return false;
+	}
+    }
+
+    if (d == RIGHT && x < b[0].length-3) {
+	if (b[y][x+1] == -1) {
+	    for (let t=x+1; t<b[0].length; t++)
+		if (b[y][t] > -1)
+		    return true;
+	    return false;
+	}
+    }
+
+    return false;
+}
+
+function make_move(b, x, y, d) {
+    let o = JSON.parse(JSON.stringify(b));
+
+    if (d == LEFT) {
+	for (let t=x; t>0; t--) {
+	    if (o[y][t-1] == -1) {
+		// if the spot to the left is open, move the furry there
+		// Otherwise do nothing as it means it's bouncing into something
+		o[y][t-1] = o[y][t];
+		o[y][t] = -1;
+	    }
+	}
+	// There's never a situation where a furry should stop at the edge
+	o[y][0] = -1;
+    }
+
+    if (d == RIGHT) {
+	for (let t=x; t<b[0].length -1; t++) {
+	    if (o[y][t+1] == -1) {
+		o[y][t+1] = o[y][t];
+		o[y][t] = -1;
+	    }
+	}
+	o[y][b[0].length -1] = -1;
+    }
+
+    if (d == UP) {
+	for (let t=y; t>0; t--) {
+	    if (o[t-1][x] == -1) {
+		o[t-1][x] = o[t][x];
+		o[t][x] = -1;
+	    }
+	}
+	o[0][x] = -1;
+    }
+
+    if (d == DOWN) {
+	for (let t=y; t<b.length -1; t++) {
+	    if (o[t+1][x] == -1) {
+		o[t+1][x] = o[t][x];
+		o[t][x] = -1;
+	    }
+	}
+	o[b.length -1][x] = -1;
+    }
+
+    return o;
+}
+
+function solve_recursively(moves) {
+    // Check for solved
+    if (is_solved(moves[moves.length - 1]))
+	return moves;
+
+    // Iterate through each square looking for furries, and see if there is a valid move
+    for (let y=0; y<moves[moves.length-1].length; y++) {
+	for (let x=0; x<moves[moves.length-1][0].length; x++) {
+
+	    if (moves[moves.length-1][y][x] > -1) {
+		for (let d of [LEFT, RIGHT, UP, DOWN]) {
+		    if (can_move(moves[moves.length-1], x, y, d)) {
+			// Make move and recursively check it again
+			let new_boards_array = JSON.parse(JSON.stringify(moves));
+			new_boards_array.push(make_move(moves[moves.length-1], x, y, d));
+			let status = solve_recursively(new_boards_array);
+			// If we don't get no-moves-found, then we should have a solution
+			if (status != false)
+			    return status;
+		    }
+		}
+	    }
+	}
+    }
+
+    // Means no moves found
+    return false;
+}
 
 function solve() {
+    // Remove solution
+    document.getElementById("fling_output").innerHTML = "";
+
+    // Kick off recursive function
+    let board = [JSON.parse(JSON.stringify(input.board))];
+    let moves = solve_recursively(board);
+    // If moves is false, then no solution was found
+    if (moves == false) {
+	document.getElementById("fling_output").innerHTML = "No solution found";
+	return
+    }
+
+    // Display results
+    for (let move of moves)
+	new fling_instance(document.getElementById("fling_output"), 250, move, false);
 }
 
 function reset() {
     // Remove solution
     document.getElementById("fling_output").innerHTML = "";
-    solution_steps = [];
 
     // Erase board
     input.reset();
@@ -189,9 +342,28 @@ function first_load() {
     input = new fling_instance(document.getElementById("fling_input"), 512, null, true);
 
     // Test solve formatting
-    input = new fling_instance(document.getElementById("fling_output"), 250, [[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,1,-1,-1],[-1,-1,5,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,3,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1]], false);
-    input = new fling_instance(document.getElementById("fling_output"), 250, [[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,5,-1,3,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1]], false);
-    input = new fling_instance(document.getElementById("fling_output"), 250, [[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,3,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1,-1]], false);
+    /*
+    let sample = [
+	[-1,-1,-1,-1,-1,-1,-1],
+	[-1,-1,-1,-1, 4,-1,-1],
+	[-1,-1,-1,-1, 1,-1,-1],
+	[-1,-1, 5,-1,-1,-1,-1],
+	[-1,-1,-1,-1,-1,-1, 2],
+	[-1,-1,-1, 6, 3,-1,-1],
+	[-1,-1,-1,-1,-1,-1,-1],
+	[-1,-1,-1,-1,-1,-1,-1]
+    ];
+
+    let t1 = new fling_instance(document.getElementById("fling_output"), 250, sample, false);
+    sample = make_move(sample, 4, 5, UP);
+    let t2 = new fling_instance(document.getElementById("fling_output"), 250, sample, false);
+    sample = make_move(sample, 4, 3, LEFT);
+    let t3 = new fling_instance(document.getElementById("fling_output"), 250, sample, false);
+    sample = make_move(sample, 3, 3, DOWN);
+    let t4 = new fling_instance(document.getElementById("fling_output"), 250, sample, false);
+    sample = make_move(sample, 3, 4, RIGHT);
+    let t5 = new fling_instance(document.getElementById("fling_output"), 250, sample, false);
+    */
 }
 
 document.getElementById("solve").onclick  = function () { solve() };
