@@ -364,7 +364,7 @@ function solve_recursively(boards, moves) {
 			new_moves_array.push({x:x, y:y, d:d});
 			let status = solve_recursively(new_boards_array, new_moves_array);
 			// If we don't get no-moves-found, then we should have a solution
-			if (status != false)
+			if (status[0] != false)
 			    return status;
 		    }
 		}
@@ -373,7 +373,7 @@ function solve_recursively(boards, moves) {
     }
 
     // Means no moves found
-    return false;
+    return [false, []];
 }
 
 function solve() {
