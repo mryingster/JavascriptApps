@@ -1,26 +1,55 @@
 class fling_instance {
-    constructor(parent, width, board, interactive) {
+    constructor(parent, width, board, interactive, arrow) {
         this.canvas = document.createElement("canvas");
         this.ctx = this.canvas.getContext("2d");
         parent.appendChild(this.canvas);
 
         this.canvas.width = width;
-        this.canvas.height = Math.floor(width / 1536 * 1768);
+        this.canvas.height = Math.floor(width / 1536 * 1968);
+
+	// Rules
         this.interactive = interactive;
+	this.arrow_pos = arrow;
 
 	// Overlay info
 	this.mousedown = false;
 	this.highlight = null;
 
+	// Fling Board Information
+	this.width = 7;
+	this.height = 9;
+
         // Size and spacing info
         this.ratio = width / 1536;
         this.left_padding = 70 * this.ratio;
+        this.top_padding = 70 * this.ratio;
         this.square_size = 200 * this.ratio;
+	this.shadow_size = 300 * this.ratio;;
 
 	// Images that need to be loaded
         this.background = new Image();
         this.background.src = "images/Fling_Background.jpg";
         this.background.onload = () => { this.update(); };
+
+	this.shadow = new Image();
+	this.shadow.src = "images/shadow.png"
+        this.background.onload = () => { this.update(); };
+
+	this.arrows = {
+	    left  : new Image(),
+	    right : new Image(),
+	    up    : new Image(),
+	    down  : new Image(),
+	};
+
+	this.arrows.up.src       = "images/arrow_up.png";
+	this.arrows.up.onload    = () => { this.update(); };
+	this.arrows.right.src    = "images/arrow_right.png";
+	this.arrows.right.onload = () => { this.update(); };
+	this.arrows.left.src     = "images/arrow_left.png";
+	this.arrows.left.onload  = () => { this.update(); };
+	this.arrows.down.src     = "images/arrow_down.png";
+	this.arrows.down.onload  = () => { this.update(); };
 
 	this.furries = [];
 	this.furries_src = [
@@ -43,9 +72,9 @@ class fling_instance {
         this.board = board;
         if (this.board == null) {
             this.board = []
-            for (let y=0; y<8; y++) {
+            for (let y=0; y<this.height; y++) {
                 let row = [];
-                for (let x=0; x<7; x++) {
+                for (let x=0; x<this.width; x++) {
                     row.push(-1);
                 }
                 this.board.push(row)
@@ -66,7 +95,7 @@ class fling_instance {
         const y = event.clientY - rect.top
 
         var sx = Math.floor((x - this.left_padding) / this.square_size);
-        var sy = Math.floor(y / this.square_size);
+        var sy = Math.floor((y - this.top_padding)  / this.square_size);
 
         // Return X, Y coordinates
         return {x:sx, y:sy};
@@ -123,21 +152,50 @@ class fling_instance {
         this.ctx.drawImage(i, x, y, w, h);
     }
 
+    place_arrow(x, y, d) {
+	let x1 = x * this.square_size + this.left_padding;
+	let y1 = y * this.square_size + this.top_padding;
+	let arrow;
+
+	if (d == LEFT){
+	    x1 -= this.square_size * .5;
+	    arrow = this.arrows.left;
+	}
+	if (d == RIGHT) {
+	    x1 += this.square_size * .5;
+	    arrow = this.arrows.right;
+	}
+	if (d == UP) {
+	    y1 -= this.square_size * .5;
+	    arrow = this.arrows.up;
+	}
+	if (d == DOWN) {
+	    y1 += this.square_size * .5;
+	    arrow = this.arrows.down;
+	}
+
+	this.place_image(arrow, x1, y1, this.square_size, this.square_size);
+    }
+
     place_furry(x, y, c) {
 	let x1 = x * this.square_size + this.left_padding;
-	let y1 = y * this.square_size;
+	let y1 = y * this.square_size + this.top_padding;
 
+	let x2 = x * this.square_size - (this.square_size / 3) + this.left_padding;
+	let y2 = y * this.square_size + (this.square_size * .15) + this.top_padding;
+
+	this.place_image(this.shadow    , x2, y2, this.shadow_size, this.shadow_size);
 	this.place_image(this.furries[c], x1, y1, this.square_size, this.square_size);
     }
 
     draw_highlight(c) {
         this.ctx.beginPath();
 
-        if (this.highlight.x > 6 || this.highlight.x < 0 ||
-	    this.highlight.y > 7 || this.highlight.y < 0)
+        if (this.highlight.x >= this.width || this.highlight.x < 0 ||
+	    this.highlight.y >= this.height || this.highlight.y < 0)
             return;
         let x = this.highlight.x * this.square_size + this.left_padding;
-        let y = this.highlight.y * this.square_size;
+        let y = this.highlight.y * this.square_size + this.top_padding;;
 
 	if (this.mousedown) {
 	    this.ctx.fillStyle = "rgba(255, 0, 0, .5)";
@@ -159,8 +217,13 @@ class fling_instance {
 	// Go through game board and place furry things
 	for (let y=0; y<this.board.length; y++)
 	    for (let x=0; x<this.board[y].length; x++)
-		if (this.board[y][x] > -1)
+		if (this.board[y][x] > -1) {
 		    this.place_furry(x, y, this.board[y][x]);
+		}
+
+	// If there is an arrow, place it too
+	if (this.arrow_pos != null)
+	    this.place_arrow(this.arrow_pos.x, this.arrow_pos.y, this.arrow_pos.d);
 
 	// Highlight
 	if (this.highlight)
@@ -282,22 +345,24 @@ function make_move(b, x, y, d) {
     return o;
 }
 
-function solve_recursively(moves) {
+function solve_recursively(boards, moves) {
     // Check for solved
-    if (is_solved(moves[moves.length - 1]))
-	return moves;
+    if (is_solved(boards[boards.length - 1]))
+	return [boards, moves];
 
     // Iterate through each square looking for furries, and see if there is a valid move
-    for (let y=0; y<moves[moves.length-1].length; y++) {
-	for (let x=0; x<moves[moves.length-1][0].length; x++) {
+    for (let y=0; y<boards[boards.length-1].length; y++) {
+	for (let x=0; x<boards[boards.length-1][0].length; x++) {
 
-	    if (moves[moves.length-1][y][x] > -1) {
+	    if (boards[boards.length-1][y][x] > -1) {
 		for (let d of [LEFT, RIGHT, UP, DOWN]) {
-		    if (can_move(moves[moves.length-1], x, y, d)) {
+		    if (can_move(boards[boards.length-1], x, y, d)) {
 			// Make move and recursively check it again
-			let new_boards_array = JSON.parse(JSON.stringify(moves));
-			new_boards_array.push(make_move(moves[moves.length-1], x, y, d));
-			let status = solve_recursively(new_boards_array);
+			let new_boards_array = JSON.parse(JSON.stringify(boards));
+			new_boards_array.push(make_move(boards[boards.length-1], x, y, d));
+			let new_moves_array = moves.slice(0);
+			new_moves_array.push({x:x, y:y, d:d});
+			let status = solve_recursively(new_boards_array, new_moves_array);
 			// If we don't get no-moves-found, then we should have a solution
 			if (status != false)
 			    return status;
@@ -317,7 +382,8 @@ function solve() {
 
     // Kick off recursive function
     let board = [JSON.parse(JSON.stringify(input.board))];
-    let moves = solve_recursively(board);
+    let [boards, moves] = solve_recursively(board, []);
+
     // If moves is false, then no solution was found
     if (moves == false) {
 	document.getElementById("fling_output").innerHTML = "No solution found";
@@ -325,8 +391,8 @@ function solve() {
     }
 
     // Display results
-    for (let move of moves)
-	new fling_instance(document.getElementById("fling_output"), 250, move, false);
+    for (let i=0; i<boards.length; i++)
+	new fling_instance(document.getElementById("fling_output"), 250, boards[i], false, moves[i]);
 }
 
 function reset() {
@@ -339,7 +405,7 @@ function reset() {
 
 function first_load() {
     // Create input
-    input = new fling_instance(document.getElementById("fling_input"), 512, null, true);
+    input = new fling_instance(document.getElementById("fling_input"), 512, null, true, null);
 
     // Test solve formatting
     /*
@@ -354,15 +420,15 @@ function first_load() {
 	[-1,-1,-1,-1,-1,-1,-1]
     ];
 
-    let t1 = new fling_instance(document.getElementById("fling_output"), 250, sample, false);
+    let t1 = new fling_instance(document.getElementById("fling_output"), 250, sample, false, {x:4, y:5, d:UP});
     sample = make_move(sample, 4, 5, UP);
-    let t2 = new fling_instance(document.getElementById("fling_output"), 250, sample, false);
+    let t2 = new fling_instance(document.getElementById("fling_output"), 250, sample, false, {x:4, y:3, d:LEFT});
     sample = make_move(sample, 4, 3, LEFT);
-    let t3 = new fling_instance(document.getElementById("fling_output"), 250, sample, false);
+    let t3 = new fling_instance(document.getElementById("fling_output"), 250, sample, false, {x:3, y:3, d:DOWN});
     sample = make_move(sample, 3, 3, DOWN);
-    let t4 = new fling_instance(document.getElementById("fling_output"), 250, sample, false);
+    let t4 = new fling_instance(document.getElementById("fling_output"), 250, sample, false, {x:3, y:4, d:RIGHT});
     sample = make_move(sample, 3, 4, RIGHT);
-    let t5 = new fling_instance(document.getElementById("fling_output"), 250, sample, false);
+    let t5 = new fling_instance(document.getElementById("fling_output"), 250, sample, false, null);
     */
 }
 
