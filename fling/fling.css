@@ -13,13 +13,16 @@ body {
     filter: drop-shadow(0px 8px 15px black);
 }
 
+.wrapper {
+    display: inline-block;
+}
+
 canvas {
     margin: 0px;
 }
 
-#fling_output {
-    width: 524px;
-    margin-top: 12px;
+#fling_output, #fling_input{
+    width: 512px;
 }
 
 #fling_output canvas {
@@ -27,5 +30,31 @@ canvas {
 }
 
 h1 {
+    color: #221402;
     margin: 0px 0px 10px 0px;
+}
+
+@media screen and (min-width:1030px) {
+    #content {
+        width: 1030px;
+    }
+}
+
+button {
+    padding:30px;
+    font-size: 2em;
+    width: 200px;
+}
+
+button.right {
+    float: right;
+}
+
+#message {
+    font-size: 2em;
+    width: 100%;
+    text-align: center;
+    display: block;
+    margin-top: 300px;
+    margin-bottom: 300px;
 }

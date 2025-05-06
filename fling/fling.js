@@ -1,5 +1,5 @@
 class fling_instance {
-    constructor(parent, width, board, interactive, arrow) {
+    constructor(parent, width, interactive, boards, moves) {
         this.canvas = document.createElement("canvas");
         this.ctx = this.canvas.getContext("2d");
         parent.appendChild(this.canvas);
@@ -9,7 +9,6 @@ class fling_instance {
 
 	// Rules
         this.interactive = interactive;
-	this.arrow_pos = arrow;
 
 	// Overlay info
 	this.mousedown = false;
@@ -68,18 +67,24 @@ class fling_instance {
 	    this.furries[this.furries.length - 1].onload = () => { this.update(); };
 	}
 
-	// The board setup
-        this.board = board;
-        if (this.board == null) {
-            this.board = []
+	// Boards - if null, setup a blank board to edit
+        this.boards = boards;
+	if (this.boards == null) {
+	    this.boards = [];
+	    let board = []
             for (let y=0; y<this.height; y++) {
-                let row = [];
-                for (let x=0; x<this.width; x++) {
+		let row = [];
+		for (let x=0; x<this.width; x++) {
                     row.push(-1);
-                }
-                this.board.push(row)
+		}
+		board.push(row)
             }
-        }
+	    this.boards.push(board);
+	}
+
+	// See if we are displaying a solved results
+	this.index = 0;
+	this.moves = moves;
 
         // Add Listeners
         this.canvas.addEventListener('mousedown', () => this.mouse_down(), false);
@@ -131,16 +136,32 @@ class fling_instance {
     }
 
     toggle_position(c) {
-	if (this.board[c.y][c.x] < 0)
-	    this.board[c.y][c.x] = Math.floor(Math.random() * this.furries.length);
+	if (this.boards[this.index][c.y][c.x] < 0)
+	    this.boards[this.index][c.y][c.x] = Math.floor(Math.random() * this.furries.length);
 	else
-	    this.board[c.y][c.x] = -1;
+	    this.boards[this.index][c.y][c.x] = -1;
     }
 
     reset() {
-	for (let y=0; y<this.board.length; y++)
-	    for (let x=0; x<this.board[y].length; x++)
-		this.board[y][x] = -1;
+	for (let y=0; y<this.boards[this.index].length; y++)
+	    for (let x=0; x<this.boards[this.index][y].length; x++)
+		this.boards[this.index][y][x] = -1;
+	this.update();
+    }
+
+    next() {
+	this.index++;
+	if (this.index >= this.boards.length)
+	    this.index = this.boards.length - 1;
+
+	this.update();
+    }
+
+    previous() {
+	this.index--;
+	if (this.index < 0)
+	    this.index = 0;
+
 	this.update();
     }
 
@@ -215,15 +236,16 @@ class fling_instance {
         this.place_image(this.background, 0, 0, this.canvas.width, this.canvas.height);
 
 	// Go through game board and place furry things
-	for (let y=0; y<this.board.length; y++)
-	    for (let x=0; x<this.board[y].length; x++)
-		if (this.board[y][x] > -1) {
-		    this.place_furry(x, y, this.board[y][x]);
+	for (let y=0; y<this.boards[this.index].length; y++)
+	    for (let x=0; x<this.boards[this.index][y].length; x++)
+		if (this.boards[this.index][y][x] > -1) {
+		    this.place_furry(x, y, this.boards[this.index][y][x]);
 		}
 
 	// If there is an arrow, place it too
-	if (this.arrow_pos != null)
-	    this.place_arrow(this.arrow_pos.x, this.arrow_pos.y, this.arrow_pos.d);
+	if (this.moves != null)
+	    if (this.index < this.moves.length)
+		this.place_arrow(this.moves[this.index].x, this.moves[this.index].y, this.moves[this.index].d);
 
 	// Highlight
 	if (this.highlight)
@@ -237,6 +259,7 @@ const UP    = 2;
 const DOWN  = 3;
 
 let input;
+let output;
 
 function is_solved(b) {
     let c = 0;
@@ -381,23 +404,31 @@ function solve() {
     document.getElementById("fling_output").innerHTML = "";
 
     // Kick off recursive function
-    let board = [JSON.parse(JSON.stringify(input.board))];
+    let board = [JSON.parse(JSON.stringify(input.boards[0]))];
     let [boards, moves] = solve_recursively(board, []);
 
     // If moves is false, then no solution was found
     if (moves == false) {
-	document.getElementById("fling_output").innerHTML = "No solution found";
+	let m = document.createElement("span");
+	m.innerHTML = "No solution found";
+	m.id = "message";
+	document.getElementById("fling_output").appendChild(m);
 	return
     }
 
     // Display results
-    for (let i=0; i<boards.length; i++)
-	new fling_instance(document.getElementById("fling_output"), 250, boards[i], false, moves[i]);
+    output = new fling_instance(document.getElementById("fling_output"), 512, false, boards, moves);
+    document.getElementById("next").onclick = function () { output.next() };
+    document.getElementById("previous").onclick = function () { output.previous() };
 }
 
 function reset() {
     // Remove solution
     document.getElementById("fling_output").innerHTML = "";
+    let m = document.createElement("span");
+    m.innerHTML = "Click on grid to place pieces";
+    m.id = "message";
+    document.getElementById("fling_output").appendChild(m);
 
     // Erase board
     input.reset();
@@ -405,35 +436,12 @@ function reset() {
 
 function first_load() {
     // Create input
-    input = new fling_instance(document.getElementById("fling_input"), 512, null, true, null);
+    input = new fling_instance(document.getElementById("fling_input"), 512, true, null, null);
+    document.getElementById("solve").onclick = function () { solve() };
+    document.getElementById("reset").onclick = function () { reset() };
 
-    // Test solve formatting
-    /*
-    let sample = [
-	[-1,-1,-1,-1,-1,-1,-1],
-	[-1,-1,-1,-1, 4,-1,-1],
-	[-1,-1,-1,-1, 1,-1,-1],
-	[-1,-1, 5,-1,-1,-1,-1],
-	[-1,-1,-1,-1,-1,-1, 2],
-	[-1,-1,-1, 6, 3,-1,-1],
-	[-1,-1,-1,-1,-1,-1,-1],
-	[-1,-1,-1,-1,-1,-1,-1]
-    ];
-
-    let t1 = new fling_instance(document.getElementById("fling_output"), 250, sample, false, {x:4, y:5, d:UP});
-    sample = make_move(sample, 4, 5, UP);
-    let t2 = new fling_instance(document.getElementById("fling_output"), 250, sample, false, {x:4, y:3, d:LEFT});
-    sample = make_move(sample, 4, 3, LEFT);
-    let t3 = new fling_instance(document.getElementById("fling_output"), 250, sample, false, {x:3, y:3, d:DOWN});
-    sample = make_move(sample, 3, 3, DOWN);
-    let t4 = new fling_instance(document.getElementById("fling_output"), 250, sample, false, {x:3, y:4, d:RIGHT});
-    sample = make_move(sample, 3, 4, RIGHT);
-    let t5 = new fling_instance(document.getElementById("fling_output"), 250, sample, false, null);
-    */
+    reset();
 }
-
-document.getElementById("solve").onclick  = function () { solve() };
-document.getElementById("reset").onclick  = function () { reset() };
 
 window.onload = function () {
     first_load();

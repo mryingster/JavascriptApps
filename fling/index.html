@@ -11,12 +11,22 @@
     <div id="content">
       <h1>Fling Solver</h1>
 
-      <div id="fling_input"></div>
-      <div id="controls">
-        <button id="solve">Solve</button>
-        <button id="reset">Reset</button>
+      <div class="wrapper">
+        <div id="fling_input"></div>
+        <div class="controls">
+          <button id="solve">Solve</button>
+          <button id="reset" class="right">Reset</button>
+        </div>
       </div>
-      <div id="fling_output"></div>
+
+      <div class="wrapper">
+        <div id="fling_output"></div>
+        <div class="controls">
+          <button id="previous">Previous</button>
+          <button id="next" class="right">Next</button>
+        </div>
+      </div>
+
     </div>
 
     <script src="fling.js" type="module"></script>
