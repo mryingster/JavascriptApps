@@ -32,9 +32,9 @@
 
       <div id="below_game">
         <button class="key" id="start_stop" onclick="start_stop()">New Game</button>
+        <button class="key" id="shuffle" onclick="shuffle_tiles()">Shuffle</button>
         <button class="key" onclick="user_input({keyCode:12});">Clear</button>
         <button class="key" onclick="user_input({keyCode:8});">Delete</button>
-        <button class="key" id="shuffle" onclick="shuffle_tiles()">Shuffle</button>
         <button class="key" onclick="user_input({keyCode:13});">Enter</button>
         <br>
         <a id="game_link" href="#">Link to this game</a>
@@ -75,6 +75,7 @@ var tiles_used  = [];
 // User input variables
 var mouse_down      = false;
 var mouse_selection = [];
+let last_pos        = null;
 
 // Canvas
 var canvas  = document.getElementById("canvas");
@@ -136,20 +137,23 @@ function getTouchPosition(overlay, event){
 function input_down_touch(e){
     if (game_active == false) return;
     mouse_down = true;
-    highlight_selected_tile(getTouchPosition(overlay, e));
+    last_pos = getTouchPosition(overlay, e)
+    highlight_selected_tile(last_pos);
     e.preventDefault();
 }
 
 function input_move_touch(e){
-    if (mouse_down == true)
-        highlight_selected_tile(getTouchPosition(overlay, e));
-    e.preventDefault();
+    if (mouse_down == true) {
+	last_pos = getTouchPosition(overlay, e)
+        highlight_selected_tile(last_pos);
+	e.preventDefault();
+    }
 }
 
 function input_up_touch(e){
     if (game_active == false) return;
     mouse_down = false;
-    type_letter(getTouchPosition(overlay, e));
+    type_letter(last_pos);
 }
 
 // Mouse listeners
@@ -326,7 +330,8 @@ function canvas_draw_tile(x, y, width, text, center){
     // Draw shadow
     ctx.fillStyle = "#aaa";
     ctx.filter = "blur(6px)";
-    ctx.fillRect(x, y+5, size*2, size*2);
+    canvas_draw_rounded_rectangle(ctx, x, y+5, size*2, size*2, tile_radius)
+    ctx.fill();
     ctx.filter = "none";;
 
     // Draw beveled edges
