@@ -19,13 +19,10 @@ h1, h2 {
 
 button {
     touch-action:manipulation;
-}
-
-button.key{
-    width:55px;
+    vertical-align: top;
+    width:75px;
     height:55px;
-    margin:3px;
-    top: -7px;
+    margin:0 3px 20px 3px;
     position: relative;
 }
 
@@ -47,27 +44,20 @@ button.key{
     text-decoration: line-through;
 }
 
-div#above_gamve{
+div#above_game{
     height:80px;
     border:0px solid blue;
-}
-
-div#start_controls{
-    float:right;
-    text-align:right;
-    margin:5px;
-    border:0px solid red;
-}
-
-dive#timer_div {
-    text-align:center;
-    border:0px solid red;
+    text-align: center;
+    position: relative;
 }
 
 span#timer{
-    display:block;
+    position: absolute;
+    display: inline-block;
     font-size:2em;
     padding:20px;
+    left: 0px;
+    border:0px solid green;
 }
 
 div#canvas_container{
@@ -77,6 +67,8 @@ div#canvas_container{
 }
 
 div#below_game{
+    margin: auto;
+    text-align: center;
     height:90px;
     border:0px solid blue;
 }
@@ -84,18 +76,13 @@ div#below_game{
 div#rules{
 }
 
-input#user_input{
+#user_input{
     margin:5px;
     width:230px;
     height:50px;
     font-size:2em;
     letter-spacing: 3px;
     position:relative;
-}
-
-div#settings {
-    float:right;
-    margin:5px;
     border:0px solid red;
 }
 
@@ -109,7 +96,7 @@ span#feedback{
     background-color:#ffff00;
     text-align: center;
     width: 250px;
-    #margin-left:5px;
+    margin:5px auto;
     padding:7px;
     border-radius:7px;
     font-weight:bold;

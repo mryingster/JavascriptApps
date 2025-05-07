@@ -18,13 +18,11 @@
       </div>
 
       <div id="above_game">
-        <div id="start_controls">
-          <button class="button" id="start_stop" onclick="start_stop()">New Game</button>
-        </div>
+        <span id="timer">--:--</span><br>
 
-        <div id="timer_div">
-          <span id="timer">--:--</span><br>
-        </div>
+        <span id="feedback">Sample Text</span>
+
+        <span id="user_input"></span>
       </div>
 
       <div id="canvas_container">
@@ -33,15 +31,13 @@
       </div>
 
       <div id="below_game">
-        <div id="settings">
-          <a id="game_link" href="#">Link to this game</a>
-        </div>
-        <span id="feedback">Sample Text</span>
-        <button class="key", onclick="user_input({keyCode:12});">Clear</button>
-        <input id="user_input" onkeydown="user_input(event)"></input>
-        <button class="key", onclick="user_input({keyCode:8});">Delete</button>
+        <button class="key" id="start_stop" onclick="start_stop()">New Game</button>
+        <button class="key" onclick="user_input({keyCode:12});">Clear</button>
+        <button class="key" onclick="user_input({keyCode:8});">Delete</button>
         <button class="key" id="shuffle" onclick="shuffle_tiles()">Shuffle</button>
-        <button class="key", onclick="user_input({keyCode:13});">Enter</button>
+        <button class="key" onclick="user_input({keyCode:13});">Enter</button>
+        <br>
+        <a id="game_link" href="#">Link to this game</a>
       </div>
 
       <div id="found_words" class="hidden">
@@ -102,11 +98,21 @@ var tile_size   = 130;
 var game_border = 30;
 var num_tiles   = game_size;
 var spacing     = (canvas.width - (2 * game_border) - (tile_size * num_tiles))/(num_tiles - 1);
+let tile_radius = 10;
 
 // Touch listeners
 overlay.addEventListener('touchstart', input_down_touch, false);
 overlay.addEventListener('touchmove',  input_move_touch, false);
 overlay.addEventListener('touchend',   input_up_touch, false);
+
+function pageCoords(el, stop) {
+    var off= { x:0, y:0 };
+    for (; el != null && el != stop; el = el.offsetParent) {
+        off.x += el.offsetLeft;
+        off.y += el.offsetTop;
+    }
+    return off;
+}
 
 function getTouchPosition(overlay, event){
     if (!e)
@@ -118,8 +124,9 @@ function getTouchPosition(overlay, event){
     if(e.touches) {
         if (e.touches.length == 1) { // Only deal with one finger
             var touch = e.touches[0]; // Get the information for finger #1
-            x = touch.pageX-touch.target.offsetLeft;
-            y = touch.pageY-touch.target.offsetTop - (tile_size * 2); // Adjust y because apple messes things up!
+            let coords = pageCoords(touch.target);
+            x = touch.pageX-coords.x;
+            y = touch.pageY-coords.y;
         }
     }
 
@@ -176,6 +183,12 @@ function input_up(e){
     type_letter(getCursorPosition(overlay, e));
 }
 
+// Keyboard listener
+document.addEventListener('keydown', function(e) {
+    user_input(e);
+});
+
+
 function pixels_to_coords(coords){
     var mouse_x = coords.x - game_border;
     var mouse_y = coords.y - game_border;
@@ -204,12 +217,15 @@ function highlight_used_tiles(clear=true){
 
 function draw_over_tile(pos, color){
     overlay_ctx.fillStyle = color;
-    overlay_ctx.fillRect(
+    canvas_draw_rounded_rectangle(
+	overlay_ctx,
         (pos.x * spacing) + (pos.x * tile_size) + game_border,
         (pos.y * spacing) + (pos.y * tile_size) + game_border,
         tile_size,
         tile_size,
+	tile_radius,
     );
+    overlay_ctx.fill();
 }
 
 function type_letter(coords){
@@ -268,30 +284,21 @@ function clear_canvas(canvas, ctx){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function canvas_draw_rounded_rectangle(x, y, width, height, radius){
-    ctx.beginPath();
-    ctx.moveTo(x, y + radius);
-    ctx.arc(x + radius, y + radius, radius, Math.PI, -1/2 * Math.PI); // Top left
+function canvas_draw_rounded_rectangle(c, x, y, width, height, radius){
+    c.beginPath();
+    c.moveTo(x, y + radius);
+    c.arc(x + radius, y + radius, radius, Math.PI, -1/2 * Math.PI); // Top left
 
-    ctx.lineTo(x + width - radius, y);
-    ctx.arc(x + width - radius, y + radius, radius, -1/2 * Math.PI, 0); // Top Right
+    c.lineTo(x + width - radius, y);
+    c.arc(x + width - radius, y + radius, radius, -1/2 * Math.PI, 0); // Top Right
 
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.arc(x + width - radius, y + height - radius, radius, 0, 1/2 * Math.PI); // Bottom Right
+    c.lineTo(x + width, y + height - radius);
+    c.arc(x + width - radius, y + height - radius, radius, 0, 1/2 * Math.PI); // Bottom Right
 
-    ctx.lineTo(x + radius, y + height);
-    ctx.arc(x + radius, y + height - radius, radius, 1/2 * Math.PI, Math.PI); // Bottom Left
-    ctx.lineTo(x, y + radius);
-}
-
-function canvas_draw_background(){
-    clear_canvas(canvas, ctx);
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = "#003294";
-    ctx.fillStyle = "#003FBD";
-    canvas_draw_rounded_rectangle(5, 5, width-10, height-10, 20);
-    ctx.fill();
-    //ctx.stroke();
+    c.lineTo(x + radius, y + height);
+    c.arc(x + radius, y + height - radius, radius, 1/2 * Math.PI, Math.PI); // Bottom Left
+    c.lineTo(x, y + radius);
+    c.closePath();
 }
 
 function canvas_draw_tile(x, y, width, text, center){
@@ -315,36 +322,35 @@ function canvas_draw_tile(x, y, width, text, center){
             text    : "#F9F9F9",
         };
 
-    // Draw tile well
-    /*
-    border = width * .08;
-    ctx.fillStyle = "#003294";
-    ctx.fillRect(x-border, y-border, width + (2 * border), width + (2 * border));
-    */
 
-    // Draw square
-    ctx.fillStyle = colors.circle;
-    ctx.fillRect(x, y, size*2, size*2);
+    // Draw shadow
+    ctx.fillStyle = "#aaa";
+    ctx.filter = "blur(6px)";
+    ctx.fillRect(x, y+5, size*2, size*2);
+    ctx.filter = "none";;
 
-    // Draw bevels
-    /*
+    // Draw beveled edges
     ctx.fillStyle = colors.corner1;
-    ctx.fillRect(x, y, size, size);
+    canvas_draw_rounded_rectangle(ctx, x, y, size, size, tile_radius)
+    ctx.fill();
+
     ctx.fillStyle = colors.corner2;
-    ctx.fillRect(x+size, y+size, size, size);
+    canvas_draw_rounded_rectangle(ctx, x+size, y+size, size, size, tile_radius)
+    ctx.fill();
+
     ctx.fillStyle = colors.corner3;
-    ctx.fillRect(x+size, y, size, size);
+    canvas_draw_rounded_rectangle(ctx, x+size, y, size, size, tile_radius)
+    ctx.fill();
+
     ctx.fillStyle = colors.corner4;
-    ctx.fillRect(x, y+size, size, size);
-    */
+    canvas_draw_rounded_rectangle(ctx, x, y+size, size, size, tile_radius)
+    ctx.fill();
 
     // Draw center
-    /*
     ctx.fillStyle = colors.circle;
     ctx.beginPath();
     ctx.arc(x+size, y+size, size, 0, 2 * Math.PI);
     ctx.fill();
-    */
 
     // Modify blank text
     if (text == "#")
@@ -372,7 +378,7 @@ function first_load(){
 
 function canvas_draw_game(game){
     // Clear out any old game
-    canvas_draw_background();
+    clear_canvas(overlay, overlay_ctx);
 
     for (var x=0; x<num_tiles; x++){
         for (var y=0; y<num_tiles; y++){
@@ -541,8 +547,7 @@ function start_game(){
     words_found = [];
     words_found.includes = word => !!words_found.find(w => w.word == word);
 
-    input.value = "";
-    input.focus();
+    clear_input();
 
     // get our dictionary for this game
     this_dict = find_all_words();
@@ -574,7 +579,7 @@ function update_user_input_field(pos){
         return;
     }
 
-    // Verify that the character hasn't been used too many time.
+    // Verify that the character hasn't been used too many times.
     //if (input.value.split(c).length >= foundation.split(c).length){
     //    highlight_used_tiles();
     //    return;
@@ -587,8 +592,7 @@ function update_user_input_field(pos){
         }
 
     // Do it
-    input.value += c;
-    input.focus();
+    input.innerHTML += c;
 
     // Mark tile as used
     tiles_used.push(pos)
@@ -622,24 +626,23 @@ function user_input(e){
 
     // Delete
     if (e.keyCode == 8){
-        input.value = input.value.slice(0,input.value.length-1);
+        input.innerHTML = input.innerHTML.slice(0,input.innerHTML.length-1);
         tiles_used.pop();
         highlight_used_tiles();
     }
 
     // Clear
     if (e.keyCode == 12){
-        input.value = "";
+        clear_input();
         tiles_used = [];
         highlight_used_tiles();
     }
 
     // Return
     if (e.keyCode == 13)
-        submit_word(input.value);
+        submit_word(input.innerHTML);
 
     // Stop the event from doing anything automatically
-    //if (e.hasOwnProperty("PreventDefault"))
     input.focus();
     e.preventDefault();
 }
@@ -742,11 +745,15 @@ function submit_word(word){
         animate_shake(20);
     }
 
-    input.value = "";
+    clear_input();
 
     // remove used letters
     tiles_used = [];
     highlight_used_tiles();
+}
+
+function clear_input() {
+    input.innerHTML = "";
 }
 
 function end_game(){
@@ -797,7 +804,7 @@ function nextLoop() {
     timer = setTimeout(function() { nextLoop() }, refresh);
 
     if (time_left < 1) {
-        time_left_string = "NONE";
+        time_left_string = "00:00";
     }
 
     if (time_left < 0) {
