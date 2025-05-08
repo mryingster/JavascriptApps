@@ -5,6 +5,7 @@ body {
 }
 
 div#content {
+    width:512px;
     margin: 0px auto;
 }
 
@@ -64,6 +65,13 @@ div#canvas_container{
     position: relative;
     width: 512px;
     height: 512px;
+}
+
+canvas {
+    touch-action:manipulation;
+    position:absolute;
+    top:0;
+    left:0;
 }
 
 div#below_game{
