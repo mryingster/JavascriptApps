@@ -212,9 +212,9 @@ function highlight_selected_tile(coords){
     highlight_used_tiles(false);
 }
 
-function highlight_used_tiles(clear=true){
-    if (clear == true)
-        clear_canvas(overlay, overlay_ctx);
+function highlight_used_tiles(){
+    clear_canvas(overlay, overlay_ctx);
+
     for (let tile of tiles_used)
         draw_over_tile(tile, 'rgba(0,0,0,.3)');
 }
@@ -400,12 +400,12 @@ function canvas_draw_game(game){
 
 function create_game_link(game){
     var c2 = btoa(foundation + ":" + game.map(function(a) { return a.join(',') } ).join(' '));
-    console.log("Encoded", c2);
+    //console.log("Encoded", c2);
     document.getElementById("game_link").href = window.location.href.split('?')[0] + "?" + c2;
 }
 
 function decode_game_link(c2){
-    console.log(atob(c2));
+    //console.log(atob(c2));
     foundation = atob(c2).split(":")[0];
     var game = atob(c2).split(":")[1].split(" ").map(function(r) { return r.split(',') });
     return game;
@@ -539,7 +539,7 @@ function find_all_words(){
         if (!answers_filtered.includes(w.word))
             answers_filtered.push(w);
 
-    console.log("Narrowed down to ", answers_filtered.length, "words");
+    //console.log("Narrowed down to ", answers_filtered.length, "words");
     return answers_filtered;
 }
 
@@ -648,8 +648,8 @@ function user_input(e){
         submit_word(input.innerHTML);
 
     // Stop the event from doing anything automatically
-    input.focus();
-    e.preventDefault();
+    if ("preventDefault" in e)
+	e.preventDefault();
 }
 
 function shuffle_tiles(){
@@ -685,7 +685,6 @@ function shuffle_tiles(){
     // Redraw everything
     canvas_draw_game(this_game);
     highlight_used_tiles();
-    input.focus();
 }
 
 function animate_feedback(opacity) {
