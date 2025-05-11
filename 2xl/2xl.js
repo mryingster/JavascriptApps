@@ -191,23 +191,23 @@ function stop() {
 }
 
 function switch_track(n) {
-    audio1.volume = 0;
-    audio2.volume = 0;
-    audio3.volume = 0;
-    audio4.volume = 0;
+    audio1.muted = true;
+    audio2.muted = true;
+    audio3.muted = true;
+    audio4.muted = true;
 
     switch (n) {
     case 1:
-        audio1.volume = 1;
+        audio1.muted = false;
         break;
     case 2:
-        audio2.volume = 1;
+        audio2.muted = false;
         break;
     case 3:
-        audio3.volume = 1;
+        audio3.muted = false;
         break;
     case 4:
-        audio4.volume = 1;
+        audio4.muted = false;
         break;
     }
 }
@@ -224,6 +224,11 @@ function select_tape(t=null) {
     audio2 = new Audio("tapes/"+t+"/Track1.mp3");
     audio3 = new Audio("tapes/"+t+"/Track1.mp3");
     audio4 = new Audio("tapes/"+t+"/Track1.mp3");
+
+    audio1.volume = 1;
+    audio2.volume = 1;
+    audio3.volume = 1;
+    audio4.volume = 1;
 
     // Reset buttons and rewind
     rewind();
