@@ -56,6 +56,7 @@ const apps = [
     { "name" : "Word Finder",          "location" : "words",                   "category" : "Utilities", "icon" : "icon_words",     "status" : COMPLETE,    "description" : "Find words based on given letters. Developed to help solve the Spelling Bee" },
     { "name" : "Wordy",                "location" : "wordy",                   "category" : "Games",     "icon" : "icon_wordy",     "status" : COMPLETE,    "description" : "Wordy is a familiar puzzle game where you have to make words by connecting adjacent letters in a grid." },
 
+    { "name" : "2-XL Simulator",       "location" : "2xl",                     "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "2-XL Toy Simulator" },
     { "name" : "Ball Simulator",       "location" : "balls",                   "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Ball phsyics simulation" },
     { "name" : "Binary",               "location" : "binary",                  "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Simple binary converter" },
     { "name" : "Clue Sheet",           "location" : "clue",                    "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Digital clue sheet for the board game, Clue" },
