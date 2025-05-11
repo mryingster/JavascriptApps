@@ -262,13 +262,15 @@ function first_run() {
     svg.addEventListener("touchstart", input_down);
     svg.addEventListener("touchend",   input_up);
 
-    // Set up audio listener
-    audio1.addEventListener('canplaythrough', function(){
-	source = audioCtx.createMediaElementSource(audio1);
-	source.connect(processor);
-	source.connect(audioCtx.destination);
-	processor.connect(audioCtx.destination);
-    }, false);
+    // Set up audio listener (not in Safari because this feature doesn't work
+    if (window.safari == undefined) {
+	audio1.addEventListener('canplaythrough', function(){
+	    source = audioCtx.createMediaElementSource(audio1);
+	    source.connect(processor);
+	    source.connect(audioCtx.destination);
+	    processor.connect(audioCtx.destination);
+	}, false);
+    }
 
     // loop through PCM data and calculate average volume
     processor.onaudioprocess = function(evt){
