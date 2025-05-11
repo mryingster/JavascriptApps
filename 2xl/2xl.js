@@ -71,8 +71,8 @@ let tapes = [
     "Sports 2",
     "Sports World",
     "Sports",
-    "Star And Planets",
-    "StarTrek NG Blinded by the Light",
+    "Stars And Planets",
+    "Star Trek TNG Blinded by the Light",
     "Storyland 2XL and the Time Machine",
     "Storyland",
     "Storymaker",
@@ -221,9 +221,9 @@ function select_tape(t=null) {
     }
 
     audio1 = new Audio("tapes/"+t+"/Track1.mp3");
-    audio2 = new Audio("tapes/"+t+"/Track1.mp3");
-    audio3 = new Audio("tapes/"+t+"/Track1.mp3");
-    audio4 = new Audio("tapes/"+t+"/Track1.mp3");
+    audio2 = new Audio("tapes/"+t+"/Track2.mp3");
+    audio3 = new Audio("tapes/"+t+"/Track3.mp3");
+    audio4 = new Audio("tapes/"+t+"/Track4.mp3");
 
     audio1.volume = 1;
     audio2.volume = 1;
@@ -252,8 +252,9 @@ function first_run() {
 	option.innerHTML = tape;
 	select.appendChild(option);
     }
-    select.onClick = function () { select_tape(); }
-
+    //select.onclick = function () { select_tape() }
+    document.getElementById("tapes").onchange = function () { select_tape(select.value) }
+    
     // Set default selection
     select_tape("World of 2-XL");
 
