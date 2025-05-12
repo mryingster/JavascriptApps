@@ -238,23 +238,71 @@ function select_tape(t=null) {
 
 var audioCtx = new AudioContext();
 var processor = audioCtx.createScriptProcessor(512, 1, 1);
-var source;
-let max = 0;
-let min = 1;
-let resolution = 64;
+var source1, source2, source3, source4;
+let max = .5;
+let min = .25;
+let resolution = 2;
+
+// loop through PCM data and calculate average volume
+processor.onaudioprocess = function(evt){
+    let input = evt.inputBuffer.getChannelData(0)
+
+    let len = input.length
+    let total = 0
+    for (let i=0; i<len; i+=resolution)
+        total += Math.abs(input[i]);
+
+    let rms = Math.sqrt(total / (len / resolution));
+
+    let adjusted = Math.max(0, (rms - min) / (max - min));
+
+    mouth.style.opacity = adjusted;
+};
+
+function createAudioListeners() {
+    // Set up audio listener (not in Safari because this feature doesn't work
+    if (window.safari == undefined) {
+        audio1.addEventListener('canplaythrough', function(){
+            source1 = audioCtx.createMediaElementSource(audio1);
+            source1.connect(processor);
+            source1.connect(audioCtx.destination);
+            processor.connect(audioCtx.destination);
+        }, false);
+
+        audio2.addEventListener('canplaythrough', function(){
+            source2 = audioCtx.createMediaElementSource(audio2);
+            source2.connect(processor);
+            source2.connect(audioCtx.destination);
+            processor.connect(audioCtx.destination);
+        }, false);
+
+        audio3.addEventListener('canplaythrough', function(){
+            source3 = audioCtx.createMediaElementSource(audio3);
+            source3.connect(processor);
+            source3.connect(audioCtx.destination);
+            processor.connect(audioCtx.destination);
+        }, false);
+
+        audio4.addEventListener('canplaythrough', function(){
+            source4 = audioCtx.createMediaElementSource(audio4);
+            source4.connect(processor);
+            source4.connect(audioCtx.destination);
+            processor.connect(audioCtx.destination);
+        }, false);
+    }
+}
 
 function first_run() {
     // Set up list of tapes
     let select = document.getElementById("tapes");
     for (let tape of tapes) {
-	let option = document.createElement("option");
-	option.value = tape;
-	option.innerHTML = tape;
-	select.appendChild(option);
+        let option = document.createElement("option");
+        option.value = tape;
+        option.innerHTML = tape;
+        select.appendChild(option);
     }
-    //select.onclick = function () { select_tape() }
     document.getElementById("tapes").onchange = function () { select_tape(select.value) }
-    
+
     // Set default selection
     select_tape("World of 2-XL");
 
@@ -268,45 +316,9 @@ function first_run() {
     svg.addEventListener("touchstart", input_down);
     svg.addEventListener("touchend",   input_up);
 
-    // Set up audio listener (not in Safari because this feature doesn't work
-    if (window.safari == undefined) {
-	audio1.addEventListener('canplaythrough', function(){
-	    source = audioCtx.createMediaElementSource(audio1);
-	    source.connect(processor);
-	    source.connect(audioCtx.destination);
-	    processor.connect(audioCtx.destination);
-	}, false);
-    }
-
-    // loop through PCM data and calculate average volume
-    processor.onaudioprocess = function(evt){
-	let input = evt.inputBuffer.getChannelData(0)
-
-	// console.log(input, input.length)
-	let len = input.length
-	let total = 0
-	//for (let i=0; i<resolution; i+= 1)
-	//total += Math.abs(input[i]);
-	//let rms = Math.sqrt(total / (resolution));
-	let rms = input[0];
-	//console.log(( rms ));
-
-	if (rms <= .25) {
-            mouth.style.opacity = 0;
-	} else {
-
-	    // Calibrate this so it looks better
-	    if (rms > max)
-		max = rms;
-	    if (rms < min)
-		min = rms;
-
-	    let adjusted = (rms - min) / (max - min);
-	    //console.log(min, max, adjusted);
-
-            mouth.style.opacity = adjusted;
-	}
-    };
+    // Select track 1 by default
+    switch_track(1);
+    createAudioListeners();
 }
 
 window.onload = function () { first_run() };
