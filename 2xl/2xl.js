@@ -6,6 +6,8 @@ let audio2;
 let audio3;
 let audio4;
 
+let rewind_timer;
+
 // Add our catalog of tapes!
 let tapes = [
     "50s and 60s Nostalgia",
@@ -124,6 +126,9 @@ function press_button(b) {
     document.getElementById("button_rewind").classList.remove("pressed");
     document.getElementById("button_stop").classList.remove("pressed");
 
+    // Stop rewind timeout
+    clearTimeout(rewind_timer);
+
     // Do action
     switch (b) {
     case "target_play":
@@ -177,10 +182,19 @@ function play() {
 }
 
 function rewind() {
-    audio1.fastSeek(0)
-    audio2.fastSeek(0)
-    audio3.fastSeek(0)
-    audio4.fastSeek(0)
+    // Get current time for audio track 1
+    let ts = audio1.currentTime;
+
+    // Set each track back a couple seconds
+    let new_ts = Math.max(0, ts - 2);
+    audio1.fastSeek(new_ts);
+    audio2.fastSeek(new_ts);
+    audio3.fastSeek(new_ts);
+    audio4.fastSeek(new_ts);
+
+    // Call this again in a few seconds unless we switch to play or hit 0
+    if (new_ts > 0)
+        rewind_timer = setTimeout(function() { rewind() }, 500);
 }
 
 function stop() {
