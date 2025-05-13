@@ -7,6 +7,7 @@ let audio3;
 let audio4;
 
 let rewind_timer;
+let svg_document;
 
 // Add our catalog of tapes!
 let tapes = [
@@ -122,9 +123,9 @@ function input_up(e) {
 
 function press_button(b) {
     // Reset visibility of all buttons
-    document.getElementById("button_play").classList.remove("pressed");
-    document.getElementById("button_rewind").classList.remove("pressed");
-    document.getElementById("button_stop").classList.remove("pressed");
+    svg_document.getElementById("button_play").classList.remove("pressed");
+    svg_document.getElementById("button_rewind").classList.remove("pressed");
+    svg_document.getElementById("button_stop").classList.remove("pressed");
 
     // Stop rewind timeout
     clearTimeout(rewind_timer);
@@ -133,43 +134,43 @@ function press_button(b) {
     switch (b) {
     case "target_play":
         play();
-        document.getElementById("button_play").classList.add("pressed");
+        svg_document.getElementById("button_play").classList.add("pressed");
         break;
     case "target_rewind":
         rewind();
-        document.getElementById("button_rewind").classList.add("pressed");
+        svg_document.getElementById("button_rewind").classList.add("pressed");
         break;
     case "target_stop":
         stop();
-        document.getElementById("button_stop").classList.add("pressed");
+        svg_document.getElementById("button_stop").classList.add("pressed");
         break;
     }
 }
 
 function change_track(t) {
     // Reset visibility of all buttons
-    document.getElementById("button_track1").classList.remove("pressed");
-    document.getElementById("button_track2").classList.remove("pressed");
-    document.getElementById("button_track3").classList.remove("pressed");
-    document.getElementById("button_track4").classList.remove("pressed");
+    svg_document.getElementById("button_track1").classList.remove("pressed");
+    svg_document.getElementById("button_track2").classList.remove("pressed");
+    svg_document.getElementById("button_track3").classList.remove("pressed");
+    svg_document.getElementById("button_track4").classList.remove("pressed");
 
     // Do action
     switch (t) {
     case "target_track1":
         switch_track(1);
-        document.getElementById("button_track1").classList.add("pressed");
+        svg_document.getElementById("button_track1").classList.add("pressed");
         break;
     case "target_track2":
         switch_track(2);
-        document.getElementById("button_track2").classList.add("pressed");
+        svg_document.getElementById("button_track2").classList.add("pressed");
         break;
     case "target_track3":
         switch_track(3);
-        document.getElementById("button_track3").classList.add("pressed");
+        svg_document.getElementById("button_track3").classList.add("pressed");
         break;
     case "target_track4":
         switch_track(4);
-        document.getElementById("button_track4").classList.add("pressed");
+        svg_document.getElementById("button_track4").classList.add("pressed");
         break;
     }
 }
@@ -198,10 +199,14 @@ function rewind() {
 }
 
 function stop() {
-    audio1.pause()
-    audio2.pause()
-    audio3.pause()
-    audio4.pause()
+    if (audio1 != undefined)
+	audio1.pause();
+    if (audio2 != undefined)
+	audio2.pause();
+    if (audio3 != undefined)
+	audio3.pause();
+    if (audio4 != undefined)
+	audio4.pause();
 }
 
 function switch_track(n) {
@@ -234,18 +239,22 @@ function select_tape(t=null) {
         document.getElementById("tapes").value = t
     }
 
+    // Stop playback
+    stop();
+
+    // Select new tracks
     audio1 = new Audio("tapes/"+t+"/Track1.mp3");
     audio2 = new Audio("tapes/"+t+"/Track2.mp3");
     audio3 = new Audio("tapes/"+t+"/Track3.mp3");
     audio4 = new Audio("tapes/"+t+"/Track4.mp3");
 
+    // Reset Volume
     audio1.volume = 1;
     audio2.volume = 1;
     audio3.volume = 1;
     audio4.volume = 1;
 
-    // Reset buttons and rewind
-    rewind();
+    // Reset buttons
     change_track("target_track1");
     press_button(null);
 }
@@ -317,21 +326,22 @@ function first_run() {
     }
     document.getElementById("tapes").onchange = function () { select_tape(select.value) }
 
-    // Set default selection
-    select_tape("World of 2-XL");
+    svg = document.getElementById("svg2xl")
 
-    // Get document elements
-    mouth = document.getElementById("mouth");
-    svg = document.getElementById("2xl");
+    // Get document elements, and set up interactions after SVG is loaded
+    svg_document = svg.contentDocument;
+    mouth = svg_document.getElementById("mouth");
 
     // Get listeners set up
-    svg.addEventListener("mousedown",  input_down);
-    svg.addEventListener("mouseup",    input_up);
-    svg.addEventListener("touchstart", input_down);
-    svg.addEventListener("touchend",   input_up);
+    svg_document.addEventListener("mousedown",  input_down);
+    svg_document.addEventListener("mouseup",    input_up);
+    svg_document.addEventListener("touchstart", input_down);
+    svg_document.addEventListener("touchend",   input_up);
 
-    // Select track 1 by default
-    switch_track(1);
+    // Set default tape selection
+    select_tape("World of 2-XL");
+
+    // Setup audio
     createAudioListeners();
 }
 
