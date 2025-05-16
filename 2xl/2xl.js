@@ -247,7 +247,6 @@ function switch_track(n) {
 }
 
 function select_tape(tape=null, time=0, track=1) {
-    console.log(tape)
     // If no title is passed in, read from selection list
     if (tape == null) {
         tape = document.getElementById("tapes").value;
@@ -342,7 +341,11 @@ function createAudioListeners() {
 }
 
 function update_url_bar(tape, time, track) {
-    window.location.href = window.location.href.split('#')[0] + "#" + tape + "&" + Math.floor(time) + "&" + track;
+    history.replaceState(
+	"",
+	tape,
+	"#" + tape.replaceAll(" ", "%20") + "&" + Math.floor(time) + "&" + track
+    );
 }
 
 function load_from_url_bar() {
