@@ -266,6 +266,8 @@ function select_tape(tape=null, time=0, track=1) {
     audio3 = new Audio("tapes/"+tape+"/Track3.mp3");
     audio4 = new Audio("tapes/"+tape+"/Track4.mp3");
 
+    createAudioListeners()
+
     // Reset Volume
     audio1.volume = 1;
     audio2.volume = 1;
@@ -286,7 +288,7 @@ function select_tape(tape=null, time=0, track=1) {
 var audioCtx = new AudioContext();
 var processor = audioCtx.createScriptProcessor(512, 1, 1);
 var source1, source2, source3, source4;
-let max = .5;
+let max = .35;
 let min = .25;
 let resolution = 2;
 
@@ -393,9 +395,6 @@ function first_run() {
 
     // Start with stop button stopped
     press_button(null);
-
-    // Setup audio
-    createAudioListeners();
 }
 
 window.onload = function () { first_run() };
