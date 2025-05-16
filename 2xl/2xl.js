@@ -6,6 +6,11 @@ let audio2;
 let audio3;
 let audio4;
 
+let track_ids = ["target_track1", "target_track2", "target_track3", "target_track4"];
+
+let current_tape;
+let current_track;
+
 let rewind_timer;
 let svg_document;
 
@@ -112,7 +117,7 @@ function input_down(e) {
         press_button(e.target.id);
     }
 
-    if (["target_track1", "target_track2", "target_track3", "target_track4"].includes(e.target.id)) {
+    if (track_ids.includes(e.target.id)) {
         e.preventDefault();
         change_track(e.target.id);
     }
@@ -140,6 +145,7 @@ function press_button(b) {
         rewind();
         svg_document.getElementById("button_rewind").classList.add("pressed");
         break;
+    case null:
     case "target_stop":
         stop();
         svg_document.getElementById("button_stop").classList.add("pressed");
@@ -157,18 +163,22 @@ function change_track(t) {
     // Do action
     switch (t) {
     case "target_track1":
+	current_track = 1;
         switch_track(1);
         svg_document.getElementById("button_track1").classList.add("pressed");
         break;
     case "target_track2":
+	current_track = 2;
         switch_track(2);
         svg_document.getElementById("button_track2").classList.add("pressed");
         break;
     case "target_track3":
+	current_track = 3;
         switch_track(3);
         svg_document.getElementById("button_track3").classList.add("pressed");
         break;
     case "target_track4":
+	current_track = 4;
         switch_track(4);
         svg_document.getElementById("button_track4").classList.add("pressed");
         break;
@@ -199,6 +209,7 @@ function rewind() {
 }
 
 function stop() {
+    // Pause all tracks
     if (audio1 != undefined)
 	audio1.pause();
     if (audio2 != undefined)
@@ -207,6 +218,10 @@ function stop() {
 	audio3.pause();
     if (audio4 != undefined)
 	audio4.pause();
+
+    // Update URL bar so this spot can be shared
+    if (audio1 != undefined)
+	update_url_bar(current_tape, audio1.currentTime, current_track);
 }
 
 function switch_track(n) {
@@ -231,22 +246,25 @@ function switch_track(n) {
     }
 }
 
-function select_tape(t=null) {
+function select_tape(tape=null, time=0, track=1) {
+    console.log(tape)
     // If no title is passed in, read from selection list
-    if (t == null) {
-        document.getElementById("tapes").value;
+    if (tape == null) {
+        tape = document.getElementById("tapes").value;
     } else {
-        document.getElementById("tapes").value = t
+        document.getElementById("tapes").value = tape;
     }
+
+    current_tape = tape;
 
     // Stop playback
     stop();
 
     // Select new tracks
-    audio1 = new Audio("tapes/"+t+"/Track1.mp3");
-    audio2 = new Audio("tapes/"+t+"/Track2.mp3");
-    audio3 = new Audio("tapes/"+t+"/Track3.mp3");
-    audio4 = new Audio("tapes/"+t+"/Track4.mp3");
+    audio1 = new Audio("tapes/"+tape+"/Track1.mp3");
+    audio2 = new Audio("tapes/"+tape+"/Track2.mp3");
+    audio3 = new Audio("tapes/"+tape+"/Track3.mp3");
+    audio4 = new Audio("tapes/"+tape+"/Track4.mp3");
 
     // Reset Volume
     audio1.volume = 1;
@@ -254,8 +272,14 @@ function select_tape(t=null) {
     audio3.volume = 1;
     audio4.volume = 1;
 
+    // reset playback position
+    audio1.fastSeek(time);
+    audio2.fastSeek(time);
+    audio3.fastSeek(time);
+    audio4.fastSeek(time);
+
     // Reset buttons
-    change_track("target_track1");
+    change_track(track_ids[track-1]);
     press_button(null);
 }
 
@@ -315,6 +339,31 @@ function createAudioListeners() {
     }
 }
 
+function update_url_bar(tape, time, track) {
+    window.location.href = window.location.href.split('#')[0] + "#" + tape + "&" + Math.floor(time) + "&" + track;
+}
+
+function load_from_url_bar() {
+    let url = ["", 0, 1];
+    if (window.location.href.includes("#"))
+	url = window.location.href.split('#')[1].split('&');
+
+    let tape = url[0].replaceAll("%20", " ");
+    if (tape == "")
+	tape = "World of 2-XL"; // Default selection!
+
+    let time = Number(url[1]);
+    if (time < 0)
+	time = 0;
+
+    let track = Number(url[2]);
+    if (track < 1 || track > 4)
+	track = 1; // Default selection!
+
+    return [tape, time, track];
+}
+
+
 function first_run() {
     // Set up list of tapes
     let select = document.getElementById("tapes");
@@ -338,8 +387,12 @@ function first_run() {
     svg_document.addEventListener("touchstart", input_down);
     svg_document.addEventListener("touchend",   input_up);
 
-    // Set default tape selection
-    select_tape("World of 2-XL");
+    // Set default tape selection or load from URL bar
+    let [tape, time, track] = load_from_url_bar();
+    select_tape(tape, time, track);
+
+    // Start with stop button stopped
+    press_button(null);
 
     // Setup audio
     createAudioListeners();
