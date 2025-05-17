@@ -265,7 +265,10 @@ function select_tape(tape=null, time=0, track=1) {
     audio3 = new Audio("tapes/"+tape+"/Track3.mp3");
     audio4 = new Audio("tapes/"+tape+"/Track4.mp3");
 
+    // Reset listeners for mouth animation
     createAudioListeners()
+    min = .30;
+    max = .30;
 
     // Reset Volume
     audio1.volume = 1;
@@ -287,8 +290,8 @@ function select_tape(tape=null, time=0, track=1) {
 var audioCtx = new AudioContext();
 var processor = audioCtx.createScriptProcessor(512, 1, 1);
 var source1, source2, source3, source4;
-let max = .35;
-let min = .25;
+let max = .30;
+let min = .30;
 let resolution = 2;
 
 // loop through PCM data and calculate average volume
@@ -301,6 +304,9 @@ processor.onaudioprocess = function(evt){
         total += Math.abs(input[i]);
 
     let rms = Math.sqrt(total / (len / resolution));
+
+    if (rms > max) max = rms;
+    if (rms < min && rms > 10) min = rms;
 
     let adjusted = Math.max(0, (rms - min) / (max - min));
 
