@@ -1,18 +1,27 @@
 let mouth;
 let svg;
-
-let audio1;
-let audio2;
-let audio3;
-let audio4;
-
-let track_ids = ["target_track1", "target_track2", "target_track3", "target_track4"];
-
-let current_tape;
-let current_track;
-
 let rewind_timer;
 let svg_document;
+
+let audio_tracks = [null, null, null, null];
+
+let track_ids = ["button_track1", "button_track2", "button_track3", "button_track4"];
+let track_target_ids = ["target_track1", "target_track2", "target_track3", "target_track4"];
+let button_target_ids = ["target_play", "target_rewind", "target_stop"];
+
+let state = {
+    tape    : "",
+    time    : 0,
+    track   : 0,
+    stopped : true,
+};
+
+let default_state = {
+    tape    : "World of 2-XL",
+    time    : 0,
+    track   : 0,
+    stopped : true,
+};
 
 // Add our catalog of tapes!
 let tapes = [
@@ -112,14 +121,14 @@ let tapes = [
 ];
 
 function input_down(e) {
-    if (["target_play", "target_rewind", "target_stop"].includes(e.target.id)) {
+    if (button_target_ids.includes(e.target.id)) {
         e.preventDefault();
         press_button(e.target.id);
     }
 
-    if (track_ids.includes(e.target.id)) {
+    if (track_target_ids.includes(e.target.id)) {
         e.preventDefault();
-        change_track(e.target.id);
+        change_track(track_target_ids.indexOf(e.target.id));
     }
 }
 
@@ -148,102 +157,67 @@ function press_button(b) {
     case null:
     case "target_stop":
         stop();
+	state.stopped = true;
         svg_document.getElementById("button_stop").classList.add("pressed");
         break;
     }
+
+    // Update URL bar so this spot can be shared
+    if (audio_tracks[0] != undefined)
+	update_url_bar(state);
 }
 
 function change_track(t) {
     // Reset visibility of all buttons
-    svg_document.getElementById("button_track1").classList.remove("pressed");
-    svg_document.getElementById("button_track2").classList.remove("pressed");
-    svg_document.getElementById("button_track3").classList.remove("pressed");
-    svg_document.getElementById("button_track4").classList.remove("pressed");
+    for (let track_id of track_ids)
+	svg_document.getElementById(track_id).classList.remove("pressed");
 
     // Do action
-    switch (t) {
-    case "target_track1":
-	current_track = 1;
-        switch_track(1);
-        svg_document.getElementById("button_track1").classList.add("pressed");
-        break;
-    case "target_track2":
-	current_track = 2;
-        switch_track(2);
-        svg_document.getElementById("button_track2").classList.add("pressed");
-        break;
-    case "target_track3":
-	current_track = 3;
-        switch_track(3);
-        svg_document.getElementById("button_track3").classList.add("pressed");
-        break;
-    case "target_track4":
-	current_track = 4;
-        switch_track(4);
-        svg_document.getElementById("button_track4").classList.add("pressed");
-        break;
-    }
+    state.track = t;
+    switch_track();
+    svg_document.getElementById(track_ids[t]).classList.add("pressed");
+
+    // Update URL bar so this spot can be shared
+    if (audio_tracks[0] != undefined)
+	update_url_bar(state);
 }
 
 function play() {
-    audio1.play()
-    audio2.play()
-    audio3.play()
-    audio4.play()
+    state.stopped = false;
+    audio_tracks[state.track].fastSeek(state.time);
+    audio_tracks[state.track].play();
 }
 
 function rewind() {
     // Get current time for audio track 1
-    let ts = audio1.currentTime;
+    let ts = audio_tracks[state.track].currentTime;
 
     // Set each track back a couple seconds
-    let new_ts = Math.max(0, ts - 2);
-    audio1.fastSeek(new_ts);
-    audio2.fastSeek(new_ts);
-    audio3.fastSeek(new_ts);
-    audio4.fastSeek(new_ts);
+    state.time = Math.max(0, ts - 2);
+    audio_tracks[state.track].fastSeek(state.time);
 
     // Call this again in a few seconds unless we switch to play or hit 0
-    if (new_ts > 0)
+    if (state.time > 0)
         rewind_timer = setTimeout(function() { rewind() }, 500);
 }
 
 function stop() {
     // Pause all tracks
-    if (audio1 != undefined)
-	audio1.pause();
-    if (audio2 != undefined)
-	audio2.pause();
-    if (audio3 != undefined)
-	audio3.pause();
-    if (audio4 != undefined)
-	audio4.pause();
-
-    // Update URL bar so this spot can be shared
-    if (audio1 != undefined)
-	update_url_bar(current_tape, audio1.currentTime, current_track);
+    for (let i in audio_tracks)
+	if (audio_tracks[i] != undefined)
+	    audio_tracks[i].pause();
 }
 
-function switch_track(n) {
-    audio1.muted = true;
-    audio2.muted = true;
-    audio3.muted = true;
-    audio4.muted = true;
+function switch_track() {
+    // Stop all tracks
+    stop();
 
-    switch (n) {
-    case 1:
-        audio1.muted = false;
-        break;
-    case 2:
-        audio2.muted = false;
-        break;
-    case 3:
-        audio3.muted = false;
-        break;
-    case 4:
-        audio4.muted = false;
-        break;
-    }
+    // Update time
+    audio_tracks[state.track].fastSeek(state.time);
+
+    // Play selected track
+    if (!state.stopped)
+	audio_tracks[state.track].play();
 }
 
 function select_tape(tape=null, time=0, track=1) {
@@ -254,36 +228,30 @@ function select_tape(tape=null, time=0, track=1) {
         document.getElementById("tapes").value = tape;
     }
 
-    current_tape = tape;
+    // Update state
+    state.tape = tape;
+    state.time = time;
+    state.track = track;
 
     // Stop playback
     stop();
 
     // Select new tracks
-    audio1 = new Audio("tapes/"+tape+"/Track1.mp3");
-    audio2 = new Audio("tapes/"+tape+"/Track2.mp3");
-    audio3 = new Audio("tapes/"+tape+"/Track3.mp3");
-    audio4 = new Audio("tapes/"+tape+"/Track4.mp3");
+    audio_tracks[0] = new Audio("tapes/"+tape+"/Track1.mp3");
+    audio_tracks[1] = new Audio("tapes/"+tape+"/Track2.mp3");
+    audio_tracks[2] = new Audio("tapes/"+tape+"/Track3.mp3");
+    audio_tracks[3] = new Audio("tapes/"+tape+"/Track4.mp3");
 
     // Reset listeners for mouth animation
     createAudioListeners()
     min = .30;
     max = .30;
 
-    // Reset Volume
-    audio1.volume = 1;
-    audio2.volume = 1;
-    audio3.volume = 1;
-    audio4.volume = 1;
-
     // reset playback position
-    audio1.fastSeek(time);
-    audio2.fastSeek(time);
-    audio3.fastSeek(time);
-    audio4.fastSeek(time);
+    audio_tracks[state.track].fastSeek(time);
 
     // Reset buttons
-    change_track(track_ids[track-1]);
+    change_track(track);
     press_button(null);
 }
 
@@ -311,46 +279,30 @@ processor.onaudioprocess = function(evt){
     let adjusted = Math.max(0, (rms - min) / (max - min));
 
     mouth.style.opacity = adjusted;
+
+    // Update the timestamp
+    state.time = audio_tracks[state.track].currentTime;
 };
 
 function createAudioListeners() {
     // Set up audio listener (not in Safari because this feature doesn't work
     if (window.safari == undefined) {
-        audio1.addEventListener('canplaythrough', function(){
-            source1 = audioCtx.createMediaElementSource(audio1);
-            source1.connect(processor);
-            source1.connect(audioCtx.destination);
-            processor.connect(audioCtx.destination);
-        }, false);
-
-        audio2.addEventListener('canplaythrough', function(){
-            source2 = audioCtx.createMediaElementSource(audio2);
-            source2.connect(processor);
-            source2.connect(audioCtx.destination);
-            processor.connect(audioCtx.destination);
-        }, false);
-
-        audio3.addEventListener('canplaythrough', function(){
-            source3 = audioCtx.createMediaElementSource(audio3);
-            source3.connect(processor);
-            source3.connect(audioCtx.destination);
-            processor.connect(audioCtx.destination);
-        }, false);
-
-        audio4.addEventListener('canplaythrough', function(){
-            source4 = audioCtx.createMediaElementSource(audio4);
-            source4.connect(processor);
-            source4.connect(audioCtx.destination);
-            processor.connect(audioCtx.destination);
-        }, false);
+	for (let audio of audio_tracks) {
+            audio.addEventListener('canplaythrough', function(){
+		source1 = audioCtx.createMediaElementSource(audio);
+		source1.connect(processor);
+		source1.connect(audioCtx.destination);
+		processor.connect(audioCtx.destination);
+            }, false);
+	}
     }
 }
 
-function update_url_bar(tape, time, track) {
+function update_url_bar(state) {
     history.replaceState(
 	"",
-	tape,
-	"#" + tape.replaceAll(" ", "%20") + "&" + Math.floor(time) + "&" + track
+	state.tape,
+	"#" + state.tape.replaceAll(" ", "%20") + "&" + Math.floor(state.time) + "&" + state.track
     );
 }
 
@@ -361,15 +313,15 @@ function load_from_url_bar() {
 
     let tape = url[0].replaceAll("%20", " ");
     if (tape == "")
-	tape = "World of 2-XL"; // Default selection!
+ 	tape = default_state.tape;
 
     let time = Number(url[1]);
     if (time < 0)
-	time = 0;
+	time = default_state.time;
 
     let track = Number(url[2]);
-    if (track < 1 || track > 4)
-	track = 1; // Default selection!
+    if (track < 0 || track > 3)
+	track = default_state.track;
 
     return [tape, time, track];
 }
