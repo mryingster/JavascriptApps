@@ -2,6 +2,7 @@ let mouth;
 let svg;
 let rewind_timer;
 let svg_document;
+let progress;
 
 let audio_tracks = [null, null, null, null];
 
@@ -14,6 +15,7 @@ let state = {
     time    : 0,
     track   : 0,
     stopped : true,
+    duration: 0,
 };
 
 let default_state = {
@@ -21,6 +23,7 @@ let default_state = {
     time    : 0,
     track   : 0,
     stopped : true,
+    duration: 0,
 };
 
 // Add our catalog of tapes!
@@ -221,6 +224,9 @@ function switch_track() {
 }
 
 function select_tape(tape=null, time=0, track=1) {
+    // Stop playback
+    stop();
+
     // If no title is passed in, read from selection list
     if (tape == null) {
         tape = document.getElementById("tapes").value;
@@ -228,19 +234,16 @@ function select_tape(tape=null, time=0, track=1) {
         document.getElementById("tapes").value = tape;
     }
 
-    // Update state
-    state.tape = tape;
-    state.time = time;
-    state.track = track;
-
-    // Stop playback
-    stop();
-
     // Select new tracks
     audio_tracks[0] = new Audio("tapes/"+tape+"/Track1.mp3");
     audio_tracks[1] = new Audio("tapes/"+tape+"/Track2.mp3");
     audio_tracks[2] = new Audio("tapes/"+tape+"/Track3.mp3");
     audio_tracks[3] = new Audio("tapes/"+tape+"/Track4.mp3");
+
+    audio_tracks[0].addEventListener('loadedmetadata', () => {
+	state.duration = audio_tracks[0].duration;
+	update_progress();
+    });
 
     // Reset listeners for mouth animation
     createAudioListeners()
@@ -249,6 +252,11 @@ function select_tape(tape=null, time=0, track=1) {
 
     // reset playback position
     audio_tracks[state.track].fastSeek(time);
+
+    // Update state
+    state.tape = tape;
+    state.time = time;
+    state.track = track;
 
     // Reset buttons
     change_track(track);
@@ -282,6 +290,7 @@ processor.onaudioprocess = function(evt){
 
     // Update the timestamp
     state.time = audio_tracks[state.track].currentTime;
+    update_progress();
 };
 
 function createAudioListeners() {
@@ -304,6 +313,24 @@ function update_url_bar(state) {
 	state.tape,
 	"#" + state.tape.replaceAll(" ", "%20") + "&" + Math.floor(state.time) + "&" + state.track
     );
+}
+
+function format_time(t) {
+    let minutes = Math.floor(t / 60);
+    let seconds = Math.floor(t) % 60;
+
+    if (minutes < 10) minutes = "0" + minutes;
+    if (seconds < 10) seconds = "0" + seconds;
+
+    return minutes + ":" + seconds;
+}
+
+function update_progress() {
+    let string = "";
+    let current = format_time(state.time);
+    let duration = format_time(state.duration);
+    let percent = Math.floor(state.time / state.duration * 100);
+    progress.innerHTML = current + " / " + duration + " (" + percent + "%)";
 }
 
 function load_from_url_bar() {
@@ -338,7 +365,8 @@ function first_run() {
     }
     document.getElementById("tapes").onchange = function () { select_tape(select.value) }
 
-    svg = document.getElementById("svg2xl")
+    progress = document.getElementById("progress");
+    svg = document.getElementById("svg2xl");
 
     // Get document elements, and set up interactions after SVG is loaded
     svg_document = svg.contentDocument;
