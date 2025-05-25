@@ -6,6 +6,18 @@ let progress;
 
 let audio_tracks = [null, null, null, null];
 
+function debug_audio() {
+    console.log("-----------");
+    console.log(state.time);
+    console.log(state.track);
+    console.log("-----------");
+    for (t of audio_tracks) {
+        console.log(t.src);
+        console.log("currentTime:", t.currentTime);
+        console.log("paused:", t.paused, "muted:", t.muted);
+    }
+}
+
 let track_ids = ["button_track1", "button_track2", "button_track3", "button_track4"];
 let track_target_ids = ["target_track1", "target_track2", "target_track3", "target_track4"];
 let button_target_ids = ["target_play", "target_rewind", "target_stop"];
@@ -25,6 +37,8 @@ let default_state = {
     stopped : true,
     duration: 0,
 };
+
+let animation_request = null;
 
 // Add our catalog of tapes!
 let tapes = [
@@ -186,9 +200,11 @@ function change_track(t) {
 }
 
 function play() {
-    state.stopped = false;
-    audio_tracks[state.track].fastSeek(state.time);
-    audio_tracks[state.track].play();
+    // Start playing all tracks
+    all_tracks_play();
+
+    // Unmute selected track
+    audio_tracks[state.track].muted = false;
 }
 
 function rewind() {
@@ -197,7 +213,9 @@ function rewind() {
 
     // Set each track back a couple seconds
     state.time = Math.max(0, ts - 2);
-    audio_tracks[state.track].fastSeek(state.time);
+    for (let t of audio_tracks)
+	if (t != undefined)
+	    t.currentTime = state.time;;
 
     // Call this again in a few seconds unless we switch to play or hit 0
     if (state.time > 0)
@@ -206,24 +224,42 @@ function rewind() {
 
 function stop() {
     // Pause all tracks
-    for (let i in audio_tracks)
-	if (audio_tracks[i] != undefined)
-	    audio_tracks[i].pause();
+    all_tracks_pause();
 }
 
 function switch_track() {
-    // Stop all tracks
-    stop();
+    // mute all tracks
+    all_tracks_toggle_mute(true);
 
-    // Update time
-    audio_tracks[state.track].fastSeek(state.time);
-
-    // Play selected track
-    if (!state.stopped)
-	audio_tracks[state.track].play();
+    // Unmute selected track
+    audio_tracks[state.track].muted = false;
 }
 
-function select_tape(tape=null, time=0, track=1) {
+function all_tracks_play() {
+    for (let t of audio_tracks)
+	if (t != undefined)
+            t.play();
+}
+
+function all_tracks_pause() {
+    for (let t of audio_tracks)
+	if (t != undefined)
+	    t.pause();
+}
+
+function all_tracks_toggle_mute(mute) {
+    for (let t of audio_tracks)
+	if (t != undefined)
+	    t.muted = mute;
+}
+
+function all_tracks_set_to_current_time() {
+    for (let t of audio_tracks)
+	if (t != undefined)
+            t.currentTime = state.time;
+}
+
+function select_tape(tape=null, time=0, track=0) {
     // Stop playback
     stop();
 
@@ -242,7 +278,6 @@ function select_tape(tape=null, time=0, track=1) {
 
     audio_tracks[0].addEventListener('loadedmetadata', () => {
 	state.duration = audio_tracks[0].duration;
-	update_progress();
     });
 
     // Reset listeners for mouth animation
@@ -250,13 +285,13 @@ function select_tape(tape=null, time=0, track=1) {
     min = .30;
     max = .30;
 
-    // reset playback position
-    audio_tracks[state.track].fastSeek(time);
-
     // Update state
     state.tape = tape;
     state.time = time;
     state.track = track;
+
+    // reset playback position
+    all_tracks_set_to_current_time();
 
     // Reset buttons
     change_track(track);
@@ -287,10 +322,6 @@ processor.onaudioprocess = function(evt){
     let adjusted = Math.max(0, (rms - min) / (max - min));
 
     mouth.style.opacity = adjusted;
-
-    // Update the timestamp
-    state.time = audio_tracks[state.track].currentTime;
-    update_progress();
 };
 
 function createAudioListeners() {
@@ -334,7 +365,7 @@ function update_progress() {
 }
 
 function load_from_url_bar() {
-    let url = ["", 0, 1];
+    let url = ["", 0, 0];
     if (window.location.href.includes("#"))
 	url = window.location.href.split('#')[1].split('&');
 
@@ -353,6 +384,17 @@ function load_from_url_bar() {
     return [tape, time, track];
 }
 
+function main_loop() {
+    // This loop keeps track of our position and updates the timer
+    // This is only necessary because Safari does not support
+    // the audio process events
+
+    // Update the timestamp
+    state.time = audio_tracks[state.track].currentTime;
+    update_progress();
+
+    animation_request = window.requestAnimationFrame(main_loop);
+}
 
 function first_run() {
     // Set up list of tapes
@@ -365,10 +407,9 @@ function first_run() {
     }
     document.getElementById("tapes").onchange = function () { select_tape(select.value) }
 
+    // Get document elements, and save them for interactions
     progress = document.getElementById("progress");
     svg = document.getElementById("svg2xl");
-
-    // Get document elements, and set up interactions after SVG is loaded
     svg_document = svg.contentDocument;
     mouth = svg_document.getElementById("mouth");
 
@@ -384,6 +425,9 @@ function first_run() {
 
     // Start with stop button stopped
     press_button(null);
+
+    // Call our main loop
+    main_loop();
 }
 
 window.onload = function () { first_run() };
