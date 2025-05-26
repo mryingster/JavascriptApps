@@ -4,20 +4,6 @@ let rewind_timer;
 let svg_document;
 let progress;
 
-let audio_tracks = [null, null, null, null];
-
-function debug_audio() {
-    console.log("-----------");
-    console.log(state.time);
-    console.log(state.track);
-    console.log("-----------");
-    for (t of audio_tracks) {
-        console.log(t.src);
-        console.log("currentTime:", t.currentTime);
-        console.log("paused:", t.paused, "muted:", t.muted);
-    }
-}
-
 let track_ids = ["button_track1", "button_track2", "button_track3", "button_track4"];
 let track_target_ids = ["target_track1", "target_track2", "target_track3", "target_track4"];
 let button_target_ids = ["target_play", "target_rewind", "target_stop"];
@@ -38,7 +24,9 @@ let default_state = {
     duration: 0,
 };
 
+let my_audio = null;
 let animation_request = null;
+let max = .30;
 
 // Add our catalog of tapes!
 let tapes = [
@@ -174,14 +162,12 @@ function press_button(b) {
     case null:
     case "target_stop":
         stop();
-	state.stopped = true;
         svg_document.getElementById("button_stop").classList.add("pressed");
         break;
     }
 
     // Update URL bar so this spot can be shared
-    if (audio_tracks[0] != undefined)
-	update_url_bar(state);
+    update_url_bar(state);
 }
 
 function change_track(t) {
@@ -191,31 +177,24 @@ function change_track(t) {
 
     // Do action
     state.track = t;
-    switch_track();
+    my_audio.select_track(t);
     svg_document.getElementById(track_ids[t]).classList.add("pressed");
 
     // Update URL bar so this spot can be shared
-    if (audio_tracks[0] != undefined)
-	update_url_bar(state);
+    update_url_bar(state);
 }
 
 function play() {
-    // Start playing all tracks
-    all_tracks_play();
-
-    // Unmute selected track
-    audio_tracks[state.track].muted = false;
+    my_audio.play();
 }
 
 function rewind() {
     // Get current time for audio track 1
-    let ts = audio_tracks[state.track].currentTime;
+    let ts = my_audio.get_timestamp;
 
     // Set each track back a couple seconds
     state.time = Math.max(0, ts - 2);
-    for (let t of audio_tracks)
-	if (t != undefined)
-	    t.currentTime = state.time;;
+    my_audio.seek(state.time);
 
     // Call this again in a few seconds unless we switch to play or hit 0
     if (state.time > 0)
@@ -223,119 +202,30 @@ function rewind() {
 }
 
 function stop() {
-    // Pause all tracks
-    all_tracks_pause();
+    my_audio.pause();
 }
 
-function switch_track() {
-    // mute all tracks
-    all_tracks_toggle_mute(true);
-
-    // Unmute selected track
-    audio_tracks[state.track].muted = false;
+function seek_time(ts) {
+    state.time = ts;
+    my_audio.seek(ts);
 }
 
-function all_tracks_play() {
-    for (let t of audio_tracks)
-	if (t != undefined)
-            t.play();
-}
-
-function all_tracks_pause() {
-    for (let t of audio_tracks)
-	if (t != undefined)
-	    t.pause();
-}
-
-function all_tracks_toggle_mute(mute) {
-    for (let t of audio_tracks)
-	if (t != undefined)
-	    t.muted = mute;
-}
-
-function all_tracks_set_to_current_time() {
-    for (let t of audio_tracks)
-	if (t != undefined)
-            t.currentTime = state.time;
-}
-
-function select_tape(tape=null, time=0, track=0) {
-    // Stop playback
-    stop();
-
-    // If no title is passed in, read from selection list
-    if (tape == null) {
-        tape = document.getElementById("tapes").value;
-    } else {
-        document.getElementById("tapes").value = tape;
-    }
-
-    // Select new tracks
-    audio_tracks[0] = new Audio("tapes/"+tape+"/Track1.mp3");
-    audio_tracks[1] = new Audio("tapes/"+tape+"/Track2.mp3");
-    audio_tracks[2] = new Audio("tapes/"+tape+"/Track3.mp3");
-    audio_tracks[3] = new Audio("tapes/"+tape+"/Track4.mp3");
-
-    audio_tracks[0].addEventListener('loadedmetadata', () => {
-	state.duration = audio_tracks[0].duration;
-    });
-
-    // Reset listeners for mouth animation
-    createAudioListeners()
-    min = .30;
-    max = .30;
-
-    // Update state
-    state.tape = tape;
-    state.time = time;
-    state.track = track;
-
-    // reset playback position
-    all_tracks_set_to_current_time();
-
-    // Reset buttons
-    change_track(track);
+function select_tape_event() {
     press_button(null);
+    tape = document.getElementById("tapes").value;
+    select_tape(tape);
 }
 
-var audioCtx = new AudioContext();
-var processor = audioCtx.createScriptProcessor(512, 1, 1);
-var source1, source2, source3, source4;
-let max = .30;
-let min = .30;
-let resolution = 2;
+function select_tape(tape=null) {
+    state.tape = tape;
+    document.getElementById("tapes").value = tape;
 
-// loop through PCM data and calculate average volume
-processor.onaudioprocess = function(evt){
-    let input = evt.inputBuffer.getChannelData(0)
-
-    let len = input.length
-    let total = 0
-    for (let i=0; i<len; i+=resolution)
-        total += Math.abs(input[i]);
-
-    let rms = Math.sqrt(total / (len / resolution));
-
-    if (rms > max) max = rms;
-    if (rms < min && rms > 10) min = rms;
-
-    let adjusted = Math.max(0, (rms - min) / (max - min));
-
-    mouth.style.opacity = adjusted;
-};
-
-function createAudioListeners() {
-    // Set up audio listener (not in Safari because this feature doesn't work
-    if (window.safari == undefined) {
-	for (let audio of audio_tracks) {
-            audio.addEventListener('canplaythrough', function(){
-		source1 = audioCtx.createMediaElementSource(audio);
-		source1.connect(processor);
-		source1.connect(audioCtx.destination);
-		processor.connect(audioCtx.destination);
-            }, false);
-	}
-    }
+    my_audio.select_audio_files (
+	"tapes/"+tape+"/Track1.mp3",
+	"tapes/"+tape+"/Track2.mp3",
+	"tapes/"+tape+"/Track3.mp3",
+	"tapes/"+tape+"/Track4.mp3",
+    );
 }
 
 function update_url_bar(state) {
@@ -356,11 +246,11 @@ function format_time(t) {
     return minutes + ":" + seconds;
 }
 
-function update_progress() {
+function update_progress(t, d) {
     let string = "";
-    let current = format_time(state.time);
-    let duration = format_time(state.duration);
-    let percent = Math.floor(state.time / state.duration * 100);
+    let current = format_time(t);
+    let duration = format_time(d);
+    let percent = Math.floor(t / d * 100);
     progress.innerHTML = current + " / " + duration + " (" + percent + "%)";
 }
 
@@ -390,9 +280,19 @@ function main_loop() {
     // the audio process events
 
     // Update the timestamp
-    state.time = audio_tracks[state.track].currentTime;
-    update_progress();
+    state.time = my_audio.get_timestamp();
+    update_progress(
+	state.time,
+	my_audio.duration
+    );
 
+    // Animate mouth and attempt to adjust levels
+    let rms = my_audio.get_audio_pcm();
+    if (rms > max) max = rms;
+    let adjusted = Math.max(0, (rms) / (max));
+    mouth.style.opacity = adjusted;
+
+    // Call another animation request
     animation_request = window.requestAnimationFrame(main_loop);
 }
 
@@ -405,7 +305,13 @@ function first_run() {
         option.innerHTML = tape;
         select.appendChild(option);
     }
-    document.getElementById("tapes").onchange = function () { select_tape(select.value) }
+    document.getElementById("tapes").onchange = function () { select_tape_event(select.value) }
+
+    // Create main audio class
+    if (navigator.vendor && navigator.vendor.indexOf('Apple') > -1)
+	my_audio = new audio_helper_safari();
+    else
+	my_audio = new audio_helper();
 
     // Get document elements, and save them for interactions
     progress = document.getElementById("progress");
@@ -421,7 +327,9 @@ function first_run() {
 
     // Set default tape selection or load from URL bar
     let [tape, time, track] = load_from_url_bar();
-    select_tape(tape, time, track);
+    select_tape(tape);
+    change_track(track);
+    seek_time(time);
 
     // Start with stop button stopped
     press_button(null);
