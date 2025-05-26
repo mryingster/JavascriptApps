@@ -214,9 +214,12 @@ function select_tape_event() {
     press_button(null);
     tape = document.getElementById("tapes").value;
     select_tape(tape);
+
+    update_url_bar(state);
 }
 
 function select_tape(tape=null) {
+    if (tape ==null) return;
     state.tape = tape;
     document.getElementById("tapes").value = tape;
 
@@ -226,6 +229,18 @@ function select_tape(tape=null) {
 	"tapes/"+tape+"/Track3.mp3",
 	"tapes/"+tape+"/Track4.mp3",
     );
+
+    display_cover_artwork(tape);
+}
+
+function display_cover_artwork(tape=null) {
+    if (tape ==null) return;
+    let div = document.getElementById("cover");
+    div.innerHTML = "";
+    let img = document.createElement("img");
+    img.src = "tapes/"+tape+"/cover.png";
+    img.classList.add("artwork");
+    div.appendChild(img);
 }
 
 function update_url_bar(state) {

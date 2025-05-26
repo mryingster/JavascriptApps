@@ -1,17 +1,21 @@
-<html>
+<!doctype html>
   <head>
     <title>2XL</title>
     <link rel="stylesheet" id="style" type="text/css" media="screen" href="2xl.css">
+    <meta name="viewport" content="width=500px, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
     <script type="text/javascript" src="2xl.js"></script>
+    <script type="text/javascript" src="audio.js"></script>
   </head>
   <body>
     <div id="content">
 
-      <object data="2xl.svg" id="svg2xl" type="image/svg+xml" width="100%" height="100%"></object>
+      <object data="2xl.svg" id="svg2xl" type="image/svg+xml" width="100%" height="90%"></object>
 
       <br>
 
-      <select id="tapes"></select>
+      <select id="tapes"></select> <span id="progress"></span>
+      <div id="cover"></div>
 
     </div>
   </body>
