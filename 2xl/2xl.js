@@ -1,5 +1,6 @@
-let mouth;
 let svg;
+let mouth;
+let eyes;
 let rewind_timer;
 let svg_document;
 let progress;
@@ -289,7 +290,7 @@ function load_from_url_bar() {
     return [tape, time, track];
 }
 
-function main_loop() {
+function main_loop(ms) {
     // This loop keeps track of our position and updates the timer
     // This is only necessary because Safari does not support
     // the audio process events
@@ -306,6 +307,11 @@ function main_loop() {
     if (rms > max) max = rms;
     let adjusted = Math.max(0, (rms) / (max));
     mouth.style.opacity = adjusted;
+
+    // Blink Eyes
+    eyes.style.opacity = 0.1;
+    if (!my_audio.paused && Math.floor(ms / 1000) % 2)
+	eyes.style.opacity = 1;
 
     // Call another animation request
     animation_request = window.requestAnimationFrame(main_loop);
@@ -333,6 +339,7 @@ function first_run() {
     svg = document.getElementById("svg2xl");
     svg_document = svg.contentDocument;
     mouth = svg_document.getElementById("mouth");
+    eyes = svg_document.getElementById("eyes");
 
     // Get listeners set up
     svg_document.addEventListener("mousedown",  input_down);

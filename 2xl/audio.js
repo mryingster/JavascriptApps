@@ -1,8 +1,8 @@
-
 class audio_helper {
     constructor() {
         this.selected_track = 0;
         this.duration = 0;
+	this.paused = false;
 
         this.tracks = [
             null,
@@ -31,6 +31,8 @@ class audio_helper {
     }
 
     select_track(t) {
+        if (this.selected_track === t) return;
+
         this.selected_track = t;
 
         // Reset gain to 0
@@ -70,12 +72,14 @@ class audio_helper {
     }
 
     play() {
+	this.paused = false;
         for (let t of this.tracks)
             if (t != null)
                 t.play();
     }
 
     pause() {
+	this.paused = true;
         for (let t of this.tracks)
             if (t != null)
                 t.pause();
@@ -131,14 +135,18 @@ class audio_helper_safari {
     }
 
     select_track(t) {
+        if (this.selected_track === t) return;
+
         this.selected_track = t;
-        this.position = this.track.currentTime;
+        console.log("1", state.time);
+        this.position = state.time;
 
         this.track.src = this.srcs[this.selected_track];
 
         this.track.addEventListener('loadedmetadata', () => {
 	    this.duration = this.track.duration;
-            this.track.fastSeek(this.position);
+            console.log("2", this.position);
+            this.track.currentTime = this.position;
             if (!this.paused)
                 this.play();
         });
@@ -165,7 +173,7 @@ class audio_helper_safari {
 
     seek(ts) {
         this.position = ts;
-        this.track.fastSeek(ts);
+        this.track.currentTime = ts;
     }
 
     debug() {
