@@ -1,6 +1,6 @@
 class audio_helper {
     constructor() {
-        this.selected_track = 0;
+        this.selected_track = -1;
         this.duration = 0;
 	this.paused = false;
         this.position = 0;
@@ -69,7 +69,7 @@ class audio_helper {
 
         // Select track
         this.select_track(this.selected_track);
-        this.pause();
+        this.stop();
     }
 
     play() {
