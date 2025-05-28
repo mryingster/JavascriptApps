@@ -191,7 +191,7 @@ function play() {
 
 function rewind() {
     // Get current time for audio track 1
-    let ts = my_audio.get_timestamp;
+    let ts = my_audio.get_timestamp();
 
     // Set each track back a couple seconds
     state.time = Math.max(0, ts - 2);
@@ -203,7 +203,7 @@ function rewind() {
 }
 
 function stop() {
-    my_audio.pause();
+    my_audio.stop();
 }
 
 function seek_time(ts) {

@@ -3,6 +3,7 @@ class audio_helper {
         this.selected_track = 0;
         this.duration = 0;
 	this.paused = false;
+        this.position = 0;
 
         this.tracks = [
             null,
@@ -78,7 +79,7 @@ class audio_helper {
                 t.play();
     }
 
-    pause() {
+    stop() {
 	this.paused = true;
         for (let t of this.tracks)
             if (t != null)
@@ -121,79 +122,95 @@ class audio_helper_safari {
         this.selected_track = 0;
         this.duration = 0;
         this.position = 0;
-        this.paused = false;
+        this.paused = true;
 
-        this.srcs = [
+        this.tracks = [
             null,
             null,
             null,
             null,
         ];
-
-        this.track = new Audio();
-        this.audio_context = new AudioContext();
     }
 
     select_track(t) {
-        if (this.selected_track === t) return;
-
-        this.selected_track = t;
-        console.log("1", state.time);
-        this.position = state.time;
-
-        this.track.src = this.srcs[this.selected_track];
-
-        this.track.addEventListener('loadedmetadata', () => {
-	    this.duration = this.track.duration;
-            console.log("2", this.position);
-            this.track.currentTime = this.position;
-            if (!this.paused)
-                this.play();
-        });
+        this.pause();
+        this.position = this.get_timestamp();
+        this.resume();
     }
 
     select_audio_files(t0, t1, t2, t3) {
         // Load audio files and replace existing audio resources
-        this.srcs = [t0, t1, t2, t3];
+        this.tracks = [
+            new Audio(t0),
+            new Audio(t1),
+            new Audio(t2),
+            new Audio(t3),
+        ];
+
+        // Get track duration
+        this.tracks[0].addEventListener('loadedmetadata', () => {
+	    this.duration = this.tracks[0].duration;
+        });
 
         // Select track
-        this.paused = true;
         this.select_track(this.selected_track);
+        this.pause();
     }
 
     play() {
-        this.track.play();
         this.paused = false;
+
+        for (let t in this.tracks)
+            if (t == this.selected_track) {
+                this.tracks[t].play();
+                this.tracks[t].currentTime = this.position;
+            }
+    }
+
+    stop() {
+        this.position = this.get_timestamp();
+        this.paused = true;
+        this.pause();
+    }
+
+    resume() {
+        if (this.paused) return;
+        this.play()
     }
 
     pause() {
-        this.track.pause();
-        this.paused = true;
+        for (let t of this.tracks)
+            if (t != null)
+                t.pause();
     }
 
     seek(ts) {
+        this.pause();
         this.position = ts;
-        this.track.currentTime = ts;
+        this.tracks[this.selected_track].currentTime = ts;
+        this.resume();
     }
 
     debug() {
-        console.log("Audio File URL:", this.track.src);
-        console.log("Track Playback Position:", this.track.currentTime);
-        console.log("Track Playback Paused:", this.track.paused);
-        console.log("Class Playback Position:", this.position);
-        console.log("Class Playback Paused:", this.paused);
+        for (let i=0; i<this.tracks.length; i++) {
+            console.log("Audio Element", i);
+            console.log("Audio File URL:", this.tracks[i].src);
+            console.log("Playback Position:", this.tracks[i].currentTime);
+            console.log("Playback Paused:", this.tracks[i].paused);
+            console.log("Gain Value:", this.gains[i].gain.value);
+        }
     }
 
     get_timestamp() {
-        return this.track.currentTime;
+        return this.tracks[this.selected_track].currentTime;
     }
 
     get_audio_pcm() {
 	// Since safari doesn't support any audio processing stuff
 	// We'll just pulse the light if we are playing.
-	if (this.track.paused)
+	if (this.paused)
 	    return 0;
-	return Math.sin(this.track.currentTime * 10);
+	return Math.sin(this.tracks[this.selected_track].currentTime * 10);
     }
 }
 
