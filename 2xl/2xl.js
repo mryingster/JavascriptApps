@@ -25,6 +25,8 @@ let default_state = {
     duration: 0,
 };
 
+let loaded = 0;
+
 let my_audio = null;
 let animation_request = null;
 let max = .30;
@@ -123,7 +125,8 @@ let tapes = [
     "World of Animals",
     "World of Science",
     "X-Men Deadly Games",
-    "X-Men Ghosts That Haunt Us"
+    "X-Men Ghosts That Haunt Us",
+    "Test"
 ];
 
 function input_down(e) {
@@ -268,6 +271,27 @@ function update_progress(t, d) {
     let duration = format_time(d);
     let percent = Math.floor(t / d * 100);
     progress.innerHTML = current + " / " + duration + " (" + percent + "%)";
+}
+
+function update_loading_progress(reset=false) {
+    let loading_div = document.getElementById("loading");
+    let loading_progress = document.getElementById("loading_progress");
+
+    // Reset
+    if (reset) {
+        loading_div.classList.remove("hidden");
+        loading_progress.innerHTML = "0 / 4";
+        loaded = 0;
+        return;
+    }
+
+    // Otherwise assume another track is loaded
+    loaded += 1;
+    loading_progress.innerHTML = loaded + " / 4";
+
+    // Close it if we are finished!
+    if (loaded >= 4)
+        loading_div.classList.add("hidden");
 }
 
 function load_from_url_bar() {

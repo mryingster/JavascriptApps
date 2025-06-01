@@ -53,6 +53,14 @@ class audio_helper {
             new Audio(t3),
         ];
 
+        // Try to keep track of what's loaded
+        update_loading_progress(true);
+        for (let t of this.tracks) {
+            t.addEventListener("canplaythrough", () => {
+	        update_loading_progress();
+            });
+        }
+
         // Get track duration
         this.tracks[0].addEventListener('loadedmetadata', () => {
 	    this.duration = this.tracks[0].duration;
@@ -133,6 +141,7 @@ class audio_helper_safari {
     }
 
     select_track(t) {
+        this.selected_track = t;
         this.pause();
         this.position = this.get_timestamp();
         this.resume();
@@ -146,6 +155,14 @@ class audio_helper_safari {
             new Audio(t2),
             new Audio(t3),
         ];
+
+        // Try to keep track of what's loaded
+        update_loading_progress(true);
+        for (let t of this.tracks) {
+            t.addEventListener("canplaythrough", () => {
+	        update_loading_progress();
+            });
+        }
 
         // Get track duration
         this.tracks[0].addEventListener('loadedmetadata', () => {
@@ -197,7 +214,6 @@ class audio_helper_safari {
             console.log("Audio File URL:", this.tracks[i].src);
             console.log("Playback Position:", this.tracks[i].currentTime);
             console.log("Playback Paused:", this.tracks[i].paused);
-            console.log("Gain Value:", this.gains[i].gain.value);
         }
     }
 

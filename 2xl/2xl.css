@@ -1,3 +1,7 @@
+body {
+    font-family: sans-serif;
+}
+
 #content {
     text-align: center;
 }
@@ -12,4 +16,24 @@
     padding: 10px;
     border-radius: 10px;
     margin: 20px;
+}
+
+#loading {
+    position: fixed;
+    z-index: 1000;
+    width: 306px;
+    background: #5da7fc;
+    height: 120px;
+    margin: auto;
+    top: 500px;
+    left: calc(50% - 200px);
+    border-radius: 20px;
+    padding: 40px;
+    font-size: 1.5em;
+    box-shadow: 0px 10px 20px black;
+    border: solid 7px #3787e3;
+}
+
+.hidden {
+    display: none;
 }
