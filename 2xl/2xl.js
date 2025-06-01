@@ -29,7 +29,8 @@ let loaded = 0;
 
 let my_audio = null;
 let animation_request = null;
-let max = .30;
+let max_rms_default = .30;
+let max_rms = max_rms_default;
 
 // Add our catalog of tapes!
 let tapes = [
@@ -130,6 +131,9 @@ let tapes = [
 ];
 
 function input_down(e) {
+    // Ignore inputs until all cassette files are loaded
+    if (loaded < 4) return;
+
     if (button_target_ids.includes(e.target.id)) {
         e.preventDefault();
         press_button(e.target.id);
@@ -224,6 +228,7 @@ function select_tape_event() {
 
 function select_tape(tape=null) {
     if (tape ==null) return;
+    max_rms = max_rms_default;
     state.tape = tape;
     document.getElementById("tapes").value = tape;
 
@@ -328,8 +333,8 @@ function main_loop(ms) {
 
     // Animate mouth and attempt to adjust levels
     let rms = my_audio.get_audio_pcm();
-    if (rms > max) max = rms;
-    let adjusted = Math.max(0, (rms) / (max));
+    if (rms > max_rms) max_rms = rms;
+    let adjusted = Math.max(0.1, (rms) / (max_rms));
     mouth.style.opacity = adjusted;
 
     // Blink Eyes
