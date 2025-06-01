@@ -227,7 +227,7 @@ function select_tape_event() {
 }
 
 function select_tape(tape=null) {
-    if (tape ==null) return;
+    if (tape == null) return;
     max_rms = max_rms_default;
     state.tape = tape;
     document.getElementById("tapes").value = tape;
@@ -243,7 +243,7 @@ function select_tape(tape=null) {
 }
 
 function display_cover_artwork(tape=null) {
-    if (tape ==null) return;
+    if (tape == null) return;
     let div = document.getElementById("cover");
     div.innerHTML = "";
     let img = document.createElement("img");
@@ -279,11 +279,15 @@ function update_progress(t, d) {
 }
 
 function update_loading_progress(reset=false) {
+    if (reset === 4) {
+	loaded = 3;
+    }
+
     let loading_div = document.getElementById("loading");
     let loading_progress = document.getElementById("loading_progress");
 
     // Reset
-    if (reset) {
+    if (reset === true) {
         loading_div.classList.remove("hidden");
         loading_progress.innerHTML = "0 / 4";
         loaded = 0;
@@ -339,7 +343,7 @@ function main_loop(ms) {
 
     // Blink Eyes
     eyes.style.opacity = 0.1;
-    if (!my_audio.paused && Math.floor(ms / 1000) % 2)
+    if (!my_audio.paused && Math.floor(ms / 400) % 2)
 	eyes.style.opacity = 1;
 
     // Call another animation request

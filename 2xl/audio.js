@@ -143,7 +143,7 @@ class audio_helper_safari {
     select_track(t) {
         this.selected_track = t;
         this.pause();
-        this.position = this.get_timestamp();
+        //this.position = this.get_timestamp();
         this.resume();
     }
 
@@ -156,13 +156,8 @@ class audio_helper_safari {
             new Audio(t3),
         ];
 
-        // Try to keep track of what's loaded
-        update_loading_progress(true);
-        for (let t of this.tracks) {
-            t.addEventListener("canplaythrough", () => {
-	        update_loading_progress();
-            });
-        }
+        // Safari doesn't pre-load files, so just skip this step :(
+	update_loading_progress(4);
 
         // Get track duration
         this.tracks[0].addEventListener('loadedmetadata', () => {
@@ -176,11 +171,11 @@ class audio_helper_safari {
 
     play() {
         this.paused = false;
-
+	console.log(this.position, state.time)
         for (let t in this.tracks)
             if (t == this.selected_track) {
                 this.tracks[t].play();
-                this.tracks[t].currentTime = this.position;
+		this.tracks[t].fastSeek(state.time);
             }
     }
 
@@ -204,7 +199,7 @@ class audio_helper_safari {
     seek(ts) {
         this.pause();
         this.position = ts;
-        this.tracks[this.selected_track].currentTime = ts;
+        this.tracks[this.selected_track].fastSeek(ts);
         this.resume();
     }
 
