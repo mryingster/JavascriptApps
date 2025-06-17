@@ -1,0 +1,94 @@
+<html>
+  <head>
+    <title>Palindrome Finder</title>
+    <style>
+    </style>
+  </head>
+  <body>
+    <h1>Palindrome Finder</h1>
+    <p></p>
+    <h2>Settings</h2>
+    <input type="checkbox" id="ignorespaces" name="ignorespaces" value="ignorespaces" checked>
+    <label for="ignorespaces">Ignore spaces</label>
+    <br>
+    <input type="checkbox" id="ignorepunctuation" name="ignorepunctuation" value="ignorepunctuation" checked>
+    <label for="ignorepunctuation">Ignore Punctuation</label>
+    <br>
+    <input type="checkbox" id="ignorecase" name="ignorecase" value="ignorecase" checked>
+    <label for="ignorecase">Ignore Case</label>
+    <br>
+    <button id="run">Find Palindromes</button>
+
+    <h2>Input</h2>
+    <textarea id="text_input" rows="10" cols="80">Amid the calm of noon, a lone owl flew level over a poplar grove, its wings slicing the still air like a radar. The bird, a civic symbol of wisdom, landed near a kayak by the river, where it watched a rotator spin in the breeze. Nearby, a small finch chirped “wow,” as if in awe of the radar’s motion. Even in the forest's hush, nature spoke in quiet palindromes—echoes of life, mirrored in sound and flight.</textarea>
+
+    <h2>Palindromes Found</h2>
+    <ul id="results">
+    </ul>
+
+  </body>
+  <script>
+
+    function find_palindromes() {
+        let palindromes = [];
+        let input = document.getElementById("text_input").innerHTML;
+        let ignore_spaces = document.getElementById("ignorespaces").checked;
+        let ignore_punctuation = document.getElementById("ignorepunctuation").checked;
+        let ignore_case = document.getElementById("ignorecase").checked;
+
+        if (ignore_case)
+            input = input.toLowerCase();
+
+        if (ignore_spaces)
+            input = input.replaceAll(" ", "");
+        else
+            input = input.replaceAll(" ", "_");
+
+        if (ignore_punctuation)
+            for (let c of ["'", '"', ".", ","])
+                input = input.replaceAll(c, "")
+
+        // Go through each letter
+        for (let i=1; i<input.length-1; i++) {
+            let b = i-1; // Index before
+            let a = i+1; // Index after
+
+            // In even lettered palindrome case, we will advance the after forward 1
+            if (input[i] == input[a])
+                a++;
+
+            // expand outward and see if it's a palindrome
+            while (input[b] == input[a]) {
+                b--;
+                a++;
+            }
+
+            if (a - b > 2) {
+                palindromes.push(input.slice(b+1, a));
+            }
+        }
+
+        display_palindromes(palindromes);
+        return;
+    }
+
+    function display_palindromes(p) {
+        // Sort array by length
+        p.sort((a, b) => b.length - a.length);
+
+        let list = document.getElementById("results");
+        list.innerHTML = "";
+
+        for (let palindrome of p) {
+            let item = document.createElement("li")
+            item.innerHTML = palindrome;
+            list.appendChild(item);
+        }
+
+        return;
+    }
+
+    document.getElementById("text_input").onchange = function () { find_palindromes() };
+    document.getElementById("run").onclick = function() {find_palindromes() };
+  </script>
+</html>
