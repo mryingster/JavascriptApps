@@ -11,6 +11,7 @@ const descriptions = {
 };
 
 const apps = [
+    { "name" : "2-XL Simulator",       "location" : "2xl",                     "category" : "Toys",      "icon" : "icon_2xl",       "status" : COMPLETE,    "description" : "2-XL Toy Simulator" },
     { "name" : "3-Tris",               "location" : "tetriscubed",             "category" : "Games",     "icon" : "icon_3tris",     "status" : COMPLETE,    "description" : "Top-down 3D Tetris-style game. It's very much inspired by the old Macintosh game 3Tris/3Wiz! " },
     { "name" : "8-Ball",               "location" : "8ball/",                  "category" : "Toys",      "icon" : "icon_8ball",     "status" : COMPLETE,    "description" : "Eons ago, I made a digital Magic 8-Ball using Bryce, Photoshop, and Illustrator, then made it work using server-side include commands. This is a re-implementation using SVG and Javascript." },
     { "name" : "Barcode Generator",    "location" : "barcode",                 "category" : "Utilities", "icon" : "icon_barcode",   "status" : COMPLETE,    "description" : "A simple barcode 128 generator using Javascript and an HTML canvas." },
@@ -28,6 +29,7 @@ const apps = [
     { "name" : "DTMF Simulator",       "location" : "dtmf",                    "category" : "Toys",      "icon" : "icon_dtmf",      "status" : COMPLETE,    "description" : "Generate dual tone signals like the good old days" },
     { "name" : "DVD Screensaver",      "location" : "dvd",                     "category" : "Toys",      "icon" : "icon_dvd",       "status" : COMPLETE,    "description" : "A reimagining of the classic DVD screensaver" },
     { "name" : "Dicey",                "location" : "dicey",                   "category" : "Games",     "icon" : "icon_dicey",     "status" : COMPLETE,    "description" : "Dicey is a familiar dice game where you score points by rolling various combinations using 5 dice." },
+    { "name" : "Fling Solver",         "location" : "fling/",                  "category" : "Utilities", "icon" : "icon_fling",     "status" : COMPLETE,    "description" : "Tool to help find solutions to the iPhone game called Fling" },
     { "name" : "Game Of Life",         "location" : "life",                    "category" : "Toys",      "icon" : "icon_gol",       "status" : COMPLETE,    "description" : "Conway's classic game of life built using Javascript and HTML5 canvas." },
     { "name" : "Groups",               "location" : "groups",                  "category" : "Games",     "icon" : "icon_groups",    "status" : COMPLETE,    "description" : "Find groups of 3 cards whose characterstics are either all the same, or all different. The game ends when all the cards are gone." },
     { "name" : "Hearing Test",         "location" : "medical/hearing.html",    "category" : "Medical",   "icon" : "icon_hearing",   "status" : COMPLETE, "description" : "Hearing test is a pure tone audiometry test designed to map the sensitivity to frequencies in the normal range of hearing. Novelty use only, not to be used as a diagnosis tool." },
@@ -56,14 +58,12 @@ const apps = [
     { "name" : "Word Finder",          "location" : "words",                   "category" : "Utilities", "icon" : "icon_words",     "status" : COMPLETE,    "description" : "Find words based on given letters. Developed to help solve the Spelling Bee" },
     { "name" : "Wordy",                "location" : "wordy",                   "category" : "Games",     "icon" : "icon_wordy",     "status" : COMPLETE,    "description" : "Wordy is a familiar puzzle game where you have to make words by connecting adjacent letters in a grid." },
 
-    { "name" : "2-XL Simulator",       "location" : "2xl",                     "category" : "Toys",      "icon" : "icon_2xl",       "status" : DEVELOPMENT, "description" : "2-XL Toy Simulator" },
     { "name" : "Ball Simulator",       "location" : "balls",                   "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Ball phsyics simulation" },
     { "name" : "Binary",               "location" : "binary",                  "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Simple binary converter" },
     { "name" : "Clue Sheet",           "location" : "clue",                    "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Digital clue sheet for the board game, Clue" },
     { "name" : "Color Adjust",         "location" : "coloradjust",             "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Adjust the brightness and contrast of individual color channels." },
     { "name" : "Color Survey",         "location" : "color",                   "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Identify colors to see where you precieve one color to start and the other to end." },
     { "name" : "Ephemidraw",           "location" : "draw",                    "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Drawing, but ephemerally" },
-    { "name" : "Fling Solver",         "location" : "fling/",                  "category" : "Utilities", "icon" : "icon_fling",     "status" : DEVELOPMENT, "description" : "Tool to help find solutions to the iPhone game called Fling" },
     { "name" : "Icony",                "location" : "icony/",                  "category" : "Utilities", "icon" : "icon_icony",     "status" : DEVELOPMENT, "description" : "Draw pixelated icons as if you are using ResEdit!" },
     { "name" : "LDS Typing Practice",  "location" : "typing",                  "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Practice typing while learning cripture mastery verses" },
     { "name" : "N^2-Tris",             "location" : "nntris",                  "category" : "Games",     "icon" : "icon_ntris",     "status" : DEVELOPMENT, "description" : "Play N-Tris head-to-head locally on the same computer" },
