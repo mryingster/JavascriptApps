@@ -1,0 +1,214 @@
+<html>
+  <head>
+    <title>Pinecone Packing</title>
+    <style>
+      .controls {
+      display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <h2>Spiral 1</h2>
+      <select id="spiral1replications">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="5">5</option>
+        <option value="8" selected>8</option>
+        <option value="13">13</option>
+        <option value="21">21</option>
+        <option value="34">34</option>
+      </select>
+      <br>
+      <input type="range" min="1" max="500" value="100" class="slider" id="spiral1range">
+      <br>
+      <input type="checkbox" id="spiral1" name="spiral1" value="spiral1" checked>
+      <label for="spiral1">Show Spiral</label>
+    </div>
+
+    <div class="controls">
+      <h2>Spiral 2</h2>
+      <select id="spiral2replications">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="5">5</option>
+        <option value="8">8</option>
+        <option value="13" selected>13</option>
+        <option value="21">21</option>
+        <option value="34">34</option>
+      </select>
+      <br>
+      <input type="range" min="1" max="500" value="400" class="slider" id="spiral2range">
+      <br>
+      <input type="checkbox" id="spiral2" name="spiral2" value="spiral2" checked>
+      <label for="spiral2">Show Spiral</label>
+    </div>
+
+    <br>
+
+    <canvas id="canvas" width="1024" height="1024"\>
+  </body>
+  <script>
+
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+let width = canvas.width;
+let height = canvas.height;
+
+function clear_canvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function draw_spiral(cx, cy, limit, distance, spacing, rotation, reverse, color, visible) {
+    let segments = [];
+
+    ctx.moveTo(cx, cy);
+    ctx.beginPath();
+
+    let x = cx;
+    let y = cy;
+
+    let px = cx;
+    let py = cy;
+
+    let i = 0;
+
+    while (Math.abs(Math.hypot(x-cx,y-cy)) < limit) {
+        angle = 0.1 * i;
+        x = cx + (distance + spacing * angle) * Math.cos(angle + rotation);
+        y = cy + (distance + spacing * angle) * Math.sin(angle + rotation);
+
+	if (visible)
+	    ctx.lineTo(x, y);
+
+	// Record segments
+	segments.push({
+	    a : {x:px, y:py},
+	    b : {x:x,  y:y},
+	});
+
+	px = x;
+	py = y;
+
+	if (reverse)
+	    i++;
+	else
+	    i--;
+    }
+
+    ctx.strokeStyle = color;
+    ctx.stroke();
+
+    return segments;
+}
+
+function draw_spirals(n, spiral, color, reverse, visible) {
+    let radians = (Math.PI * 2 / n);
+    let cx = width / 2;
+    let cy = height / 2;
+    let segments = [];
+    let limit = width/2;
+
+    for (let i=0; i<n; i++) {
+	segments = segments.concat(draw_spiral(cx, cy, limit, spiral.d, spiral.s, radians * i, reverse, color, visible));
+    }
+
+    return segments;
+}
+
+function draw_circle(x, y, r, c) {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fillStyle = c;
+    ctx.fill();
+}
+
+function find_intersection(l1, l2) {
+    let x1 = l1.a.x
+    let y1 = l1.a.y
+    let x2 = l1.b.x
+    let y2 = l1.b.y
+    let x3 = l2.a.x
+    let y3 = l2.a.y
+    let x4 = l2.b.x
+    let y4 = l2.b.y
+
+    // Check if none of the lines are of length 0
+    if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
+	return null
+    }
+
+    denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+
+    // Lines are parallel
+    if (denominator === 0) {
+	return null
+    }
+
+    let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
+    let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
+
+    // is the intersection along the segments
+    if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
+	return null
+    }
+
+    // Return a object with the x and y coordinates of the intersection
+    let x = x1 + ua * (x2 - x1)
+    let y = y1 + ua * (y2 - y1)
+
+    return {x:x, y:y}
+}
+
+function draw_intersections(s1, s2) {
+    for (let segment1 of s1) {
+	for (let segment2 of s2) {
+	    let intersection = find_intersection(segment1, segment2);
+	    if (intersection != null)
+		draw_circle(intersection.x, intersection.y, 3, "#000");
+	}
+    }
+}
+
+function redraw() {
+    clear_canvas();
+
+    let s1 = Number(document.getElementById("spiral1range").value);
+    let r1 = Number(document.getElementById("spiral1replications").value);
+    let show = document.getElementById("spiral1").checked;
+
+    let segments1 = draw_spirals(r1,
+				 {d:0, s:s1},
+				 "#00f",
+				 true,
+				 show
+				);
+
+    let s2 = Number(document.getElementById("spiral2range").value);
+    let r2 = Number(document.getElementById("spiral2replications").value);
+    show = document.getElementById("spiral2").checked;
+
+    let segments2 = draw_spirals(r2,
+				 {d:0, s:s2},
+				 "#f00",
+				 false,
+				 show
+				);
+
+    draw_intersections(segments1, segments2);
+}
+
+
+document.getElementById("spiral1").oninput = function () { redraw() };
+document.getElementById("spiral1range").oninput = function () { redraw() };
+document.getElementById("spiral1replications").onchange = function () { redraw() };
+document.getElementById("spiral2").oninput = function () { redraw() };
+document.getElementById("spiral2range").oninput = function () { redraw() };
+document.getElementById("spiral2replications").onchange = function () { redraw() };
+redraw();
+
+  </script>
+</html>
