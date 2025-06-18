@@ -2,34 +2,46 @@
   <head>
     <title>Pinecone Packing</title>
     <style>
+      body {
+          max-width:1000px;
+          margin: auto;
+          padding: 20px;
+      }
       .controls {
-      display: inline-block;
+          display: inline-block;
+          border: 1px solid lightgrey;
+          border-radius: 10px;
+          padding: 0 20px 20px 20px;
+          min-width: 200px;
+      }
+      img {
+          width:200px;
+      }
+      #cw_control {
+          border-color:blue;
+      }
+      #ccw_control {
+          border-color:red;
+      }
+      .center {
+          text-align: center;
       }
     </style>
   </head>
   <body>
-    <div class="controls">
-      <h2>Spiral 1</h2>
+    <h1>Pinecone Packing</h1>
+    <p>Pinecones, as well as many other plants, have a tendency to arrange their seeds in a pattern based on the golen ratio, phi. One thing you will notice is that there are both clockwise and counterclockwise spirals. If you count the spirals, you will also notice that they are Fibinacci numbers. In this illustration, we have 13 clockwise spirals, and 8 counterclockwise spirals.</p>
+    <p class="center">
+      <img src="images/pinecone_cw.jpg">
+      <img src="images/pinecone_ccw.jpg">
+    </p>
+    <p>Numbers that are adjacent to eachother in the fibinacci sequence when divided produce close approximations of phi. Example: 13 &divide; 8 = 1.625</p>
+    <p>You can try adjusting these spirals to see how the intersections of the opposing spirals create an organic looking packing of points.</p>
+    <div class="center">
+    <div class="controls" id="cw_control">
+      <h2>Clockwise Spiral</h2>
+      <label for="spiral1replications">Iterations</label>
       <select id="spiral1replications">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="5">5</option>
-        <option value="8" selected>8</option>
-        <option value="13">13</option>
-        <option value="21">21</option>
-        <option value="34">34</option>
-      </select>
-      <br>
-      <input type="range" min="1" max="500" value="100" class="slider" id="spiral1range">
-      <br>
-      <input type="checkbox" id="spiral1" name="spiral1" value="spiral1" checked>
-      <label for="spiral1">Show Spiral</label>
-    </div>
-
-    <div class="controls">
-      <h2>Spiral 2</h2>
-      <select id="spiral2replications">
         <option value="1">1</option>
         <option value="2">2</option>
         <option value="3">3</option>
@@ -40,10 +52,33 @@
         <option value="34">34</option>
       </select>
       <br>
-      <input type="range" min="1" max="500" value="400" class="slider" id="spiral2range">
+      <label for="spiral1range">Spiral Width</label><br>
+      <input type="range" min="15" max="700" value="300" class="slider" id="spiral1range" name="spiral1range">
+      <br>
+      <input type="checkbox" id="spiral1" name="spiral1" value="spiral1" checked>
+      <label for="spiral1">Show Spiral</label>
+    </div>
+
+    <div class="controls" id="ccw_control">
+      <h2>Counterclockwise Spiral</h2>
+      <label for="spiral2replications">Iterations</label>
+      <select id="spiral2replications">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="5">5</option>
+        <option value="8" selected>8</option>
+        <option value="13">13</option>
+        <option value="21">21</option>
+        <option value="34">34</option>
+      </select>
+      <br>
+      <label for="spiral2range">Spiral Width</label><br>
+      <input type="range" min="15" max="700" value="100" class="slider" id="spiral2range" name="spiral2range">
       <br>
       <input type="checkbox" id="spiral2" name="spiral2" value="spiral2" checked>
       <label for="spiral2">Show Spiral</label>
+    </div>
     </div>
 
     <br>
