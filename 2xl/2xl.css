@@ -37,3 +37,13 @@ body {
 .hidden {
     display: none;
 }
+
+#info {
+    width: 500px;
+    text-align: left;
+    margin: auto;
+}
+
+h1, h2, h3 {
+    color: #5da7fc;
+}

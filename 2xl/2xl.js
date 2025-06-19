@@ -127,7 +127,6 @@ let tapes = [
     "World of Science",
     "X-Men Deadly Games",
     "X-Men Ghosts That Haunt Us",
-    "Test"
 ];
 
 function input_down(e) {
