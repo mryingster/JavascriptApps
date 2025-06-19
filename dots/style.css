@@ -3,7 +3,7 @@ body {
     padding: 0px;
     margin: 0px;
     spacing: 0px;
-    font-family: sans-serif;
+    font-family: handwriting;
     background-size: cover;
 }
 
@@ -12,6 +12,11 @@ body {
 
 canvas {
     border: 0px solid black;
+}
+
+@font-face {
+    font-family: "handwriting";
+    src: url('fonts/Bradley Hand Bold.ttf');
 }
 
 hidden {
