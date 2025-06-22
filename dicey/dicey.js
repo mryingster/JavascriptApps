@@ -189,10 +189,11 @@ let rolls_left = 0;
 let this_score = 0;
 let dicies = 0;
 
-const LEFT  = 0;
-const RIGHT = 1;
-const INPUT = 0;
+const LEFT    = 0;
+const RIGHT   = 1;
+const INPUT   = 0;
 const COMPUTE = 1;
+const BONUS   = 2;
 
 let scores_layout = [
     {name:"Aces",          column: LEFT,  type: INPUT,   key:"aces", },
@@ -203,7 +204,7 @@ let scores_layout = [
     {name:"Sixes",         column: LEFT,  type: INPUT,   key:"sixes", },
 
     {name:"Left Subtotal", column: LEFT,  type: COMPUTE, key:"left_sub", },
-    {name:"Left Bonus",    column: LEFT,  type: COMPUTE, key:"left_bonus", },
+    {name:"Left Bonus",    column: LEFT,  type: BONUS,   key:"left_bonus", },
     {name:"Left Total",    column: LEFT,  type: COMPUTE, key:"left_total", },
 
     {name:"Small Set",     column: RIGHT, type: INPUT,   key:"small_set", },
@@ -214,7 +215,7 @@ let scores_layout = [
     {name:"Dicey",         column: RIGHT, type: INPUT,   key:"dicey", },
     {name:"Chance",        column: RIGHT, type: INPUT,   key:"chance", },
 
-    {name:"Dicey Bonus",   column: RIGHT, type: COMPUTE, key:"dicey_bonus", },
+    {name:"Dicey Bonus",   column: RIGHT, type: BONUS,   key:"dicey_bonus", },
     {name:"Right Total",   column: RIGHT, type: COMPUTE, key:"right_total", },
 ];
 
@@ -390,7 +391,7 @@ function update_score_buttons(show_score_only=false){
     for (let i of ["aces", "twos", "threes", "fours", "fives", "sixes"])
         if (this_score[i] != null)
             left_score += this_score[i];
-    if (left_score >= (1+2+3+4+5+6) * num_rolls)
+    if (left_score >= (1+2+3+4+5+6) * (num_dice - 2))
         left_bonus = 35;
     left_total = left_score + left_bonus;
     document.getElementById("left_sub").innerHTML   = left_score;
@@ -403,7 +404,7 @@ function update_score_buttons(show_score_only=false){
     // Tabulate right score
     let right_score = 0;
     for (let s of scores_layout)
-        if (s.column == RIGHT && s.type == INPUT)
+        if (s.column == RIGHT && s.type != COMPUTE)
             if (this_score[s.key] != null)
                 right_score += this_score[s.key];
     document.getElementById("right_total").innerHTML = right_total;
