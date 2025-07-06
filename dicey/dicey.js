@@ -494,7 +494,7 @@ function create_score_card(n) {
         }
         score_group.appendChild(button);
 
-        if (last_element == INPUT && score.type == COMPUTE)
+        if (last_element == INPUT && score.type != INPUT)
             score_group.classList.add("underline");
         last_element = score.type;
 
