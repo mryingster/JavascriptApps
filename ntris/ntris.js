@@ -636,7 +636,7 @@ class tetris {
     select_button() {
 	if (this.state.game_active == true) {
 	    this.toggleMusicSetting();
-	    this.toggleSoundSetting();
+	    //this.toggleSoundSetting();
 	} else
 	    this.toggleExtraPieces();
     }
