@@ -10,7 +10,7 @@ class die {
         this.selected = false;
         this.margin = 5;
         this.max_value = 6;
-        this.animation_timer = 0;
+	this.animation_timer = 0;
 
         this.canvas.width  = this.size + (this.margin * 2);
         this.canvas.height = this.size + (this.margin * 2);
@@ -46,6 +46,7 @@ class die {
             // Update button status
             update_score_buttons();
             enable_disable_score_buttons();
+	    update_statistics(this.value)
             return;
         }
 
@@ -185,6 +186,8 @@ let num_rolls = 4;
 let start_values = "DICEY!";
 let dice = [];
 
+let history;
+
 let rolls_left = 0;
 let this_score = 0;
 let dicies = 0;
@@ -294,6 +297,7 @@ function setup_new_game(size){
     // Clearout values
     rolls_left = num_rolls;
     dicies = 0;
+    history = [0,0,0,0,0,0,0];
     this_score = {};
     for (let score of scores_layout)
         this_score[score.key] = null;
@@ -321,10 +325,41 @@ function enable_disable_score_buttons(disable_all=false){
     }
 }
 
+function toggle_debug() {
+    document.getElementById("debug").classList.toggle("hidden");
+}
+
+function update_statistics(n) {
+    history[n]++;
+
+    let parent = document.getElementById("debug");
+    parent.innerHTML = "";
+
+    let header = document.createElement("h2");
+    header.innerHTML = "Statistics"
+    parent.appendChild(header)
+
+    const sum = history.reduce((partialSum, a) => partialSum + a, 0);
+    for (const [i, v] of history.entries()) {
+	if (i === 0) continue;
+	let stat_back = document.createElement("p");
+	let stat_front = document.createElement("span");
+	let percent = (v/sum * 100).toFixed(2);
+	stat_back.classList.add("statistic");
+	stat_front.classList.add("statistic_bar");
+	stat_front.style = "width:"+percent+"%;";
+	stat_back.innerHTML = i + ": " + v + " (" + percent + "%)";
+	stat_front.innerHTML = i + ": " + v + " (" + percent + "%)";
+	stat_back.appendChild(stat_front);
+	parent.appendChild(stat_back);
+    }
+}
+
 function count_occurances(a){
     let count = [0,0,0,0,0,0,0];
-    for (let i of a)
+    for (let i of a) {
         count[i]++;
+    }
     return count;
 }
 

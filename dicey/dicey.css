@@ -110,3 +110,24 @@ h1, h2 {
 .hidden {
     display: none;
 }
+
+.statistic, .statistic_bar {
+    padding: 5px;
+    white-space: nowrap;
+}
+
+.statistic {
+    background: #fff;
+    position: relative;
+}
+
+.statistic_bar {
+    background: #991700;
+    overflow: clip;
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    color: #fff;
+}
+
