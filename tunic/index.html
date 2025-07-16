@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Tunic Decoder</title>
+    <meta charset="utf-8" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="viewport" content="width=768px, user-scalable=no" />
+    <style>
+      .emerald {
+        margin-right: -20px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="content">
+      <h1>Tunic Decoder</h1>
+
+      <div id="emeralds"></div>
+      <div id="little_emeralds"></div>
+      <button id="add_emerald" onclick="add_emerald()">+</button>
+    </div>
+  </body>
+  <script>
+
+class coord {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+class segment {
+    constructor(a, b) {
+        this.a = a;
+        this.b = b;
+    }
+}
+
+class emerald {
+    constructor(parent, interactive, unlit, lit, size, value, debug) {
+        this.canvas = document.createElement("canvas");
+        this.canvas.classList.add("emerald");
+        this.ctx = this.canvas.getContext("2d");
+        parent.appendChild(this.canvas);
+
+        this.size = size;
+        this.initial_value = value;
+        this.value = value;
+        this.selected = false;
+        this.margin = 10;
+        this.linewidth = 5;
+        this.unselected_color = unlit;
+        this.selected_color = lit;
+        this.interactive = interactive;
+        this.debug = true;
+
+        this.width = this.size;
+        this.height = this.size * 2;
+
+        this.canvas.width = this.width + this.margin * 2;
+        this.canvas.height = this.height + this.margin * 2 + 100;
+
+        this.segments = [];
+        this.circledo = {};
+        this.word_segment = null;
+        this.change_size();
+
+        this.highlighted_segment = null;
+        this.mouse_down = false;
+
+        // Add listeners
+        this.canvas.addEventListener(
+            "touchstart",
+            () => this.touch_start(event),
+            false
+        );
+        this.canvas.addEventListener(
+            "mousedown",
+            () => this.mouse_start(event),
+            false
+        );
+        this.canvas.addEventListener(
+            "mousemove",
+            () => this.mouse_move(event),
+            false
+        );
+        this.canvas.addEventListener(
+            "mouseup",
+            () => this.mouse_up(event),
+            false
+        );
+        this.canvas.addEventListener(
+            "mouseexit",
+            () => this.mouse_exit(event),
+            false
+        );
+
+        this.update();
+    }
+
+    change_size() {
+        this.segments = [];
+
+        // Outer Segments clockwise from bottom, right
+
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 2, (this.height / 6) * 5),
+                new coord((this.width / 2) * 1, (this.height / 6) * 6)
+            )
+        );
+
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 1, (this.height / 6) * 6),
+                new coord((this.width / 2) * 0, (this.height / 6) * 5)
+            )
+        );
+
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 0, (this.height / 6) * 5),
+                new coord((this.width / 2) * 0, (this.height / 6) * 1)
+            )
+        );
+
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 0, (this.height / 6) * 1),
+                new coord((this.width / 2) * 1, (this.height / 6) * 0)
+            )
+        );
+
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 1, (this.height / 6) * 0),
+                new coord((this.width / 2) * 2, (this.height / 6) * 1)
+            )
+        );
+
+        // Inner segments clockwise from bottom right
+
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 1, (this.height / 6) * 4),
+                new coord((this.width / 2) * 2, (this.height / 6) * 5)
+            )
+        );
+
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 1, (this.height / 6) * 4),
+                new coord((this.width / 2) * 1, (this.height / 6) * 6)
+            )
+        );
+
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 1, (this.height / 6) * 4),
+                new coord((this.width / 2) * 0, (this.height / 6) * 5)
+            )
+        );
+
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 1, (this.height / 6) * 2),
+                new coord((this.width / 2) * 0, (this.height / 6) * 1)
+            )
+        );
+
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 1, (this.height / 6) * 2),
+                new coord((this.width / 2) * 1, (this.height / 6) * 0)
+            )
+        );
+
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 1, (this.height / 6) * 2),
+                new coord((this.width / 2) * 2, (this.height / 6) * 1)
+            )
+        );
+
+        // Middle Segment
+
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 1, (this.height / 6) * 2),
+                new coord((this.width / 2) * 1, (this.height / 6) * 4)
+            )
+        );
+
+        // Circledo segment (not drawn, but used for indexing)
+        this.segments.push(
+            new segment(
+                new coord((this.width / 2) * 1, (this.height / 6) * 6),
+                new coord((this.width / 2) * 1, (this.height / 6) * 7)
+            )
+        );
+
+        // Word Segment
+
+        this.word_segment = new segment(
+            new coord((this.width / 2) * 0, (this.height / 6) * 3),
+            new coord((this.width / 2) * 2, (this.height / 6) * 3)
+        );
+
+        // Circledo
+
+        this.circledo = {
+            center: new coord((this.width / 2) * 1, (this.height / 6) * 6.5),
+            radius: this.height / 6 / 2,
+        };
+    }
+
+    reset() {
+        this.value = this.initial_value;
+        this.selected = false;
+        this.update();
+    }
+
+    // Input Functions
+    getTouchPosition(overlay, event) {
+        if (!e) var e = event;
+
+        var x = null;
+        var y = null;
+
+        if (e.touches) {
+            if (e.touches.length == 1) {
+                // Only deal with one finger
+                var touch = e.touches[0]; // Get the information for finger #1
+                x = touch.pageX - touch.target.getBoundingClientRect().left;
+                y = touch.pageY - touch.target.getBoundingClientRect().top;
+            }
+        }
+
+        return new coord(x, y);
+    }
+
+    touch_start(e) {
+        if (this.interactive != true) return;
+        e.preventDefault();
+        let pos = this.getTouchPosition(this.canvas, e);
+        this.toggle_segment(pos);
+    }
+
+    getCursorPosition(overlay, event) {
+        // Determine where clicked
+        const rect = overlay.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        return new coord(x - this.margin , y - this.margin);
+    }
+
+    mouse_start(e) {
+        if (this.interactive != true) return;
+        e.preventDefault();
+        this.mouse_down = true;
+        this.update();
+    }
+
+    mouse_move(e) {
+        if (this.interactive != true) return;
+        e.preventDefault();
+        let pos = this.getCursorPosition(this.canvas, e);
+        this.highlighted_segment = this.closest_segment(pos);
+        this.update();
+    }
+
+    mouse_up(e) {
+        if (!this.interactive) return;
+        if (!this.mouse_down) return
+        e.preventDefault();
+        this.mouse_down = false;
+        let pos = this.getCursorPosition(this.canvas, e);
+        this.toggle_segment(this.closest_segment(pos));
+        this.update();
+    }
+
+    mouse_exit(e) {
+        e.preventDefault();
+        this.highlighted_segment = null;
+        this.mouse_down = false;
+    }
+
+    toggle_segment(i) {
+        this.value ^= 1 << i;
+        this.update();
+        update_emeralds();
+    }
+
+    is_close(mouse, segment) {
+        let d = this.distance_from_line(segment, mouse);
+        //mouse.x -= this.margin;
+        //mouse.y -= this.margin;
+
+        if (d < 5) {
+            console.log(segment, mouse, d);
+            return true;
+        }
+        return false;
+    }
+
+    closest_segment(p) {
+        let closest = null;
+        let distance = 999;
+
+        for (let i = 0; i < this.segments.length; i++) {
+            // Find the radius from the center of the line
+            let mid_line = this.find_line_midpoint(this.segments[i]);
+            let radial_distance = this.distance_from_point(mid_line, p);
+
+            // Find the distance tangentially from line
+            let tangent_distance = this.distance_from_line(this.segments[i], p);
+
+            // Find closest tanget within radial bounds
+            if (tangent_distance < distance && radial_distance < 30) {
+                distance = tangent_distance;
+                closest = i
+            }
+        }
+
+        return closest
+    }
+
+    find_line_midpoint(l) {
+            return new coord((l.a.x + l.b.x) / 2, (l.a.y + l.b.y) / 2);
+    }
+
+    distance_from_line(segment, p) {
+        return ((Math.abs((segment.b.y - segment.a.y) * p.x -
+                          (segment.b.x - segment.a.x) * p.y +
+                          segment.b.x * segment.a.y -
+                          segment.b.y * segment.a.x)) /
+                (Math.pow((Math.pow(segment.b.y - segment.a.y, 2) +
+                           Math.pow(segment.b.x - segment.a.x, 2)),
+                          0.5)));
+    }
+
+    distance_from_point(a, b) {
+        return Math.abs(Math.hypot(a.x - b.x, a.y - b.y));
+    }
+
+    clear() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    draw_circle(c, color) {
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = this.linewidth;
+        this.ctx.beginPath();
+        this.ctx.arc(c.center.x, c.center.y, c.radius, 0, 2 * Math.PI);
+        this.ctx.stroke();
+    }
+
+    draw_background() {
+        this.clear();
+        for (let [i, segment] of this.segments.entries()) {
+            if (i + 1 == this.segments.length) break; // Skip the last segment which is the circledo
+            this.draw_line(segment, this.unselected_color);
+        }
+
+        this.draw_circle(
+            this.circledo,
+            this.unselected_color
+        );
+    }
+
+    draw_line(segment, color) {
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = this.linewidth;
+        this.ctx.lineCap = "round";
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(segment.a.x, segment.a.y);
+        this.ctx.lineTo(segment.b.x, segment.b.y);
+        this.ctx.stroke();
+    }
+
+    update() {
+        this.clear();
+
+        this.ctx.save();
+        this.ctx.translate(this.margin, this.margin);
+
+        this.draw_background();
+
+        // Draw highlighted segments
+        let i = 0;
+        while (this.value >> i > 0) {
+            if ((this.value >> i) & (0x1 == 1)) {
+                // If we encounter the circledo, do something special
+                if (i + 1 == this.segments.length) {
+                    this.draw_circle(
+                        this.circledo,
+                        this.selected_color
+                    );
+                    break;
+                }
+
+                this.draw_line(this.segments[i], this.selected_color);
+            }
+            i++;
+        }
+
+        // Highlight where mouse is
+        if (this.highlighted_segment !== null) {
+            let highlight_color = "rgba(0,0,0,.1)";
+            if (this.mouse_down == true)
+                highlight_color = "#008800";
+
+            if (this.highlighted_segment + 1 == this.segments.length) {
+                this.draw_circle(
+                    this.circledo,
+                    highlight_color
+                );
+            }
+            else
+                this.draw_line(this.segments[this.highlighted_segment], highlight_color);
+        }
+
+        // Clear the word space and add line
+        this.ctx.clearRect(
+            -this.margin,
+            this.height / 2,
+            this.canvas.width,
+            this.height / 6
+        );
+        this.draw_line(this.word_segment, this.selected_color);
+
+        // Add debug text
+        if (this.debug) {
+            this.ctx.font = this.height / 10 + "px Arial";
+            this.ctx.textAlign = "center";
+            this.ctx.fillStyle = this.selected_color;
+            this.ctx.fillText(
+                this.value,
+                this.width / 2,
+                (this.height / 6) * 3.75
+            );
+        }
+
+        this.ctx.restore();
+    }
+}
+
+let emeralds = [];
+let little_emeralds = [];
+
+// Add main emerald
+function add_emerald() {
+    emeralds.push(
+        new emerald(
+            document.getElementById("emeralds"),
+            true, // interactive
+            "rgba(230, 230, 230, 1)", // Unlit Color
+            "rgba(0, 200, 0, 1)", // Lit Color
+            100, // Horizontal Size
+            0 // Initial Value
+        )
+    );
+
+    // Add two secondary emeralds
+    for (let c of ["rgba(0, 200, 0, 1)", "rgba(255, 0, 0, 1)"]) {
+        little_emeralds.push(
+            new emerald(
+                document.getElementById("little_emeralds"),
+                false, // interactive
+                "rgba(230, 230, 230, 0)", // Unlit Color
+                c, // Lit Color
+                50, // Horizontal Size
+                0 // Initial Value
+            )
+        );
+    }
+}
+
+function update_emeralds() {
+    let outer_mask = 4127;
+    let inner_mask = 4064;
+
+    for (let [i, e] of emeralds.entries()) {
+        let value = e.value;
+        little_emeralds[i * 2].value = value & outer_mask;
+        little_emeralds[i * 2].update();
+        little_emeralds[i * 2 + 1].value = value & inner_mask;
+        little_emeralds[i * 2 + 1].update();
+    }
+}
+
+function first_load() {
+    add_emerald();
+}
+
+window.onload = function () {
+    first_load();
+};
+
+  </script>
+</html>
