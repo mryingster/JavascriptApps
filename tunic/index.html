@@ -31,19 +31,19 @@
       <div id="word_builder" class="hidden">
         <h2>Phrase Builder</h2>
         <div id="emeralds"></div>
-        <button id="cancel_add_phrase" onclick="cancel_add_phrase()">Cancel</button>
-        <button id="reset_emeralds" onclick="clear_emeralds()">Reset</button>
-        <button id="add_emerald" onclick="add_emerald()">Add Character</button>
-        <button id="add_word" onclick="add_word()">Add Word</button>
-        <button id="add_phrase" onclick="add_phrase()">Submit Phrase</button>
-      </div>
 
-      <div id="glyph_editor" class="hidden">
-        <h2>Glyph Editor</h2>
-        <div id="emerald"></div>
-        <span id="glyph_edit_notes"></span>
-        <button id="update_glyph" onclick="update_glyph()">Cancel</button>
-        <button id="cancel_update_glyph" onclick="cancel_update_glyph()">Update</button>
+        <div id="build_controls" class="hidden">
+          <button id="cancel_add_phrase" onclick="cancel_add_phrase()">Cancel</button>
+          <button id="reset_emeralds" onclick="reset_emeralds()">Reset</button>
+          <button id="add_emerald" onclick="add_emerald()">Add Character</button>
+          <button id="add_word" onclick="add_word()">Add Word</button>
+          <button id="add_phrase" onclick="add_phrase()">Submit Phrase</button>
+        </div>
+        <div id="edit_controls" class="hidden">
+          <button id="cancel_update_phrase" onclick="cancel_update_phrase()">Cancel</button>
+          <button id="delete_phrase_button" onclick="delete_phrase()" >Delete</button>
+          <button id="update_phrase_button" onclick="add_phrase()">Update</button>
+        </div>
       </div>
 
       <div class="group" id="encountered_phrases">
@@ -511,7 +511,12 @@ const COLOR_BRIGHT_GREEN = "rgba(0, 200, 0, 1)"
 const COLOR_DARK_GREEN = "rgba(0, 150, 0, 1)";
 
 // Add main emerald
-function add_emerald() {
+function add_emerald(value=0) {
+    if (value === SPACE) {
+	add_space();
+	return;
+    }
+
     emeralds.push(
         new emerald(
             document.getElementById("emeralds"),
@@ -520,18 +525,22 @@ function add_emerald() {
             COLOR_BRIGHT_GREEN,         // Lit Color
             COLOR_DARK_GREEN,           // Lit Color
             GLYPH_SIZE_LARGE,           // Horizontal Size
-            0,                          // Initial Value
+            value,                      // Initial Value
             true,                       // Enable Debug Text
             true,                       // Enable Wordline
         )
     );
 }
 
-function add_word() {
-    emeralds.push(null);
+function add_space() {
+    emeralds.push(SPACE);
     let spacer = document.createElement("div");
     spacer.classList.add("spacer");
     document.getElementById("emeralds").appendChild(spacer);
+}
+
+function add_word() {
+    add_space();
     add_emerald();
 }
 
@@ -539,37 +548,57 @@ function clear_div(div) {
     document.getElementById(div).innerHTML = "";
 }
 
+function reset_emeralds() {
+    clear_emeralds();
+    add_emerald();
+}
+
 function clear_emeralds() {
     clear_div("emeralds");
     emeralds = [];
-    add_emerald();
 }
 
 function start_add_phrase() {
     document.getElementById("word_builder").classList.remove("hidden");
+    document.getElementById("build_controls").classList.remove("hidden");
+    document.getElementById("edit_controls").classList.add("hidden");
     document.getElementById("start_add_phrase").disabled = true;
     clear_emeralds();
+    add_emerald();
 }
 
 function cancel_add_phrase() {
     document.getElementById("word_builder").classList.add("hidden");
+    document.getElementById("build_controls").classList.add("hidden");
     document.getElementById("start_add_phrase").disabled = false;
 }
 
-function add_phrase() {
+function delete_phrase(i) {
+    cancel_add_phrase();
+    phrases.splice(i, 1);
+    populate_phrases_words_characters();
+}
+
+function add_phrase(i=-1) {
     // Create new phrase from phrase!
     let new_phrase = [];
     for (let e of emeralds) {
-        if (e === null)
+        if (e === SPACE)
             new_phrase.push(SPACE);
         else
             new_phrase.push(e.value);
     }
-    phrases.push(new_phrase);
+
+    // If index is -1, then this is a new phrase!
+    if (i === -1)
+	phrases.push(new_phrase);
+    else
+	phrases[i] = new_phrase;
 
     // Clear out our characters for new words
     clear_emeralds();
     document.getElementById("word_builder").classList.add("hidden");
+    document.getElementById("build_controls").classList.add("hidden");
     document.getElementById("start_add_phrase").disabled = false;
 
     // Update words and characters
@@ -633,9 +662,10 @@ function add_characters_from_words() {
 function populate_phrases() {
     clear_div("phrases");
 
-    for (let phrase of phrases) {
+    for (let [index, phrase] of phrases.entries()) {
         let phrase_div = document.createElement("div");
         phrase_div.classList.add("phrase")
+
         for (let character of phrase) {
             if (character === SPACE) {
                 let spacer = document.createElement("div");
@@ -664,9 +694,36 @@ function populate_phrases() {
                 phrase_div.appendChild(character_div);
             }
         }
+
+	let edit = document.createElement("button");
+	edit.innerHTML = "✍️";
+	edit.classList.add("edit_button")
+	edit.onclick = () => load_edit_phrase(phrase, index);
+	phrase_div.appendChild(edit);
+
         document.getElementById("phrases").appendChild(phrase_div);
     }
+}
 
+function load_edit_phrase(phrase, index) {
+    clear_emeralds();
+    document.getElementById("word_builder").classList.remove("hidden");
+    document.getElementById("build_controls").classList.add("hidden");
+    document.getElementById("edit_controls").classList.remove("hidden");
+
+    document.getElementById("update_phrase_button").onclick = () => { add_phrase(index) };
+    document.getElementById("delete_phrase_button").onclick = () => { delete_phrase(index) };
+
+    for (let word of phrase) {
+	add_emerald(word);
+    }
+}
+
+function cancel_update_phrase() {
+    clear_emeralds();
+    document.getElementById("word_builder").classList.add("hidden");
+    document.getElementById("build_controls").classList.add("hidden");
+    document.getElementById("edit_controls").classList.add("hidden");
 }
 
 function populate_words() {

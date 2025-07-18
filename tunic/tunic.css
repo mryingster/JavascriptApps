@@ -57,6 +57,7 @@ body {
     display: block;
     text-align: center;
     margin-left: -10px;
+    font-size: 12px;
 }
 
 .glyph_and_translation {
@@ -77,4 +78,14 @@ body {
 #start_add_phrase {
     float: right;
     margin-top: -35px;
+}
+
+.edit_button {
+    margin: 23px 0px 0px 10px;
+}
+
+.phrase {
+    border-bottom: 1px solid #ddffdd;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
 }
