@@ -10,6 +10,15 @@
     body {
         font-family: sans-serif;
     }
+    #instructions {
+        max-width: 1200px;
+    }
+    #emeralds {
+        padding-left: 50px;
+    }
+    #emeralds > .emerald {
+        margin-left: -25px;
+    }
     .emerald {
         margin-left: -5px;
     }
@@ -65,18 +74,20 @@
     <div id="content">
       <h1>Tunic Decoder</h1>
 
-      <a href="images/memo_large.png" style="float:right;"><img src="images/memo_small.png" width="400px"></a>
+      <div id="instructions">
+        <a href="images/memo_large.png" style="float:right;"><img src="images/memo_small.png" width="400px"></a>
 
-      <p>This is a decoding assistant for the game <a href="https://en.wikipedia.org/wiki/Tunic_(video_game)">Tunic</a>. The goal of this assistant is to provide a means of cataloging phrases encountered in the game, and to assign meanings to each glyph.</p>
-      <p>I am making assumptions about the language based on the memo page seen to the right:
-        <ul>
-          <li>The glyphs appear to be separated by "inner" and "outer" lines.</li>
-          <li>The inner lines appear to get read before the outer lines</li>
-          <li>This language is based on sounds, not English letter substitution</li>
-        </ul>
-      </p>
+        <p>This is a decoding assistant for the game <a href="https://en.wikipedia.org/wiki/Tunic_(video_game)">Tunic</a>. The goal of this assistant is to provide a means of cataloging phrases encountered in the game, and to assign meanings to each glyph.</p>
+        <p>I am making assumptions about the language based on the memo page seen to the right:
+          <ul>
+            <li>The glyphs appear to be separated by "inner" and "outer" lines.</li>
+            <li>The inner lines appear to get read before the outer lines</li>
+            <li>This language is based on sounds, not English letter substitution</li>
+          </ul>
+        </p>
 
-      <p>To use this page, build phrases you encounter using the Phrase Builder below. Once you submit a phrase, it will be saved to the phrases, and unique words and characters will be gathered in their respective locations below. You can assign anything you want to each character, and then the phrae and word translations will automatically be updated. </p>
+        <p>To use this page, build phrases you encounter using the Phrase Builder below. Once you submit a phrase, it will be saved to the phrases, and unique words and characters will be gathered in their respective locations below. You can assign anything you want to each character, and then the phrae and word translations will automatically be updated. </p>
+      </div>
 
       <div id="word_builder">
         <h2>Phrase Builder</h2>
