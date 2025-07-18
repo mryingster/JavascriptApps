@@ -71,7 +71,12 @@
 
       <div class="group" id="unique_characters">
         <h2>Unique Characters Seen</h2>
-        <div id="characters"></div>
+        <h3>Inner Segments</h3>
+        <div id="characters_inner"></div>
+        <h3>Outer Segments</h3>
+        <div id="characters_outer"></div>
+        <h3>Other</h3>
+        <div id="characters_other"></div>
       </div>
     </div>
   </body>
@@ -92,7 +97,7 @@ class segment {
 }
 
 class emerald {
-    constructor(parent, interactive, unlit, lit, size, value, debug) {
+    constructor(parent, interactive, unlit, lit, size, value, debug, wordline) {
         this.canvas = document.createElement("canvas");
         this.canvas.classList.add("emerald");
         this.ctx = this.canvas.getContext("2d");
@@ -102,12 +107,13 @@ class emerald {
         this.initial_value = value;
         this.value = value;
         this.selected = false;
-        this.margin = 10;
         this.linewidth = size/10;
+        this.margin = this.linewidth + 3;
         this.unselected_color = unlit;
         this.selected_color = lit;
         this.interactive = interactive;
-        this.debug = true;
+        this.debug = debug;
+	this.wordline = wordline;
 
         this.width = this.size;
         this.height = this.size * 2;
@@ -467,13 +473,15 @@ class emerald {
         }
 
         // Clear the word space and add line
-        this.ctx.clearRect(
-            -this.margin,
-            this.height / 2,
-            this.canvas.width,
-            this.height / 6
-        );
-        this.draw_line(this.word_segment, this.selected_color);
+	if (this.wordline) {
+            this.ctx.clearRect(
+		-this.margin,
+		this.height / 2,
+		this.canvas.width,
+		this.height / 6
+            );
+            this.draw_line(this.word_segment, this.selected_color);
+	};
 
         // Add debug text
         if (this.debug) {
@@ -495,19 +503,28 @@ let emeralds = [];
 let phrases = [];
 let words = [];
 let characters = {};
+
 const SPACE = -1;
+const MASK_INNER = 4064;
+const MASK_OUTER = 31;
+const MASK_LINES = 4095;
+const MASK_CIRCLE = 4096;
+const GLYPH_SIZE_SMALL = 30;
+const GLYPH_SIZE_LARGE = 100;
 
 // Add main emerald
 function add_emerald() {
     emeralds.push(
         new emerald(
             document.getElementById("emeralds"),
-            true, // interactive
-            "rgba(230, 230, 230, 1)", // Unlit Color
-            "rgba(0, 200, 0, 1)", // Lit Color
-            100, // Horizontal Size
-            0 // Initial Value
-        )
+            true,                       // Interactive
+            "rgba(230, 230, 230, 1)",	// Unlit Color
+            "rgba(0, 200, 0, 1)",	// Lit Color
+            GLYPH_SIZE_LARGE,		// Horizontal Size
+            0,				// Initial Value
+	    true,			// Enable Debug Text
+            true,                       // Enable Wordline
+	)
     );
 }
 
@@ -551,6 +568,28 @@ function add_phrase() {
     populate_phrases_words_characters();
 }
 
+function get_phoneme_from_glyph(g) {
+    let inner_meaning = "?"
+    let inner_glyph = g & MASK_INNER;
+    let outer_meaning = "?"
+    let outer_glyph = g & MASK_OUTER;
+
+    let meaning = [];
+
+    if (outer_glyph > 0)
+	if (characters[outer_glyph] != undefined)
+	    meaning.push(characters[outer_glyph]);
+
+    if (inner_glyph > 0)
+	if (characters[inner_glyph] != undefined)
+	    meaning.push(characters[inner_glyph]);
+
+    if (g * MASK_CIRCLE > 0)
+	meaning = meaning.reverse();
+
+    return meaning.join("-");
+}
+
 function add_words_from_phrase(new_phrase) {
     // Create new word from characters
     let new_word = [];
@@ -569,26 +608,14 @@ function add_words_from_phrase(new_phrase) {
 function add_characters_from_words() {
     // Update our unique characters
     for (let word of words) {
-        for (let character of word) {
-            if (characters[character] === undefined)
-                characters[character] = "??";
+        for (let full_character of word) {
+	    for (let mask of [MASK_INNER, MASK_OUTER]) {
+		let character = full_character & mask;
+		if (characters[character] === undefined)
+                    characters[character] = "?";
+	    }
         }
     }
-}
-
-function update_emeralds() {
-    /*
-      let outer_mask = 4127;
-    let inner_mask = 4064;
-
-    for (let [i, e] of emeralds.entries()) {
-        let value = e.value;
-        little_emeralds[i * 2].value = value & outer_mask;
-        little_emeralds[i * 2].update();
-        little_emeralds[i * 2 + 1].value = value & inner_mask;
-        little_emeralds[i * 2 + 1].update();
-	}
-	*/
 }
 
 function populate_phrases() {
@@ -608,13 +635,15 @@ function populate_phrases() {
                     false,
                     "rgba(230, 230, 230, 0)",
                     "rgba(0, 230, 0, 1)",
-                    20,
-                    character
+                    GLYPH_SIZE_SMALL,
+                    character,
+		    false,
+		    true,
 		);
 
 		let text = document.createElement("span");
 		text.classList.add("translation");
-		text.innerHTML = characters[character];
+		text.innerHTML = get_phoneme_from_glyph(character);
 		phrase_div.appendChild(text);
 	    }
         }
@@ -635,12 +664,14 @@ function populate_words() {
                 false,
                 "rgba(230, 230, 230, 0)",
                 "rgba(0, 230, 0, 1)",
-                20,
-                character
+                GLYPH_SIZE_SMALL,
+                character,
+		false,
+		true,
             );
 
 	    let text = document.createElement("span");
-	    text.innerHTML = characters[character];
+	    text.innerHTML = get_phoneme_from_glyph(character);
 	    text.classList.add("translation");
 	    word_div.appendChild(text);
         }
@@ -649,18 +680,22 @@ function populate_words() {
 }
 
 function populate_characters() {
-    clear_div("characters");
+    clear_div("characters_inner");
+    clear_div("characters_outer");
+    clear_div("characters_other");
 
     for (let character in characters) {
         let character_div = document.createElement("div");
         character_div.classList.add("character")
         new emerald(
-            character_div,
-            false,
-            "rgba(230, 230, 230, 0)",
-            "rgba(0, 230, 0, 1)",
-            20,
-            character
+	    character_div,
+	    false,
+	    "rgba(230, 230, 230, 0)",
+	    "rgba(0, 230, 0, 1)",
+	    GLYPH_SIZE_SMALL,
+	    character,
+	    false,
+	    character == 0,
         );
 
 	let input = document.createElement("input");
@@ -669,7 +704,14 @@ function populate_characters() {
 	input.onchange = () => { characters[character] = input.value; populate_phrases_words_characters(); };
 	character_div.appendChild(input);
 
-        document.getElementById("characters").appendChild(character_div);
+	if (character == 0) {
+	    document.getElementById("characters_other").appendChild(character_div);
+	    console.log(characters, character)
+	}
+	else if (character > MASK_OUTER)
+	    document.getElementById("characters_inner").appendChild(character_div);
+	else
+	    document.getElementById("characters_outer").appendChild(character_div);
     }
 }
 
@@ -693,6 +735,7 @@ function debug_add_phrase(p) {
 window.onload = function () {
     first_load();
     debug_add_phrase([2789, SPACE, 2627, 2848, 2720, SPACE, 24, SPACE, 6968, SPACE, 3168, 3656, 3392, SPACE, 3137, 23]);
+    debug_add_phrase([3276, 3616, 3776, SPACE, 3804, 2720])
 };
 
   </script>
