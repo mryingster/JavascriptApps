@@ -6,68 +6,7 @@
     <meta charset="utf-8" />
     <link rel="manifest" href="manifest.json" />
     <meta name="viewport" content="width=768px, user-scalable=no" />
-    <style>
-    body {
-        font-family: sans-serif;
-    }
-    #instructions {
-        max-width: 1200px;
-    }
-    #emeralds {
-        padding-left: 50px;
-    }
-    #emeralds > .emerald {
-        margin-left: -25px;
-    }
-    .emerald {
-        margin-left: -5px;
-    }
-    .spacer {
-        display: inline-block;
-        width: 50px;
-    }
-    .character {
-        display: inline-block;
-        margin: 3px;
-        background: #fefefe;
-        border: 1px solid #eee;
-        border-radius: 10px;
-        width: 31px;
-        padding: 10px;
-    }
-    .group {
-        display: inline-block;
-        vertical-align: top;
-        background: #fff;
-        border-radius: 10px;
-        margin: 10px;
-        border: 1px solid #aaddaa;
-        padding: 0px 20px 20px 20px;
-        border-top: 55px solid #ddffdd;
-    }
-    .define_character_input {
-        width: 30px;
-        text-align: center;
-        margin: -40px;
-    }
-    .translation {
-        text-align: center;
-        white-space: nowrap;
-        width: 50px;
-        display: block;
-        text-align: center;
-        margin-left: -10px;
-    }
-    .glyph_and_translation {
-        display: inline-block;
-        width: 30px;
-        vertical-align: top;
-        text-align: center;
-    }
-    .group > h2 {
-        margin-top: -35px;
-    }
-    </style>
+    <link rel="stylesheet" type="text/css" href="tunic.css" id="style">
   </head>
 
   <body>
@@ -89,21 +28,31 @@
         <p>To use this page, build phrases you encounter using the Phrase Builder below. Once you submit a phrase, it will be saved to the phrases, and unique words and characters will be gathered in their respective locations below. You can assign anything you want to each character, and then the phrae and word translations will automatically be updated. </p>
       </div>
 
-      <div id="word_builder">
+      <div id="word_builder" class="hidden">
         <h2>Phrase Builder</h2>
         <div id="emeralds"></div>
+        <button id="cancel_add_phrase" onclick="cancel_add_phrase()">Cancel</button>
         <button id="reset_emeralds" onclick="clear_emeralds()">Reset</button>
         <button id="add_emerald" onclick="add_emerald()">Add Character</button>
         <button id="add_word" onclick="add_word()">Add Word</button>
         <button id="add_phrase" onclick="add_phrase()">Submit Phrase</button>
       </div>
 
+      <div id="glyph_editor" class="hidden">
+        <h2>Glyph Editor</h2>
+        <div id="emerald"></div>
+        <span id="glyph_edit_notes"></span>
+        <button id="update_glyph" onclick="update_glyph()">Cancel</button>
+        <button id="cancel_update_glyph" onclick="cancel_update_glyph()">Update</button>
+      </div>
+
       <div class="group" id="encountered_phrases">
+        <button id="start_add_phrase" onclick="start_add_phrase()">Add</button>
         <h2>Phrases</h2>
         <div id="phrases"></div>
       </div>
 
-      <div class="group" id="known_words">
+      <div class="group hidden" id="known_words">
         <h2>Unique Words</h2>
         <div id="words"></div>
       </div>
@@ -136,7 +85,7 @@ class segment {
 }
 
 class emerald {
-    constructor(parent, interactive, unlit, lit, size, value, debug, wordline) {
+    constructor(parent, interactive, unlit, inside_lit, outside_lit, size, value, debug, wordline) {
         this.canvas = document.createElement("canvas");
         this.canvas.classList.add("emerald");
         this.ctx = this.canvas.getContext("2d");
@@ -149,7 +98,8 @@ class emerald {
         this.linewidth = size/10;
         this.margin = this.linewidth + 3;
         this.unselected_color = unlit;
-        this.selected_color = lit;
+        this.selected_inside_color = inside_lit;
+        this.selected_outside_color = outside_lit;
         this.interactive = interactive;
         this.debug = debug;
         this.wordline = wordline;
@@ -190,8 +140,8 @@ class emerald {
             false
         );
         this.canvas.addEventListener(
-            "mouseexit",
-            () => this.mouse_exit(event),
+            "mouseleave",
+            () => this.mouse_leave(event),
             false
         );
 
@@ -380,7 +330,7 @@ class emerald {
         this.update();
     }
 
-    mouse_exit(e) {
+    mouse_leave(e) {
         e.preventDefault();
         this.highlighted_segment = null;
         this.mouse_down = false;
@@ -484,12 +434,17 @@ class emerald {
                 if (i + 1 == this.segments.length) {
                     this.draw_circle(
                         this.circledo,
-                        this.selected_color
+                        this.selected_inside_color
                     );
                     break;
                 }
 
-                this.draw_line(this.segments[i], this.selected_color);
+		let color = this.selected_outside_color;
+
+		if ((1 << i) >= MASK_OUTER)
+		    color = this.selected_inside_color;
+
+                this.draw_line(this.segments[i], color);
             }
             i++;
         }
@@ -518,14 +473,14 @@ class emerald {
                 this.canvas.width,
                 this.height / 6
             );
-            this.draw_line(this.word_segment, this.selected_color);
+            this.draw_line(this.word_segment, this.selected_outside_color);
         };
 
         // Add debug text
         if (this.debug) {
             this.ctx.font = this.height / 10 + "px Arial";
             this.ctx.textAlign = "center";
-            this.ctx.fillStyle = this.selected_color;
+            this.ctx.fillStyle = this.selected_inside_color;
             this.ctx.fillText(
                 this.value,
                 this.width / 2,
@@ -550,14 +505,20 @@ const MASK_CIRCLE = 4096;
 const GLYPH_SIZE_SMALL = 30;
 const GLYPH_SIZE_LARGE = 100;
 
+const COLOR_TRANSPARENT = "rgba(0, 0, 0, 0)"
+const COLOR_LIGHT_GREY = "rgba(230, 230, 230, 1)";
+const COLOR_BRIGHT_GREEN = "rgba(0, 200, 0, 1)"
+const COLOR_DARK_GREEN = "rgba(0, 150, 0, 1)";
+
 // Add main emerald
 function add_emerald() {
     emeralds.push(
         new emerald(
             document.getElementById("emeralds"),
             true,                       // Interactive
-            "rgba(230, 230, 230, 1)",   // Unlit Color
-            "rgba(0, 200, 0, 1)",       // Lit Color
+            COLOR_LIGHT_GREY,           // Unlit Color
+            COLOR_BRIGHT_GREEN,         // Lit Color
+            COLOR_DARK_GREEN,           // Lit Color
             GLYPH_SIZE_LARGE,           // Horizontal Size
             0,                          // Initial Value
             true,                       // Enable Debug Text
@@ -584,6 +545,17 @@ function clear_emeralds() {
     add_emerald();
 }
 
+function start_add_phrase() {
+    document.getElementById("word_builder").classList.remove("hidden");
+    document.getElementById("start_add_phrase").disabled = true;
+    clear_emeralds();
+}
+
+function cancel_add_phrase() {
+    document.getElementById("word_builder").classList.add("hidden");
+    document.getElementById("start_add_phrase").disabled = false;
+}
+
 function add_phrase() {
     // Create new phrase from phrase!
     let new_phrase = [];
@@ -597,6 +569,8 @@ function add_phrase() {
 
     // Clear out our characters for new words
     clear_emeralds();
+    document.getElementById("word_builder").classList.add("hidden");
+    document.getElementById("start_add_phrase").disabled = false;
 
     // Update words and characters
     add_words_from_phrase(new_phrase);
@@ -673,8 +647,9 @@ function populate_phrases() {
                 new emerald(
                     character_div,
                     false,
-                    "rgba(230, 230, 230, 0)",
-                    "rgba(0, 230, 0, 1)",
+		    COLOR_TRANSPARENT,          // Unlit Color
+		    COLOR_BRIGHT_GREEN,         // Lit Color
+		    COLOR_DARK_GREEN,           // Lit Color
                     GLYPH_SIZE_SMALL,
                     character,
                     false,
@@ -706,8 +681,9 @@ function populate_words() {
             new emerald(
                 character_div,
                 false,
-                "rgba(230, 230, 230, 0)",
-                "rgba(0, 230, 0, 1)",
+		COLOR_TRANSPARENT,          // Unlit Color
+		COLOR_BRIGHT_GREEN,         // Lit Color
+		COLOR_DARK_GREEN,           // Lit Color
                 GLYPH_SIZE_SMALL,
                 character,
                 false,
@@ -736,8 +712,9 @@ function populate_characters() {
         new emerald(
             character_div,
             false,
-            "rgba(230, 230, 230, 0)",
-            "rgba(0, 230, 0, 1)",
+            COLOR_TRANSPARENT,          // Unlit Color
+            COLOR_BRIGHT_GREEN,         // Lit Color
+            COLOR_DARK_GREEN,           // Lit Color
             GLYPH_SIZE_SMALL,
             character,
             false,

@@ -1,0 +1,80 @@
+body {
+    font-family: sans-serif;
+}
+
+#instructions {
+    max-width: 1200px;
+}
+
+#emeralds {
+    padding-left: 50px;
+}
+
+#emeralds > .emerald {
+    margin-left: -25px;
+}
+
+.emerald {
+    margin-left: -5px;
+}
+
+.spacer {
+    display: inline-block;
+    width: 50px;
+}
+
+.character {
+    display: inline-block;
+    margin: 3px;
+    background: #fefefe;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    width: 31px;
+    padding: 10px;
+}
+
+.group {
+    display: inline-block;
+    vertical-align: top;
+    background: #fff;
+    border-radius: 10px;
+    margin: 10px 10px 10px 0px;
+    border: 1px solid #aaddaa;
+    padding: 0px 20px 20px 20px;
+    border-top: 55px solid #ddffdd;
+}
+
+.define_character_input {
+    width: 30px;
+    text-align: center;
+    margin: -40px;
+}
+
+.translation {
+    text-align: center;
+    white-space: nowrap;
+    width: 50px;
+    display: block;
+    text-align: center;
+    margin-left: -10px;
+}
+
+.glyph_and_translation {
+    display: inline-block;
+    width: 30px;
+    vertical-align: top;
+    text-align: center;
+}
+
+.group > h2 {
+    margin-top: -35px;
+}
+
+.hidden {
+    display: none;
+}
+
+#start_add_phrase {
+    float: right;
+    margin-top: -35px;
+}
