@@ -8,55 +8,55 @@
     <meta name="viewport" content="width=768px, user-scalable=no" />
     <style>
     body {
-	font-family: sans-serif;
+        font-family: sans-serif;
     }
     .emerald {
-	margin-left: -5px;
+        margin-left: -5px;
     }
     .spacer {
-	display: inline-block;
-	width: 50px;
+        display: inline-block;
+        width: 50px;
     }
     .character {
-	display: inline-block;
-	margin: 3px;
-	background: #fefefe;
-	border: 1px solid #eee;
-	border-radius: 10px;
-	width: 31px;
-	padding: 10px;
+        display: inline-block;
+        margin: 3px;
+        background: #fefefe;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        width: 31px;
+        padding: 10px;
     }
     .group {
-	display: inline-block;
-	vertical-align: top;
-	background: #fff;
-	border-radius: 10px;
-	margin: 10px;
-	border: 1px solid #aaddaa;
-	padding: 0px 20px 20px 20px;
-	border-top: 55px solid #ddffdd;
+        display: inline-block;
+        vertical-align: top;
+        background: #fff;
+        border-radius: 10px;
+        margin: 10px;
+        border: 1px solid #aaddaa;
+        padding: 0px 20px 20px 20px;
+        border-top: 55px solid #ddffdd;
     }
     .define_character_input {
-	width: 30px;
-	text-align: center;
-	margin: -40px;
+        width: 30px;
+        text-align: center;
+        margin: -40px;
     }
     .translation {
-	text-align: center;
-	white-space: nowrap;
-	width: 50px;
-	display: block;
-	text-align: center;
-	margin-left: -10px;
+        text-align: center;
+        white-space: nowrap;
+        width: 50px;
+        display: block;
+        text-align: center;
+        margin-left: -10px;
     }
     .glyph_and_translation {
-	display: inline-block;
-	width: 30px;
-	vertical-align: top;
-	text-align: center;
+        display: inline-block;
+        width: 30px;
+        vertical-align: top;
+        text-align: center;
     }
     .group > h2 {
-	margin-top: -35px;
+        margin-top: -35px;
     }
     </style>
   </head>
@@ -141,7 +141,7 @@ class emerald {
         this.selected_color = lit;
         this.interactive = interactive;
         this.debug = debug;
-	this.wordline = wordline;
+        this.wordline = wordline;
 
         this.width = this.size;
         this.height = this.size * 2;
@@ -500,15 +500,15 @@ class emerald {
         }
 
         // Clear the word space and add line
-	if (this.wordline) {
+        if (this.wordline) {
             this.ctx.clearRect(
-		-this.margin,
-		this.height / 2,
-		this.canvas.width,
-		this.height / 6
+                -this.margin,
+                this.height / 2,
+                this.canvas.width,
+                this.height / 6
             );
             this.draw_line(this.word_segment, this.selected_color);
-	};
+        };
 
         // Add debug text
         if (this.debug) {
@@ -545,13 +545,13 @@ function add_emerald() {
         new emerald(
             document.getElementById("emeralds"),
             true,                       // Interactive
-            "rgba(230, 230, 230, 1)",	// Unlit Color
-            "rgba(0, 200, 0, 1)",	// Lit Color
-            GLYPH_SIZE_LARGE,		// Horizontal Size
-            0,				// Initial Value
-	    true,			// Enable Debug Text
+            "rgba(230, 230, 230, 1)",   // Unlit Color
+            "rgba(0, 200, 0, 1)",       // Lit Color
+            GLYPH_SIZE_LARGE,           // Horizontal Size
+            0,                          // Initial Value
+            true,                       // Enable Debug Text
             true,                       // Enable Wordline
-	)
+        )
     );
 }
 
@@ -577,10 +577,10 @@ function add_phrase() {
     // Create new phrase from phrase!
     let new_phrase = [];
     for (let e of emeralds) {
-	if (e === null)
-	    new_phrase.push(SPACE);
-	else
-	    new_phrase.push(e.value);
+        if (e === null)
+            new_phrase.push(SPACE);
+        else
+            new_phrase.push(e.value);
     }
     phrases.push(new_phrase);
 
@@ -603,15 +603,15 @@ function get_phoneme_from_glyph(g) {
     let meaning = [];
 
     if (inner_glyph > 0)
-	if (characters[inner_glyph] != undefined)
-	    meaning.push(characters[inner_glyph]);
+        if (characters[inner_glyph] != undefined)
+            meaning.push(characters[inner_glyph]);
 
     if (outer_glyph > 0)
-	if (characters[outer_glyph] != undefined)
-	    meaning.push(characters[outer_glyph]);
+        if (characters[outer_glyph] != undefined)
+            meaning.push(characters[outer_glyph]);
 
     if ((g&MASK_CIRCLE) === MASK_CIRCLE) {
-	meaning.reverse();
+        meaning.reverse();
     }
 
     return meaning.join("-");
@@ -621,26 +621,26 @@ function add_words_from_phrase(new_phrase) {
     // Create new word from characters
     let new_word = [];
     for (let character of new_phrase) {
-	if (character === SPACE) {
-	    words.push(new_word);
-	    new_word = [];
-	    continue;
-	}
-	new_word.push(character);
+        if (character === SPACE) {
+            words.push(new_word);
+            new_word = [];
+            continue;
+        }
+        new_word.push(character);
     }
     if (new_word.length > 0)
-	words.push(new_word);
+        words.push(new_word);
 }
 
 function add_characters_from_words() {
     // Update our unique characters
     for (let word of words) {
         for (let full_character of word) {
-	    for (let mask of [MASK_INNER, MASK_OUTER]) {
-		let character = full_character & mask;
-		if (characters[character] === undefined)
+            for (let mask of [MASK_INNER, MASK_OUTER]) {
+                let character = full_character & mask;
+                if (characters[character] === undefined)
                     characters[character] = "?";
-	    }
+            }
         }
     }
 }
@@ -649,34 +649,34 @@ function populate_phrases() {
     clear_div("phrases");
 
     for (let phrase of phrases) {
-	let phrase_div = document.createElement("div");
+        let phrase_div = document.createElement("div");
         phrase_div.classList.add("phrase")
         for (let character of phrase) {
-	    if (character === SPACE) {
-		let spacer = document.createElement("div");
-		spacer.classList.add("spacer");
-		phrase_div.appendChild(spacer)
-	    } else {
-		let character_div = document.createElement("div");
-		character_div.classList.add("glyph_and_translation");
-		new emerald(
+            if (character === SPACE) {
+                let spacer = document.createElement("div");
+                spacer.classList.add("spacer");
+                phrase_div.appendChild(spacer)
+            } else {
+                let character_div = document.createElement("div");
+                character_div.classList.add("glyph_and_translation");
+                new emerald(
                     character_div,
                     false,
                     "rgba(230, 230, 230, 0)",
                     "rgba(0, 230, 0, 1)",
                     GLYPH_SIZE_SMALL,
                     character,
-		    false,
-		    true,
-		);
+                    false,
+                    true,
+                );
 
-		let text = document.createElement("span");
-		text.classList.add("translation");
-		text.innerHTML = get_phoneme_from_glyph(character);
-		character_div.appendChild(text);
+                let text = document.createElement("span");
+                text.classList.add("translation");
+                text.innerHTML = get_phoneme_from_glyph(character);
+                character_div.appendChild(text);
 
-		phrase_div.appendChild(character_div);
-	    }
+                phrase_div.appendChild(character_div);
+            }
         }
         document.getElementById("phrases").appendChild(phrase_div);
     }
@@ -690,8 +690,8 @@ function populate_words() {
         let word_div = document.createElement("div");
         word_div.classList.add("word")
         for (let character of word) {
-	    let character_div = document.createElement("div");
-	    character_div.classList.add("glyph_and_translation");
+            let character_div = document.createElement("div");
+            character_div.classList.add("glyph_and_translation");
             new emerald(
                 character_div,
                 false,
@@ -699,16 +699,16 @@ function populate_words() {
                 "rgba(0, 230, 0, 1)",
                 GLYPH_SIZE_SMALL,
                 character,
-		false,
-		true,
+                false,
+                true,
             );
 
-	    let text = document.createElement("span");
-	    text.innerHTML = get_phoneme_from_glyph(character);
-	    text.classList.add("translation");
-	    character_div.appendChild(text);
+            let text = document.createElement("span");
+            text.innerHTML = get_phoneme_from_glyph(character);
+            text.classList.add("translation");
+            character_div.appendChild(text);
 
-	    word_div.appendChild(character_div);
+            word_div.appendChild(character_div);
         }
         document.getElementById("words").appendChild(word_div);
     }
@@ -723,28 +723,28 @@ function populate_characters() {
         let character_div = document.createElement("div");
         character_div.classList.add("character")
         new emerald(
-	    character_div,
-	    false,
-	    "rgba(230, 230, 230, 0)",
-	    "rgba(0, 230, 0, 1)",
-	    GLYPH_SIZE_SMALL,
-	    character,
-	    false,
-	    character == 0,
+            character_div,
+            false,
+            "rgba(230, 230, 230, 0)",
+            "rgba(0, 230, 0, 1)",
+            GLYPH_SIZE_SMALL,
+            character,
+            false,
+            character == 0,
         );
 
-	let input = document.createElement("input");
-	input.value = characters[character];
-	input.classList.add("define_character_input");
-	input.onchange = () => { characters[character] = input.value; populate_phrases_words_characters(); };
-	character_div.appendChild(input);
+        let input = document.createElement("input");
+        input.value = characters[character];
+        input.classList.add("define_character_input");
+        input.onchange = () => { characters[character] = input.value; populate_phrases_words_characters(); };
+        character_div.appendChild(input);
 
-	if (character == 0)
-	    document.getElementById("characters_other").appendChild(character_div);
-	else if (character > MASK_OUTER)
-	    document.getElementById("characters_inner").appendChild(character_div);
-	else
-	    document.getElementById("characters_outer").appendChild(character_div);
+        if (character == 0)
+            document.getElementById("characters_other").appendChild(character_div);
+        else if (character > MASK_OUTER)
+            document.getElementById("characters_inner").appendChild(character_div);
+        else
+            document.getElementById("characters_outer").appendChild(character_div);
     }
 }
 
@@ -764,11 +764,11 @@ function debug_add_phrase(p) {
 
 function save_to_local_storage() {
     localStorage.setItem("tunic",
-			 JSON.stringify ({
-			     "phrases" : phrases,
-			     "characters" : characters,
-			 })
-			);
+                         JSON.stringify ({
+                             "phrases" : phrases,
+                             "characters" : characters,
+                         })
+                        );
 }
 
 function load_from_local_storage() {
@@ -778,7 +778,7 @@ function load_from_local_storage() {
         parsed_data = JSON.parse(saved_data);
 
     for (let phrase of parsed_data.phrases)
-	debug_add_phrase(phrase);
+        debug_add_phrase(phrase);
     characters = parsed_data.characters;
 
     populate_phrases_words_characters();
