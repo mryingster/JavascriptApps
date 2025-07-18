@@ -11,15 +11,20 @@
 	font-family: sans-serif;
     }
     .emerald {
-        margin-right: -20px;
+	margin-left: -5px;
     }
     .spacer {
 	display: inline-block;
 	width: 50px;
     }
     .character {
-	display: ruby-base-container;
-	margin: 25px;
+	display: inline-block;
+	margin: 3px;
+	background: #fefefe;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	width: 31px;
+	padding: 10px;
     }
     .group {
 	display: inline-block;
@@ -27,17 +32,31 @@
 	background: #fff;
 	border-radius: 10px;
 	margin: 10px;
-	border: 1px solid grey;
+	border: 1px solid #aaddaa;
 	padding: 0px 20px 20px 20px;
+	border-top: 55px solid #ddffdd;
     }
     .define_character_input {
 	width: 30px;
 	text-align: center;
-	margin: -18px;
+	margin: -40px;
     }
     .translation {
-	margin-left: -9px;
 	text-align: center;
+	white-space: nowrap;
+	width: 50px;
+	display: block;
+	text-align: center;
+	margin-left: -10px;
+    }
+    .glyph_and_translation {
+	display: inline-block;
+	width: 30px;
+	vertical-align: top;
+	text-align: center;
+    }
+    .group > h2 {
+	margin-top: -35px;
     }
     </style>
   </head>
@@ -54,6 +73,7 @@
       <div id="word_builder">
         <h2>Word Builder</h2>
         <div id="emeralds"></div>
+        <button id="reset_emeralds" onclick="clear_emeralds()">Reset</button>
         <button id="add_emerald" onclick="add_emerald()">Add Character</button>
         <button id="add_word" onclick="add_word()">Add Word</button>
         <button id="add_phrase" onclick="add_phrase()">Submit Phrase</button>
@@ -630,8 +650,10 @@ function populate_phrases() {
 		spacer.classList.add("spacer");
 		phrase_div.appendChild(spacer)
 	    } else {
+		let character_div = document.createElement("div");
+		character_div.classList.add("glyph_and_translation");
 		new emerald(
-                    phrase_div,
+                    character_div,
                     false,
                     "rgba(230, 230, 230, 0)",
                     "rgba(0, 230, 0, 1)",
@@ -644,7 +666,9 @@ function populate_phrases() {
 		let text = document.createElement("span");
 		text.classList.add("translation");
 		text.innerHTML = get_phoneme_from_glyph(character);
-		phrase_div.appendChild(text);
+		character_div.appendChild(text);
+
+		phrase_div.appendChild(character_div);
 	    }
         }
         document.getElementById("phrases").appendChild(phrase_div);
@@ -659,8 +683,10 @@ function populate_words() {
         let word_div = document.createElement("div");
         word_div.classList.add("word")
         for (let character of word) {
+	    let character_div = document.createElement("div");
+	    character_div.classList.add("glyph_and_translation");
             new emerald(
-                word_div,
+                character_div,
                 false,
                 "rgba(230, 230, 230, 0)",
                 "rgba(0, 230, 0, 1)",
@@ -673,7 +699,9 @@ function populate_words() {
 	    let text = document.createElement("span");
 	    text.innerHTML = get_phoneme_from_glyph(character);
 	    text.classList.add("translation");
-	    word_div.appendChild(text);
+	    character_div.appendChild(text);
+
+	    word_div.appendChild(character_div);
         }
         document.getElementById("words").appendChild(word_div);
     }
@@ -734,9 +762,20 @@ function debug_add_phrase(p) {
 
 window.onload = function () {
     first_load();
+
+    // Debug load data
     debug_add_phrase([2789, SPACE, 2627, 2848, 2720, SPACE, 24, SPACE, 6968, SPACE, 3168, 3656, 3392, SPACE, 3137, 23]);
     debug_add_phrase([3276, 3616, 3776, SPACE, 3804, 2720])
+    characters[3264] = "F";
+    characters[12] = "AH";
+    characters[3616] = "K";
+    characters[3776] = "S";
+    characters[28] = "OR";
+    characters[2720] = "D";
+    populate_phrases_words_characters();
+
 };
+
 
   </script>
 </html>
