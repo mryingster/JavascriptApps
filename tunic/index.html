@@ -67,11 +67,19 @@
 
       <a href="images/memo_large.png" style="float:right;"><img src="images/memo_small.png" width="400px"></a>
 
-      <p>This is a decoding assistant for the game <a href="https://en.wikipedia.org/wiki/Tunic_(video_game)">Tunic</a>. The goal of this assistant is to provide a means of cataloging phrases encountered in the game, and to assign meanings to each glyph. I am making assumptions based on the memo page seen to the right. As you can see, the glyphs appear to be separated by inner and outer lines.</p>
+      <p>This is a decoding assistant for the game <a href="https://en.wikipedia.org/wiki/Tunic_(video_game)">Tunic</a>. The goal of this assistant is to provide a means of cataloging phrases encountered in the game, and to assign meanings to each glyph.</p>
+      <p>I am making assumptions about the language based on the memo page seen to the right:
+        <ul>
+          <li>The glyphs appear to be separated by "inner" and "outer" lines.</li>
+          <li>The inner lines appear to get read before the outer lines</li>
+          <li>This language is based on sounds, not English letter substitution</li>
+        </ul>
+      </p>
 
+      <p>To use this page, build phrases you encounter using the Phrase Builder below. Once you submit a phrase, it will be saved to the phrases, and unique words and characters will be gathered in their respective locations below. You can assign anything you want to each character, and then the phrae and word translations will automatically be updated. </p>
 
       <div id="word_builder">
-        <h2>Word Builder</h2>
+        <h2>Phrase Builder</h2>
         <div id="emeralds"></div>
         <button id="reset_emeralds" onclick="clear_emeralds()">Reset</button>
         <button id="add_emerald" onclick="add_emerald()">Add Character</button>
@@ -371,7 +379,6 @@ class emerald {
         if (i === null) return;
         this.value ^= 1 << i;
         this.update();
-        update_emeralds();
     }
 
     closest_segment(p) {
@@ -584,7 +591,6 @@ function add_phrase() {
     add_words_from_phrase(new_phrase);
     add_characters_from_words();
 
-    console.log(words, characters);
     populate_phrases_words_characters();
 }
 
@@ -596,16 +602,17 @@ function get_phoneme_from_glyph(g) {
 
     let meaning = [];
 
-    if (outer_glyph > 0)
-	if (characters[outer_glyph] != undefined)
-	    meaning.push(characters[outer_glyph]);
-
     if (inner_glyph > 0)
 	if (characters[inner_glyph] != undefined)
 	    meaning.push(characters[inner_glyph]);
 
-    if (g * MASK_CIRCLE > 0)
-	meaning = meaning.reverse();
+    if (outer_glyph > 0)
+	if (characters[outer_glyph] != undefined)
+	    meaning.push(characters[outer_glyph]);
+
+    if ((g&MASK_CIRCLE) === MASK_CIRCLE) {
+	meaning.reverse();
+    }
 
     return meaning.join("-");
 }
@@ -732,10 +739,8 @@ function populate_characters() {
 	input.onchange = () => { characters[character] = input.value; populate_phrases_words_characters(); };
 	character_div.appendChild(input);
 
-	if (character == 0) {
+	if (character == 0)
 	    document.getElementById("characters_other").appendChild(character_div);
-	    console.log(characters, character)
-	}
 	else if (character > MASK_OUTER)
 	    document.getElementById("characters_inner").appendChild(character_div);
 	else
@@ -747,10 +752,7 @@ function populate_phrases_words_characters() {
     populate_phrases();
     populate_words();
     populate_characters();
-}
-
-function first_load() {
-    add_emerald();
+    save_to_local_storage();
 }
 
 function debug_add_phrase(p) {
@@ -760,9 +762,37 @@ function debug_add_phrase(p) {
     populate_phrases_words_characters();
 }
 
+function save_to_local_storage() {
+    localStorage.setItem("tunic",
+			 JSON.stringify ({
+			     "phrases" : phrases,
+			     "characters" : characters,
+			 })
+			);
+}
+
+function load_from_local_storage() {
+    let saved_data = localStorage.getItem("tunic");
+
+    if (saved_data)
+        parsed_data = JSON.parse(saved_data);
+
+    for (let phrase of parsed_data.phrases)
+	debug_add_phrase(phrase);
+    characters = parsed_data.characters;
+
+    populate_phrases_words_characters();
+}
+
+function first_load() {
+    add_emerald();
+    load_from_local_storage();
+}
+
 window.onload = function () {
     first_load();
 
+    /*
     // Debug load data
     debug_add_phrase([2789, SPACE, 2627, 2848, 2720, SPACE, 24, SPACE, 6968, SPACE, 3168, 3656, 3392, SPACE, 3137, 23]);
     debug_add_phrase([3276, 3616, 3776, SPACE, 3804, 2720])
@@ -773,7 +803,7 @@ window.onload = function () {
     characters[28] = "OR";
     characters[2720] = "D";
     populate_phrases_words_characters();
-
+    */
 };
 
 
