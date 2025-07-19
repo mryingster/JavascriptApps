@@ -85,11 +85,13 @@ class segment {
 }
 
 class emerald {
-    constructor(parent, interactive, unlit, inside_lit, outside_lit, size, value, debug, wordline) {
+    constructor(parent, index, interactive, unlit, inside_lit, outside_lit, size, value, debug, wordline) {
         this.canvas = document.createElement("canvas");
         this.canvas.classList.add("emerald");
         this.ctx = this.canvas.getContext("2d");
         parent.appendChild(this.canvas);
+
+	this.index = index;
 
         this.size = size;
         this.initial_value = value;
@@ -117,6 +119,9 @@ class emerald {
 
         this.highlighted_segment = null;
         this.mouse_down = false;
+
+	this.delete_coords = new coord (this.width-20, this.height+10);
+	this.hover_delete = false;
 
         // Add listeners
         this.canvas.addEventListener(
@@ -317,6 +322,11 @@ class emerald {
         e.preventDefault();
         let pos = this.getCursorPosition(this.canvas, e);
         this.highlighted_segment = this.closest_segment(pos);
+	this.hover_delete = false;
+	if (this.hover_over_delete_button(pos)) {
+	    this.highlighted_segment = null;
+	    this.hover_delete = true;
+	}
         this.update();
     }
 
@@ -325,8 +335,12 @@ class emerald {
         if (!this.mouse_down) return
         e.preventDefault();
         this.mouse_down = false;
+	this.hover_delete = false;
         let pos = this.getCursorPosition(this.canvas, e);
-        this.toggle_segment(this.closest_segment(pos));
+	if (this.hover_over_delete_button(pos))
+	    this.delete_emerald();
+        else
+	    this.toggle_segment(this.closest_segment(pos));
         this.update();
     }
 
@@ -334,6 +348,19 @@ class emerald {
         e.preventDefault();
         this.highlighted_segment = null;
         this.mouse_down = false;
+	this.hover_delete = false;
+        this.update();
+    }
+
+    delete_emerald() {
+	this.canvas.parentNode.removeChild(this.canvas);
+	emeralds.splice(this.index, 1);
+    }
+
+    hover_over_delete_button(pos) {
+	if (pos.x > this.delete_coords.x && pos.y > this.delete_coords.y)
+	    return true;
+	return false;
     }
 
     toggle_segment(i) {
@@ -489,6 +516,23 @@ class emerald {
         }
 
         this.ctx.restore();
+
+	// Add remove icon if this is interactive
+	if (this.interactive) {
+	    let font_size = this.height / 10;
+            this.ctx.font = font_size + "px Arial";
+            this.ctx.textAlign = "center";
+            this.ctx.fillStyle = this.unselected_color;
+	    if (this.hover_delete)
+		this.ctx.fillStyle = "#AA0000";
+	    if (this.hover_delete && this.mouse_down)
+		this.ctx.fillStyle = "#FF0000";
+            this.ctx.fillText(
+                "✕",
+                this.canvas.width - font_size,
+                this.canvas.height - font_size
+            );
+	}
     }
 }
 
@@ -520,6 +564,7 @@ function add_emerald(value=0) {
     emeralds.push(
         new emerald(
             document.getElementById("emeralds"),
+	    emeralds.length,            // Index
             true,                       // Interactive
             COLOR_LIGHT_GREY,           // Unlit Color
             COLOR_BRIGHT_GREEN,         // Lit Color
@@ -684,6 +729,7 @@ function populate_phrases() {
                 character_div.classList.add("glyph_and_translation");
                 new emerald(
                     character_div,
+		    null,
                     false,
 		    COLOR_TRANSPARENT,          // Unlit Color
 		    COLOR_BRIGHT_GREEN,         // Lit Color
@@ -754,6 +800,7 @@ function populate_words() {
             character_div.classList.add("glyph_and_translation");
             new emerald(
                 character_div,
+		null,
                 false,
 		COLOR_TRANSPARENT,          // Unlit Color
 		COLOR_BRIGHT_GREEN,         // Lit Color
@@ -785,6 +832,7 @@ function populate_characters() {
         character_div.classList.add("character")
         new emerald(
             character_div,
+	    null,
             false,
             COLOR_TRANSPARENT,          // Unlit Color
             COLOR_BRIGHT_GREEN,         // Lit Color
