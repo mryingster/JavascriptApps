@@ -31,7 +31,7 @@
       <div id="word_builder" class="hidden">
         <h2>Phrase Builder</h2>
         <div id="emeralds"></div>
-
+        <input id="comment_input" placeholder="Comment"></input>
         <div id="build_controls" class="hidden">
           <button id="cancel_add_phrase" onclick="cancel_add_phrase()">Cancel</button>
           <button id="reset_emeralds" onclick="reset_emeralds()">Reset</button>
@@ -580,14 +580,21 @@ function delete_phrase(i) {
 }
 
 function add_phrase(i=-1) {
+    let new_phrase = {
+	characters: [],
+	comment: "",
+    };
+
     // Create new phrase from phrase!
-    let new_phrase = [];
     for (let e of emeralds) {
         if (e === SPACE)
-            new_phrase.push(SPACE);
+            new_phrase.characters.push(SPACE);
         else
-            new_phrase.push(e.value);
+            new_phrase.characters.push(e.value);
     }
+
+    // Get the comment
+    new_phrase.comment = document.getElementById("comment_input").value;
 
     // If index is -1, then this is a new phrase!
     if (i === -1)
@@ -634,7 +641,7 @@ function get_phoneme_from_glyph(g) {
 function add_words_from_phrase(new_phrase) {
     // Create new word from characters
     let new_word = [];
-    for (let character of new_phrase) {
+    for (let character of new_phrase.characters) {
         if (character === SPACE) {
             words.push(new_word);
             new_word = [];
@@ -666,7 +673,7 @@ function populate_phrases() {
         let phrase_div = document.createElement("div");
         phrase_div.classList.add("phrase")
 
-        for (let character of phrase) {
+        for (let character of phrase.characters) {
             if (character === SPACE) {
                 let spacer = document.createElement("div");
                 spacer.classList.add("spacer");
@@ -701,6 +708,11 @@ function populate_phrases() {
 	edit.onclick = () => load_edit_phrase(phrase, index);
 	phrase_div.appendChild(edit);
 
+	let comment = document.createElement("div");
+	comment.innerHTML = phrase.comment;
+	comment.classList.add("comment");
+	phrase_div.appendChild(comment);
+
         document.getElementById("phrases").appendChild(phrase_div);
     }
 }
@@ -714,9 +726,11 @@ function load_edit_phrase(phrase, index) {
     document.getElementById("update_phrase_button").onclick = () => { add_phrase(index) };
     document.getElementById("delete_phrase_button").onclick = () => { delete_phrase(index) };
 
-    for (let word of phrase) {
+    for (let word of phrase.characters) {
 	add_emerald(word);
     }
+
+    document.getElementById("comment_input").value = phrase.comment;
 }
 
 function cancel_update_phrase() {
@@ -822,7 +836,7 @@ function load_from_local_storage() {
     if (saved_data)
         parsed_data = JSON.parse(saved_data);
 
-    for (let phrase of parsed_data.phrases)
+    for (let phrase of parsed_data["phrases"])
         debug_add_phrase(phrase);
     characters = parsed_data.characters;
 

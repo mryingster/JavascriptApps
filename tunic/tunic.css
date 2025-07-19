@@ -42,6 +42,7 @@ body {
     border: 1px solid #aaddaa;
     padding: 0px 20px 20px 20px;
     border-top: 55px solid #ddffdd;
+    min-width: 300px;
 }
 
 .define_character_input {
@@ -88,4 +89,16 @@ body {
     border-bottom: 1px solid #ddffdd;
     margin-bottom: 10px;
     padding-bottom: 10px;
+}
+
+#comment_input {
+    margin-bottom: 25px;
+    width: 500px;
+}
+
+.comment {
+    font-style: italic;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
 }
