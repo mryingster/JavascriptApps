@@ -563,6 +563,7 @@ function start_add_phrase() {
     document.getElementById("build_controls").classList.remove("hidden");
     document.getElementById("edit_controls").classList.add("hidden");
     document.getElementById("start_add_phrase").disabled = true;
+    document.getElementById("comment_input").value = "";
     clear_emeralds();
     add_emerald();
 }
@@ -708,10 +709,12 @@ function populate_phrases() {
 	edit.onclick = () => load_edit_phrase(phrase, index);
 	phrase_div.appendChild(edit);
 
-	let comment = document.createElement("div");
-	comment.innerHTML = phrase.comment;
-	comment.classList.add("comment");
-	phrase_div.appendChild(comment);
+	if (phrase.comment != "") {
+	    let comment = document.createElement("div");
+	    comment.innerHTML = phrase.comment;
+	    comment.classList.add("comment");
+	    phrase_div.appendChild(comment);
+	}
 
         document.getElementById("phrases").appendChild(phrase_div);
     }
