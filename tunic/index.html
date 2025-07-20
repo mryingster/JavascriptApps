@@ -30,19 +30,27 @@
 
       <div id="word_builder" class="hidden">
         <h2>Phrase Builder</h2>
-        <div id="emeralds"></div>
-        <input id="comment_input" placeholder="Comment"></input>
-        <div id="build_controls" class="hidden">
-          <button id="cancel_add_phrase" onclick="cancel_add_phrase()">Cancel</button>
-          <button id="reset_emeralds" onclick="reset_emeralds()">Reset</button>
-          <button id="add_emerald" onclick="add_emerald()">Add Character</button>
-          <button id="add_word" onclick="add_word()">Add Word</button>
-          <button id="add_phrase" onclick="add_phrase()">Submit Phrase</button>
+        <div>
+          <span id="emeralds"></span>
+          <div id="emerald_edit">
+            <button class="stacked_button" id="add_emerald" onclick="add_emerald()">Add Glyph</button>
+            <button class="stacked_button" id="add_space" onclick="add_space()">Add Space</button>
+            <button class="stacked_button" id="add_input" onclick="add_input()">Add String</button>
+            <button class="stacked_button" id="delete" onclick="delete_last_character()">Delete</button>
+          </div>
         </div>
-        <div id="edit_controls" class="hidden">
-          <button id="cancel_update_phrase" onclick="cancel_update_phrase()">Cancel</button>
-          <button id="delete_phrase_button" onclick="delete_phrase()" >Delete</button>
-          <button id="update_phrase_button" onclick="add_phrase()">Update</button>
+        <div id="controls">
+          <input id="comment_input" placeholder="Comment"></input>
+          <span id="build_controls" class="hidden">
+            <button id="cancel_add_phrase" onclick="cancel_add_phrase()">Cancel</button>
+            <button id="reset_emeralds" onclick="reset_emeralds()">Reset</button>
+            <button id="add_phrase" onclick="add_phrase()">Submit Phrase</button>
+          </span>
+          <span id="edit_controls" class="hidden">
+            <button id="cancel_update_phrase" onclick="cancel_update_phrase()">Cancel</button>
+            <button id="delete_phrase_button" onclick="delete_phrase()">Delete</button>
+            <button id="update_phrase_button" onclick="add_phrase()">Update</button>
+          </span>
         </div>
       </div>
 
@@ -119,9 +127,6 @@ class emerald {
 
         this.highlighted_segment = null;
         this.mouse_down = false;
-
-	this.delete_coords = new coord (this.width-20, this.height+10);
-	this.hover_delete = false;
 
         // Add listeners
         this.canvas.addEventListener(
@@ -322,11 +327,6 @@ class emerald {
         e.preventDefault();
         let pos = this.getCursorPosition(this.canvas, e);
         this.highlighted_segment = this.closest_segment(pos);
-	this.hover_delete = false;
-	if (this.hover_over_delete_button(pos)) {
-	    this.highlighted_segment = null;
-	    this.hover_delete = true;
-	}
         this.update();
     }
 
@@ -335,12 +335,8 @@ class emerald {
         if (!this.mouse_down) return
         e.preventDefault();
         this.mouse_down = false;
-	this.hover_delete = false;
         let pos = this.getCursorPosition(this.canvas, e);
-	if (this.hover_over_delete_button(pos))
-	    this.delete_emerald();
-        else
-	    this.toggle_segment(this.closest_segment(pos));
+        this.toggle_segment(this.closest_segment(pos));
         this.update();
     }
 
@@ -348,19 +344,12 @@ class emerald {
         e.preventDefault();
         this.highlighted_segment = null;
         this.mouse_down = false;
-	this.hover_delete = false;
         this.update();
     }
 
     delete_emerald() {
 	this.canvas.parentNode.removeChild(this.canvas);
 	emeralds.splice(this.index, 1);
-    }
-
-    hover_over_delete_button(pos) {
-	if (pos.x > this.delete_coords.x && pos.y > this.delete_coords.y)
-	    return true;
-	return false;
     }
 
     toggle_segment(i) {
@@ -516,23 +505,6 @@ class emerald {
         }
 
         this.ctx.restore();
-
-	// Add remove icon if this is interactive
-	if (this.interactive) {
-	    let font_size = this.height / 10;
-            this.ctx.font = font_size + "px Arial";
-            this.ctx.textAlign = "center";
-            this.ctx.fillStyle = this.unselected_color;
-	    if (this.hover_delete)
-		this.ctx.fillStyle = "#AA0000";
-	    if (this.hover_delete && this.mouse_down)
-		this.ctx.fillStyle = "#FF0000";
-            this.ctx.fillText(
-                "✕",
-                this.canvas.width - font_size,
-                this.canvas.height - font_size
-            );
-	}
     }
 }
 
@@ -556,8 +528,8 @@ const COLOR_DARK_GREEN = "rgba(0, 150, 0, 1)";
 
 // Add main emerald
 function add_emerald(value=0) {
-    if (value === SPACE) {
-	add_space();
+    if (typeof value === "string") {
+	add_input(value, true);
 	return;
     }
 
@@ -577,16 +549,35 @@ function add_emerald(value=0) {
     );
 }
 
-function add_space() {
-    emeralds.push(SPACE);
-    let spacer = document.createElement("div");
-    spacer.classList.add("spacer");
-    document.getElementById("emeralds").appendChild(spacer);
+function delete_last_character() {
+    let last_character = emeralds[emeralds.length-1];
+    if (last_character.canvas == undefined)
+        document.getElementById("emeralds").removeChild(last_character);
+    else
+        document.getElementById("emeralds").removeChild(last_character.canvas);
+
+    emeralds.splice(emeralds.length - 1, 1);
 }
 
-function add_word() {
-    add_space();
-    add_emerald();
+function add_space() {
+    add_input("&nbsp;", false);
+}
+
+function add_input(v="", editable=true) {
+    let input = document.createElement("span");
+    if (editable == true)
+        input.contentEditable = true;
+    input.classList.add("english_input");
+    input.placeholder = "String";
+    if (v != "") {
+        input.innerHTML = v;
+        input.value = v;
+    }
+    input.oninput = () => { input.value = input.innerHTML; };
+
+    document.getElementById("emeralds").appendChild(input);
+
+    emeralds.push(input);
 }
 
 function clear_div(div) {
@@ -633,10 +624,7 @@ function add_phrase(i=-1) {
 
     // Create new phrase from phrase!
     for (let e of emeralds) {
-        if (e === SPACE)
-            new_phrase.characters.push(SPACE);
-        else
-            new_phrase.characters.push(e.value);
+        new_phrase.characters.push(e.value);
     }
 
     // Get the comment
@@ -720,9 +708,10 @@ function populate_phrases() {
         phrase_div.classList.add("phrase")
 
         for (let character of phrase.characters) {
-            if (character === SPACE) {
+            if (typeof character === "string") {
                 let spacer = document.createElement("div");
                 spacer.classList.add("spacer");
+                spacer.innerHTML = character;
                 phrase_div.appendChild(spacer)
             } else {
                 let character_div = document.createElement("div");
@@ -749,18 +738,22 @@ function populate_phrases() {
             }
         }
 
+        let phrase_footer_div = document.createElement("div");
+
 	let edit = document.createElement("button");
 	edit.innerHTML = "✍️";
 	edit.classList.add("edit_button")
 	edit.onclick = () => load_edit_phrase(phrase, index);
-	phrase_div.appendChild(edit);
+	phrase_footer_div.appendChild(edit);
 
 	if (phrase.comment != "") {
 	    let comment = document.createElement("div");
 	    comment.innerHTML = phrase.comment;
 	    comment.classList.add("comment");
-	    phrase_div.appendChild(comment);
+	    phrase_footer_div.appendChild(comment);
 	}
+
+        phrase_div.appendChild(phrase_footer_div);
 
         document.getElementById("phrases").appendChild(phrase_div);
     }
@@ -915,6 +908,75 @@ window.onload = function () {
     populate_phrases_words_characters();
     */
 };
+
+
+function add_manual() {
+    let manual_phrases = [
+        {
+            "characters":[3276,3616,3776," ",3797,2720],
+            "comment":"Memo Page"},
+        {
+            "characters":[2808," ",3788,3264,3395,3776,3392," ",3271,2807,0," ",3645,7719,3395,2720," ",6727,6951,4515," ",3408,160,2912," ",2735,3163,3395,2720," ",1304,416,3776," ",173],
+            "comment":"Manual Page 1 (Bottom)"},
+        {
+            "characters":[2789," ",2627,2848,2720," ",24," ","Civilization",4920," ",3168,3656,3392," ",3137,23,". ",2792," ",2595,2624,3392," ",24," ",3779,3407,", ",444,2720," ",1283,3907,416," ",2812,3392," ",3779,3407," ",2792," ",2595,2624,3392," ",24," ",3164,2627,3776," ",2792," ",2663,2624,2720," ",3784,3616,3655,2720," ",2808," ",3791,3616,3651,3392,3776," ",6968," ",2808," ",444,2720," ",4536,2743,3776,3398,2720," ",2744," ",3136,2632,439," ",424,2391," ",6968," ",3151,6748,7491,15," ",2792," ",2855,416,2391,2720," ",3422," ",2808," ",3291," ",3581," ",4540,2720," ",3788,3392," ",3137,23," ",3264,3672,160," ",2808," ",3776,3144,3779,2912," ",2607,3392,1295,416],
+            "comment":"Manual Page 3 (Upper, A long, long time ago...)"
+        }
+    ];
+
+    for (let phrase of manual_phrases) {
+        phrases.push(phrase);
+    }
+
+    populate_phrases_words_characters();
+}
+
+function add_phonemes() {
+    characters = {
+        "0":"?",
+        "1":"?",
+        "3":"?",
+        "5":"?",
+        "6":"?",
+        "7":"?",
+        "8":"?",
+        "12":"AH",
+        "13":"?",
+        "15":"?",
+        "16":"?",
+        "21":"OR",
+        "23":"?",
+        "24":"?",
+        "27":"?",
+        "28":"?",
+        "29":"?",
+        "30":"?",
+        "160":"?",
+        "416":"?",
+        "800":"?",
+        "1280":"?",
+        "2368":"?",
+        "2592":"?",
+        "2624":"?",
+        "2656":"?",
+        "2720":"D",
+        "2784":"?",
+        "2848":"?",
+        "2912":"?",
+        "3136":"?",
+        "3168":"?",
+        "3264":"F",
+        "3392":"?",
+        "3552":"?",
+        "3616":"K",
+        "3648":"?",
+        "3776":"S",
+        "3904":"?"
+    }
+}
+
+function clear_local_data() {
+}
 
 
   </script>
