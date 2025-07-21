@@ -94,7 +94,7 @@ class emerald {
         this.ctx = this.canvas.getContext("2d");
         parent.appendChild(this.canvas);
 
-	this.index = index;
+        this.index = index;
 
         this.size = size;
         this.initial_value = value;
@@ -343,8 +343,8 @@ class emerald {
     }
 
     delete_emerald() {
-	this.canvas.parentNode.removeChild(this.canvas);
-	emeralds.splice(this.index, 1);
+        this.canvas.parentNode.removeChild(this.canvas);
+        emeralds.splice(this.index, 1);
     }
 
     toggle_segment(i) {
@@ -450,10 +450,10 @@ class emerald {
                     break;
                 }
 
-		let color = this.selected_outside_color;
+                let color = this.selected_outside_color;
 
-		if ((1 << i) >= MASK_OUTER)
-		    color = this.selected_inside_color;
+                if ((1 << i) >= MASK_OUTER)
+                    color = this.selected_inside_color;
 
                 this.draw_line(this.segments[i], color);
             }
@@ -524,14 +524,14 @@ const COLOR_DARK_GREEN = "rgba(0, 150, 0, 1)";
 // Add main emerald
 function add_emerald(value=0) {
     if (typeof value === "string") {
-	add_input(value, true);
-	return;
+        add_input(value, true);
+        return;
     }
 
     emeralds.push(
         new emerald(
             document.getElementById("emeralds"),
-	    emeralds.length,            // Index
+            emeralds.length,            // Index
             true,                       // Interactive
             COLOR_LIGHT_GREY,           // Unlit Color
             COLOR_BRIGHT_GREEN,         // Lit Color
@@ -613,8 +613,8 @@ function delete_phrase(i) {
 
 function add_phrase(i=-1) {
     let new_phrase = {
-	characters: [],
-	comment: "",
+        characters: [],
+        comment: "",
     };
 
     // Create new phrase from phrase!
@@ -627,9 +627,9 @@ function add_phrase(i=-1) {
 
     // If index is -1, then this is a new phrase!
     if (i === -1)
-	phrases.push(new_phrase);
+        phrases.push(new_phrase);
     else
-	phrases[i] = new_phrase;
+        phrases[i] = new_phrase;
 
     // Clear out our characters for new words
     clear_emeralds();
@@ -704,18 +704,18 @@ function populate_phrases() {
 
         let phrase_footer_div = document.createElement("div");
 
-	let edit = document.createElement("button");
-	edit.innerHTML = "✍️";
-	edit.classList.add("edit_button")
-	edit.onclick = () => load_edit_phrase(phrase, index);
-	phrase_footer_div.appendChild(edit);
+        let edit = document.createElement("button");
+        edit.innerHTML = "✍️";
+        edit.classList.add("edit_button")
+        edit.onclick = () => load_edit_phrase(phrase, index);
+        phrase_footer_div.appendChild(edit);
 
-	if (phrase.comment != "") {
-	    let comment = document.createElement("div");
-	    comment.innerHTML = phrase.comment;
-	    comment.classList.add("comment");
-	    phrase_footer_div.appendChild(comment);
-	}
+        if (phrase.comment != "") {
+            let comment = document.createElement("div");
+            comment.innerHTML = phrase.comment;
+            comment.classList.add("comment");
+            phrase_footer_div.appendChild(comment);
+        }
 
         phrase_div.appendChild(phrase_footer_div);
 
@@ -730,11 +730,11 @@ function populate_phrases() {
                 character_div.classList.add("glyph_and_translation");
                 new emerald(
                     character_div,
-		    null,
+                    null,
                     false,
-		    COLOR_TRANSPARENT,          // Unlit Color
-		    COLOR_BRIGHT_GREEN,         // Lit Color
-		    COLOR_DARK_GREEN,           // Lit Color
+                    COLOR_TRANSPARENT,          // Unlit Color
+                    COLOR_BRIGHT_GREEN,         // Lit Color
+                    COLOR_DARK_GREEN,           // Lit Color
                     GLYPH_SIZE_SMALL,
                     character,
                     false,
@@ -764,7 +764,7 @@ function load_edit_phrase(phrase, index) {
     document.getElementById("delete_phrase_button").onclick = () => { delete_phrase(index) };
 
     for (let word of phrase.characters) {
-	add_emerald(word);
+        add_emerald(word);
     }
 
     document.getElementById("comment_input").value = phrase.comment;
@@ -787,7 +787,7 @@ function populate_characters() {
         character_div.classList.add("character")
         new emerald(
             character_div,
-	    null,
+            null,
             false,
             COLOR_TRANSPARENT,          // Unlit Color
             COLOR_BRIGHT_GREEN,         // Lit Color
@@ -841,8 +841,12 @@ function load_from_local_storage() {
     if (saved_data)
         parsed_data = JSON.parse(saved_data);
 
-    for (let phrase of parsed_data["phrases"])
+    for (let phrase of parsed_data["phrases"]) {
+        // Convert old spaces to new ones
+        //for (let i=0; i<phrase.characters.length; i++)
+        //    if (phrase.characters[i] === -1) phrase.characters[i] = " ";
         debug_add_phrase(phrase);
+    }
     characters = parsed_data.characters;
 
     populate_phrases_characters();
@@ -863,19 +867,19 @@ function add_manual() {
         {
             "comment":"Manual Page 1 (Bottom)",
             "characters":[2808," ",3788,3264,3395,3776,3392," ",3271,2807,0," ",3645,7719,3395,2720," ",6727,6951,4515," ",3408,160,2912," ",2735,3163,3395,2720," ",1304,416,3776," ",173],
-	},
+        },
         {
             "comment":"Manual Page 3 (Upper, A long, long time ago...)",
-            "characters":[2789," ",2627,2848,2720," ",24," ","Civilization",4920," ",3168,3656,3392," ",3137,23,". ",2792," ",2595,2624,3392," ",24," ",3779,3407,", ",444,2720," ",1283,3907,416," ",2812,3392," ",3779,3407," ",2792," ",2595,2624,3392," ",24," ",3164,2627,3776," ",2792," ",2663,2624,2720," ",3784,3616,3655,2720," ",2808," ",3791,3616,3651,3392,3776," ",6968," ",2808," ",444,2720," ",4536,2743,3776,3398,2720," ",2744," ",3136,2632,439," ",424,2391," ",6968," ",3151,6748,7491,15," ",2792," ",2855,416,2391,2720," ",3422," ",2808," ",3291," ",3581," ",4540,2720," ",3788,3392," ",3137,23," ",3264,3672,160," ",2808," ",3776,3144,3779,2912," ",2607,3392,1295,416],
+            "characters":[2789," ",2627,2848,2720," ",24,"Civilization",4920," ",3168,3656,3392," ",3137,23,". ",2792," ",2595,2624,3392," ",24," ",3779,3407,", ",444,2720," ",1283,3907,416," ",2812,3392," ",3779,3407," ",2792," ",2595,2624,3392," ",24," ",3164,2627,3776,". ",2792," ",2663,2624,2720," ",3784,3616,3655,2720," ",2808," ",3791,3616,3651,3392,3776," ",6968," ",2808,"Holy Cross,",444,2720," ",4536,2743,3776,3398,2720," ",2744," ",3136,2632,439," ",424,2391," ",6968," ",3151,6748,7491,15,". ",2792," ",2855,416,2391,2720," ",3422," ",2808," ",3291," ",3581," ",4540,2720," ",3788,3392," ",3137,23," ",3264,3672,160," ",2808," ",3776,3144,3779,2912," ",2607,3392,1295,416,"."],
         },
-	{
-	    "comment":"Manual Page 3 (Bottom)",
-	    "characters":[6780," ",7011," ",862,4026,6722," ",4540," ",6744,7774,8163," ",6751,2720," ",3137,23," ",1304,2912," ",2723,3776,3640,2867,2720],
-	},
+        {
+            "comment":"Manual Page 3 (Bottom)",
+            "characters":[6780,"&nbsp;",7011,"&nbsp;",862,4026,6722,",&nbsp;",4540,"&nbsp;",6744,7774,8163,"&nbsp;",6751,2720,"&nbsp;",3137,23,"&nbsp;",1304,2912,"&nbsp;",2723,3776,3640,2867,2720,".&nbsp;",3276,3206,2624,2912,"&nbsp;",6968,"&nbsp;",3783,2624,3264,",&nbsp;",4536,6735,160,"&nbsp;",2851,4024,416,2912,"&nbsp;",6968,"&nbsp;",2808,"&nbsp;",3264,2910,2391,",&nbsp;",4519,3422,160,2720,"&nbsp;",3644,3776,3392,"&nbsp;",4515,3422,"&nbsp;",3803,3628,3288,3184,"&nbsp;",4540,2720,"&nbsp;",2597,6831,".&nbsp;"],
+        },
         {
             "comment":"Manual Page 54 - Memo",
             "characters":[3276,3616,3776,"<- Fox"," ",3797,2720,"<- Sword"],
- 	},
+        },
     ];
 
     for (let phrase of manual_phrases) {
@@ -889,39 +893,42 @@ function add_phonemes() {
     characters = {
         "0":"?",
         "1":"?",
-        "3":"?",
+        "3":"I",
         "5":"?",
         "6":"?",
-        "7":"?",
+        "7":"EH",
         "8":"?",
         "12":"AH",
-        "13":"?",
-        "15":"?",
+        "13":"EER",
+        "15":"EE",
         "16":"?",
         "21":"OR",
         "23":"?",
-        "24":"?",
-        "27":"?",
-        "28":"?",
+        "24":"U",
+        "27":"AR",
+        "28":"OR",
         "29":"?",
-        "30":"?",
+        "30":"OO",
+        "31":"O",
         "160":"?",
-        "416":"?",
+        "416":"N",
         "800":"?",
         "1280":"?",
+        "1568":"C",
         "2368":"?",
-        "2592":"?",
-        "2624":"?",
+        "2592":"H",
+        "2624":"L",
         "2656":"?",
+        "2688":"G",
         "2720":"D",
         "2784":"?",
         "2848":"?",
         "2912":"?",
-        "3136":"?",
+        "3136":"P",
         "3168":"?",
         "3264":"F",
         "3392":"?",
-        "3552":"?",
+        "3552":"SH",
         "3616":"K",
         "3648":"?",
         "3776":"S",
