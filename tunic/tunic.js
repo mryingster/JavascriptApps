@@ -428,23 +428,22 @@ class emerald {
     }
 }
 
-let emeralds = [];
-let phrases = [];
-let words = [];
+let emeralds   = [];
+let phrases    = [];
+let words      = [];
 let characters = {};
 
-const SPACE = -1;
-const MASK_INNER = 4064;
-const MASK_OUTER = 31;
-const MASK_LINES = 4095;
-const MASK_CIRCLE = 4096;
+const MASK_INNER       = 4064;
+const MASK_OUTER       = 31;
+const MASK_LINES       = 4095;
+const MASK_CIRCLE      = 4096;
 const GLYPH_SIZE_SMALL = 30;
 const GLYPH_SIZE_LARGE = 100;
 
-const COLOR_TRANSPARENT = "rgba(0, 0, 0, 0)"
-const COLOR_LIGHT_GREY = "rgba(230, 230, 230, 1)";
+const COLOR_TRANSPARENT  = "rgba(0, 0, 0, 0)"
+const COLOR_LIGHT_GREY   = "rgba(230, 230, 230, 1)";
 const COLOR_BRIGHT_GREEN = "rgba(0, 200, 0, 1)"
-const COLOR_DARK_GREEN = "rgba(0, 150, 0, 1)";
+const COLOR_DARK_GREEN   = "rgba(0, 150, 0, 1)";
 
 // Add main emerald
 function add_emerald(value=0) {
@@ -467,6 +466,29 @@ function add_emerald(value=0) {
             true,                       // Enable Wordline
         )
     );
+}
+
+function quick_enter_glyph(n) {
+    let last_emerald = emeralds[emeralds.length - 1];
+
+    // Check if last entry is a glyph, and if not, add a glyph!
+    if (typeof last_emerald.value == "string") {
+	add_emerald(Number(n));
+	return;
+    }
+
+    // Check if this is outer value or inner value and if last
+    // emerald already has inner/outer defined, make new emerald
+    if (((n & MASK_OUTER) == n && (last_emerald.value & MASK_OUTER) == 0) ||
+	((n & MASK_INNER) == n && (last_emerald.value & MASK_INNER) == 0)) {
+	last_emerald.value += n;
+	last_emerald.update();
+	return;
+    }
+
+    // Add a new one!
+    add_emerald(Number(n));
+    return;
 }
 
 function delete_last_character() {
@@ -596,7 +618,7 @@ function add_words_from_phrase(new_phrase) {
     // Create new word from characters
     let new_word = [];
     for (let character of new_phrase.characters) {
-        if (character === SPACE) {
+        if (character === " ") {
             words.push(new_word);
             new_word = [];
             continue;
@@ -710,7 +732,7 @@ function populate_characters() {
     for (let character in characters) {
         let character_div = document.createElement("div");
         character_div.classList.add("character")
-        new emerald(
+        let this_emerald = new emerald(
             character_div,
             null,
             false,
@@ -722,6 +744,8 @@ function populate_characters() {
             false,
             character == 0,
         );
+
+	this_emerald.canvas.onclick = () => { quick_enter_glyph(Number(this_emerald.value)) };
 
         let input = document.createElement("input");
         input.value = characters[character];
