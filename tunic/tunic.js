@@ -718,6 +718,7 @@ function populate_phrases() {
                     let sub_text = document.createElement("span");
                     sub_text.innerHTML = phoneme.text;
                     sub_text.onclick = () => { document.getElementById("character_"+phoneme.value).focus() };
+		    sub_text.classList.add("clickable");
                     text.appendChild(sub_text);
                 }
                 character_div.appendChild(text);
@@ -776,6 +777,7 @@ function populate_characters() {
         );
 
         this_emerald.canvas.onclick = () => { quick_enter_glyph(Number(this_emerald.value)) };
+        this_emerald.canvas.classList.add("clickable");
 
         let input = document.createElement("input");
         input.value = characters[character];
