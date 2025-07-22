@@ -13,7 +13,7 @@ class segment {
 }
 
 class emerald {
-    constructor(parent, index, interactive, unlit, inside_lit, outside_lit, size, value, debug, wordline) {
+    constructor(parent, index, interactive, unselected_color, inside_color, outside_color, wordline_color, size, value, debug, wordline) {
         this.canvas = document.createElement("canvas");
         this.canvas.classList.add("emerald");
         this.ctx = this.canvas.getContext("2d");
@@ -27,9 +27,12 @@ class emerald {
         this.selected = false;
         this.linewidth = size/10;
         this.margin = this.linewidth + 3;
-        this.unselected_color = unlit;
-        this.selected_inside_color = inside_lit;
-        this.selected_outside_color = outside_lit;
+
+        this.unselected_color = unselected_color;
+        this.selected_inside_color = inside_color;
+        this.selected_outside_color = outside_color;
+	this.wordline_color = wordline_color;
+
         this.interactive = interactive;
         this.debug = debug;
         this.wordline = wordline;
@@ -409,7 +412,7 @@ class emerald {
                 this.canvas.width,
                 this.height / 6
             );
-            this.draw_line(this.word_segment, this.selected_outside_color);
+            this.draw_line(this.word_segment, this.wordline_color);
         };
 
         // Add debug text
@@ -444,6 +447,7 @@ const COLOR_TRANSPARENT  = "rgba(0, 0, 0, 0)"
 const COLOR_LIGHT_GREY   = "rgba(230, 230, 230, 1)";
 const COLOR_BRIGHT_GREEN = "rgba(0, 200, 0, 1)"
 const COLOR_DARK_GREEN   = "rgba(0, 150, 0, 1)";
+const COLOR_BROWN        = "rgba(90, 60, 40, 1)";
 
 // Add main emerald
 function add_emerald(value=0) {
@@ -460,6 +464,7 @@ function add_emerald(value=0) {
             COLOR_LIGHT_GREY,           // Unlit Color
             COLOR_BRIGHT_GREEN,         // Lit Color
             COLOR_DARK_GREEN,           // Lit Color
+	    COLOR_BROWN,            // Word Line Color
             GLYPH_SIZE_LARGE,           // Horizontal Size
             value,                      // Initial Value
             true,                       // Enable Debug Text
@@ -684,6 +689,7 @@ function populate_phrases() {
                     COLOR_TRANSPARENT,          // Unlit Color
                     COLOR_BRIGHT_GREEN,         // Lit Color
                     COLOR_DARK_GREEN,           // Lit Color
+		    COLOR_BROWN,
                     GLYPH_SIZE_SMALL,
                     character,
                     false,
@@ -741,6 +747,7 @@ function populate_characters() {
             COLOR_TRANSPARENT,          // Unlit Color
             COLOR_BRIGHT_GREEN,         // Lit Color
             COLOR_DARK_GREEN,           // Lit Color
+	    COLOR_BROWN,
             GLYPH_SIZE_SMALL,
             character,
             false,

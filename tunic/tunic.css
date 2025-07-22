@@ -6,8 +6,11 @@ body {
     max-width: 1200px;
 }
 
+#emeralds_container {
+    margin-left:40px;
+}
+
 #emeralds {
-    padding-left: 50px;
 }
 
 #emeralds > .emerald {
@@ -20,7 +23,6 @@ body {
 
 .spacer {
     display: inline-block;
-    min-width: 25px;
     vertical-align: bottom;
     height: 72px;
     margin: 0 10px;
