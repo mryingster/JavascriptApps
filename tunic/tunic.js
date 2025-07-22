@@ -473,17 +473,17 @@ function quick_enter_glyph(n) {
 
     // Check if last entry is a glyph, and if not, add a glyph!
     if (typeof last_emerald.value == "string") {
-	add_emerald(Number(n));
-	return;
+        add_emerald(Number(n));
+        return;
     }
 
     // Check if this is outer value or inner value and if last
     // emerald already has inner/outer defined, make new emerald
     if (((n & MASK_OUTER) == n && (last_emerald.value & MASK_OUTER) == 0) ||
-	((n & MASK_INNER) == n && (last_emerald.value & MASK_INNER) == 0)) {
-	last_emerald.value += n;
-	last_emerald.update();
-	return;
+        ((n & MASK_INNER) == n && (last_emerald.value & MASK_INNER) == 0)) {
+        last_emerald.value += n;
+        last_emerald.update();
+        return;
     }
 
     // Add a new one!
@@ -520,6 +520,8 @@ function add_input(v="", editable=true) {
     document.getElementById("emeralds").appendChild(input);
 
     emeralds.push(input);
+
+    emeralds[emeralds.length - 1].focus();
 }
 
 function clear_div(div) {
@@ -745,7 +747,7 @@ function populate_characters() {
             character == 0,
         );
 
-	this_emerald.canvas.onclick = () => { quick_enter_glyph(Number(this_emerald.value)) };
+        this_emerald.canvas.onclick = () => { quick_enter_glyph(Number(this_emerald.value)) };
 
         let input = document.createElement("input");
         input.value = characters[character];
@@ -819,6 +821,9 @@ function first_load() {
     document.getElementById("update_phrase_button").onclick = () => { add_phrase(); };
 
     document.getElementById("start_add_phrase").onclick = () => { start_add_phrase(); };
+
+    document.getElementById("load_manual").onclick = () => { add_manual(); };
+    document.getElementById("load_phonemes").onclick = () => { add_phonemes(); };
 
     // Load previous data
     load_from_local_storage();
