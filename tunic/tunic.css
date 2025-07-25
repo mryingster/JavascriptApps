@@ -3,7 +3,6 @@ body {
 }
 
 #instructions {
-    max-width: 1200px;
 }
 
 #emeralds_container {
@@ -24,8 +23,12 @@ body {
 .spacer {
     display: inline-block;
     vertical-align: bottom;
-    height: 72px;
     margin: 0 10px;
+    height: 77px;
+    font-style: italic;
+    font-family: serif;
+    font-weight: bold;
+    font-size: 1.5em;
 }
 
 .character {
@@ -88,7 +91,7 @@ body {
 }
 
 .edit_button {
-    margin: 5px 10px 0px 0px;
+    margin: 5px 10px 5px 0px;
 }
 
 .phrase {
@@ -136,4 +139,46 @@ body {
 
 .clickable:hover {
     cursor: pointer;
+}
+
+.collapsible {
+    background-color: #ddffdd;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 1.25em;
+    font-weight: bold;
+    border-radius: 10px;
+}
+
+.active, .collapsible:hover {
+    background-color: #aaddaa;
+}
+
+.collapsible:after {
+    content: '▸';
+    font-weight: bold;
+    float: left;
+    font-size: 1.25em;
+    margin-right: 5px;
+    margin-top: -5px;
+}
+
+.active:after {
+    content: "▾";
+}
+
+.collapsible_content {
+    margin-bottom: 10px;
+    margin-top: -20px;
+    padding: 18px 18px 0px 18px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+    border-radius: 10px;
+    border: 1px solid #aaddaa;
+    background-color: #fefefe;
 }

@@ -16,20 +16,37 @@
       <h1>Tunic Decoder</h1>
 
       <div id="instructions">
-        <a href="images/memo_large.png" style="float:right;"><img src="images/memo_small.png" width="400px"></a>
 
         <p>This is a decoding assistant for the game <a href="https://en.wikipedia.org/wiki/Tunic_(video_game)">Tunic</a>. The goal of this assistant is to provide a means of cataloging phrases encountered in the game, and to assign meanings to each glyph.</p>
-        <p>I am making assumptions about the language based on the memo page seen to the right:
-          <ul>
-            <li>The glyphs appear to be separated by "inner" and "outer" lines.</li>
-            <li>The inner lines appear to get read before the outer lines</li>
-            <li>This language is based on sounds, not English letter substitution</li>
-          </ul>
-        </p>
 
-        <p>To use this page, build phrases you encounter using the Phrase Builder below. Once you submit a phrase, it will be saved to the phrases, and unique words and characters will be gathered in their respective locations below. You can assign anything you want to each character, and then the phrase and word translations will automatically be updated. </p>
+       <button class="collapsible">Assumptions</button>
+       <div class="collapsible_content">
+         <a href="images/memo_large.png" style="float:right;"><img src="images/memo_small.png" width="400px"></a>
+         <p>I am making assumptions about the language based on the memo page seen to the right:
+           <ul>
+             <li>Glyphs are limited to the set shown on the memo page. Glyphs outside of that set will be red</li>
+             <li>The glyphs appear to be separated by "inner" and "outer" lines.</li>
+             <li>The inner lines appear to get read before the outer lines</li>
+             <li>This language is based on sounds, not English letter substitution</li>
+           </ul>
+         </p>
+       </div>
 
-        <p><a id="load_manual" href="#">Click here</a> to load the phrases found in the manual. <a id="load_phonemes" href="#"> Click here</a> to load my solution to the translation.
+       <button class="collapsible">How to Use</button>
+       <div class="collapsible_content">
+         <p>To use this page, build phrases you encounter using the Phrase Builder below. Once you submit a phrase, it will be saved to the phrases, and unique characters will be gathered below. You can assign any meaning you want to each character, and then the phrase translations will automatically be updated. </p>
+       </div>
+
+       <button class="collapsible">Helps & Cheats</button>
+       <div class="collapsible_content">
+         <p></p>
+         <ul>
+           <li><a id="load_manual" href="#">Click here</a> to load the phrases found in the manual.</li>
+           <li><a id="load_known_characters" href="#">Click here</a> to load the known glyphs to assist with entering phrases.</li>
+           <li><a id="load_phonemes" href="#"> Click here</a> to load my solution to the translation. That would be not fun though, so don't do it.</li>
+           <li><a id="reset" href="#">Reset</a>.</li>
+         </ul>
+       </div>
       </div>
 
       <div id="word_builder" class="hidden">
@@ -75,4 +92,23 @@
       </div>
     </div>
   </body>
+
+  <script>
+
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.maxHeight){
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
+        });
+}
+  </script>
+
 </html>
