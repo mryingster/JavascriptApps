@@ -13,7 +13,7 @@ class segment {
 }
 
 class emerald {
-    constructor(parent, index, interactive, unselected_color, inside_color, outside_color, wordline_color, size, value, debug, wordline) {
+    constructor(parent, index, interactive, unselected_color, inside_color, outside_color, invalid_color, wordline_color, size, value, debug, wordline) {
         this.canvas = document.createElement("canvas");
         this.canvas.classList.add("emerald");
         this.ctx = this.canvas.getContext("2d");
@@ -31,6 +31,7 @@ class emerald {
         this.unselected_color = unselected_color;
         this.selected_inside_color = inside_color;
         this.selected_outside_color = outside_color;
+	this.invalid_color = invalid_color;
         this.wordline_color = wordline_color;
 
         this.interactive = interactive;
@@ -365,6 +366,15 @@ class emerald {
 
         this.draw_background();
 
+	// Decide if character is valid or not
+	let inner_valid = false;
+	if (valid_characters.includes(this.value & MASK_INNER))
+	    inner_valid = true;
+
+	let outer_valid = false;
+	if (valid_characters.includes(this.value & MASK_OUTER))
+	    outer_valid = true;
+
         // Draw highlighted segments
         let i = 0;
         while (this.value >> i > 0) {
@@ -373,15 +383,20 @@ class emerald {
                 if (i + 1 == this.segments.length) {
                     this.draw_circle(
                         this.circledo,
-                        this.selected_inside_color
+                        this.wordline_color,
                     );
                     break;
                 }
 
                 let color = this.selected_outside_color;
+		if (!outer_valid)
+		    color = this.invalid_color;
 
-                if ((1 << i) >= MASK_OUTER)
+                if ((1 << i) >= MASK_OUTER) {
                     color = this.selected_inside_color;
+		    if (!inner_valid)
+			color = this.invalid_color;
+		}
 
                 this.draw_line(this.segments[i], color);
             }
@@ -436,6 +451,8 @@ let phrases    = [];
 let words      = [];
 let characters = {};
 
+let valid_characters = [0, 1, 2, 3, 5, 6, 7, 8, 12, 13, 15, 16, 23, 24, 27, 28, 29, 30, 31, 160, 416, 1280, 2368, 2592, 2624, 2656, 2688, 2720, 2784, 2848, 2880, 2912, 3136, 3168, 3264, 3392, 3552, 3616, 3648, 3776, 3904, 4000, 4064];
+
 const MASK_INNER       = 4064;
 const MASK_OUTER       = 31;
 const MASK_LINES       = 4095;
@@ -448,6 +465,7 @@ const COLOR_LIGHT_GREY   = "rgba(230, 230, 230, 1)";
 const COLOR_BRIGHT_GREEN = "rgba(0, 200, 0, 1)"
 const COLOR_DARK_GREEN   = "rgba(0, 150, 0, 1)";
 const COLOR_BROWN        = "rgba(90, 60, 40, 1)";
+const COLOR_DARK_RED     = "rgba(200, 0, 0, 1)";
 
 // Add main emerald
 function add_emerald(value=0) {
@@ -464,7 +482,8 @@ function add_emerald(value=0) {
             COLOR_LIGHT_GREY,           // Unlit Color
             COLOR_BRIGHT_GREEN,         // Lit Color
             COLOR_DARK_GREEN,           // Lit Color
-            COLOR_BROWN,            // Word Line Color
+	    COLOR_DARK_RED,             // Invalid Color
+            COLOR_BROWN,                // Word Line Color
             GLYPH_SIZE_LARGE,           // Horizontal Size
             value,                      // Initial Value
             true,                       // Enable Debug Text
@@ -567,8 +586,8 @@ function delete_phrase(i) {
 
 function add_phrase(i=-1) {
     let new_phrase = {
-        characters: [],
         comment: "",
+        characters: [],
     };
 
     // Create new phrase from phrase!
@@ -697,6 +716,7 @@ function populate_phrases() {
                     COLOR_TRANSPARENT,          // Unlit Color
                     COLOR_BRIGHT_GREEN,         // Lit Color
                     COLOR_DARK_GREEN,           // Lit Color
+		    COLOR_DARK_RED,             // Invalid Color
                     COLOR_BROWN,
                     GLYPH_SIZE_SMALL,
                     character,
@@ -769,6 +789,7 @@ function populate_characters() {
             COLOR_TRANSPARENT,          // Unlit Color
             COLOR_BRIGHT_GREEN,         // Lit Color
             COLOR_DARK_GREEN,           // Lit Color
+	    COLOR_DARK_RED,             // Invalid Color
             COLOR_BROWN,
             GLYPH_SIZE_SMALL,
             character,
@@ -778,6 +799,7 @@ function populate_characters() {
 
         this_emerald.canvas.onclick = () => { quick_enter_glyph(Number(this_emerald.value)) };
         this_emerald.canvas.classList.add("clickable");
+	this_emerald.canvas.title = character;
 
         let input = document.createElement("input");
         input.value = characters[character];
@@ -836,6 +858,21 @@ function clear_local_data() {
     localStorage.setItem("tunic", "{}");
 }
 
+function reset() {
+    clear_div("characters_inner");
+    clear_div("characters_outer");
+    clear_div("characters_other");
+    clear_div("phrases");
+
+    clear_emeralds();
+
+    phrases = [];
+    words = [];
+    characters = {};
+
+    clear_local_data();
+}
+
 function first_load() {
     // Setup buttons
     document.getElementById("add_emerald").onclick = () => { add_emerald(); };
@@ -854,7 +891,9 @@ function first_load() {
     document.getElementById("start_add_phrase").onclick = () => { start_add_phrase(); };
 
     document.getElementById("load_manual").onclick = () => { add_manual(); };
-    document.getElementById("load_phonemes").onclick = () => { add_phonemes(); };
+    document.getElementById("load_known_characters").onclick = () => { add_phonemes(false); };
+    document.getElementById("load_phonemes").onclick = () => { add_phonemes(true); };
+    document.getElementById("reset").onclick = () => { reset(); };
 
     // Load previous data
     load_from_local_storage();
