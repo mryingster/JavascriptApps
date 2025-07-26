@@ -450,6 +450,7 @@ let emeralds   = [];
 let phrases    = [];
 let words      = [];
 let characters = {};
+let word_tree  = {};
 
 let valid_characters = [0, 1, 2, 3, 5, 6, 7, 8, 12, 13, 15, 16, 23, 24, 27, 28, 29, 30, 31, 160, 416, 1280, 2368, 2592, 2624, 2656, 2688, 2720, 2784, 2848, 2880, 2912, 3136, 3168, 3264, 3392, 3552, 3616, 3648, 3776, 3904, 4000, 4064];
 
@@ -613,6 +614,7 @@ function add_phrase(i=-1) {
     // Update words and characters
     add_words_from_phrase(new_phrase);
     add_characters_from_words();
+    populate_phrases_selection();
 
     populate_phrases_characters();
 }
@@ -680,7 +682,6 @@ function populate_phrases_selection() {
     select.onchange = () => { populate_phrases(select.value) };
 
     for (let [index, phrase] in phrases) {
-	console.log(index, phrase)
 	let option = document.createElement("option");
 	option.innerHTML = phrases[index].comment;
 	option.value = index;
@@ -688,7 +689,53 @@ function populate_phrases_selection() {
     }
 }
 
+function lookup_word_meaning(word) {
+    let path = word_tree;
+    for (let i=0; i<word.length; i++) {
+	let character = word[i];
+	if (!(character in path))
+	    return "??";
+	path = path[character];
+	if (i == word.length - 1 && "word" in path)
+	    return path['word']
+    }
+
+    return "??";
+}
+
+function update_word_meaning(word, meaning) {
+    console.log(word, meaning);
+
+    let path = word_tree;
+    for (let n=0; n<word.length; n++){
+	let character = word[n];
+	if (!(character in path)){
+            path[character] = {};
+	}
+	path = path[character];
+	if (n == word.length -1){
+            path['word'] = meaning;
+	}
+    }
+
+    populate_phrases_characters();
+}
+
+function create_word_entry(word) {
+    let word_entry = document.createElement("span");
+    word_entry.contentEditable = true;
+    word_entry.classList.add("english_input");
+    word_entry.classList.add("word_input");
+    word_entry.word = word;
+    word_entry.onblur = () => { update_word_meaning(word_entry.word, word_entry.innerHTML); };
+    word_entry.innerHTML = lookup_word_meaning(word);
+
+    return word_entry;
+}
+
 function populate_phrases(index=0) {
+    index = Number(index);
+    if (index < 0) index = 0;
     clear_div("phrases");
 
     let phrase = phrases[index];
@@ -716,11 +763,16 @@ function populate_phrases(index=0) {
 
     // Create list of characters that make up the phrase
     let word_div = null;
+    let word = [];
     for (let character of phrase.characters) {
         if (typeof character === "string") {
 	    if (word_div != null) {
+		let word_entry = create_word_entry(word);
+		word_div.appendChild(word_entry);
+
 		phrase_div.appendChild(word_div);
 		word_div = null;
+		word = [];
 	    }
 
 	    // Strings and Spaces!
@@ -734,6 +786,8 @@ function populate_phrases(index=0) {
 		word_div = document.createElement("div");
 		word_div.classList.add("word_wrapper");
 	    }
+
+	    word.push(character);
 
 	    // Glyphs!
             let character_div = document.createElement("div");
@@ -775,8 +829,12 @@ function populate_phrases(index=0) {
         }
     }
     if (word_div != null) {
+	let word_entry = create_word_entry(word);
+	word_div.appendChild(word_entry);
+
 	phrase_div.appendChild(word_div);
 	word_div = null;
+	word = [];
     }
 
     document.getElementById("phrases").appendChild(phrase_div);
@@ -848,9 +906,12 @@ function populate_characters() {
     }
 }
 
+function get_selected_phrase() {
+    return document.getElementById("phrase_select").value;
+}
+
 function populate_phrases_characters() {
-    populate_phrases_selection();
-    populate_phrases();
+    populate_phrases(get_selected_phrase());
     populate_characters();
     save_to_local_storage();
 }
@@ -859,6 +920,7 @@ function load_external_phrase(p) {
     phrases.push(p);
     add_words_from_phrase(p);
     add_characters_from_words();
+    populate_phrases_selection();
     populate_phrases_characters();
 }
 
@@ -867,6 +929,7 @@ function save_to_local_storage() {
                          JSON.stringify ({
                              "phrases" : phrases,
                              "characters" : characters,
+			     "words" : word_tree,
                          })
                         );
 }
@@ -881,7 +944,11 @@ function load_from_local_storage() {
     for (let phrase of parsed_data["phrases"]) {
         load_external_phrase(phrase);
     }
+
     characters = parsed_data.characters;
+
+    if ("words" in parsed_data)
+	word_tree = parsed_data.words;
 
     populate_phrases_characters();
 }
@@ -901,6 +968,7 @@ function reset() {
     phrases = [];
     words = [];
     characters = {};
+    word_tree = {};
 
     clear_local_data();
 }
@@ -925,6 +993,7 @@ function first_load() {
     document.getElementById("load_manual").onclick = () => { add_manual(); };
     document.getElementById("load_known_characters").onclick = () => { add_phonemes(false); };
     document.getElementById("load_phonemes").onclick = () => { add_phonemes(true); };
+    document.getElementById("load_words").onclick = () => { add_words(); };
     document.getElementById("reset").onclick = () => { reset(); };
 
     // Load previous data

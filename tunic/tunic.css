@@ -22,8 +22,8 @@ body {
 
 .spacer {
     display: inline-block;
-    vertical-align: bottom;
-    margin: 0 10px;
+    vertical-align: top;
+    margin: 23px 10px;
     height: 77px;
     font-style: italic;
     font-family: serif;
@@ -79,6 +79,7 @@ body {
 
 .word_wrapper {
     display: inline-block;
+    vertical-align: top;
 }
 
 .group > h2 {
@@ -132,6 +133,15 @@ body {
     border-radius: 3px;
     display: inline-block;
     padding: 5px;
+}
+
+.word_input {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    width: 100%;
+    text-align: center;
+    margin-right: unset;
 }
 
 .stacked_button {
