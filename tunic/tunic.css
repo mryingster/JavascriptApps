@@ -77,12 +77,22 @@ body {
     text-align: center;
 }
 
+.word_wrapper {
+    display: inline-block;
+}
+
 .group > h2 {
     margin-top: -35px;
 }
 
 .hidden {
     display: none;
+}
+
+#phrase_select {
+    float: right;
+    margin-top: -35px;
+    margin-right: 50px;
 }
 
 #start_add_phrase {

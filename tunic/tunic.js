@@ -674,81 +674,112 @@ function add_characters_from_words() {
     }
 }
 
-function populate_phrases() {
+function populate_phrases_selection() {
+    let select = document.getElementById("phrase_select");
+    select.innerHTML = "";
+    select.onchange = () => { populate_phrases(select.value) };
+
+    for (let [index, phrase] in phrases) {
+	console.log(index, phrase)
+	let option = document.createElement("option");
+	option.innerHTML = phrases[index].comment;
+	option.value = index;
+	select.appendChild(option);
+    }
+}
+
+function populate_phrases(index=0) {
     clear_div("phrases");
 
-    for (let [index, phrase] of phrases.entries()) {
-        let phrase_div = document.createElement("div");
-        phrase_div.classList.add("phrase")
+    let phrase = phrases[index];
 
-        // Create header with edit button and comment
-        let phrase_header_div = document.createElement("div");
+    let phrase_div = document.createElement("div");
+    phrase_div.classList.add("phrase")
 
-        let edit = document.createElement("button");
-        edit.innerHTML = "✍️";
-        edit.classList.add("edit_button")
-        edit.onclick = () => load_edit_phrase(phrase, index);
-        phrase_header_div.appendChild(edit);
+    // Create header with edit button and comment
+    let phrase_header_div = document.createElement("div");
 
-        if (phrase.comment != "") {
-            let comment = document.createElement("div");
-            comment.innerHTML = phrase.comment;
-            comment.classList.add("comment");
-            phrase_header_div.appendChild(comment);
-        }
+    let edit = document.createElement("button");
+    edit.innerHTML = "✍️";
+    edit.classList.add("edit_button")
+    edit.onclick = () => load_edit_phrase(phrase, index);
+    phrase_header_div.appendChild(edit);
 
-        phrase_div.appendChild(phrase_header_div);
-
-        // Create list of characters that make up the phrase
-        for (let character of phrase.characters) {
-            if (typeof character === "string") {
-                let spacer = document.createElement("div");
-                spacer.classList.add("spacer");
-                spacer.innerHTML = character;
-                phrase_div.appendChild(spacer)
-            } else {
-                let character_div = document.createElement("div");
-                character_div.classList.add("glyph_and_translation");
-                new emerald(
-                    character_div,
-                    null,
-                    false,
-                    COLOR_TRANSPARENT,          // Unlit Color
-                    COLOR_BRIGHT_GREEN,         // Lit Color
-                    COLOR_DARK_GREEN,           // Lit Color
-		    COLOR_DARK_RED,             // Invalid Color
-                    COLOR_BROWN,
-                    GLYPH_SIZE_SMALL,
-                    character,
-                    false,
-                    true,
-                );
-
-                let text = document.createElement("span");
-                text.classList.add("translation");
-                for (let [i, phoneme] of get_phonemes_from_glyph(character).entries()) {
-                    // Add a hyphen between phonemes
-                    if (i>0) {
-                        let hyphen = document.createElement("span");
-                        hyphen.innerHTML = "-";
-                        text.appendChild(hyphen);
-                    }
-
-                    // Add phoneme
-                    let sub_text = document.createElement("span");
-                    sub_text.innerHTML = phoneme.text;
-                    sub_text.onclick = () => { document.getElementById("character_"+phoneme.value).focus() };
-		    sub_text.classList.add("clickable");
-                    text.appendChild(sub_text);
-                }
-                character_div.appendChild(text);
-
-                phrase_div.appendChild(character_div);
-            }
-        }
-
-        document.getElementById("phrases").appendChild(phrase_div);
+    if (phrase.comment != "") {
+        let comment = document.createElement("div");
+        comment.innerHTML = phrase.comment;
+        comment.classList.add("comment");
+        phrase_header_div.appendChild(comment);
     }
+
+    phrase_div.appendChild(phrase_header_div);
+
+    // Create list of characters that make up the phrase
+    let word_div = null;
+    for (let character of phrase.characters) {
+        if (typeof character === "string") {
+	    if (word_div != null) {
+		phrase_div.appendChild(word_div);
+		word_div = null;
+	    }
+
+	    // Strings and Spaces!
+            let spacer = document.createElement("div");
+            spacer.classList.add("spacer");
+            spacer.innerHTML = character;
+            phrase_div.appendChild(spacer)
+
+        } else {
+	    if (word_div == null) {
+		word_div = document.createElement("div");
+		word_div.classList.add("word_wrapper");
+	    }
+
+	    // Glyphs!
+            let character_div = document.createElement("div");
+            character_div.classList.add("glyph_and_translation");
+            new emerald(
+                character_div,
+                null,
+                false,
+                COLOR_TRANSPARENT,          // Unlit Color
+                COLOR_BRIGHT_GREEN,         // Lit Color
+                COLOR_DARK_GREEN,           // Lit Color
+		COLOR_DARK_RED,             // Invalid Color
+                COLOR_BROWN,
+                GLYPH_SIZE_SMALL,
+                character,
+                false,
+                true,
+            );
+
+            let text = document.createElement("span");
+            text.classList.add("translation");
+            for (let [i, phoneme] of get_phonemes_from_glyph(character).entries()) {
+                // Add a hyphen between phonemes
+                if (i>0) {
+                    let hyphen = document.createElement("span");
+                    hyphen.innerHTML = "-";
+                    text.appendChild(hyphen);
+                }
+
+                // Add phoneme
+                let sub_text = document.createElement("span");
+                sub_text.innerHTML = phoneme.text;
+                sub_text.onclick = () => { document.getElementById("character_"+phoneme.value).focus() };
+		sub_text.classList.add("clickable");
+                text.appendChild(sub_text);
+            }
+            character_div.appendChild(text);
+	    word_div.appendChild(character_div);
+        }
+    }
+    if (word_div != null) {
+	phrase_div.appendChild(word_div);
+	word_div = null;
+    }
+
+    document.getElementById("phrases").appendChild(phrase_div);
 }
 
 function load_edit_phrase(phrase, index) {
@@ -818,6 +849,7 @@ function populate_characters() {
 }
 
 function populate_phrases_characters() {
+    populate_phrases_selection();
     populate_phrases();
     populate_characters();
     save_to_local_storage();
