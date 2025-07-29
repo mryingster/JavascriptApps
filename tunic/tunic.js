@@ -1044,6 +1044,26 @@ function load_external_phrase(p) {
     populate_phrases_characters();
 }
 
+function export_json() {
+    const filename = 'tunic_data.json';
+    const jsonStr = JSON.stringify ({
+        "phrases" : phrases,
+        "characters" : characters,
+        "words" : word_tree,
+    }, null, "  ");
+
+    let element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(jsonStr));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
+
 function save_to_local_storage() {
     localStorage.setItem("tunic",
                          JSON.stringify ({
@@ -1117,6 +1137,7 @@ function first_load() {
     document.getElementById("load_phonemes").onclick = () => { add_phonemes(true); };
     document.getElementById("load_words").onclick = () => { add_words(); };
     document.getElementById("reset").onclick = () => { reset(); };
+    document.getElementById("export").onclick = () => { export_json(); };
 
     // Load previous data
     load_from_local_storage();
