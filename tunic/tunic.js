@@ -13,19 +13,21 @@ class segment {
 }
 
 class emerald {
-    constructor(parent, index, interactive, unselected_color, inside_color, outside_color, invalid_color, wordline_color, size, value, show_phoneme, show_wordline) {
+    constructor(parent, sibling, interactive, unselected_color, inside_color, outside_color, invalid_color, wordline_color, size, value, show_phoneme, show_wordline) {
         this.canvas = document.createElement("canvas");
         this.canvas.classList.add("emerald");
         this.ctx = this.canvas.getContext("2d");
-        parent.appendChild(this.canvas);
 
-        this.index = index;
+        if (sibling === null)
+            parent.appendChild(this.canvas);
+        else    
+            parent.children[sibling].after(this.canvas);
 
         this.size = size;
         this.initial_value = value;
-	this.value;
-	this.inner_value;
-	this.outer_value;
+        this.value;
+        this.inner_value;
+        this.outer_value;
         this.set_value(value);
 
         this.selected = false;
@@ -209,9 +211,9 @@ class emerald {
     }
 
     set_value(v) {
-	this.value = v;
-	this.inner_value = v & MASK_INNER;
-	this.outer_value = v & MASK_OUTER;
+        this.value = v;
+        this.inner_value = v & MASK_INNER;
+        this.outer_value = v & MASK_OUTER;
 
     }
 
@@ -280,11 +282,6 @@ class emerald {
         this.highlighted_segment = null;
         this.mouse_down = false;
         this.update();
-    }
-
-    delete_emerald() {
-        this.canvas.parentNode.removeChild(this.canvas);
-        emeralds.splice(this.index, 1);
     }
 
     toggle_segment(i) {
@@ -458,7 +455,9 @@ class emerald {
 }
 
 let emeralds   = [];
+let emerald_selection = 0;
 let phrases    = [];
+let selected_phrase = 0;
 let words      = [];
 let characters = {};
 let word_tree  = {};
@@ -482,28 +481,56 @@ const COLOR_BROWN        = "rgba(90, 60, 40, 1)";
 const COLOR_DARK_RED     = "rgba(200, 0, 0, 1)";
 
 // Add main emerald
+function create_emerald(value=0, parent, sibling_index) {
+    return new emerald(
+        parent,
+        sibling_index,
+        true,                       // Interactive
+        COLOR_LIGHT_GREY,           // Unlit Color
+        COLOR_BRIGHT_GREEN,         // Lit Color
+        COLOR_DARK_GREEN,           // Lit Color
+        COLOR_DARK_RED,             // Invalid Color
+        COLOR_BROWN,                // Word Line Color
+        GLYPH_SIZE_LARGE,           // Horizontal Size
+        value,                      // Initial Value
+        true,                       // Enable Phoneme Text
+        true,                       // Enable Wordline
+    );
+}
+
 function add_emerald(value=0) {
     if (typeof value === "string") {
         add_input(value, true);
         return;
     }
 
-    emeralds.push(
-        new emerald(
-            document.getElementById("emeralds"),
-            emeralds.length,            // Index
-            true,                       // Interactive
-            COLOR_LIGHT_GREY,           // Unlit Color
-            COLOR_BRIGHT_GREEN,         // Lit Color
-            COLOR_DARK_GREEN,           // Lit Color
-            COLOR_DARK_RED,             // Invalid Color
-            COLOR_BROWN,                // Word Line Color
-            GLYPH_SIZE_LARGE,           // Horizontal Size
-            value,                      // Initial Value
-            true,                       // Enable Phoneme Text
-            true,                       // Enable Wordline
-        )
-    );
+    emeralds.push(create_emerald(value, document.getElementById("emeralds"), null));
+
+    emerald_selection++;
+    reset_cursor_selection();
+
+    return;
+}
+
+function insert_emerald(value=0) {
+    if (emerald_selection < 0) {
+        add_emerald(value);
+        return
+    }
+
+    if (typeof value === "string") {
+        insert_input(value, true);
+        return;
+    }
+
+    // Insert after current selection
+    let emerald = create_emerald(value, document.getElementById("emeralds"), emerald_selection);
+    emeralds.splice(emerald_selection + 1, 0, emerald);
+
+    emerald_selection++;
+    reset_cursor_selection();
+
+    return;    
 }
 
 function quick_enter_glyph(n) {
@@ -526,24 +553,23 @@ function quick_enter_glyph(n) {
 
     // Add a new one!
     add_emerald(Number(n));
+
     return;
 }
 
-function delete_last_character() {
-    let last_character = emeralds[emeralds.length-1];
+function delete_selected_character() {
+    let last_character = emeralds[emerald_selection];
     if (last_character.canvas == undefined)
         document.getElementById("emeralds").removeChild(last_character);
     else
         document.getElementById("emeralds").removeChild(last_character.canvas);
 
-    emeralds.splice(emeralds.length - 1, 1);
+    emeralds.splice(emerald_selection, 1);
+    move_cursor_left();
+    reset_cursor_selection();
 }
 
-function add_space() {
-    add_input("&nbsp;", false);
-}
-
-function add_input(v="", editable=true) {
+function create_input(v="", editable=true) {
     let input = document.createElement("span");
     if (editable == true)
         input.contentEditable = true;
@@ -555,11 +581,42 @@ function add_input(v="", editable=true) {
     }
     input.oninput = () => { input.value = input.innerHTML; };
 
-    document.getElementById("emeralds").appendChild(input);
+    return input;
+}
 
+function add_input(v="", editable=true) {
+    let input = create_input(v, editable);
+    document.getElementById("emeralds").appendChild(input);
     emeralds.push(input);
 
+    emerald_selection++;
+    reset_cursor_selection();
+    return;
+}
+
+function insert_input(v="", editable=true) {
+    if (emerald_selection < 0) {
+        add_input(v, editable);
+        return
+    }
+
+    let input = create_input(v, editable);
+    document.getElementById("emeralds").children[emerald_selection].after(input); 
+    emeralds.splice(emerald_selection + 1, 0, input);
+
     emeralds[emeralds.length - 1].focus();
+
+    emerald_selection++;
+    reset_cursor_selection();
+    return;
+}
+
+function add_space() {
+    add_input("&nbsp;", false);
+}
+
+function insert_space() {
+    insert_input("&nbsp;", false);
 }
 
 function clear_div(div) {
@@ -574,6 +631,35 @@ function reset_emeralds() {
 function clear_emeralds() {
     clear_div("emeralds");
     emeralds = [];
+    emerald_selection = -1;
+}
+
+function move_cursor_left() {
+    if (emeralds.length === 0)
+        emerald_selection = -1;
+    else
+        emerald_selection = Math.max(0, emerald_selection - 1);
+    reset_cursor_selection();
+}
+
+function move_cursor_right() {
+    if (emeralds.length === 0)
+        emerald_selection = -1;
+    else
+        emerald_selection = Math.min(emeralds.length - 1, emerald_selection + 1);
+    reset_cursor_selection();
+}
+
+function reset_cursor_selection() {
+    let emeralds = document.getElementById("emeralds");
+
+    var children = emeralds.children;
+    for (var i = 0; i < children.length; i++) {
+        var child = children[i];
+        child.classList.remove("selected");
+        if (i === emerald_selection)
+            child.classList.add("selected");
+    }
 }
 
 function start_add_phrase() {
@@ -629,7 +715,6 @@ function add_phrase(i=-1) {
     add_words_from_phrase(new_phrase);
     add_characters_from_words();
     populate_phrases_selection();
-
     populate_phrases_characters();
 }
 
@@ -637,9 +722,9 @@ function get_phoneme_string_from_glyph(value) {
     let phonemes =  get_phonemes_from_glyph(value);
     let string = "";
     for (let [i, phoneme] of phonemes.entries()) {
-	string += phoneme.text;
-	if (i < phonemes.length - 1)
-	    string += "-";
+        string += phoneme.text;
+        if (i < phonemes.length - 1)
+            string += "-";
     }
     return string;
 }
@@ -707,12 +792,13 @@ function populate_phrases_selection() {
     select.onchange = () => { populate_phrases(select.value) };
 
     for (let index=0; index < phrases.length; index++) {
-        console.log(index, phrases[index])
         let option = document.createElement("option");
         option.innerHTML = phrases[index].comment;
         option.value = index;
         select.appendChild(option);
     }
+
+    select.value = Math.min(selected_phrase, phrases.length -1 );
 }
 
 function lookup_word_meaning(word) {
@@ -730,8 +816,6 @@ function lookup_word_meaning(word) {
 }
 
 function update_word_meaning(word, meaning) {
-    console.log(word, meaning);
-
     let path = word_tree;
     for (let n=0; n<word.length; n++){
         let character = word[n];
@@ -759,9 +843,15 @@ function create_word_entry(word) {
     return word_entry;
 }
 
-function populate_phrases(index=0) {
+function populate_phrases(index=-1) {
+    if (index == -1)
+        index = selected_phrase;
+
     index = Number(index);
     if (index < 0) index = 0;
+    if (index > phrases.length - 1) index = phrases.length - 1;
+    selected_phrase = index;
+
     clear_div("phrases");
 
     let phrase = phrases[index];
@@ -915,7 +1005,7 @@ function populate_characters() {
         this_emerald.canvas.onclick = () => { quick_enter_glyph(Number(this_emerald.value)) };
         this_emerald.canvas.classList.add("clickable");
 
-	if (debug)
+        if (debug)
             this_emerald.canvas.title = character;
 
         let input = document.createElement("input");
@@ -935,11 +1025,13 @@ function populate_characters() {
 }
 
 function get_selected_phrase() {
-    return document.getElementById("phrase_select").value;
+    selected_phrase = document.getElementById("phrase_select").value;
+    console.log(selected_phrase);
+    return selected_phrase;
 }
 
 function populate_phrases_characters() {
-    populate_phrases(get_selected_phrase());
+    populate_phrases(selected_phrase);
     populate_characters();
     save_to_local_storage();
 }
@@ -1003,10 +1095,12 @@ function reset() {
 
 function first_load() {
     // Setup buttons
-    document.getElementById("add_emerald").onclick = () => { add_emerald(); };
-    document.getElementById("add_space").onclick = () => { add_space(); };
-    document.getElementById("add_input").onclick = () => { add_input(); };
-    document.getElementById("delete").onclick = () => { delete_last_character(); };
+    document.getElementById("insert_emerald").onclick = () => { insert_emerald(); };
+    document.getElementById("insert_space").onclick = () => { insert_space(); };
+    document.getElementById("insert_input").onclick = () => { insert_input(); };
+    document.getElementById("delete").onclick = () => { delete_selected_character(); };
+    document.getElementById("move_cursor_left").onclick = () => { move_cursor_left(); };
+    document.getElementById("move_cursor_right").onclick = () => { move_cursor_right(); };
 
     document.getElementById("cancel_add_phrase").onclick = () => { cancel_add_phrase(); };
     document.getElementById("reset_emeralds").onclick = () => { reset_emeralds(); };

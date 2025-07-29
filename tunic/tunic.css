@@ -163,10 +163,19 @@ body {
     margin: 4px;
 }
 
+.stacked_half_button {
+    display: inline-block;
+    width: 51px;
+    margin-right: -4px;
+    height: 38px;
+    margin-left: 4px;
+}
+
 #emerald_edit {
     display: inline-block;
     vertical-align: top;
     margin-top: 28px;
+    margin-bottom: 28px;
 }
 
 .clickable:hover {
@@ -213,4 +222,9 @@ body {
     border-radius: 10px;
     border: 1px solid #aaddaa;
     background-color: #fefefe;
+}
+
+.selected {
+    box-shadow: rgba(0, 128, 0, 0.5) 0px 5px 15px;
+    background: rgba(128, 255, 128, .1);
 }
