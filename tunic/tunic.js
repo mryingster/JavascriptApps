@@ -31,7 +31,7 @@ class emerald {
         this.unselected_color = unselected_color;
         this.selected_inside_color = inside_color;
         this.selected_outside_color = outside_color;
-	this.invalid_color = invalid_color;
+        this.invalid_color = invalid_color;
         this.wordline_color = wordline_color;
 
         this.interactive = interactive;
@@ -366,14 +366,14 @@ class emerald {
 
         this.draw_background();
 
-	// Decide if character is valid or not
-	let inner_valid = false;
-	if (valid_characters.includes(this.value & MASK_INNER))
-	    inner_valid = true;
+        // Decide if character is valid or not
+        let inner_valid = false;
+        if (valid_characters.includes(this.value & MASK_INNER))
+            inner_valid = true;
 
-	let outer_valid = false;
-	if (valid_characters.includes(this.value & MASK_OUTER))
-	    outer_valid = true;
+        let outer_valid = false;
+        if (valid_characters.includes(this.value & MASK_OUTER))
+            outer_valid = true;
 
         // Draw highlighted segments
         let i = 0;
@@ -389,14 +389,14 @@ class emerald {
                 }
 
                 let color = this.selected_outside_color;
-		if (!outer_valid)
-		    color = this.invalid_color;
+                if (!outer_valid)
+                    color = this.invalid_color;
 
                 if ((1 << i) >= MASK_OUTER) {
                     color = this.selected_inside_color;
-		    if (!inner_valid)
-			color = this.invalid_color;
-		}
+                    if (!inner_valid)
+                        color = this.invalid_color;
+                }
 
                 this.draw_line(this.segments[i], color);
             }
@@ -483,7 +483,7 @@ function add_emerald(value=0) {
             COLOR_LIGHT_GREY,           // Unlit Color
             COLOR_BRIGHT_GREEN,         // Lit Color
             COLOR_DARK_GREEN,           // Lit Color
-	    COLOR_DARK_RED,             // Invalid Color
+            COLOR_DARK_RED,             // Invalid Color
             COLOR_BROWN,                // Word Line Color
             GLYPH_SIZE_LARGE,           // Horizontal Size
             value,                      // Initial Value
@@ -582,6 +582,7 @@ function cancel_add_phrase() {
 function delete_phrase(i) {
     cancel_add_phrase();
     phrases.splice(i, 1);
+    populate_phrases_selection();
     populate_phrases_characters();
 }
 
@@ -681,23 +682,24 @@ function populate_phrases_selection() {
     select.innerHTML = "";
     select.onchange = () => { populate_phrases(select.value) };
 
-    for (let [index, phrase] in phrases) {
-	let option = document.createElement("option");
-	option.innerHTML = phrases[index].comment;
-	option.value = index;
-	select.appendChild(option);
+    for (let index=0; index < phrases.length; index++) {
+        console.log(index, phrases[index])
+        let option = document.createElement("option");
+        option.innerHTML = phrases[index].comment;
+        option.value = index;
+        select.appendChild(option);
     }
 }
 
 function lookup_word_meaning(word) {
     let path = word_tree;
     for (let i=0; i<word.length; i++) {
-	let character = word[i];
-	if (!(character in path))
-	    return "??";
-	path = path[character];
-	if (i == word.length - 1 && "word" in path)
-	    return path['word']
+        let character = word[i];
+        if (!(character in path))
+            return "??";
+        path = path[character];
+        if (i == word.length - 1 && "word" in path)
+            return path['word']
     }
 
     return "??";
@@ -708,14 +710,14 @@ function update_word_meaning(word, meaning) {
 
     let path = word_tree;
     for (let n=0; n<word.length; n++){
-	let character = word[n];
-	if (!(character in path)){
+        let character = word[n];
+        if (!(character in path)){
             path[character] = {};
-	}
-	path = path[character];
-	if (n == word.length -1){
+        }
+        path = path[character];
+        if (n == word.length -1){
             path['word'] = meaning;
-	}
+        }
     }
 
     populate_phrases_characters();
@@ -766,30 +768,30 @@ function populate_phrases(index=0) {
     let word = [];
     for (let character of phrase.characters) {
         if (typeof character === "string") {
-	    if (word_div != null) {
-		let word_entry = create_word_entry(word);
-		word_div.appendChild(word_entry);
+            if (word_div != null) {
+                let word_entry = create_word_entry(word);
+                word_div.appendChild(word_entry);
 
-		phrase_div.appendChild(word_div);
-		word_div = null;
-		word = [];
-	    }
+                phrase_div.appendChild(word_div);
+                word_div = null;
+                word = [];
+            }
 
-	    // Strings and Spaces!
+            // Strings and Spaces!
             let spacer = document.createElement("div");
             spacer.classList.add("spacer");
             spacer.innerHTML = character;
             phrase_div.appendChild(spacer)
 
         } else {
-	    if (word_div == null) {
-		word_div = document.createElement("div");
-		word_div.classList.add("word_wrapper");
-	    }
+            if (word_div == null) {
+                word_div = document.createElement("div");
+                word_div.classList.add("word_wrapper");
+            }
 
-	    word.push(character);
+            word.push(character);
 
-	    // Glyphs!
+            // Glyphs!
             let character_div = document.createElement("div");
             character_div.classList.add("glyph_and_translation");
             new emerald(
@@ -799,7 +801,7 @@ function populate_phrases(index=0) {
                 COLOR_TRANSPARENT,          // Unlit Color
                 COLOR_BRIGHT_GREEN,         // Lit Color
                 COLOR_DARK_GREEN,           // Lit Color
-		COLOR_DARK_RED,             // Invalid Color
+                COLOR_DARK_RED,             // Invalid Color
                 COLOR_BROWN,
                 GLYPH_SIZE_SMALL,
                 character,
@@ -821,20 +823,20 @@ function populate_phrases(index=0) {
                 let sub_text = document.createElement("span");
                 sub_text.innerHTML = phoneme.text;
                 sub_text.onclick = () => { document.getElementById("character_"+phoneme.value).focus() };
-		sub_text.classList.add("clickable");
+                sub_text.classList.add("clickable");
                 text.appendChild(sub_text);
             }
             character_div.appendChild(text);
-	    word_div.appendChild(character_div);
+            word_div.appendChild(character_div);
         }
     }
     if (word_div != null) {
-	let word_entry = create_word_entry(word);
-	word_div.appendChild(word_entry);
+        let word_entry = create_word_entry(word);
+        word_div.appendChild(word_entry);
 
-	phrase_div.appendChild(word_div);
-	word_div = null;
-	word = [];
+        phrase_div.appendChild(word_div);
+        word_div = null;
+        word = [];
     }
 
     document.getElementById("phrases").appendChild(phrase_div);
@@ -878,7 +880,7 @@ function populate_characters() {
             COLOR_TRANSPARENT,          // Unlit Color
             COLOR_BRIGHT_GREEN,         // Lit Color
             COLOR_DARK_GREEN,           // Lit Color
-	    COLOR_DARK_RED,             // Invalid Color
+            COLOR_DARK_RED,             // Invalid Color
             COLOR_BROWN,
             GLYPH_SIZE_SMALL,
             character,
@@ -888,7 +890,7 @@ function populate_characters() {
 
         this_emerald.canvas.onclick = () => { quick_enter_glyph(Number(this_emerald.value)) };
         this_emerald.canvas.classList.add("clickable");
-	this_emerald.canvas.title = character;
+        this_emerald.canvas.title = character;
 
         let input = document.createElement("input");
         input.value = characters[character];
@@ -929,7 +931,7 @@ function save_to_local_storage() {
                          JSON.stringify ({
                              "phrases" : phrases,
                              "characters" : characters,
-			     "words" : word_tree,
+                             "words" : word_tree,
                          })
                         );
 }
@@ -948,7 +950,7 @@ function load_from_local_storage() {
     characters = parsed_data.characters;
 
     if ("words" in parsed_data)
-	word_tree = parsed_data.words;
+        word_tree = parsed_data.words;
 
     populate_phrases_characters();
 }
