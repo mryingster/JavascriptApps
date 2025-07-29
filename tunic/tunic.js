@@ -13,7 +13,7 @@ class segment {
 }
 
 class emerald {
-    constructor(parent, index, interactive, unselected_color, inside_color, outside_color, invalid_color, wordline_color, size, value, debug, wordline) {
+    constructor(parent, index, interactive, unselected_color, inside_color, outside_color, invalid_color, wordline_color, size, value, show_phoneme, show_wordline) {
         this.canvas = document.createElement("canvas");
         this.canvas.classList.add("emerald");
         this.ctx = this.canvas.getContext("2d");
@@ -23,7 +23,11 @@ class emerald {
 
         this.size = size;
         this.initial_value = value;
-        this.value = value;
+	this.value;
+	this.inner_value;
+	this.outer_value;
+        this.set_value(value);
+
         this.selected = false;
         this.linewidth = size/10;
         this.margin = this.linewidth + 3;
@@ -35,8 +39,8 @@ class emerald {
         this.wordline_color = wordline_color;
 
         this.interactive = interactive;
-        this.debug = debug;
-        this.wordline = wordline;
+        this.phoneme = show_phoneme;
+        this.wordline = show_wordline;
 
         this.width = this.size;
         this.height = this.size * 2;
@@ -204,6 +208,13 @@ class emerald {
         this.update();
     }
 
+    set_value(v) {
+	this.value = v;
+	this.inner_value = v & MASK_INNER;
+	this.outer_value = v & MASK_OUTER;
+
+    }
+
     // Input Functions
     getTouchPosition(overlay, event) {
         if (!e) var e = event;
@@ -278,7 +289,7 @@ class emerald {
 
     toggle_segment(i) {
         if (i === null) return;
-        this.value ^= 1 << i;
+        this.set_value(this.value ^ 1 << i);
         this.update();
     }
 
@@ -368,11 +379,11 @@ class emerald {
 
         // Decide if character is valid or not
         let inner_valid = false;
-        if (valid_characters.includes(this.value & MASK_INNER))
+        if (valid_characters.includes(this.inner_value))
             inner_valid = true;
 
         let outer_valid = false;
-        if (valid_characters.includes(this.value & MASK_OUTER))
+        if (valid_characters.includes(this.outer_value))
             outer_valid = true;
 
         // Draw highlighted segments
@@ -430,13 +441,13 @@ class emerald {
             this.draw_line(this.word_segment, this.wordline_color);
         };
 
-        // Add debug text
-        if (this.debug) {
+        // Add phonemes in empty space
+        if (this.phoneme) {
             this.ctx.font = this.height / 10 + "px Arial";
             this.ctx.textAlign = "center";
             this.ctx.fillStyle = this.selected_inside_color;
             this.ctx.fillText(
-                this.value,
+                get_phoneme_string_from_glyph(this.value),
                 this.width / 2,
                 (this.height / 6) * 3.75
             );
@@ -453,6 +464,8 @@ let characters = {};
 let word_tree  = {};
 
 let valid_characters = [0, 1, 2, 3, 5, 6, 7, 8, 12, 13, 15, 16, 23, 24, 27, 28, 29, 30, 31, 160, 416, 1280, 2368, 2592, 2624, 2656, 2688, 2720, 2784, 2848, 2880, 2912, 3136, 3168, 3264, 3392, 3552, 3616, 3648, 3776, 3904, 4000, 4064];
+
+const debug = true;
 
 const MASK_INNER       = 4064;
 const MASK_OUTER       = 31;
@@ -487,7 +500,7 @@ function add_emerald(value=0) {
             COLOR_BROWN,                // Word Line Color
             GLYPH_SIZE_LARGE,           // Horizontal Size
             value,                      // Initial Value
-            true,                       // Enable Debug Text
+            true,                       // Enable Phoneme Text
             true,                       // Enable Wordline
         )
     );
@@ -618,6 +631,17 @@ function add_phrase(i=-1) {
     populate_phrases_selection();
 
     populate_phrases_characters();
+}
+
+function get_phoneme_string_from_glyph(value) {
+    let phonemes =  get_phonemes_from_glyph(value);
+    let string = "";
+    for (let [i, phoneme] of phonemes.entries()) {
+	string += phoneme.text;
+	if (i < phonemes.length - 1)
+	    string += "-";
+    }
+    return string;
 }
 
 function get_phonemes_from_glyph(g) {
@@ -890,7 +914,9 @@ function populate_characters() {
 
         this_emerald.canvas.onclick = () => { quick_enter_glyph(Number(this_emerald.value)) };
         this_emerald.canvas.classList.add("clickable");
-        this_emerald.canvas.title = character;
+
+	if (debug)
+            this_emerald.canvas.title = character;
 
         let input = document.createElement("input");
         input.value = characters[character];
