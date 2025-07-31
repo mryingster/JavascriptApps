@@ -273,7 +273,8 @@ class emerald {
         e.preventDefault();
         this.mouse_down = false;
         let pos = this.getCursorPosition(this.canvas, e);
-        this.toggle_segment(this.closest_segment(pos));
+        if (!this.toggle_segment(this.closest_segment(pos)))
+	    move_cursor_to_index(this.canvas.index);
         this.update();
     }
 
@@ -285,9 +286,10 @@ class emerald {
     }
 
     toggle_segment(i) {
-        if (i === null) return;
+        if (i === null) return false;
         this.set_value(this.value ^ 1 << i);
         this.update();
+	return true;
     }
 
     closest_segment(p) {
@@ -578,14 +580,21 @@ function delete_selected_character() {
 
 function create_input(v="", editable=true) {
     let input = document.createElement("span");
-    if (editable == true)
+
+    if (editable == true) {
         input.contentEditable = true;
+	input.index=3;
+	input.onfocus = () => { move_cursor_to_index(input.index); };
+    }
+
     input.classList.add("english_input");
     input.placeholder = "String";
+
     if (v != "") {
         input.innerHTML = v;
         input.value = v;
     }
+
     input.oninput = () => { input.value = input.innerHTML; };
 
     return input;
@@ -657,16 +666,31 @@ function move_cursor_right() {
     reset_cursor_selection();
 }
 
-function reset_cursor_selection() {
-    let emeralds = document.getElementById("emeralds");
+function move_cursor_to_index(i) {
+    emerald_selection = i;
+    reset_cursor_selection();
+}
 
-    var children = emeralds.children;
+function reset_cursor_selection() {
+    reindex_emeralds();
+
+    let emeralds = document.getElementById("emeralds");
+    let children = emeralds.children;
+
     for (var i = 0; i < children.length; i++) {
         var child = children[i];
         child.classList.remove("selected");
         if (i === emerald_selection)
             child.classList.add("selected");
     }
+}
+
+function reindex_emeralds() {
+    let emeralds = document.getElementById("emeralds");
+    let children = emeralds.children;
+
+    for (var i = 0; i < children.length; i++)
+        children[i].index = i;
 }
 
 function start_add_phrase() {
@@ -764,26 +788,10 @@ function get_phonemes_from_glyph(g) {
     return meaning;
 }
 
-function add_words_from_phrase(new_phrase) {
-    // Create new word from characters
-    let new_word = [];
-    for (let character of new_phrase.characters) {
-        if (character === " ") {
-            words.push(new_word);
-            new_word = [];
-            continue;
-        }
-        new_word.push(character);
-    }
-    if (new_word.length > 0)
-        words.push(new_word);
-}
-
 function add_characters_from_phrases() {
     // Update our unique characters
     for (let phrase of phrases) {
         for (let full_character of phrase.characters) {
-	    console.log(phrase, full_character)
             for (let mask of [MASK_INNER, MASK_OUTER]) {
                 let character = full_character & mask;
                 if (characters[character] === undefined)
@@ -1033,7 +1041,6 @@ function populate_characters() {
 
 function get_selected_phrase() {
     selected_phrase = document.getElementById("phrase_select").value;
-    console.log(selected_phrase);
     return selected_phrase;
 }
 
