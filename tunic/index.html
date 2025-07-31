@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html>
+x<html>
   <head>
     <title>Tunic Decoder</title>
     <meta charset="utf-8" />
@@ -39,15 +39,20 @@
 
        <button class="collapsible">Helps & Cheats</button>
        <div class="collapsible_content">
-         <p></p>
-         <ul>
-           <li><a id="load_manual" href="#">Click here</a> to load the phrases found in the manual.</li>
-           <li><a id="load_known_characters" href="#">Click here</a> to load the known glyphs to assist with entering phrases.</li>
-           <li><a id="load_phonemes" href="#"> Click here</a> to load my solution to the character translation. That would be not fun though, so don't do it.</li>
-           <li><a id="load_words" href="#"> Click here</a> to load my solution to the word translations. That would be even less fun!</li>
-           <li><a id="reset" href="#">Reset</a>. This will delete your local data.</li>
-           <li><a id="export" href="#">Export</a> your data as a JSON file.</li>
-         </ul>
+         <h2>Helps</h2>
+         <button id="reset">Reset Local Data</button>
+         <button id="export">Export to JSON</button>
+         <p>
+           Import JSON data: <input type="file" id="import" accept=".json">
+         </p>
+         <h2>Cheats</h2>
+         <p>Pressing these buttons would not be fun. Don't do it!</p>
+         <p>
+           <button id="load_manual" href="#">Load Manual Phrases</button>
+           <button id="load_known_characters" href="#">Load Known Glyphs</button>
+           <button id="load_phonemes" href="#">Load Solved Phonemes</button>
+           <button id="load_words" href="#">Load Solved Words</button>
+         </p>
        </div>
       </div>
 

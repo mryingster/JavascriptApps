@@ -274,7 +274,7 @@ class emerald {
         this.mouse_down = false;
         let pos = this.getCursorPosition(this.canvas, e);
         this.toggle_segment(this.closest_segment(pos));
-	move_cursor_to_index(this.canvas.index);
+        move_cursor_to_index(this.canvas.index);
         this.update();
     }
 
@@ -582,8 +582,8 @@ function create_input(v="", editable=true) {
 
     if (editable == true) {
         input.contentEditable = true;
-	input.index=3;
-	input.onfocus = () => { move_cursor_to_index(input.index); };
+        input.index = emerald_selection+1;
+        input.onfocus = () => { move_cursor_to_index(input.index); };
     }
 
     input.classList.add("english_input");
@@ -619,19 +619,17 @@ function insert_input(v="", editable=true) {
     document.getElementById("emeralds").children[emerald_selection].after(input);
     emeralds.splice(emerald_selection + 1, 0, input);
 
-    emeralds[emeralds.length - 1].focus();
-
     emerald_selection++;
     reset_cursor_selection();
     return;
 }
 
 function add_space() {
-    add_input("&nbsp;", false);
+    add_input("&nbsp;", true);
 }
 
 function insert_space() {
-    insert_input("&nbsp;", false);
+    insert_input("&nbsp;", true);
 }
 
 function clear_div(div) {
@@ -672,7 +670,7 @@ function move_cursor_to_index(i) {
 
 function reset_cursor_selection() {
     reindex_emeralds();
-
+    console.log("mike", emerald_selection)
     let emeralds = document.getElementById("emeralds");
     let children = emeralds.children;
 
@@ -1076,6 +1074,22 @@ function export_json() {
     document.body.removeChild(element);
 }
 
+function import_json() {
+    let files = document.getElementById('import').files;
+
+    if (files.length <= 0)
+        return false;
+
+    let fr = new FileReader();
+    fr.onload = function(e) {
+        let parsed_data = JSON.parse(e.target.result);
+        load_from_json(parsed_data);
+
+    }
+
+    fr.readAsText(files.item(0));
+}
+
 function save_to_local_storage() {
     localStorage.setItem("tunic",
                          JSON.stringify ({
@@ -1093,6 +1107,10 @@ function load_from_local_storage() {
     if (saved_data)
         parsed_data = JSON.parse(saved_data);
 
+    load_from_json(parsed_data);
+}
+
+function load_from_json(parsed_data) {
     for (let phrase of parsed_data["phrases"]) {
         load_external_phrase(phrase);
     }
@@ -1103,6 +1121,7 @@ function load_from_local_storage() {
         word_tree = parsed_data.words;
 
     populate_phrases_characters();
+
 }
 
 function clear_local_data() {
@@ -1147,8 +1166,11 @@ function first_load() {
     document.getElementById("load_known_characters").onclick = () => { add_phonemes(false); };
     document.getElementById("load_phonemes").onclick = () => { add_phonemes(true); };
     document.getElementById("load_words").onclick = () => { add_words(); };
+
     document.getElementById("reset").onclick = () => { reset(); };
     document.getElementById("export").onclick = () => { export_json(); };
+    document.getElementById('import').onchange = () => { import_json(); };
+
 
     // Load previous data
     load_from_local_storage();
