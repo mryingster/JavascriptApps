@@ -273,8 +273,8 @@ class emerald {
         e.preventDefault();
         this.mouse_down = false;
         let pos = this.getCursorPosition(this.canvas, e);
-        if (!this.toggle_segment(this.closest_segment(pos)))
-	    move_cursor_to_index(this.canvas.index);
+        this.toggle_segment(this.closest_segment(pos));
+	move_cursor_to_index(this.canvas.index);
         this.update();
     }
 
@@ -286,10 +286,9 @@ class emerald {
     }
 
     toggle_segment(i) {
-        if (i === null) return false;
+        if (i === null) return;
         this.set_value(this.value ^ 1 << i);
         this.update();
-	return true;
     }
 
     closest_segment(p) {
