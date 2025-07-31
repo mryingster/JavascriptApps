@@ -20,7 +20,7 @@ class emerald {
 
         if (sibling === null)
             parent.appendChild(this.canvas);
-        else    
+        else
             parent.children[sibling].after(this.canvas);
 
         this.size = size;
@@ -458,11 +458,18 @@ let emeralds   = [];
 let emerald_selection = 0;
 let phrases    = [];
 let selected_phrase = 0;
-let words      = [];
 let characters = {};
 let word_tree  = {};
 
-let valid_characters = [0, 1, 2, 3, 5, 6, 7, 8, 12, 13, 15, 16, 23, 24, 27, 28, 29, 30, 31, 160, 416, 1280, 2368, 2592, 2624, 2656, 2688, 2720, 2784, 2848, 2880, 2912, 3136, 3168, 3264, 3392, 3552, 3616, 3648, 3776, 3904, 4000, 4064];
+let valid_characters = [
+       0,    1,    2,    3,    5,    6,    7,
+       8,   12,   13,   15,   16,   23,   24,
+      27,   28,   29,   30,   31,
+     160,  416, 1280, 2368, 2592, 2624, 2656,
+    2688, 2720, 2784, 2848, 2880, 2912, 3136,
+    3168, 3264, 3392, 3552, 3616, 3648, 3776,
+    3904, 4000, 4064
+];
 
 const debug = true;
 
@@ -530,7 +537,7 @@ function insert_emerald(value=0) {
     emerald_selection++;
     reset_cursor_selection();
 
-    return;    
+    return;
 }
 
 function quick_enter_glyph(n) {
@@ -601,7 +608,7 @@ function insert_input(v="", editable=true) {
     }
 
     let input = create_input(v, editable);
-    document.getElementById("emeralds").children[emerald_selection].after(input); 
+    document.getElementById("emeralds").children[emerald_selection].after(input);
     emeralds.splice(emerald_selection + 1, 0, input);
 
     emeralds[emeralds.length - 1].focus();
@@ -712,8 +719,7 @@ function add_phrase(i=-1) {
     document.getElementById("start_add_phrase").disabled = false;
 
     // Update words and characters
-    add_words_from_phrase(new_phrase);
-    add_characters_from_words();
+    add_characters_from_phrases();
     populate_phrases_selection();
     populate_phrases_characters();
 }
@@ -773,10 +779,11 @@ function add_words_from_phrase(new_phrase) {
         words.push(new_word);
 }
 
-function add_characters_from_words() {
+function add_characters_from_phrases() {
     // Update our unique characters
-    for (let word of words) {
-        for (let full_character of word) {
+    for (let phrase of phrases) {
+        for (let full_character of phrase.characters) {
+	    console.log(phrase, full_character)
             for (let mask of [MASK_INNER, MASK_OUTER]) {
                 let character = full_character & mask;
                 if (characters[character] === undefined)
@@ -1038,8 +1045,7 @@ function populate_phrases_characters() {
 
 function load_external_phrase(p) {
     phrases.push(p);
-    add_words_from_phrase(p);
-    add_characters_from_words();
+    add_characters_from_phrases();
     populate_phrases_selection();
     populate_phrases_characters();
 }
@@ -1106,7 +1112,6 @@ function reset() {
     clear_emeralds();
 
     phrases = [];
-    words = [];
     characters = {};
     word_tree = {};
 
