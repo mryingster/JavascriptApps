@@ -670,7 +670,6 @@ function move_cursor_to_index(i) {
 
 function reset_cursor_selection() {
     reindex_emeralds();
-    console.log("mike", emerald_selection)
     let emeralds = document.getElementById("emeralds");
     let children = emeralds.children;
 

@@ -26,6 +26,8 @@ body {
 
 #emeralds > .emerald {
     margin-left: -25px;
+    margin-bottom: 15px;
+    border-radius: 25px;
 }
 
 .emerald {
