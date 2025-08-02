@@ -54,10 +54,10 @@
             let a = i+1; // Index after
 
             // In even lettered palindrome case, we will advance the after forward 1
-            if (input[i] == input[a])
+            if (input[i] == input[a] && input[i] != input[i-1])
                 a++;
 
-            // expand outward and see if it's a palindrome
+            // expand outward and see if it is a palindrome
             while (input[b] == input[a]) {
                 b--;
                 a++;
