@@ -620,6 +620,8 @@ function insert_input(v="", editable=true) {
     emeralds.splice(emerald_selection + 1, 0, input);
 
     emerald_selection++;
+    document.getElementById("emeralds").children[emerald_selection].focus();
+
     reset_cursor_selection();
     return;
 }
