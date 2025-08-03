@@ -1,0 +1,76 @@
+<!doctype html>
+  <head>
+    <title>Ponies</title>
+    <meta name="viewport" content="width=500px, user-scalable=no">
+    <link rel="stylesheet" type="text/css" media="screen" href="ponies.css">
+    <link rel="stylesheet" type="text/css" media="print" href="print.css">
+  </head>
+  <body>
+    <div id="content">
+
+      <object data="ponies.svg" id="ponies" type="image/svg+xml" width="100%" height="90%"></object>
+
+      <br>
+
+      <div id="controls"></div>
+
+    </div>
+  </body>
+
+  <script>
+
+let svg = document.getElementById("ponies");
+let svg_document;
+
+function populate_menus() {
+    let parent = document.getElementById("controls");
+
+    for (let category of svg_document.getElementById("options").children) {
+        // Create pull down for this thing
+        let option_container = document.createElement("div")
+        option_container.classList.add("option_container");
+
+        let select = document.createElement("select");
+        select.id = "select_"+category.id;
+        select.onchange = () => { update(); };
+
+        for (let sub_option of category.children) {
+            let option = document.createElement("option")
+            option.innerHTML = sub_option.id;
+            option.value = sub_option.id;
+            select.appendChild(option);
+        }
+
+        let title = document.createElement("span");
+        title.innerHTML = category.id;
+
+        option_container.appendChild(title);
+        option_container.appendChild(select);
+        parent.appendChild(option_container);
+    }
+}
+
+function update() {
+    for (let category of svg_document.getElementById("options").children) {
+        let select = document.getElementById("select_"+category.id);
+        let value = select.value;
+
+        for (let sub_option of category.children) {
+            sub_option.classList.add("hidden");
+        }
+
+        svg_document.getElementById(value).classList.remove("hidden");
+    }
+}
+
+function first_run() {
+    svg_document = document.getElementById("ponies").contentDocument;
+
+    populate_menus();
+    update();
+}
+
+svg.onload = () => { first_run() };
+
+  </script>
+</html>
