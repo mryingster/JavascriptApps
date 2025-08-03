@@ -1,3 +1,9 @@
 #controls {
     display: none;
 }
+
+#ponies {
+    width: 95vw;
+    height: 95vh;
+    margin: auto;
+}
