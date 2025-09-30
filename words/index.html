@@ -97,6 +97,7 @@ const UNKNOWN  = 1;
 const NOTUSED  = 2;
 const WRONGPOS = 3;
 const RIGHTPOS = 4;
+const CLICKED  = 5;
 
 const KEY    = 1;
 const WORD   = 2;
@@ -119,22 +120,32 @@ overlay.addEventListener('touchstart', input_start_touch, false);
 overlay.addEventListener('touchmove',  input_move_touch, false);
 overlay.addEventListener('touchend',   input_end_touch, false);
 
-function getTouchPosition(overlay, event){
-    if (!e)
-        var e = event;
+function getTouchPosition(element, event) {
+    event = event || window.event;
 
-    var x = null;
-    var y = null;
+    // pick the touch point if present, otherwise mouse
+    const point = (event.touches && event.touches.length) ? event.touches[0]
+          : (event.changedTouches && event.changedTouches.length) ? event.changedTouches[0]
+          : event;
 
-    if(e.touches) {
-        if (e.touches.length == 1) { // Only deal with one finger
-            var touch = e.touches[0]; // Get the information for finger #1
-            x = touch.pageX-touch.target.offsetLeft;
-            y = touch.pageY-touch.target.offsetTop - (tile_height*3); // Adjust y because apple messes things up!
-        }
+    // use clientX/Y so coords are in the same coordinate space as getBoundingClientRect()
+    const clientX = point.clientX;
+    const clientY = point.clientY;
+    if (clientX == null || clientY == null) return { x: null, y: null };
+
+    const rect = element.getBoundingClientRect();
+    let x = clientX - rect.left;
+    let y = clientY - rect.top;
+
+    // If element is a canvas with a different backing pixel size, map to canvas coords:
+    if (element instanceof HTMLCanvasElement) {
+	const scaleX = element.width  / rect.width;
+	const scaleY = element.height / rect.height;
+	x *= scaleX;
+	y *= scaleY;
     }
 
-    return {x:x, y:y};
+    return { x: x, y: y };
 }
 
 function input_start_touch(e){
@@ -143,8 +154,12 @@ function input_start_touch(e){
 
     if (selected == null) return;
 
+    // Make buttons highlight when clicked
+    tiles[selected].clicked = true;;
+
     mouse_down = true;
     e.preventDefault();
+    draw_state();
 }
 
 function input_move_touch(e){
@@ -181,12 +196,10 @@ function input_down_mouse(e){
     if (selected == null) return;
 
     // Make buttons highlight when clicked
-    if (tiles[selected].type == BUTTON){
-        tiles[selected].state = NOTUSED;
-        draw_state();
-    }
+    tiles[selected].clicked = true;;
 
     mouse_down = true;
+    draw_state();
 }
 
 function input_move_mouse(e){
@@ -200,6 +213,8 @@ function input_up_mouse(e){
 
 function input_up(pos){
     if (mouse_down == false) return;
+    for (tile of tiles)
+	tile.clicked = false;
 
     let mouse_over = select_move_tile(pos);
 
@@ -364,6 +379,26 @@ function canvas_draw_rounded_rectangle(ctx, x, y, width, height, radius){
     ctx.fill();
 }
 
+function darkenHSL(hslString, amount) {
+    // Extract h, s, l with regex
+    const match = hslString.match(/hsl\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*\)/i);
+    if (!match) {
+	throw new Error("Invalid HSL format");
+    }
+
+    let [ , h, s, l ] = match;
+    h = Number(h);
+    s = Number(s);
+    l = Number(l);
+
+    l = l * (1-amount);
+
+    // Clamp between 0–100
+    l = Math.max(0, Math.min(100, l));
+
+    return `hsl(${h}, ${s}%, ${l}%)`;
+}
+
 function canvas_draw_tile(ctx, x, y, width, height, tile){
     if (tile == null){
         //canvas_draw_area(ctx, x, y, tile_height);
@@ -372,19 +407,21 @@ function canvas_draw_tile(ctx, x, y, width, height, tile){
 
     // Select color
     let text_color = "#000000";
-    let color = '#d8d8d8';
+    let color = 'hsl(0, 0%, 84.71%)';
     if (tile['state'] == NOTUSED){
         text_color = "#ffffff";
-        color = '#86888a';
+        color = 'hsl(210, 1.68%, 53.33%)';
     }
     if (tile['state'] == RIGHTPOS){
         text_color = "#ffffff";
-        color = '#6aaa64';
+        color = 'hsl(114.86, 29.17%, 52.94%)';
     }
     if (tile['state'] == WRONGPOS){
         text_color = "#ffffff";
-        color = '#c9b458';
+        color = 'hsl(48.85, 51.13%, 56.67%)';
     }
+    if (tile.clicked)
+	color = darkenHSL(color, .25);
 
     // Draw square
     ctx.fillStyle = color;
