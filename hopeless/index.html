@@ -46,6 +46,14 @@
 // Comment
 
 function recursiveDelete(x, y, c){
+    // Add block to explosion list!
+    explosions.push ({
+	"position": {"x" : x * square_size, "y" : y * square_size},
+	"velocity": {"x" : Math.random() * 20 - 10, "y" : -30},
+	"color":    colors[c],
+    });
+
+    // Delete block
     array[y][x] = 0;
 
     if (y < array.length-1)
@@ -57,7 +65,7 @@ function recursiveDelete(x, y, c){
     if (x > 0)
 	if (array[y][x-1] == c) recursiveDelete(x-1, y, c);
 
-    return;	
+    return;
 }
 
 function isValidMove(x, y, c){
@@ -86,47 +94,40 @@ function isGameOver(){
 }
 
 function shiftDown(){
-    var did_something = true;
-    while (did_something == true){
-	did_something = false;
-	for (var y=array.length-1; y>0; y--){
-	    for (var x=0; x<array[y].length; x++){
-		if (array[y][x] == 0 && array[y-1][x] != 0){
-		    array[y][x] = array[y-1][x];
-		    array[y-1][x] = 0
+    var did_something = false;
+    for (var y=array.length-1; y>0; y--){
+	for (var x=0; x<array[y].length; x++){
+	    if (array[y][x] == 0 && array[y-1][x] != 0){
+		array[y][x] = array[y-1][x];
+		array[y-1][x] = 0
+		did_something = true;
+	    }
+	}
+    }
+    return did_something;
+}
+
+function shiftLeft(){
+    let did_something = false;
+    for (var x=0; x<array[0].length-1; x++){
+	var column_empty = true;
+	for (var y=0; y<array.length; y++){
+	    if (array[y][x] != 0){
+		column_empty = false;
+		break;
+	    }
+	}
+	if (column_empty == true){
+	    for (var y=0; y<array.length; y++){
+		array[y][x] = array[y][x+1];
+		array[y][x+1] = 0;
+		if (array[y][x] != 0){
 		    did_something = true;
 		}
 	    }
 	}
     }
-    return;
-	
-}
-
-function shiftLeft(){
-    var did_something = true;
-    while (did_something == true){
-	did_something = false;
-	for (var x=0; x<array[0].length-1; x++){
-	    var column_empty = true;
-	    for (var y=0; y<array.length; y++){
-		if (array[y][x] != 0){
-		    column_empty = false;
-		    break;
-		}
-	    }
-	    if (column_empty == true){
-		for (var y=0; y<array.length; y++){
-		    array[y][x] = array[y][x+1];
-		    array[y][x+1] = 0;
-		    if (array[y][x] != 0){
-			did_something = true;
-		    }
-		}
-	    }
-	}
-    }
-    return;
+    return did_something;
 }
 
 function makeMove(x, y){
@@ -140,16 +141,10 @@ function makeMove(x, y){
     // Call recursive function to delete touching color
     recursiveDelete(x, y, this_color);
 
-    // Shift remaining blocks down and to left
-    shiftDown();
-    shiftLeft();
-
-    // Redraw
-    redraw();
+    // Animate
+    animate();
 
     // Check for completion
-    if (isGameOver())
-	window.alert("Game over!");
     return;
 }
 
@@ -192,7 +187,7 @@ const colors = [
 function new_game(){
     var num_colors = Number(document.getElementById("numColors").value);
     moves = 0;
-    
+
     // Shuffle
     array = [];
     for (var y=0; y<height/square_size; y++){
@@ -205,6 +200,67 @@ function new_game(){
 
     // Draw the screen
     redraw();
+}
+
+function moveExplosions() {
+    for (let explosion of explosions) {
+	// Update downward speed
+	explosion.velocity.y += 5;
+
+	// Update x/y coordinates
+	explosion.position.x += explosion.velocity.x;
+	explosion.position.y += explosion.velocity.y;
+
+	// Remove if off screen
+	if (explosion.position.x < 0 || explosion.position.x > canvas.width) explosion.delete = true;
+	if (explosion.position.y < 0 || explosion.position.y > canvas.height) explosion.delete = true;
+    }
+
+    // Prune array
+    let i = 0;
+    while (i < explosions.length) {
+	if (explosions[i].delete == true) {
+	    explosions.splice(i, 1);
+	} else {
+	    i++;
+	}
+    }
+    return;
+}
+
+let timeout;
+let explosions = [];
+let last_frame;
+let percolation_time = 0;
+
+function animate(timestamp) {
+    if (last_frame === undefined) {
+        last_frame = timestamp;
+    }
+
+    const elapsed = timestamp - last_frame;
+    last_frame = timestamp;
+
+    if (!isNaN(elapsed))
+	percolation_time += elapsed;
+    let didSomething = true;
+    if (percolation_time > 70) {
+	didSomething = shiftDown() || shiftLeft();
+	percolation_time = 0;
+    }
+
+    moveExplosions(elapsed);
+
+    redraw();
+
+    if (didSomething || explosions.length > 0) {
+	window.requestAnimationFrame(animate);
+    }
+    else {
+	// Once animation is complete, check for end of game
+	if (isGameOver())
+	    window.alert("Game over!");
+    }
 }
 
 function redraw(){
@@ -233,11 +289,22 @@ function redraw(){
 		blockcount += 1;
     document.getElementById("blocks").innerHTML = blockcount;
 
+    // Draw exploding blocks
+    for (let explosion of explosions) {
+	drawBlock(
+	    ctx,
+	    explosion.position.x,
+	    explosion.position.y,
+	    square_size,
+	    explosion.color,
+	    false, false, false, false,
+	);
+    }
 }
 
 function drawBlock(ctx, x, y, l, c, n, e, s, w){
     const edge = Math.floor(square_size * .25);;
-    
+
     // Fill in background color
     ctx.fillStyle = c[2];
     ctx.fillRect(x, y, l, l);
