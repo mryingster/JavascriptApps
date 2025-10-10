@@ -116,15 +116,24 @@ function getCursorPosition(canvas, event){
 }
 
 function new_game(){
-    var num_colors = Number(document.getElementById("numColors").value);
+    const num_colors = Number(document.getElementById("numColors").value);
     moves = 0;
+
+    // Select random colors
+    let game_colors = [];
+    while (game_colors.length < num_colors) {
+	let color = Math.floor(Math.random() * colors.length);
+	if (game_colors.includes(color) || color == 0)
+	    continue;
+	game_colors.push(color)
+    }
 
     // Shuffle
     array = [];
     for (var y=0; y<height/square_size; y++){
 	var temp = [];
 	for (var x=0; x<width/square_size; x++){
-	    temp.push(Math.floor(Math.random()*num_colors)+1);
+	    temp.push(game_colors[Math.floor(Math.random()*num_colors)]);
 	}
 	array.push(temp);
     }
@@ -193,19 +202,21 @@ function animate(timestamp) {
 }
 
 function redraw(){
-    var c = document.getElementById("canvas");
-    var ctx = c.getContext("2d");
+    // clear screen
+    ctx.clearRect(0, 0, width, height);
 
     // Redraw each block
     for (var y=0; y<array.length; y++){
 	for (var x=0; x<array[y].length; x++){
-	    drawBlock(ctx, x*square_size, y*square_size, square_size,
-		      colors[array[y][x]],
-		      y > 0                 ? array[y][x] == array[y-1][x] : false,
-		      x < array[0].length-1 ? array[y][x] == array[y][x+1] : false,
-		      y < array.length-1    ? array[y][x] == array[y+1][x] : false,
-		      x > 0                 ? array[y][x] == array[y][x-1] : false,
-		     );
+	    if (array[y][x] > 0) {
+		drawBlock(ctx, x*square_size, y*square_size, square_size,
+			  colors[array[y][x]],
+			  y > 0                 ? array[y][x] == array[y-1][x] : false,
+			  x < array[0].length-1 ? array[y][x] == array[y][x+1] : false,
+			  y < array.length-1    ? array[y][x] == array[y+1][x] : false,
+			  x > 0                 ? array[y][x] == array[y][x-1] : false,
+			 );
+	    }
 	}
     }
 
@@ -373,6 +384,7 @@ function drawBlock(ctx, x, y, l, c, n, e, s, w){
 }
 
 let canvas;
+let ctx;
 let width;
 let height;
 let square_size = 32;
@@ -400,10 +412,10 @@ function firstLoad() {
     canvas.addEventListener('mousedown', function(e){
 	getCursorPosition(canvas, e)
     })
+    ctx = canvas.getContext("2d");
 
     width = canvas.width;
     height = canvas.height;
-    square_size = 32;
 
     new_game();
 }

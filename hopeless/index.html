@@ -4,29 +4,34 @@
   <head>
     <title>Hopeless</title>
     <meta charset="utf-8"/>
-    <meta name="viewport" content="width=600px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
+    <meta name="viewport" content="width=800px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
     <link rel="stylesheet" type="text/css" href="hopeless.css" id="style">
     <script src="hopeless.js"></script>
   </head>
 
   <body>
 
-    <div id="content" style="width:768px; margin: 0 auto 0 auto; padding:15px;">
-    <h1>Hopeless</h1>
-    <canvas id="canvas" width="768" height="512" style="border:1px solid black; touch-action: manipulation"></canvas>
-    Number of colors:
-    <select id="numColors">
-    	<option>1</option>
-    	<option>2</option>
-    	<option>3</option>
-    	<option selected>4</option>
-    	<option>5</option>
-    	<option>6</option>
-    	<option>7</option>
-    </select>
-    <button onclick="new_game()">New Game</button>
-    Blocks Left: <span id="blocks">0</span>
-    Moves Taken: <span id="moves">0</span>
+    <div id="content">
+      <h1>Hopeless</h1>
+
+      <div id="settings">
+        Number of colors:
+        <select id="numColors">
+    	  <option>1</option>
+    	  <option>2</option>
+    	  <option>3</option>
+    	  <option selected>4</option>
+    	  <option>5</option>
+    	  <option>6</option>
+    	  <option>7</option>
+        </select>
+        <button onclick="new_game()">New Game</button>
+        Blocks Left: <span id="blocks">0</span>
+        Moves Taken: <span id="moves">0</span>
+      </div>
+
+      <canvas id="canvas" width="768" height="512"></canvas>
+
     </div>
 
   </body>
