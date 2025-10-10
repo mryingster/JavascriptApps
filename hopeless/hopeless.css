@@ -1,0 +1,14 @@
+body {
+    background:#aaa;
+    color:#000;
+    font-family:sans-serif;
+}
+
+div#content {
+    background:#fff;
+}
+
+h1 {
+    margin:10px;
+    font-size:3em;
+}
