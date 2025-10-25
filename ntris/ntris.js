@@ -1674,22 +1674,6 @@ class tetris {
 
 }
 
-const canvas = document.getElementById("canvas");
-
-let tetris_instance = new tetris(canvas);
-
-window.onload = function () {
-    tetris_instance.firstRun();
-}
-
-window.onresize = function () {
-    tetris_instance.resizeGame();
-}
-
-canvas.onclick = function () {
-    tetris_instance.start();
-}
-
 class button {
     constructor(element, can_repeat, action) {
         this.action = action;
@@ -1721,24 +1705,45 @@ class button {
     }
 }
 
-// Gamepad Button Definitions
-let up_button     = new button(document.getElementById("up_button"),     true,  () => tetris_instance.toggleGhostMode());
-let down_button   = new button(document.getElementById("down_button"),   true,  () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.down));
-let left_button   = new button(document.getElementById("left_button"),   true,  () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.left));
-let right_button  = new button(document.getElementById("right_button"),  true,  () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.right))
-let cw_button     = new button(document.getElementById("cw_button"),     false, () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.cw));
-let ccw_button    = new button(document.getElementById("ccw_button"),    false, () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.ccw));
-let drop_button   = new button(document.getElementById("drop_button"),   false, () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.drop));
-let start_button  = new button(document.getElementById("start_button"),  false, () => tetris_instance.start(focus=false));
-let select_button = new button(document.getElementById("select_button"), false, () => tetris_instance.select_button());
+let tetris_instance;
 
-// Keyboard listeners
-//document.addEventListener('keyup', function(e) {});
-document.addEventListener('keydown', function(e) {
-    tetris_instance.user_move(e);
-});
+window.onload = function () {
+    const canvas = document.getElementById("canvas");
 
-// Redraw once fonts have loaded!
-document.fonts.ready.then(function () {
-    tetris_instance.redraw();
-});
+    tetris_instance = new tetris(canvas);
+
+    window.onresize = function () {
+        tetris_instance.resizeGame();
+    }
+
+    canvas.onclick = function () {
+        tetris_instance.start();
+    }
+
+    // Keyboard listeners
+    //document.addEventListener('keyup', function(e) {});
+    document.addEventListener('keydown', function(e) {
+        tetris_instance.user_move(e);
+    });
+
+    // Redraw once fonts have loaded!
+    document.fonts.ready.then(function () {
+        tetris_instance.redraw();
+    });
+
+    // Gamepad Button Definitions
+    const svg = document.getElementById("controller");
+    const svg_document = svg.contentDocument;
+
+    let up_button     = new button(svg_document.getElementById("up_button"),     true,  () => tetris_instance.toggleGhostMode());
+    let down_button   = new button(svg_document.getElementById("down_button"),   true,  () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.down));
+    let left_button   = new button(svg_document.getElementById("left_button"),   true,  () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.left));
+    let right_button  = new button(svg_document.getElementById("right_button"),  true,  () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.right))
+    let cw_button     = new button(svg_document.getElementById("cw_button"),     false, () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.cw));
+    let ccw_button    = new button(svg_document.getElementById("ccw_button"),    false, () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.ccw));
+    let drop_button   = new button(svg_document.getElementById("drop_button"),   false, () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.drop));
+    let start_button  = new button(svg_document.getElementById("start_button"),  false, () => tetris_instance.start(focus=false));
+    qlet select_button = new button(svg_document.getElementById("select_button"), false, () => tetris_instance.select_button());
+
+    tetris_instance.firstRun();
+}
