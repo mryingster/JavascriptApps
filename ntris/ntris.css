@@ -1,0 +1,42 @@
+body {
+    background:#222;
+    color:#000;
+    font-family:sans-serif;
+    margin: 0px;
+}
+
+div#content {
+    margin: 0px auto;
+}
+
+h1 {
+    margin:10px;
+    font-size:3em;
+}
+
+/*Font Faces*/
+@font-face {
+    font-family: "Segmented";
+    src: url('fonts/Segment7Standard.otf');
+}
+
+@font-face {
+    font-family: "SegmentedAlpha";
+    src: url('fonts/Digital7Regular.otf');
+}
+
+g.button {
+    touch-action: manipulation;
+}
+
+.mobile {
+    display:none;
+    user-select: none;
+}
+
+@media (max-width: 991px) {
+    .mobile {
+        display:block !important;
+        touch-action: manipulation;
+    }
+}
