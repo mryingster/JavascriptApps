@@ -1,47 +1,47 @@
 function recursiveDelete(x, y, c){
     // Add block to explosion list!
     explosions.push ({
-	"position": {"x" : x * square_size, "y" : y * square_size},
-	"velocity": {"x" : Math.random() * 20 - 10, "y" : -30},
-	"color":    colors[c],
+        "position": {"x" : x * square_size, "y" : y * square_size},
+        "velocity": {"x" : Math.random() * 20 - 10, "y" : Math.random() * -40},
+        "color":    colors[c],
     });
 
     // Delete block
     array[y][x] = 0;
 
     if (y < array.length-1)
-	if (array[y+1][x] == c) recursiveDelete(x, y+1, c);
+        if (array[y+1][x] == c) recursiveDelete(x, y+1, c);
     if (y > 0)
-	if (array[y-1][x] == c) recursiveDelete(x, y-1, c);
+        if (array[y-1][x] == c) recursiveDelete(x, y-1, c);
     if (x < array[y].length)
-	if (array[y][x+1] == c) recursiveDelete(x+1, y, c);
+        if (array[y][x+1] == c) recursiveDelete(x+1, y, c);
     if (x > 0)
-	if (array[y][x-1] == c) recursiveDelete(x-1, y, c);
+        if (array[y][x-1] == c) recursiveDelete(x-1, y, c);
 
     return;
 }
 
 function isValidMove(x, y, c){
     if (y < array.length-1)
-	if (array[y+1][x] == c) return true;
+        if (array[y+1][x] == c) return true;
     if (y > 0)
-	if (array[y-1][x] == c) return true;
+        if (array[y-1][x] == c) return true;
     if (x < array[y].length)
-	if (array[y][x+1] == c) return true;
+        if (array[y][x+1] == c) return true;
     if (x > 0)
-	if (array[y][x-1] == c) return true;
+        if (array[y][x-1] == c) return true;
     return false;
 }
 
 function isGameOver(){
     for (var y=0; y<array.length; y++){
-	for (var x=0; x<array[y].length; x++){
-	    if (array[y][x] > 0){
-		if (isValidMove(x, y, array[y][x])){
-		    return false;
-		}
-	    }
-	}
+        for (var x=0; x<array[y].length; x++){
+            if (array[y][x] > 0){
+                if (isValidMove(x, y, array[y][x])){
+                    return false;
+                }
+            }
+        }
     }
     return true;
 }
@@ -49,13 +49,13 @@ function isGameOver(){
 function shiftDown(){
     var did_something = false;
     for (var y=array.length-1; y>0; y--){
-	for (var x=0; x<array[y].length; x++){
-	    if (array[y][x] == 0 && array[y-1][x] != 0){
-		array[y][x] = array[y-1][x];
-		array[y-1][x] = 0
-		did_something = true;
-	    }
-	}
+        for (var x=0; x<array[y].length; x++){
+            if (array[y][x] == 0 && array[y-1][x] != 0){
+                array[y][x] = array[y-1][x];
+                array[y-1][x] = 0
+                did_something = true;
+            }
+        }
     }
     return did_something;
 }
@@ -63,22 +63,22 @@ function shiftDown(){
 function shiftLeft(){
     let did_something = false;
     for (var x=0; x<array[0].length-1; x++){
-	var column_empty = true;
-	for (var y=0; y<array.length; y++){
-	    if (array[y][x] != 0){
-		column_empty = false;
-		break;
-	    }
-	}
-	if (column_empty == true){
-	    for (var y=0; y<array.length; y++){
-		array[y][x] = array[y][x+1];
-		array[y][x+1] = 0;
-		if (array[y][x] != 0){
-		    did_something = true;
-		}
-	    }
-	}
+        var column_empty = true;
+        for (var y=0; y<array.length; y++){
+            if (array[y][x] != 0){
+                column_empty = false;
+                break;
+            }
+        }
+        if (column_empty == true){
+            for (var y=0; y<array.length; y++){
+                array[y][x] = array[y][x+1];
+                array[y][x+1] = 0;
+                if (array[y][x] != 0){
+                    did_something = true;
+                }
+            }
+        }
     }
     return did_something;
 }
@@ -122,20 +122,20 @@ function new_game(){
     // Select random colors
     let game_colors = [];
     while (game_colors.length < num_colors) {
-	let color = Math.floor(Math.random() * colors.length);
-	if (game_colors.includes(color) || color == 0)
-	    continue;
-	game_colors.push(color)
+        let color = Math.floor(Math.random() * colors.length);
+        if (game_colors.includes(color) || color == 0)
+            continue;
+        game_colors.push(color)
     }
 
     // Shuffle
     array = [];
     for (var y=0; y<height/square_size; y++){
-	var temp = [];
-	for (var x=0; x<width/square_size; x++){
-	    temp.push(game_colors[Math.floor(Math.random()*num_colors)]);
-	}
-	array.push(temp);
+        var temp = [];
+        for (var x=0; x<width/square_size; x++){
+            temp.push(game_colors[Math.floor(Math.random()*num_colors)]);
+        }
+        array.push(temp);
     }
 
     // Draw the screen
@@ -144,34 +144,34 @@ function new_game(){
 
 function moveExplosions(ms) {
     for (let explosion of explosions) {
-	// Update downward speed
-	explosion.velocity.y += 4;
+        // Update downward speed
+        explosion.velocity.y += 4;
 
-	// Update x/y coordinates
-	if (isNaN(ms))
-	    ms = 20;
-	multiplier = ms / 20.0;
-	explosion.position.x += explosion.velocity.x * multiplier;
-	explosion.position.y += explosion.velocity.y * multiplier;
+        // Update x/y coordinates
+        if (isNaN(ms))
+            ms = 20;
+        multiplier = ms / 20.0;
+        explosion.position.x += explosion.velocity.x * multiplier;
+        explosion.position.y += explosion.velocity.y * multiplier;
 
-	// Remove if off screen
-	if (explosion.position.x < 0 || explosion.position.x > canvas.width) explosion.delete = true;
-	if (explosion.position.y > canvas.height) explosion.delete = true;
+        // Remove if off screen
+        if (explosion.position.x < 0 || explosion.position.x > canvas.width) explosion.delete = true;
+        if (explosion.position.y > canvas.height) explosion.delete = true;
     }
 
     // Prune array
     let i = 0;
     while (i < explosions.length) {
-	if (explosions[i].delete == true) {
-	    explosions.splice(i, 1);
-	} else {
-	    i++;
-	}
+        if (explosions[i].delete == true) {
+            explosions.splice(i, 1);
+        } else {
+            i++;
+        }
     }
     return;
 }
 
-function animate(timestamp) {
+function animate(timestamp, perc_delay=70) {
     if (last_frame === undefined) {
         last_frame = timestamp;
     }
@@ -180,11 +180,12 @@ function animate(timestamp) {
     last_frame = timestamp;
 
     if (!isNaN(elapsed))
-	percolation_time += elapsed;
+        percolation_time += elapsed;
     let didSomething = true;
-    if (percolation_time > 70) {
-	didSomething = shiftDown() || shiftLeft();
-	percolation_time = 0;
+
+    if (percolation_time > perc_delay) {
+        didSomething = shiftDown() || shiftLeft();
+        percolation_time = 0;
     }
 
     moveExplosions(elapsed);
@@ -192,53 +193,61 @@ function animate(timestamp) {
     redraw();
 
     if (didSomething || explosions.length > 0) {
-	window.requestAnimationFrame(animate);
+        window.requestAnimationFrame((t) => animate(t, perc_delay *.95));
     }
     else {
-	// Once animation is complete, check for end of game
-	if (isGameOver())
-	    window.alert("Game over!");
+        // Once animation is complete, check for end of game
+        if (isGameOver()) {
+            let message = "You won!";
+            if (getBlockcount() != 0)
+                message = "Better luck next time..."
+            showModal(message);
+        }
     }
 }
 
-function redraw(){
+function getBlockcount() {
+    var blockcount = 0;
+    for (var y=array.length-1; y>0; y--)
+        for (var x=0; x<array[y].length; x++)
+            if (array[y][x] > 0)
+                blockcount += 1;
+    return blockcount;
+}
+
+function redraw() {
     // clear screen
     ctx.clearRect(0, 0, width, height);
 
     // Redraw each block
     for (var y=0; y<array.length; y++){
-	for (var x=0; x<array[y].length; x++){
-	    if (array[y][x] > 0) {
-		drawBlock(ctx, x*square_size, y*square_size, square_size,
-			  colors[array[y][x]],
-			  y > 0                 ? array[y][x] == array[y-1][x] : false,
-			  x < array[0].length-1 ? array[y][x] == array[y][x+1] : false,
-			  y < array.length-1    ? array[y][x] == array[y+1][x] : false,
-			  x > 0                 ? array[y][x] == array[y][x-1] : false,
-			 );
-	    }
-	}
+        for (var x=0; x<array[y].length; x++){
+            if (array[y][x] > 0) {
+                drawBlock(ctx, x*square_size, y*square_size, square_size,
+                          colors[array[y][x]],
+                          y > 0                 ? array[y][x] == array[y-1][x] : false,
+                          x < array[0].length-1 ? array[y][x] == array[y][x+1] : false,
+                          y < array.length-1    ? array[y][x] == array[y+1][x] : false,
+                          x > 0                 ? array[y][x] == array[y][x-1] : false,
+                         );
+            }
+        }
     }
 
     // Update move and block counts
     document.getElementById("moves").innerHTML = moves;
-    var blockcount = 0;
-    for (var y=array.length-1; y>0; y--)
-	for (var x=0; x<array[y].length; x++)
-	    if (array[y][x] > 0)
-		blockcount += 1;
-    document.getElementById("blocks").innerHTML = blockcount;
+    document.getElementById("blocks").innerHTML = getBlockcount();
 
     // Draw exploding blocks
     for (let explosion of explosions) {
-	drawBlock(
-	    ctx,
-	    explosion.position.x,
-	    explosion.position.y,
-	    square_size,
-	    explosion.color,
-	    false, false, false, false,
-	);
+        drawBlock(
+            ctx,
+            explosion.position.x,
+            explosion.position.y,
+            square_size,
+            explosion.color,
+            false, false, false, false,
+        );
     }
 }
 
@@ -251,134 +260,134 @@ function drawBlock(ctx, x, y, l, c, n, e, s, w){
 
     // North Edge
     if (n == false){
-	ctx.beginPath();
-	ctx.moveTo(x, y);
-	if (w == true)
-	    ctx.lineTo(x, y+edge);
-	else
-	    ctx.lineTo(x+edge, y+edge);
-	if (e == true)
-	    ctx.lineTo(x+l, y+edge);
-	else
-	    ctx.lineTo(x+l-edge, y+edge);
-	ctx.lineTo(x+l, y);
-	ctx.fillStyle = c[4];
-	ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        if (w == true)
+            ctx.lineTo(x, y+edge);
+        else
+            ctx.lineTo(x+edge, y+edge);
+        if (e == true)
+            ctx.lineTo(x+l, y+edge);
+        else
+            ctx.lineTo(x+l-edge, y+edge);
+        ctx.lineTo(x+l, y);
+        ctx.fillStyle = c[4];
+        ctx.fill();
     }
 
     // West Edge
     if (w == false){
-	ctx.beginPath();
-	ctx.moveTo(x, y);
-	if (n == true)
-	    ctx.lineTo(x+edge, y);
-	else
-	    ctx.lineTo(x+edge, y+edge);
-	if (s == true)
-	    ctx.lineTo(x+edge, y+l);
-	else
-	    ctx.lineTo(x+edge, y+l-edge);
-	ctx.lineTo(x, y+l);
-	ctx.fillStyle = c[3];
-	ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        if (n == true)
+            ctx.lineTo(x+edge, y);
+        else
+            ctx.lineTo(x+edge, y+edge);
+        if (s == true)
+            ctx.lineTo(x+edge, y+l);
+        else
+            ctx.lineTo(x+edge, y+l-edge);
+        ctx.lineTo(x, y+l);
+        ctx.fillStyle = c[3];
+        ctx.fill();
     }
 
     // East Edge
     if (e == false){
-	ctx.beginPath();
-	ctx.moveTo(x+l, y);
-	if (n == true)
-	    ctx.lineTo(x+l-edge, y);
-	else
-	    ctx.lineTo(x+l-edge, y+edge);
-	if (s == true)
-	    ctx.lineTo(x+l-edge, y+l);
-	else
-	    ctx.lineTo(x+l-edge, y+l-edge);
-	ctx.lineTo(x+l, y+l);
-	ctx.fillStyle = c[1];
-	ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x+l, y);
+        if (n == true)
+            ctx.lineTo(x+l-edge, y);
+        else
+            ctx.lineTo(x+l-edge, y+edge);
+        if (s == true)
+            ctx.lineTo(x+l-edge, y+l);
+        else
+            ctx.lineTo(x+l-edge, y+l-edge);
+        ctx.lineTo(x+l, y+l);
+        ctx.fillStyle = c[1];
+        ctx.fill();
     }
 
     // South Edge
     if (s == false){
-	ctx.beginPath();
-	ctx.moveTo(x, y+l);
-	if (w == true)
-	    ctx.lineTo(x, y+l-edge);
-	else
-	    ctx.lineTo(x+edge, y+l-edge);
-	if (e == true)
-	    ctx.lineTo(x+l, y+l-edge);
-	else
-	    ctx.lineTo(x+l-edge, y+l-edge);
-	ctx.lineTo(x+l, y+l);
-	ctx.fillStyle = c[0];
-	ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y+l);
+        if (w == true)
+            ctx.lineTo(x, y+l-edge);
+        else
+            ctx.lineTo(x+edge, y+l-edge);
+        if (e == true)
+            ctx.lineTo(x+l, y+l-edge);
+        else
+            ctx.lineTo(x+l-edge, y+l-edge);
+        ctx.lineTo(x+l, y+l);
+        ctx.fillStyle = c[0];
+        ctx.fill();
     }
 
     // NW Corner
     if (n == true && w == true){
-	ctx.beginPath();
-	ctx.moveTo(x, y);
-	ctx.lineTo(x+edge, y);
-	ctx.lineTo(x+edge, y+edge);
-	ctx.fillStyle = c[3];
-	ctx.fill();
-	ctx.beginPath();
-	ctx.moveTo(x, y);
-	ctx.lineTo(x, y+edge);
-	ctx.lineTo(x+edge, y+edge);
-	ctx.fillStyle = c[4];
-	ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x+edge, y);
+        ctx.lineTo(x+edge, y+edge);
+        ctx.fillStyle = c[3];
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y+edge);
+        ctx.lineTo(x+edge, y+edge);
+        ctx.fillStyle = c[4];
+        ctx.fill();
     }
 
     // NE Corner
     if (n == true && e == true){
-	ctx.beginPath();
-	ctx.moveTo(x+l, y);
-	ctx.lineTo(x+l-edge, y);
-	ctx.lineTo(x+l-edge, y+edge);
-	ctx.fillStyle = c[1];
-	ctx.fill();
-	ctx.beginPath();
-	ctx.moveTo(x+l, y);
-	ctx.lineTo(x+l, y+edge);
-	ctx.lineTo(x+l-edge, y+edge);
-	ctx.fillStyle = c[4];
-	ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x+l, y);
+        ctx.lineTo(x+l-edge, y);
+        ctx.lineTo(x+l-edge, y+edge);
+        ctx.fillStyle = c[1];
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x+l, y);
+        ctx.lineTo(x+l, y+edge);
+        ctx.lineTo(x+l-edge, y+edge);
+        ctx.fillStyle = c[4];
+        ctx.fill();
     }
 
     // SW Corner
     if (s == true && w == true){
-	ctx.beginPath();
-	ctx.moveTo(x, y+l);
-	ctx.lineTo(x+edge, y+l);
-	ctx.lineTo(x+edge, y+l-edge);
-	ctx.fillStyle = c[3];
-	ctx.fill();
-	ctx.beginPath();
-	ctx.moveTo(x, y+l);
-	ctx.lineTo(x, y+l-edge);
-	ctx.lineTo(x+edge, y+l-edge);
-	ctx.fillStyle = c[0];
-	ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y+l);
+        ctx.lineTo(x+edge, y+l);
+        ctx.lineTo(x+edge, y+l-edge);
+        ctx.fillStyle = c[3];
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y+l);
+        ctx.lineTo(x, y+l-edge);
+        ctx.lineTo(x+edge, y+l-edge);
+        ctx.fillStyle = c[0];
+        ctx.fill();
     }
 
     // SE Corner
     if (s == true && e == true){
-	ctx.beginPath();
-	ctx.moveTo(x+l, y+l);
-	ctx.lineTo(x+l-edge, y+l);
-	ctx.lineTo(x+l-edge, y+l-edge);
-	ctx.fillStyle = c[1];
-	ctx.fill();
-	ctx.beginPath();
-	ctx.moveTo(x+l, y+l);
-	ctx.lineTo(x+l, y+l-edge);
-	ctx.lineTo(x+l-edge, y+l-edge);
-	ctx.fillStyle = c[0];
-	ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x+l, y+l);
+        ctx.lineTo(x+l-edge, y+l);
+        ctx.lineTo(x+l-edge, y+l-edge);
+        ctx.fillStyle = c[1];
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x+l, y+l);
+        ctx.lineTo(x+l, y+l-edge);
+        ctx.lineTo(x+l-edge, y+l-edge);
+        ctx.fillStyle = c[0];
+        ctx.fill();
     }
 
 }
@@ -410,7 +419,7 @@ let percolation_time = 0;
 function firstLoad() {
     canvas = document.querySelector('canvas')
     canvas.addEventListener('mousedown', function(e){
-	getCursorPosition(canvas, e)
+        getCursorPosition(canvas, e)
     })
     ctx = canvas.getContext("2d");
 
