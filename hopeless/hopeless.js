@@ -119,13 +119,75 @@ function new_game(){
     const num_colors = Number(document.getElementById("numColors").value);
     moves = 0;
 
-    // Select random colors
-    let game_colors = [];
-    while (game_colors.length < num_colors) {
-        let color = Math.floor(Math.random() * colors.length);
-        if (game_colors.includes(color) || color == 0)
-            continue;
-        game_colors.push(color)
+    const SIMILAR = 1;
+    const RANDOM = 2;
+    const DIFFERENT = 3;
+    let color_family = Number(document.getElementById("colors").value);
+
+    const TINY = 0;
+    const SMALL = 1;
+    const MEDIUM = 2;
+    const LARGE = 3;
+    let size = Number(document.getElementById("size").value);
+
+    switch (size) {
+    case TINY:
+	square_size = 8;
+	break;
+    case SMALL:
+	square_size = 16;
+	break;
+    case MEDIUM:
+	square_size = 32;
+	break;
+    case LARGE:
+	square_size = 64;
+	break;
+    }
+
+    // Randomize block colors
+    colors = []
+    hues = []
+    while (colors.length <= num_colors) {
+        let new_hue;
+        if (color_family == RANDOM) {
+            new_hue = Math.floor(Math.random() * 360);
+            let good_color = true;
+            for (hue of hues) {
+                // Ensure colors aren't too close together?
+                if (Math.abs(new_hue - hue) < 15) {
+                    good_color = false;
+                    break;
+                }
+            }
+            if (!good_color) continue;
+            hues.push(new_hue);
+        }
+
+        if (color_family == DIFFERENT) {
+            if (hues.length == 0)
+                new_hue = Math.floor(Math.random() * 360);
+            else
+                new_hue = hues[hues.length - 1] + 83.5;
+            hues.push(new_hue);
+        }
+
+        if (color_family == SIMILAR) {
+            if (hues.length == 0)
+                new_hue = Math.floor(Math.random() * 360);
+            else
+                new_hue = hues[hues.length - 1] + 15;
+            hues.push(new_hue);
+        }
+
+
+        colors.push([
+            `hsl(${new_hue}, 100%, 30%)`,
+            `hsl(${new_hue}, 100%, 40%)`,
+            `hsl(${new_hue}, 100%, 50%)`,
+            `hsl(${new_hue}, 100%, 60%)`,
+            `hsl(${new_hue}, 100%, 70%)`,
+        ]);
     }
 
     // Shuffle
@@ -133,7 +195,7 @@ function new_game(){
     for (var y=0; y<height/square_size; y++){
         var temp = [];
         for (var x=0; x<width/square_size; x++){
-            temp.push(game_colors[Math.floor(Math.random()*num_colors)]);
+            temp.push(Math.floor(Math.random() * num_colors) + 1);
         }
         array.push(temp);
     }
@@ -223,6 +285,7 @@ function redraw() {
     for (var y=0; y<array.length; y++){
         for (var x=0; x<array[y].length; x++){
             if (array[y][x] > 0) {
+                if (array[y][x] > Number(document.getElementById("numColors").value)) continue;
                 drawBlock(ctx, x*square_size, y*square_size, square_size,
                           colors[array[y][x]],
                           y > 0                 ? array[y][x] == array[y-1][x] : false,
@@ -400,7 +463,7 @@ let square_size = 32;
 var array = [];
 var moves = 0;
 
-const colors = [
+let colors = [
     ["#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF"],
     ["#BB0000","#DD0000","#FF0000","#FF4444","#FF8888"],
     ["#BB6600","#DD7700","#FF8800","#FFAA44","#FFCC88"],

@@ -16,6 +16,13 @@
     <div id="content">
       <h1>Hopeless</h1>
 
+      <div id="stats">
+        Blocks Left: <span id="blocks">0</span>
+        Moves Taken: <span id="moves">0</span>
+      </div>
+
+      <canvas id="canvas" width="768" height="512"></canvas>
+
       <div id="settings">
         Number of colors:
         <select id="numColors">
@@ -27,12 +34,24 @@
     	  <option>6</option>
     	  <option>7</option>
         </select>
-        <button onclick="new_game()">New Game</button>
-        Blocks Left: <span id="blocks">0</span>
-        Moves Taken: <span id="moves">0</span>
-      </div>
 
-      <canvas id="canvas" width="768" height="512"></canvas>
+        Colors:
+        <select id="colors">
+    	  <option value=1>Similar</option>
+    	  <option value=2 selected>Random</option>
+    	  <option value=3>Different</option>
+        </select>
+
+        Size:
+        <select id="size">
+    	  <option value=0>Tiny</option>
+    	  <option value=1>Small</option>
+    	  <option value=2 selected>Medium</option>
+    	  <option value=3>Large</option>
+        </select>
+
+        <button onclick="new_game()">New Game</button>
+      </div>
 
     </div>
 
