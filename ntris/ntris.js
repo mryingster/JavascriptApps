@@ -1743,7 +1743,7 @@ window.onload = function () {
     let ccw_button    = new button(svg_document.getElementById("ccw_button"),    false, () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.ccw));
     let drop_button   = new button(svg_document.getElementById("drop_button"),   false, () => tetris_instance.onscreen_gamepad_move(tetris_instance.direction.drop));
     let start_button  = new button(svg_document.getElementById("start_button"),  false, () => tetris_instance.start(focus=false));
-    qlet select_button = new button(svg_document.getElementById("select_button"), false, () => tetris_instance.select_button());
+    let select_button = new button(svg_document.getElementById("select_button"), false, () => tetris_instance.select_button());
 
     tetris_instance.firstRun();
 }
