@@ -1,0 +1,59 @@
+body {
+    background:#fff;
+    color:#000;
+    font-family:sans-serif;
+    text-align: center;
+}
+
+div#content {
+    margin: 0px auto;
+    margin: 0 auto;
+    width:768px;
+}
+
+h1 {
+    margin:10px;
+    font-size:3em;
+}
+
+h1, h2 {
+    color:#00177A;
+}
+
+.button {
+    font-size: 1.5em;
+    padding: 17px;
+}
+
+.hidden {
+    #display: none;
+}
+
+#all_words.visible, #found_words.visible {
+    width:768px;
+    margin:0 auto;
+    height: 200px;
+    overflow: scroll;
+}
+
+#all_words_div {
+    column-count:4;
+}
+
+.duplicate {
+    text-decoration: line-through;
+}
+
+canvas {
+    touch-action:manipulation;
+    position:absolute;
+    top:0;
+    left:0;
+}
+
+#canvases {
+    position: relative;
+    width: 630px;
+    height: 800px;
+    margin: auto;
+}
