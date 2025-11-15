@@ -147,16 +147,20 @@ document.addEventListener('keydown', function(e) {
 });
 
 function user_input(e) {
+    let changed = false;
+
     // Alphabet
     if (e.keyCode >= 65 && e.keyCode <= 90) {
 	this_game[cursor.y][cursor.x] = e.key.toUpperCase();
 	move_cursor(RIGHT);
+	changed = true;
     }
 
     // Delete
     if (e.keyCode == 8) {
 	this_game[cursor.y][cursor.x] = " ";
 	move_cursor(LEFT);
+	changed = true;
     }
 
     // Left
@@ -184,7 +188,14 @@ function user_input(e) {
         e.preventDefault();
 
     render_grid(ctx, this_game);
-    find_solutions(this_game, dictionary)
+    if (changed == true) {
+	clear_canvas(overlay_ctx);
+	this_paths = [];
+	find_solutions(this_game, dictionary)
+    } else
+	find_solutions(get_masked_game(this_game, this_paths), this_dict, this_paths)
+
+    return;
 }
 
 function move_cursor(d) {
@@ -380,6 +391,14 @@ function find_solutions(puzzle, dictionary, extrawords = []){
     document.getElementById("all_words").className = "visible";
 }
 
+function get_masked_game(game, paths) {
+    masked_game = JSON.parse(JSON.stringify(this_game));
+    for (p of this_paths)
+	for (coord of p.path)
+	    masked_game[coord.y][coord.x] = " ";
+    return masked_game;
+}
+
 function reveal_word(word){
     // Toggle this path in our path array
     let foundPath = false;
@@ -396,17 +415,11 @@ function reveal_word(word){
     clear_canvas(overlay_ctx);
     masked_game = JSON.parse(JSON.stringify(this_game));
 
-    for (p of this_paths) {
-	// Update our mask for active paths
-	for (coord of p.path)
-	    masked_game[coord.y][coord.x] = " ";
-
-	// Draw all of the paths
+    for (p of this_paths)
 	draw_word_overlay(overlay_ctx, p.path);
-    }
 
     // Recalculate the found words
-    find_solutions(masked_game, this_dict, this_paths);
+    find_solutions(get_masked_game(this_game, this_paths), this_dict, this_paths);
 }
 
 var dictionary  = [];
