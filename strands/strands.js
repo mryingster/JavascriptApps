@@ -21,8 +21,11 @@ function render_found_words(div, words) {
 
 function create_word_element(word){
     let span = document.createElement('span');
+    span.classList.add('clickable');
     if (word.duplicate)
-        span.className = 'duplicate';
+        span.classList.add('duplicate');
+    if (word.selected)
+	span.classList.add('selected');
     if (word.duplicate === undefined)
         span.onclick = () => reveal_word(word);
     else
@@ -103,10 +106,10 @@ function render_grid(ctx, game){
     // Draw cursor
     canvas_draw_rounded_rectangle(
 	ctx,
-    	cursor.x * spacing + spacing * .15,
+    	cursor.x * spacing + spacing * .16,
 	cursor.y * spacing,
-	spacing * .75,
-	spacing * .75,
+	spacing * .7,
+	spacing * .7,
 	spacing / 4,
 	"#aabbff"
     );
@@ -147,20 +150,18 @@ document.addEventListener('keydown', function(e) {
 });
 
 function user_input(e) {
-    let changed = false;
-
     // Alphabet
     if (e.keyCode >= 65 && e.keyCode <= 90) {
 	this_game[cursor.y][cursor.x] = e.key.toUpperCase();
+	remove_conflicting_path(cursor)
 	move_cursor(RIGHT);
-	changed = true;
     }
 
     // Delete
     if (e.keyCode == 8) {
 	this_game[cursor.y][cursor.x] = " ";
+	remove_conflicting_path(cursor)
 	move_cursor(LEFT);
-	changed = true;
     }
 
     // Left
@@ -188,14 +189,21 @@ function user_input(e) {
         e.preventDefault();
 
     render_grid(ctx, this_game);
-    if (changed == true) {
-	clear_canvas(overlay_ctx);
-	this_paths = [];
-	find_solutions(this_game, dictionary)
-    } else
-	find_solutions(get_masked_game(this_game, this_paths), this_dict, this_paths)
+
+    draw_overlays();
+
+    find_solutions(get_masked_game(this_game, this_paths), this_dict, this_paths)
 
     return;
+}
+
+function remove_conflicting_path(coord) {
+    for (let i=0; i<this_paths.length; i++)
+	for (let p of this_paths[i].path)
+	    if (coord.x == p.x && coord.y == p.y) {
+		this_paths.splice(i, 1);
+		return;
+	    }
 }
 
 function move_cursor(d) {
@@ -399,7 +407,15 @@ function get_masked_game(game, paths) {
     return masked_game;
 }
 
+function draw_overlays() {
+    clear_canvas(overlay_ctx);
+    for (p of this_paths)
+	draw_word_overlay(overlay_ctx, p.path);
+    return
+}
+
 function reveal_word(word){
+    word.selected = true;
     // Toggle this path in our path array
     let foundPath = false;
     for (let i=0; i<this_paths.length; i++) {
@@ -415,8 +431,7 @@ function reveal_word(word){
     clear_canvas(overlay_ctx);
     masked_game = JSON.parse(JSON.stringify(this_game));
 
-    for (p of this_paths)
-	draw_word_overlay(overlay_ctx, p.path);
+    draw_overlays();
 
     // Recalculate the found words
     find_solutions(get_masked_game(this_game, this_paths), this_dict, this_paths);

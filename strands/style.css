@@ -57,3 +57,11 @@ canvas {
     height: 600px;
     margin: auto;
 }
+
+.clickable:hover {
+    cursor: pointer;
+}
+
+.selected {
+    color: #bb8800;
+}
