@@ -25,7 +25,7 @@ function create_word_element(word){
     if (word.duplicate)
         span.classList.add('duplicate');
     if (word.selected)
-	span.classList.add('selected');
+        span.classList.add('selected');
     if (word.duplicate === undefined)
         span.onclick = () => reveal_word(word);
     else
@@ -105,31 +105,33 @@ function render_grid(ctx, game){
 
     // Draw cursor
     canvas_draw_rounded_rectangle(
-	ctx,
-    	cursor.x * spacing + spacing * .16,
-	cursor.y * spacing,
-	spacing * .7,
-	spacing * .7,
-	spacing / 4,
-	"#aabbff"
+        ctx,
+        cursor.x * spacing + spacing * .16,
+        cursor.y * spacing,
+        spacing * .7,
+        spacing * .7,
+        spacing / 4,
+        "#aabbff"
     );
 
     // Draw letters
     for (let y=0; y<game.length; y++) {
-	for (let x=0; x<game[y].length; x++) {
-	    let px = (x * spacing) + (spacing / 2);
-	    let py = (y * spacing) + (spacing / 2);
+        for (let x=0; x<game[y].length; x++) {
+            let px = (x * spacing) + (spacing / 2);
+            let py = (y * spacing) + (spacing / 2);
 
-	    ctx.font = "bold "+(.5 * spacing)+"px Arial";
-	    ctx.textAlign = "center";
-	    ctx.fillStyle = "#00177A";
-	    ctx.fillText(game[y][x], px, py);
+            ctx.font = "bold "+(.5 * spacing)+"px Arial";
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#00177A";
+            ctx.fillText(game[y][x], px, py);
         }
     }
 }
 
 function solve() {
-    var letters = "";
+    let letters = "";
+    let this_dict = []
+
     for (var i=0; i<this_game.length; i++)
         letters += this_game[i].join("");
     letters = set(letters.toUpperCase()).join("");
@@ -152,36 +154,36 @@ document.addEventListener('keydown', function(e) {
 function user_input(e) {
     // Alphabet
     if (e.keyCode >= 65 && e.keyCode <= 90) {
-	this_game[cursor.y][cursor.x] = e.key.toUpperCase();
-	remove_conflicting_path(cursor)
-	move_cursor(RIGHT);
+        this_game[cursor.y][cursor.x] = e.key.toUpperCase();
+        remove_conflicting_path(cursor)
+        move_cursor(RIGHT);
     }
 
     // Delete
     if (e.keyCode == 8) {
-	this_game[cursor.y][cursor.x] = " ";
-	remove_conflicting_path(cursor)
-	move_cursor(LEFT);
+        this_game[cursor.y][cursor.x] = " ";
+        remove_conflicting_path(cursor)
+        move_cursor(LEFT);
     }
 
     // Left
     if (e.keyCode == 37) {
-	move_cursor(LEFT);
+        move_cursor(LEFT);
     }
 
     // Up
     if (e.keyCode == 38) {
-	move_cursor(UP);
+        move_cursor(UP);
     }
 
     // Right
     if (e.keyCode == 39) {
-	move_cursor(RIGHT);
+        move_cursor(RIGHT);
     }
 
     // Down
     if (e.keyCode == 40) {
-	move_cursor(DOWN);
+        move_cursor(DOWN);
     }
 
     // Stop the event from doing anything automatically
@@ -192,51 +194,51 @@ function user_input(e) {
 
     draw_overlays();
 
-    find_solutions(get_masked_game(this_game, this_paths), this_dict, this_paths)
+    find_solutions(get_masked_game(this_game, this_paths), dictionary, this_paths)
 
     return;
 }
 
 function remove_conflicting_path(coord) {
     for (let i=0; i<this_paths.length; i++)
-	for (let p of this_paths[i].path)
-	    if (coord.x == p.x && coord.y == p.y) {
-		this_paths.splice(i, 1);
-		return;
-	    }
+        for (let p of this_paths[i].path)
+            if (coord.x == p.x && coord.y == p.y) {
+                this_paths.splice(i, 1);
+                return;
+            }
 }
 
 function move_cursor(d) {
     if (d == UP) {
-	cursor.y = Math.max(cursor.y - 1, 0);
+        cursor.y = Math.max(cursor.y - 1, 0);
     }
 
     if (d == DOWN) {
-	cursor.y = Math.min(cursor.y + 1, game_height - 1);
+        cursor.y = Math.min(cursor.y + 1, game_height - 1);
     }
 
     if (d == LEFT) {
-	cursor.x -= 1;
-	if (cursor.x < 0) {
-	    if (cursor.y > 0) {
-		cursor.x = game_width - 1;
-		cursor.y -= 1;
-	    } else {
-		cursor.x = 0;
-	    }
-	}
+        cursor.x -= 1;
+        if (cursor.x < 0) {
+            if (cursor.y > 0) {
+                cursor.x = game_width - 1;
+                cursor.y -= 1;
+            } else {
+                cursor.x = 0;
+            }
+        }
     }
 
     if (d == RIGHT) {
-	cursor.x += 1;
-	if (cursor.x > game_width - 1) {
-	    if (cursor.y < game_height - 1) {
-		cursor.x = 0;
-		cursor.y += 1;
-	    } else {
-		cursor.x = game_width - 1;
-	    }
-	}
+        cursor.x += 1;
+        if (cursor.x > game_width - 1) {
+            if (cursor.y < game_height - 1) {
+                cursor.x = 0;
+                cursor.y += 1;
+            } else {
+                cursor.x = game_width - 1;
+            }
+        }
     }
 
     return;
@@ -257,8 +259,8 @@ function load_dict() {
     // Load Binary File
     var req = new XMLHttpRequest();
     req.onload = function(e) {
-	var dict_input = req.response;
-	parse_dict(dict_input);
+        var dict_input = req.response;
+        parse_dict(dict_input);
         solve();
     }
     req.open("GET", 'words.txt');
@@ -301,18 +303,18 @@ function create_trie(dict){
     var trie = {};
 
     for (var i=0; i<dict.length; i++){
-	var word = dict[i];
-	var path = trie;
-	for (var n=0; n<word.length; n++){
-	    var letter = word[n];
-	    if (!(letter in path)){
+        var word = dict[i];
+        var path = trie;
+        for (var n=0; n<word.length; n++){
+            var letter = word[n];
+            if (!(letter in path)){
                 path[letter] = { '_': word.slice(0,n+1)};
-	    }
-	    path = path[letter];
-	    if (n == word.length -1){
+            }
+            path = path[letter];
+            if (n == word.length -1){
                 path[''] = {word:word}
-	    }
-	}
+            }
+        }
     }
     //console.log('Trie creation done');
 
@@ -323,29 +325,23 @@ function find_solutions(puzzle, dictionary, extrawords = []){
     var trie = create_trie(dictionary);
 
     // Main solving function
-    function solve(puzzle, trie){
+    function solve(puzzle, trie) {
         var words = [];
 
-        for (var y in puzzle){
+        for (var y in puzzle) {
             var row = puzzle[+y];
-            for (var x in row){
+            for (var x in row) {
                 var letter = row[+x].toUpperCase();
-
-                // Special case for words starting with two letter tiles
-                if (letter.length == 2){
-                    if (trie[letter[0]][letter[1]])
-                        words = words.concat(extending(letter, trie[letter[0]][letter[1]], [{x:+x, y:+y}]));
-                } else {
                     if (trie[letter])
                         words = words.concat(extending(letter, trie[letter], [{x:+x, y:+y}]));
-                }
             }
         }
+
         return words;
     }
 
     // Find words from path in dictionary
-    function extending(word, node, path){
+    function extending(word, node, path) {
         var words = [];
 
         if (node['']){
@@ -353,30 +349,23 @@ function find_solutions(puzzle, dictionary, extrawords = []){
         }
 
         for (let neighbor of neighbors(path[path.length-1])) {
-            if (!contains(path, neighbor)){
-		if (puzzle[neighbor.y][neighbor.x] == undefined) continue;
+            if (!contains(path, neighbor)) {
+                if (puzzle[neighbor.y][neighbor.x] == undefined) continue;
                 let letter = puzzle[neighbor.y][neighbor.x].toUpperCase();
-
-                if (letter.length == 2){
-                    if (node[letter[0]])
-                        if (node[letter[0]][letter[1]])
-                            words = words.concat(extending(word+letter, node[letter[0]][letter[1]], path.concat(neighbor)));
-                } else {
-                    if (node[letter]){
+                    if (node[letter]) {
                         words = words.concat(extending(word+letter, node[letter], path.concat(neighbor)));
                     }
-                }
             }
         }
 
         return words;
     }
 
-    // Find wordy tile neighbors
-    function neighbors(coord){
+    // Find tile neighbors
+    function neighbors(coord) {
         var neighbors = [];
-        for (var x=Math.max(coord.x-1, 0); x<=Math.min(coord.x+1, game_width-1); x++){
-            for (var y=Math.max(coord.y-1, 0); y<=Math.min(coord.y+1, game_height-1); y++){
+        for (var x=Math.max(coord.x-1, 0); x<=Math.min(coord.x+1, game_width-1); x++) {
+            for (var y=Math.max(coord.y-1, 0); y<=Math.min(coord.y+1, game_height-1); y++) {
                 if (x == coord.x && y == coord.y) continue;
                 neighbors.push({x:x, y:y});
             }
@@ -402,15 +391,15 @@ function find_solutions(puzzle, dictionary, extrawords = []){
 function get_masked_game(game, paths) {
     masked_game = JSON.parse(JSON.stringify(this_game));
     for (p of this_paths)
-	for (coord of p.path)
-	    masked_game[coord.y][coord.x] = " ";
+        for (coord of p.path)
+            masked_game[coord.y][coord.x] = " ";
     return masked_game;
 }
 
 function draw_overlays() {
     clear_canvas(overlay_ctx);
     for (p of this_paths)
-	draw_word_overlay(overlay_ctx, p.path);
+        draw_word_overlay(overlay_ctx, p.path);
     return
 }
 
@@ -419,14 +408,14 @@ function reveal_word(word){
     // Toggle this path in our path array
     let foundPath = false;
     for (let i=0; i<this_paths.length; i++) {
-	if (JSON.stringify(word.path) === JSON.stringify(this_paths[i].path)) {
-	    foundPath = true;
-	    this_paths.splice(i, 1);
-	    break;
-	}
+        if (JSON.stringify(word.path) === JSON.stringify(this_paths[i].path)) {
+            foundPath = true;
+            this_paths.splice(i, 1);
+            break;
+        }
     }
     if (foundPath == false)
-	this_paths.push(word);
+        this_paths.push(word);
 
     clear_canvas(overlay_ctx);
     masked_game = JSON.parse(JSON.stringify(this_game));
@@ -434,7 +423,7 @@ function reveal_word(word){
     draw_overlays();
 
     // Recalculate the found words
-    find_solutions(get_masked_game(this_game, this_paths), this_dict, this_paths);
+    find_solutions(get_masked_game(this_game, this_paths), dictionary, this_paths);
 }
 
 var dictionary  = [];
@@ -442,7 +431,6 @@ var min_word_length = 4;
 
 // Game State
 var this_game   = null;
-var this_dict   = null;
 var words_found = null;
 let this_paths  = [];
 
@@ -483,19 +471,18 @@ window.onload = function () {
     spacing     = canvas.width / (game_width);
 
     this_game=[
-	["E","R","E","D","E","L"],
-	["H","U","N","E","B","T"],
-	["N","T","S","R","U","S"],
-	["E","Y","T","A","T","E"],
-	["B","T","L","S","U","D"],
-	["U","N","E","O","E","T"],
-	["L","I","A","R","U","N"],
-	["O","U","S","F","A","B"],
+        ["E","R","E","D","E","L"],
+        ["H","U","N","E","B","T"],
+        ["N","T","S","R","U","S"],
+        ["E","Y","T","A","T","E"],
+        ["B","T","L","S","U","D"],
+        ["U","N","E","O","E","T"],
+        ["L","I","A","R","U","N"],
+        ["O","U","S","F","A","B"],
     ]
 
     render_grid(ctx, this_game);
 
-    this_dict = [];
     words_found = [];
 
     if (dictionary.length == 0){
