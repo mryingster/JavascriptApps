@@ -24,7 +24,7 @@ function create_word_element(word){
     if (word.duplicate)
         span.className = 'duplicate';
     if (word.duplicate === undefined)
-        span.onclick = () => reveal_word(word.path);
+        span.onclick = () => reveal_word(word);
     else
         span.onclick = function() {
             word.duplicate = ! word.duplicate;
@@ -41,8 +41,7 @@ function clear_canvas(ctx){
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 }
 
-function draw_word_overlay(ctx, path, valid=false, new_word=false, mouse_position=null){
-    clear_canvas(ctx);
+function draw_word_overlay(ctx, path, valid=false, new_word=false, mouse_position=null) {
     if (path.length == 0) return;
 
     var color = "rgba(200, 128, 0, 0.6)";
@@ -71,7 +70,7 @@ function draw_word_overlay(ctx, path, valid=false, new_word=false, mouse_positio
     if (mouse_position)
         ctx.lineTo(mouse_position.x, mouse_position.y);
 
-    ctx.lineWidth = 65;
+    ctx.lineWidth = spacing / 1.75;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = color;
@@ -80,16 +79,36 @@ function draw_word_overlay(ctx, path, valid=false, new_word=false, mouse_positio
     return;
 }
 
+function canvas_draw_rounded_rectangle(ctx, x, y, width, height, radius, color){
+    ctx.beginPath();
+    ctx.moveTo(x, y + radius);
+    ctx.arc(x + radius, y + radius, radius, Math.PI, -1/2 * Math.PI); // Top left
+
+    ctx.lineTo(x + width - radius, y);
+    ctx.arc(x + width - radius, y + radius, radius, -1/2 * Math.PI, 0); // Top Right
+
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.arc(x + width - radius, y + height - radius, radius, 0, 1/2 * Math.PI); // Bottom Right
+
+    ctx.lineTo(x + radius, y + height);
+    ctx.arc(x + radius, y + height - radius, radius, 1/2 * Math.PI, Math.PI); // Bottom Left
+    ctx.lineTo(x, y + radius);
+    ctx.fillStyle = color;
+    ctx.fill();
+}
+
 function render_grid(ctx, game){
     clear_canvas(ctx);
 
     // Draw cursor
-    ctx.fillStyle = "#aabbff";
-    ctx.fillRect(
+    canvas_draw_rounded_rectangle(
+	ctx,
     	cursor.x * spacing + spacing * .15,
 	cursor.y * spacing,
 	spacing * .75,
-	spacing * .75
+	spacing * .75,
+	spacing / 4,
+	"#aabbff"
     );
 
     // Draw letters
@@ -281,7 +300,7 @@ function create_trie(dict){
     return trie;
 }
 
-function find_solutions(puzzle, dictionary){
+function find_solutions(puzzle, dictionary, extrawords = []){
     var trie = create_trie(dictionary);
 
     // Main solving function
@@ -355,15 +374,39 @@ function find_solutions(puzzle, dictionary){
         if (!answers_filtered.includes(w.word) && ! words_found.includes(w.word))
             answers_filtered.push(w);
 
-    render_found_words(document.getElementById("all_words_div"), answers_filtered);
+    render_found_words(document.getElementById("all_words_div"), [...answers_filtered, ...extrawords]);
 
     // Unhide DIV
     document.getElementById("all_words").className = "visible";
 }
 
-function reveal_word(path){
-    //canvas_draw_game(this_game);
-    draw_word_overlay(overlay_ctx, path);
+function reveal_word(word){
+    // Toggle this path in our path array
+    let foundPath = false;
+    for (let i=0; i<this_paths.length; i++) {
+	if (JSON.stringify(word.path) === JSON.stringify(this_paths[i].path)) {
+	    foundPath = true;
+	    this_paths.splice(i, 1);
+	    break;
+	}
+    }
+    if (foundPath == false)
+	this_paths.push(word);
+
+    clear_canvas(overlay_ctx);
+    masked_game = JSON.parse(JSON.stringify(this_game));
+
+    for (p of this_paths) {
+	// Update our mask for active paths
+	for (coord of p.path)
+	    masked_game[coord.y][coord.x] = " ";
+
+	// Draw all of the paths
+	draw_word_overlay(overlay_ctx, p.path);
+    }
+
+    // Recalculate the found words
+    find_solutions(masked_game, this_dict, this_paths);
 }
 
 var dictionary  = [];
@@ -373,6 +416,7 @@ var min_word_length = 4;
 var this_game   = null;
 var this_dict   = null;
 var words_found = null;
+let this_paths  = [];
 
 // Canvas
 var canvas  = null;
