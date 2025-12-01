@@ -1,3 +1,9 @@
+function reset_ball() {
+    document.getElementById("lives").innerHTML = lives;
+    balls = []
+    balls.push(new Ball(ctx_dynamic, ctx_shadow, true));
+}
+
 function bounceOffEllipticalPaddle(ball_v, ball_p, paddle) {
     // 1. Normalize hit position
     const paddleCenter = paddle.get_pos_center();
@@ -43,21 +49,6 @@ function bounceOffEllipticalPaddle(ball_v, ball_p, paddle) {
     };
 }
 
-
-function vectorToComponents(v) {
-    return {
-	x: v.m * Math.cos(v.a),
-	y: v.m * Math.sin(v.a)
-    };
-}
-
-function componentsToVector(v) {
-    return {
-	m: Math.sqrt(v.x * v.x + v.y * v.y),
-	a: Math.atan2(v.y, v.x) // radians
-    };
-}
-
 function reflectVector(vector, axis) {
   let c = vectorToComponents(vector);
 
@@ -90,7 +81,7 @@ function reflectVector(vector, axis) {
 }
 
 class Ball {
-    constructor(ctx, ctx_shadow) {
+    constructor(ctx, ctx_shadow, caught=false) {
 	this.ctx = ctx;
         this.ctx_shadow = ctx_shadow;
 
@@ -210,6 +201,7 @@ class Ball {
         if (ball_left_edge > paddle.pos.x &&
             ball_right_edge < paddle.pos.x + paddle.width &&
             ball_bottom_edge > paddle.pos.y) {
+	    // ADD BOTTOM CHECK TOO
 
 	    // Elliptical Boounce
 	    this.v = bounceOffEllipticalPaddle(this.v, this.pos, paddle);
@@ -220,7 +212,7 @@ class Ball {
         }
 
         // Collision with bottom
-        if (ball_bottom_edge >= sizes.arena.height) {
+        if (ball_bottom_edge >= sizes.arena.bottom) {
             this.remove = true;
         }
 

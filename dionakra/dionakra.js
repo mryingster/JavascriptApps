@@ -29,6 +29,17 @@ function main_loop(timestamp) {
         }
 
         // No balls on screen? Lose a life and reset
+	if (balls.length <= 0) {
+	    lives--;
+	    if (lives < 0) {
+		game_over();
+		return;
+	    }
+	    reset_ball();
+	}
+
+	// Check if level cleared
+	
 
         // Render
         clear_context(ctx_shadow);
@@ -49,6 +60,11 @@ function main_loop(timestamp) {
     window.requestAnimationFrame((t) => main_loop(t));
 }
 
+function game_over() {
+    active = false;
+    return;
+}
+
 function populate_level(l) {
     bricks = []
     for (let y = 0; y<levels[l].length; y++)
@@ -58,17 +74,25 @@ function populate_level(l) {
 }
 
 function new_game() {
+    if (active) return;
+
+    active = true;
+
     // Move paddle to default position
     paddle.reset()
+
+    lives = 5;
 
     // Set up level information
     populate_level(0)
 
     // Set up ball
-    balls = []
-    balls.push(new Ball(ctx_dynamic, ctx_shadow));
+    reset_ball();
 
     pause = false;
+
+    // Start loop
+    main_loop();
 }
 
 function getTouchPosition(event) {
@@ -132,10 +156,13 @@ const size_ratios = {
 
 let sizes = {};
 
+let active;
 let bricks;
+let pills;
 let paddle;
 let balls;
 let paused;
+let lives;
 
 let last_frame;
 
@@ -158,6 +185,7 @@ function resize(canvas) {
 	    right: width - (size_ratios.frame.left * width),
 	    top: size_ratios.frame.top * width,
 	    top_space: size_ratios.brick.height * width * 3,
+	    bottom: height,
 	},
 	brick: {
 	    width: size_ratios.brick.width * width,
@@ -218,14 +246,12 @@ function firstLoad() {
     document.getElementById("pause").onclick = function(e) {
         paused = !paused;
     }
+    document.getElementById("newgame").onclick = function(e) {
+        new_game();
+    }
 
     // Calculate sizes
     resize(canvas_overlay);
-
-    // TEMP Setup new game
-    new_game();
-
-    main_loop();
 }
 
 window.onload = function() {
