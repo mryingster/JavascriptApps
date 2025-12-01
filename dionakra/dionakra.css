@@ -1,0 +1,31 @@
+body {
+    background:#aaa;
+    color:#000;
+    font-family:sans-serif;
+}
+
+#content {
+    width:768px;
+    margin: 0 auto 0 auto;
+}
+
+#canvases {
+    position: relative;
+}
+
+canvas {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    <!--border:1px solid black;-->
+    touch-action: manipulation;
+}
+
+#canvas_shadow {
+    opacity: .35;
+}
+
+#frame {
+    position: absolute;
+    width: 672px;
+}
