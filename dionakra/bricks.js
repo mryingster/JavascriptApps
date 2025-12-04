@@ -14,22 +14,24 @@
 */
 
 const brick_types = [
-    {h:  55, s: 100, l:  50, hits: -1, bevel: .5},
-    {h:   0, s:   0, l:  50, hits:  2, bevel: .5},
-    {h:   0, s: 100, l:  50, hits:  1, bevel: .125},
-    {h:  40, s: 100, l:  50, hits:  1, bevel: .125},
-    {h:  60, s: 100, l:  50, hits:  1, bevel: .125},
-    {h: 120, s: 100, l:  50, hits:  1, bevel: .125},
-    {h: 180, s: 100, l:  50, hits:  1, bevel: .125},
-    {h: 220, s: 100, l:  50, hits:  1, bevel: .125},
-    {h: 290, s: 100, l:  50, hits:  1, bevel: .125},
-    {h:   0, s: 100, l: 100, hits:  1, bevel: .125},
+    {type: 0, h:  55, s: 100, l:  50, hits: -1, bevel: .5},
+    {type: 1, h:   0, s:   0, l:  50, hits:  2, bevel: .5},
+    {type: 2, h:   0, s: 100, l:  50, hits:  1, bevel: .125},
+    {type: 3, h:  40, s: 100, l:  50, hits:  1, bevel: .125},
+    {type: 4, h:  60, s: 100, l:  50, hits:  1, bevel: .125},
+    {type: 5, h: 120, s: 100, l:  50, hits:  1, bevel: .125},
+    {type: 6, h: 180, s: 100, l:  50, hits:  1, bevel: .125},
+    {type: 7, h: 220, s: 100, l:  50, hits:  1, bevel: .125},
+    {type: 8, h: 290, s: 100, l:  50, hits:  1, bevel: .125},
+    {type: 9, h:   0, s: 100, l: 100, hits:  1, bevel: .125},
 ]
 
 class Brick {
     constructor(ctx, ctx_shadow, x, y, style) {
         this.ctx = ctx;
         this.ctx_shadow = ctx_shadow;
+
+	this.type = style.type;
 
         this.width = sizes.brick.width;
         this.height = sizes.brick.height;
@@ -46,7 +48,7 @@ class Brick {
 
         this.pos = {
             x: x * this.width + sizes.frame.left,
-            y: y * this.height + sizes.frame.top + sizes.arena.top_space,
+            y: y * this.height + sizes.frame.top,
         }
 
         this.hits = style.hits;

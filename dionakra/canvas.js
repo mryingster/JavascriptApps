@@ -3,8 +3,8 @@ function clear_context(ctx) {
 }
 
 function canvas_draw_rounded_rectangle(ctx, x, y, width, height, radius) {
-    ctx.beginPath();
     ctx.moveTo(x, y + radius);
+    ctx.beginPath();
     ctx.arc(x + radius, y + radius, radius, Math.PI, -1/2 * Math.PI); // Top left
 
     ctx.lineTo(x + width - radius, y);

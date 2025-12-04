@@ -14,11 +14,18 @@ class Paddle {
 
         this.color_outer = "#ffffff";
         this.color_inner = "#00ffff";
-        this.color_shadow = "rgba(0, 0, 0, .5)";
+
+	this.current_powerup = null;
+
         this.radius = 5;
         this.border = 2;
 
 	this.curve_height = .25;
+
+	this.gradient_grey = this.ctx.createLinearGradient(0, this.pos.y, 0, this.pos.y + this.height);
+	this.gradient_grey.addColorStop(0,   "#aaa");
+	this.gradient_grey.addColorStop(0.2, "#fff");
+	this.gradient_grey.addColorStop(1,   "#333");
     }
 
     get_pos_center() {
@@ -49,8 +56,9 @@ class Paddle {
         this.ctx_shadow.fillStyle = "#000";
         this.ctx_shadow.fill();
 
-        canvas_draw_rounded_rectangle(this.ctx, this.pos.x, this.pos.y, this.width, this.height, this.radius);
-        this.ctx_shadow.fillStyle = "#f00";
+
+	this.ctx.fillStyle = this.gradient_grey;
+	canvas_draw_rounded_rectangle(this.ctx, this.pos.x, this.pos.y, this.width, this.height, this.radius);
         this.ctx.fill();
     }
 }

@@ -109,6 +109,7 @@ class Ball {
         this.hits = 0;
 
         this.is_mega = false;
+	this.is_caught = caught;
 
         this.remove = false;
     }
@@ -200,8 +201,8 @@ class Ball {
         // Collide with paddle
         if (ball_left_edge > paddle.pos.x &&
             ball_right_edge < paddle.pos.x + paddle.width &&
-            ball_bottom_edge > paddle.pos.y) {
-	    // ADD BOTTOM CHECK TOO
+            ball_bottom_edge > paddle.pos.y &&
+	    ball_top_edge < paddle.pos.y + paddle.height) {
 
 	    // Elliptical Boounce
 	    this.v = bounceOffEllipticalPaddle(this.v, this.pos, paddle);
@@ -222,6 +223,13 @@ class Ball {
     move(ms) {
         if (isNaN(ms))
             return;
+
+	// If caught, we just need to move it with the paddle and do nothing else
+	if (this.is_caught) {
+	    this.pos.y = paddle.pos.y - this.radius;
+	    this.pos.x = paddle.pos.x + 3/4 * paddle.width;
+	    return;
+	}
 
         // Check for collisions
         this.collide();

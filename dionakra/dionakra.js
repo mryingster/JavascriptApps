@@ -39,7 +39,9 @@ function main_loop(timestamp) {
 	}
 
 	// Check if level cleared
-	
+	if (level_cleared()) {
+	    advance_level();
+	}
 
         // Render
         clear_context(ctx_shadow);
@@ -65,6 +67,23 @@ function game_over() {
     return;
 }
 
+function level_cleared() {
+    for (let brick of bricks)
+	if (brick.type > 0)
+	    return false;
+    return true;
+}
+
+function advance_level() {
+    level++;
+    populate_level(level);
+    paddle.reset();
+    reset_ball();
+
+    document.getElementById("canvases").style = `background: radial-gradient( circle at 50%, #000, ${["#f00", "#00f", "#0f0"][level % 3]})`;
+
+}
+
 function populate_level(l) {
     bricks = []
     for (let y = 0; y<levels[l].length; y++)
@@ -79,12 +98,13 @@ function new_game() {
     active = true;
 
     // Move paddle to default position
-    paddle.reset()
+    paddle.reset();
 
     lives = 5;
+    level = 1;
 
     // Set up level information
-    populate_level(0)
+    populate_level(level)
 
     // Set up ball
     reset_ball();
@@ -133,6 +153,7 @@ let ctx_static;
 
 let canvas_background;
 let ctx_background;
+let particles = [];
 
 let width;
 let height;
@@ -157,12 +178,15 @@ const size_ratios = {
 let sizes = {};
 
 let active;
+let level;
 let bricks;
 let pills;
 let paddle;
 let balls;
 let paused;
 let lives;
+
+let mouse_down = false;
 
 let last_frame;
 
@@ -184,7 +208,6 @@ function resize(canvas) {
 	    left: size_ratios.frame.left * width,
 	    right: width - (size_ratios.frame.left * width),
 	    top: size_ratios.frame.top * width,
-	    top_space: size_ratios.brick.height * width * 3,
 	    bottom: height,
 	},
 	brick: {
@@ -222,6 +245,7 @@ function firstLoad() {
     // Input Listeners
     canvas_overlay.addEventListener('touchstart', function(e) {
         e.preventDefault();
+	mouse_down = getTouchPosition(canvas_overlay, e);
     });
 
     canvas_overlay.addEventListener('touchmove', function(e) {
@@ -231,9 +255,16 @@ function firstLoad() {
 
     canvas_overlay.addEventListener('touchend', function(e) {
         e.preventDefault();
+	if (mouse_down == false) return;
+
+	for (let ball of balls)
+	    ball.is_caught = false;
+
+	mouse_down = false;
     });
 
     canvas_overlay.addEventListener('mousedown', function(e) {
+	mouse_down = getCursorPosition(canvas_overlay, e);
     });
 
     canvas_overlay.addEventListener('mousemove', function(e) {
@@ -241,6 +272,15 @@ function firstLoad() {
     });
 
     canvas_overlay.addEventListener('mouseup', function(e) {
+	if (mouse_down == false) return;
+
+	const pos = getCursorPosition(canvas_overlay, e);
+	const distance = Math.abs(Math.hypot(mouse_down.x - pos.x, mouse_down.y - pos.y));
+	if (distance < 10)
+	    for (let ball of balls)
+		ball.is_caught = false;
+
+	mouse_down = false;
     });
 
     document.getElementById("pause").onclick = function(e) {
@@ -249,6 +289,11 @@ function firstLoad() {
     document.getElementById("newgame").onclick = function(e) {
         new_game();
     }
+
+    // Setup particles for background vortex
+    for (let i=0; i<50; i++)
+        particles.push(new Particle(ctx_background));
+
 
     // Calculate sizes
     resize(canvas_overlay);
