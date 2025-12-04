@@ -44,22 +44,41 @@ function clear_canvas(ctx){
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 }
 
-function draw_word_overlay(ctx, path, valid=false, new_word=false, mouse_position=null) {
+function draw_word_underlay(ctx, path) {
     if (path.length == 0) return;
 
-    var color = "rgba(200, 128, 0, 0.6)";
-    if (valid)
-        if (new_word)
-            var color = "rgba(50, 200, 0, 0.6)";
+    var color = "#afdeed";
 
     var x = path[0].x;
     var y = path[0].y;
 
-    ctx.beginPath();
+    // Draw circle around each letter
+    for (var i=1; i<path.length; i++){
+        x = path[i].x;
+        y = path[i].y;
+
+
+        ctx.moveTo(
+	    (x * spacing) + (spacing / 2),
+            (y * spacing) + (spacing / 3),
+	);
+	ctx.beginPath();
+        ctx.arc(
+	    (x * spacing) + (spacing / 2),
+            (y * spacing) + (spacing / 3),
+	    25,
+	    0, 2*Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+
+    // Draw line to each letter
     ctx.moveTo(
         (x * spacing) + (spacing / 2),
         (y * spacing) + (spacing / 3),
     );
+    ctx.beginPath();
 
     for (var i=1; i<path.length; i++){
         x = path[i].x;
@@ -70,10 +89,7 @@ function draw_word_overlay(ctx, path, valid=false, new_word=false, mouse_positio
         );
     }
 
-    if (mouse_position)
-        ctx.lineTo(mouse_position.x, mouse_position.y);
-
-    ctx.lineWidth = spacing / 1.75;
+    ctx.lineWidth = spacing / 3;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = color;
@@ -82,7 +98,7 @@ function draw_word_overlay(ctx, path, valid=false, new_word=false, mouse_positio
     return;
 }
 
-function canvas_draw_rounded_rectangle(ctx, x, y, width, height, radius, color){
+function canvas_draw_rounded_rectangle(ctx, x, y, width, height, radius, color, stroke=false){
     ctx.beginPath();
     ctx.moveTo(x, y + radius);
     ctx.arc(x + radius, y + radius, radius, Math.PI, -1/2 * Math.PI); // Top left
@@ -96,8 +112,14 @@ function canvas_draw_rounded_rectangle(ctx, x, y, width, height, radius, color){
     ctx.lineTo(x + radius, y + height);
     ctx.arc(x + radius, y + height - radius, radius, 1/2 * Math.PI, Math.PI); // Bottom Left
     ctx.lineTo(x, y + radius);
-    ctx.fillStyle = color;
-    ctx.fill();
+    if (stroke) {
+	ctx.lineWidth = 2;
+	ctx.strokeStyle = color;
+	ctx.stroke();
+    } else {
+	ctx.fillStyle = color;
+	ctx.fill();
+    }
 }
 
 function render_grid(ctx, game){
@@ -106,12 +128,13 @@ function render_grid(ctx, game){
     // Draw cursor
     canvas_draw_rounded_rectangle(
         ctx,
-        cursor.x * spacing + spacing * .16,
-        cursor.y * spacing,
-        spacing * .7,
-        spacing * .7,
-        spacing / 4,
-        "#aabbff"
+        cursor.x * spacing + spacing * .2,
+        cursor.y * spacing + spacing * .05,
+        spacing * .6,
+        spacing * .6,
+        spacing / 6,
+        "#bbddff",
+	true,
     );
 
     // Draw letters
@@ -120,9 +143,9 @@ function render_grid(ctx, game){
             let px = (x * spacing) + (spacing / 2);
             let py = (y * spacing) + (spacing / 2);
 
-            ctx.font = "bold "+(.5 * spacing)+"px Arial";
+            ctx.font = (.4 * spacing)+"px Arial";
             ctx.textAlign = "center";
-            ctx.fillStyle = "#00177A";
+            ctx.fillStyle = "#000";
             ctx.fillText(game[y][x], px, py);
         }
     }
@@ -192,7 +215,7 @@ function user_input(e) {
 
     render_grid(ctx, this_game);
 
-    draw_overlays();
+    draw_underlays();
 
     find_solutions(get_masked_game(this_game, this_paths), dictionary, this_paths)
 
@@ -272,7 +295,7 @@ function parse_dict(text){
     var words = text.split('\r');
     for (var i=2; i<words.length; i++){
         var word = words[i];
-        if (word.length > 2)
+        if (word.length > min_word_length)
             dictionary.push(word);
     }
 }
@@ -396,10 +419,10 @@ function get_masked_game(game, paths) {
     return masked_game;
 }
 
-function draw_overlays() {
-    clear_canvas(overlay_ctx);
+function draw_underlays() {
+    clear_canvas(underlay_ctx);
     for (p of this_paths)
-        draw_word_overlay(overlay_ctx, p.path);
+        draw_word_underlay(underlay_ctx, p.path);
     return
 }
 
@@ -417,10 +440,10 @@ function reveal_word(word){
     if (foundPath == false)
         this_paths.push(word);
 
-    clear_canvas(overlay_ctx);
+    clear_canvas(underlay_ctx);
     masked_game = JSON.parse(JSON.stringify(this_game));
 
-    draw_overlays();
+    draw_underlays();
 
     // Recalculate the found words
     find_solutions(get_masked_game(this_game, this_paths), dictionary, this_paths);
@@ -440,9 +463,9 @@ var width   = null;
 var height  = null;
 var ctx     = null;
 
-//overlay
-var overlay     = null;
-var overlay_ctx = null;
+//underlay
+var underlay     = null;
+var underlay_ctx = null;
 
 // Figure out tile sizes
 const tile_size   = 120;
@@ -463,9 +486,9 @@ window.onload = function () {
     height  = canvas.height;
     ctx     = canvas.getContext("2d");
 
-    //overlay
-    overlay     = document.getElementById('overlay');
-    overlay_ctx = overlay.getContext("2d");
+    //underlay
+    underlay     = document.getElementById('underlay');
+    underlay_ctx = underlay.getContext("2d");
 
     // Figure out tile sizes
     spacing     = canvas.width / (game_width);

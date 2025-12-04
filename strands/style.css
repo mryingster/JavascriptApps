@@ -8,7 +8,6 @@ body {
 div#content {
     margin: 0px auto;
     margin: 0 auto;
-    width:768px;
 }
 
 h1 {
@@ -17,7 +16,7 @@ h1 {
 }
 
 h1, h2 {
-    color:#00177A;
+    color:#000;
 }
 
 .button {
@@ -32,7 +31,7 @@ h1, h2 {
 #all_words.visible, #found_words.visible {
     width:768px;
     margin:0 auto;
-    height: 200px;
+    height: 530px;
     overflow: scroll;
 }
 
@@ -55,7 +54,15 @@ canvas {
     position: relative;
     width: 460px;
     height: 600px;
-    margin: auto;
+}
+
+#canvases_wrapper {
+    display: inline-block;
+}
+
+#found_words_wrapper {
+    display: inline-block;
+    min-width: 700px;
 }
 
 .clickable:hover {
