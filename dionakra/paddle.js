@@ -29,6 +29,7 @@ class Paddle {
 	this.gradient_red = this.ctx.createLinearGradient(0, this.pos.y, 0, this.pos.y + this.height);
 	this.gradient_red.addColorStop(0,   "#fe5d24");
 	this.gradient_red.addColorStop(0.2, "#ffffff");
+	this.gradient_red.addColorStop(.6,   "#fe5d24");
 	this.gradient_red.addColorStop(1,   "#bb2e15");
 
 	this.light_vertical_center = this.pos.y + (this.height / 2)
@@ -73,21 +74,25 @@ class Paddle {
 
     render() {
 	// Draw Shadow
-        canvas_draw_rounded_rectangle(this.ctx_shadow, this.pos.x+sizes.shadow_offset.horizontal, this.pos.y+sizes.shadow_offset.vertical, this.width, this.height, this.radius);
-        this.ctx_shadow.fillStyle = "#000";
+        this.ctx_shadow.save();
+        this.ctx_shadow.translate(sizes.shadow_offset.horizontal, sizes.shadow_offset.vertical);
+
+        this.ctx_shadow.fillStyle = "#000000";
+
+        canvas_draw_rounded_rectangle(this.ctx_shadow, this.pos.x, this.pos.y, this.width, this.height, this.radius);
         this.ctx_shadow.fill();
 
 	this.ctx_shadow.moveTo(this.pos.x, this.light_vertical_center);
         this.ctx_shadow.beginPath();
         this.ctx_shadow.arc(this.pos.x, this.light_vertical_center, sizes.ball.radius, 0, 2*Math.PI);
-        this.ctx_shadow.fillStyle = "#000";
         this.ctx_shadow.fill();
 
 	this.ctx_shadow.moveTo(this.pos.x + this.width, this.light_vertical_center);
         this.ctx_shadow.beginPath();
         this.ctx_shadow.arc(this.pos.x + this.width, this.light_vertical_center, sizes.ball.radius, 0, 2*Math.PI);
-        this.ctx_shadow.fillStyle = "#000";
         this.ctx_shadow.fill();
+
+        this.ctx_shadow.restore();
 
 	// Black sub-frame
 
