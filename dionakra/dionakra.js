@@ -12,6 +12,9 @@ function main_loop(timestamp) {
         for (const ball of balls)
             ball.move(elapsed);
 
+	// Paddle Lights
+	paddle.pulse(elapsed);
+
         // Remove bricks
         for (let i=0; i<bricks.length; i++) {
             if (bricks[i].hits == 0) {
@@ -101,10 +104,10 @@ function new_game() {
     paddle.reset();
 
     lives = 5;
-    level = 1;
+    level = 0;
 
     // Set up level information
-    populate_level(level)
+    advance_level();
 
     // Set up ball
     reset_ball();
@@ -172,6 +175,12 @@ const size_ratios = {
     },
     ball: {
 	diameter: 1/56,
+    },
+    paddle: {
+	width: 1/7,
+	height: 1/28,
+	side_width: 1/45,
+	middle_width: 1/10,
     }
 }
 
@@ -187,6 +196,8 @@ let paused;
 let lives;
 
 let mouse_down = false;
+let touch_start = false;
+let touch_end;
 
 let last_frame;
 
@@ -218,10 +229,17 @@ function resize(canvas) {
 	},
 	ball: {
 	    diameter: size_ratios.ball.diameter * width,
+	    radius: size_ratios.ball.diameter * width / 2,
 	},
 	shadow_offset: {
 	    vertical: 12,
 	    horizontal: 12,
+	},
+	paddle: {
+	    width: size_ratios.paddle.width * width,
+	    height: size_ratios.paddle.height * width,
+	    side_width: size_ratios.paddle.side_width * width,
+	    middle_width: size_ratios.paddle.middle_width * width,
 	},
     }
 }
@@ -239,28 +257,29 @@ function firstLoad() {
 
     canvas_overlay = document.getElementById('canvas_overlay')
 
-    // Define paddle
-    paddle = new Paddle(ctx_dynamic, ctx_shadow);
-
     // Input Listeners
     canvas_overlay.addEventListener('touchstart', function(e) {
         e.preventDefault();
-	mouse_down = getTouchPosition(canvas_overlay, e);
+	touch_start = getTouchPosition(e);
     });
 
     canvas_overlay.addEventListener('touchmove', function(e) {
         e.preventDefault();
-        paddle.move(getTouchPosition(e).x);
+	touch_end = getTouchPosition(e);
+        paddle.move(touch_end.x);
     });
 
     canvas_overlay.addEventListener('touchend', function(e) {
         e.preventDefault();
-	if (mouse_down == false) return;
+	if (touch_start == false) return;
 
-	for (let ball of balls)
-	    ball.is_caught = false;
+	const distance = Math.abs(Math.hypot(touch_start.x - touch_end.x, touch_start.y - touch_end.y));
+	if (distance < 50 || touch_end == false)
+	    for (let ball of balls)
+		ball.is_caught = false;
 
-	mouse_down = false;
+	touch_start = false;
+	touch_end = false;
     });
 
     canvas_overlay.addEventListener('mousedown', function(e) {
@@ -290,13 +309,11 @@ function firstLoad() {
         new_game();
     }
 
-    // Setup particles for background vortex
-    for (let i=0; i<50; i++)
-        particles.push(new Particle(ctx_background));
-
-
     // Calculate sizes
     resize(canvas_overlay);
+
+    // Define paddle
+    paddle = new Paddle(ctx_dynamic, ctx_shadow);
 }
 
 window.onload = function() {

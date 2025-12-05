@@ -23,7 +23,7 @@ const brick_types = [
     {type: 6, h: 180, s: 100, l:  50, hits:  1, bevel: .125},
     {type: 7, h: 220, s: 100, l:  50, hits:  1, bevel: .125},
     {type: 8, h: 290, s: 100, l:  50, hits:  1, bevel: .125},
-    {type: 9, h:   0, s: 100, l: 100, hits:  1, bevel: .125},
+    {type: 9, h:   0, s:   0, l:  90, hits:  1, bevel: .125},
 ]
 
 class Brick {
