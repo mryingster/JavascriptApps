@@ -49,13 +49,10 @@ function draw_word_underlay(ctx, path) {
 
     var color = "#afdeed";
 
-    var x = path[0].x;
-    var y = path[0].y;
-
     // Draw circle around each letter
-    for (var i=1; i<path.length; i++){
-        x = path[i].x;
-        y = path[i].y;
+    for (var i=0; i<path.length; i++){
+        let x = path[i].x;
+        let y = path[i].y;
 
 
         ctx.moveTo(
@@ -73,12 +70,15 @@ function draw_word_underlay(ctx, path) {
     }
 
 
+    let x = path[0].x;
+    let y = path[0].y;
+
     // Draw line to each letter
+    ctx.beginPath();
     ctx.moveTo(
         (x * spacing) + (spacing / 2),
         (y * spacing) + (spacing / 3),
     );
-    ctx.beginPath();
 
     for (var i=1; i<path.length; i++){
         x = path[i].x;
@@ -295,7 +295,7 @@ function parse_dict(text){
     var words = text.split('\r');
     for (var i=2; i<words.length; i++){
         var word = words[i];
-        if (word.length > min_word_length)
+        if (word.length >= min_word_length)
             dictionary.push(word);
     }
 }
