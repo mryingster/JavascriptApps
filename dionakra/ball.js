@@ -245,7 +245,7 @@ class Ball {
                     this.v.y = this.v.y - 2 * dot * ny;
 
                     // Apply the hit to the brick
-                    hit.brick.hits--;
+                    hit.brick.hit();
 
                     this.prev.x = this.pos.x;
                     this.prev.y = this.pos.y;

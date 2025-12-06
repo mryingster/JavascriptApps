@@ -1,11 +1,11 @@
 body {
-    background:#000;
-    color:#fff;
-    font-family:sans-serif;
+    background: #222;
+    color: #fff;
+    font-family: sans-serif;
 }
 
 #content {
-    width:672px;
+    width: 672px;
     margin: 0 auto 0 auto;
 }
 

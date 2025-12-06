@@ -12,6 +12,9 @@ function main_loop(timestamp) {
         for (const ball of balls)
             ball.move(elapsed);
 
+        for (const pill of pills)
+            pill.move(elapsed);
+
 	// Paddle Lights
 	paddle.pulse(elapsed);
 
@@ -27,6 +30,14 @@ function main_loop(timestamp) {
         for (let i=0; i<balls.length; i++) {
             if (balls[i].remove == true) {
                 balls.splice(i, 1);
+                i--;
+            }
+        }
+
+        // Remove pills
+        for (let i=0; i<pills.length; i++) {
+            if (pills[i].remove == true) {
+                pills.splice(i, 1);
                 i--;
             }
         }
@@ -51,6 +62,9 @@ function main_loop(timestamp) {
         clear_context(ctx_dynamic);
 
 	draw_frame_shadow(ctx_shadow);
+
+        for (const pill of pills)
+	    pill.render();
 
         for (const ball of balls)
             ball.render();
@@ -82,6 +96,7 @@ function advance_level() {
     populate_level(level);
     paddle.reset();
     reset_ball();
+    pills = [];
 
     document.getElementById("canvases").style = `background: radial-gradient( circle at 50%, #000, ${["#f00", "#00f", "#0f0"][level % 3]})`;
 
@@ -108,6 +123,20 @@ function new_game() {
 
     // Set up level information
     advance_level();
+
+    // TEST
+    // pills.push(new Pill(ctx_dynamic, ctx_shadow,  50, 500, pill_types[0]));
+    // pills.push(new Pill(ctx_dynamic, ctx_shadow, 100, 480, pill_types[1]));
+    // pills.push(new Pill(ctx_dynamic, ctx_shadow, 150, 460, pill_types[2]));
+    // pills.push(new Pill(ctx_dynamic, ctx_shadow, 200, 440, pill_types[3]));
+    // pills.push(new Pill(ctx_dynamic, ctx_shadow, 250, 420, pill_types[4]));
+    // pills.push(new Pill(ctx_dynamic, ctx_shadow, 300, 400, pill_types[5]));
+    // pills.push(new Pill(ctx_dynamic, ctx_shadow, 350, 380, pill_types[6]));
+    // pills.push(new Pill(ctx_dynamic, ctx_shadow, 400, 360, pill_types[7]));
+    // pills.push(new Pill(ctx_dynamic, ctx_shadow, 450, 340, pill_types[8]));
+    // pills.push(new Pill(ctx_dynamic, ctx_shadow, 500, 320, pill_types[9]));
+    // pills.push(new Pill(ctx_dynamic, ctx_shadow, 550, 300, pill_types[10]));
+    // pills.push(new Pill(ctx_dynamic, ctx_shadow, 600, 280, pill_types[11]));
 
     // Set up ball
     reset_ball();
@@ -181,6 +210,9 @@ const size_ratios = {
 	height: 1/28,
 	side_width: 1/45,
 	middle_width: 1/10,
+    },
+    pill: {
+        radius: 1/112,
     }
 }
 
@@ -241,6 +273,12 @@ function resize(canvas) {
 	    side_width: size_ratios.paddle.side_width * width,
 	    middle_width: size_ratios.paddle.middle_width * width,
 	},
+        pill: {
+	    width: size_ratios.brick.width * width,
+	    height: size_ratios.brick.height * width,
+	    edge: size_ratios.brick.edge * width,
+	    radius: size_ratios.pill.radius * width,
+        },
     }
 }
 
