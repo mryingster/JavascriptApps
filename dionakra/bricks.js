@@ -42,8 +42,15 @@ class Brick {
         this.hits = style.hits;
     }
 
-    hit() {
-        this.hits--;
+    hit(remove=false) {
+	if (remove === true)
+	    this.hits = 0;
+	else
+            this.hits--;
+
+	// Check to make sure nothing but golds go negative
+	if (this.hits < 0 && this.type != 0)
+	    this.hits = 0;
 
         if (this.hits === 0 && Math.random() <= this.drop_chance)
             pills.push(new Pill(ctx_dynamic, ctx_shadow,  this.pos.x, this.pos.y + this.height, pill_types[Math.floor(Math.random() * pill_types.length)]));

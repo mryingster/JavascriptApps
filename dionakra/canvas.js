@@ -18,6 +18,33 @@ function canvas_draw_rounded_rectangle(ctx, x, y, width, height, radius) {
     ctx.lineTo(x, y + radius);
 }
 
+function canvas_draw_right_laser_paddle(ctx, x, y, width, height, radius) {
+    ctx.moveTo(x, y + radius);
+    ctx.beginPath();
+    ctx.arc(x + radius, y + radius, radius, Math.PI, -1/2 * Math.PI); // Top left
+
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.arc(x + width - radius, y + height - radius, radius, 0, 1/2 * Math.PI); // Bottom Right
+
+    ctx.lineTo(x + radius, y + height);
+    ctx.arc(x + radius, y + height - radius, radius, 1/2 * Math.PI, Math.PI); // Bottom Left
+    ctx.lineTo(x, y + radius);
+}
+
+function canvas_draw_left_laser_paddle(ctx, x, y, width, height, radius) {
+    ctx.moveTo(x, y + height / 2);
+    ctx.beginPath();
+    ctx.lineTo(x + width - radius, y);
+    ctx.arc(x + width - radius, y + radius, radius, -1/2 * Math.PI, 0); // Top Right
+
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.arc(x + width - radius, y + height - radius, radius, 0, 1/2 * Math.PI); // Bottom Right
+
+    ctx.lineTo(x + radius, y + height);
+    ctx.arc(x + radius, y + height - radius, radius, 1/2 * Math.PI, Math.PI); // Bottom Left
+    ctx.lineTo(x, y + height * 3/4);
+}
+
 function draw_frame_shadow(ctx) {
     ctx.fillStyle = "#000";
 

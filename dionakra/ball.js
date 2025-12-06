@@ -66,6 +66,10 @@ function sweepAgainstBricks(P0x, P0y, P1x, P1y, radius, bricks) {
     const dy = P1y - P0y;
 
     for (const brick of bricks) {
+	// See if ball is close to brick before bothering to check for intersection
+	let d = Math.hypot(brick.pos.x - P1x, brick.pos.y - P1y);
+	if (d > 300) continue;
+
         const result = sweepCircleAABB(
             P0x, P0y, dx, dy, radius,
             brick.pos.x, brick.pos.y,
@@ -167,13 +171,16 @@ class Ball {
         this.color_outer = "#ffffff";
         this.color_inner = "#00ffff";
 
+        this.mega_color_outer = "#008800";
+        this.mega_color_inner = "#00ff00";
+
         this.radius = this.ctx.canvas.width / (56 * 2);
         this.border = 2;
 
         this.hits = 0;
 
-        this.is_mega = false;
 	this.is_caught = caught;
+	this.catch_offset = 3/4 * sizes.paddle.width;
 
         this.remove = false;
 
@@ -183,6 +190,14 @@ class Ball {
     set_speed(s) {
 	this.v.s = s;
 	normalizeSpeed(this.v);
+    }
+
+    slow() {
+	this.set_speed(this.v.s * .9);
+    }
+
+    speedup() {
+	this.set_speed(this.v.s * 1.1);
     }
 
     collide() {
@@ -237,15 +252,17 @@ class Ball {
                     this.pos.y = P0y + dy * t;
 
                     // Reflect velocity using normal
-                    const nx = hit.nx;
-                    const ny = hit.ny;
-                    const dot = this.v.x * nx + this.v.y * ny;
+		    if (current_powerup != PU_MEGABALL) {
+			const nx = hit.nx;
+			const ny = hit.ny;
+			const dot = this.v.x * nx + this.v.y * ny;
 
-                    this.v.x = this.v.x - 2 * dot * nx;
-                    this.v.y = this.v.y - 2 * dot * ny;
+			this.v.x = this.v.x - 2 * dot * nx;
+			this.v.y = this.v.y - 2 * dot * ny;
+		    }
 
                     // Apply the hit to the brick
-                    hit.brick.hit();
+                    hit.brick.hit(current_powerup == PU_MEGABALL);
 
                     this.prev.x = this.pos.x;
                     this.prev.y = this.pos.y;
@@ -266,6 +283,12 @@ class Ball {
 
 		// Arkanoid Style bounce
 		this.v = bounceArkanoidStyle(this, paddle);
+
+		if (current_powerup == PU_CATCH) {
+		    this.is_caught = true;
+		    this.catch_offset = this.pos.x - paddle.pos.x;
+		}
+
 		return;
 	    }
         }
@@ -284,7 +307,7 @@ class Ball {
 	// If caught, we just need to move it with the paddle and do nothing else
 	if (this.is_caught) {
 	    this.pos.y = paddle.pos.y - this.radius;
-	    this.pos.x = paddle.pos.x + 3/4 * paddle.width;
+	    this.pos.x = paddle.pos.x + this.catch_offset;
 
             this.prev.x = this.pos.x;
             this.prev.y = this.pos.y;
@@ -316,12 +339,18 @@ class Ball {
         this.ctx.moveTo(this.pos.x, this.pos.y);
         this.ctx.beginPath();
         this.ctx.arc(this.pos.x, this.pos.y, this.radius, 0, 2*Math.PI);
-        this.ctx.fillStyle = this.color_inner;
+	let color = this.color_inner;
+	if (current_powerup == PU_MEGABALL)
+	    color = this.mega_color_inner;
+        this.ctx.fillStyle = color;
         this.ctx.fill();
 
         // Outline
         this.ctx.lineWidth = this.border;
-        this.ctx.strokeStyle = this.color_outer;
+	color = this.color_outer;
+	if (current_powerup == PU_MEGABALL)
+	    color = this.mega_color_outer;
+        this.ctx.strokeStyle = color;
         this.ctx.stroke();
 	return;
     }
