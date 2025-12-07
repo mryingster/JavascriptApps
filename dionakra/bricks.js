@@ -40,6 +40,8 @@ class Brick {
         if (this.type <= 1)
             this.drop_chance = 0;
         this.hits = style.hits;
+
+	this.shimmer = 0;
     }
 
     hit(remove=false) {
@@ -52,8 +54,24 @@ class Brick {
 	if (this.hits < 0 && this.type != 0)
 	    this.hits = 0;
 
+	// If this is gold or silver, shimmer!
+	this.start_shimmer();
+
         if (this.hits === 0 && Math.random() <= this.drop_chance)
             pills.push(new Pill(ctx_dynamic, ctx_shadow,  this.pos.x, this.pos.y + this.height, pill_types[Math.floor(Math.random() * pill_types.length)]));
+    }
+
+    start_shimmer() {
+	if (this.type <= 1)
+	    this.shimmer = 500;
+    }
+
+    move(ms) {
+        if (isNaN(ms))
+            return;
+
+	this.shimmer -= ms;
+	this.shimmer = Math.max(this.shimmer, 0);
     }
 
     render() {
@@ -100,5 +118,26 @@ class Brick {
         this.ctx.lineTo(this.pos.x, this.pos.y + this.height);
         this.ctx.fillStyle = this.colors[3];
         this.ctx.fill();
+
+
+	if (this.shimmer > 0) {
+	    let offset = -this.width + ((500 - this.shimmer)/500 * 3 * this.width);
+	    this.ctx.save();
+	    this.ctx.rect(this.pos.x, this.pos.y, this.width, this.height);
+            this.ctx.clip();
+
+	    this.ctx.beginPath();
+	    this.ctx.moveTo(this.pos.x + offset, this.pos.y);
+            this.ctx.lineTo(this.pos.x + offset + this.width, this.pos.y);
+            this.ctx.lineTo(this.pos.x + offset + (this.width / 2), this.pos.y + (this.height / 2));
+            this.ctx.lineTo(this.pos.x + offset + (this.width / 4), this.pos.y + this.height);
+            this.ctx.lineTo(this.pos.x + offset, this.pos.y + this.height);
+            this.ctx.lineTo(this.pos.x + offset - (this.width / 2), this.pos.y + this.height);
+            this.ctx.lineTo(this.pos.x + offset - (this.width / 4), this.pos.y + (this.height / 2));
+            this.ctx.fillStyle = "rgba(255, 255, 255, .75)";
+            this.ctx.fill();
+
+	    this.ctx.restore();
+	}
     }
 }

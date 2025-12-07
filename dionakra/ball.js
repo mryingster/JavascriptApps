@@ -5,9 +5,9 @@ function reset_ball() {
 }
 
 // 26.5, 30, 37, 68 < default?
-function bounceArkanoidStyle(ball, paddle) {
+function bounceArkanoidStyle(ball, paddle, offset=0) {
     // 1. Normalize hit position -1..1
-    const paddleCenter = paddle.pos.x + paddle.width / 2;
+    const paddleCenter = paddle.pos.x + offset + paddle.width / 2;
     let t = (ball.pos.x - paddleCenter) / (paddle.width / 2);
 
     // Clamp
@@ -292,6 +292,24 @@ class Ball {
 		return;
 	    }
         }
+
+	// Collide with twin paddle
+	if (current_powerup == PU_TWIN) {
+            if (ball_right_edge > paddle.pos.x + paddle.twin_offset &&
+		ball_left_edge < paddle.pos.x + paddle.twin_offset + paddle.width &&
+		ball_bottom_edge > paddle.pos.y &&
+		ball_top_edge < paddle.pos.y + paddle.height) {
+
+		// Make sure for the last frame we were not colliding...
+		if (ball_prev_bottom_edge < paddle.pos.y) {
+
+		    // Arkanoid Style bounce
+		    this.v = bounceArkanoidStyle(this, paddle, paddle.twin_offset);
+
+		    return;
+		}
+	    }
+	}
 
         // Collision with bottom
         if (ball_bottom_edge >= sizes.arena.bottom) {

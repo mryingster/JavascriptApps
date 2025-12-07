@@ -66,7 +66,7 @@ class Pill {
         // Check if collided with paddle
 	const paddle_center = paddle.pos.x + (paddle.width / 2);
 	if (this.pos.y + this.height >= paddle.pos.y) {
-	    if (Math.abs(this.pos.x - paddle_center) < paddle.width / 2) {
+	    if (Math.abs(this.pos.x + (this.width / 2) - paddle_center) < paddle.width / 2) {
 		this.remove = true;
 
 		// Reset things

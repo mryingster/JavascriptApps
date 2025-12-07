@@ -17,6 +17,9 @@ function main_loop(timestamp) {
 	for (const laser of lasers)
 	    laser.move(elapsed);
 
+	for (const brick of bricks)
+	    brick.move(elapsed);
+
 	// Paddle Lights
 	paddle.pulse(elapsed);
 
@@ -161,6 +164,8 @@ function disrupt_ball(n=3) {
 function advance_level() {
     level++;
     populate_level(level);
+    for (let brick of bricks)
+	brick.start_shimmer();
     paddle.reset();
     reset_ball();
     reset_powerups();
@@ -172,6 +177,7 @@ function advance_level() {
 
 function add_life() {
     lives++;
+    document.getElementById("lives").innerHTML = lives;
 }
 
 function populate_level(l) {
@@ -197,6 +203,7 @@ function new_game() {
     advance_level();
 
     // Set up ball
+    lives--;
     reset_ball();
 
     pause = false;

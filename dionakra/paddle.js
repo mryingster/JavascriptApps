@@ -10,11 +10,10 @@ class Paddle {
 	    y: this.ctx.canvas.height - this.ctx.canvas.height / 14 - this.height,
 	};
 
-
         this.color_outer = "#ffffff";
         this.color_inner = "#00ffff";
 
-	this.current_powerup = null;
+	this.twin_offset = 0;
 
         this.radius = 5;
         this.border = 2;
@@ -81,6 +80,17 @@ class Paddle {
 		this.width -= ms * .1;
 	    }
 	}
+
+	if (current_powerup == PU_TWIN) {
+	    if (this.twin_offset < (this.width * 1.25))
+		this.twin_offset += ms * .2;
+	    if (this.twin_offset >(this.width * 1.25))
+		this.twin_offset = (this.width * 1.25);
+	} else {
+	    if (this.twin_offset > 0)
+		this.twin_offset -= ms * .2;
+	}
+
 	this.collide();
     }
 
@@ -96,18 +106,24 @@ class Paddle {
         if (this.pos.x < sizes.arena.left)
             this.pos.x = sizes.arena.left;
 
-        if (this.pos.x + this.width > sizes.arena.right)
-            this.pos.x = sizes.arena.right - this.width;
+        if (this.pos.x + this.width + this.twin_offset > sizes.arena.right) {
+	    if (current_powerup != PU_BREAK)
+		this.pos.x = sizes.arena.right - (this.width + this.twin_offset);
+	}
+
+	if (current_powerup == PU_BREAK)
+	    if (this.pos.x + this.width/2 >= sizes.arena.right)
+		advance_level();
     }
 
     hsl_to_string(h, s, l) {
 	return `hsl(${h}, ${s}%, ${l}%)`
     }
 
-    render_normal_paddle() {
+    render_normal_paddle(offset=0) {
 	// Draw Shadow
         this.ctx_shadow.save();
-        this.ctx_shadow.translate(sizes.shadow_offset.horizontal, sizes.shadow_offset.vertical);
+        this.ctx_shadow.translate(sizes.shadow_offset.horizontal + offset, sizes.shadow_offset.vertical);
 
         this.ctx_shadow.fillStyle = "#000000";
 
@@ -129,6 +145,9 @@ class Paddle {
 	// Black sub-frame
 
 	// lights
+        this.ctx.save();
+        this.ctx.translate(offset, 0);
+
 	const light_color = this.hsl_to_string(
 	    this.bulb_color.h,
 	    this.bulb_color.s,
@@ -159,6 +178,8 @@ class Paddle {
         this.ctx.fill();
 	canvas_draw_rounded_rectangle(this.ctx, this.pos.x + this.width - sizes.paddle.side_width, this.pos.y, sizes.paddle.side_width, this.height, this.radius);
         this.ctx.fill();
+
+	this.ctx.restore();
     }
 
     render_laser_paddle() {
@@ -222,6 +243,8 @@ class Paddle {
     }
 
     render() {
+	if (this.twin_offset > 0)
+	    this.render_normal_paddle(this.twin_offset);
 	if (current_powerup == PU_LASER)
 	    this.render_laser_paddle();
 	else
