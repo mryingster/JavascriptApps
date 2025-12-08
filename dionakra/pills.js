@@ -12,10 +12,10 @@ const pill_types = [
     {note: "Catch",       type: PU_CATCH,       text: "C", c1: {h: 120, s: 100, l:  50}, c2: "#ff0"}, // Working
     {note: "Expand",      type: PU_EXPAND,      text: "E", c1: {h: 240, s: 100, l:  50}, c2: "#ff0"}, // Working
     {note: "Disrupt",     type: PU_DISRUPT,     text: "D", c1: {h: 180, s: 100, l:  50}, c2: "#ff0"}, // Working
-    {note: "Laser",       type: PU_LASER,       text: "L", c1: {h:   0, s: 100, l:  50}, c2: "#ff0"},
-    {note: "Break",       type: PU_BREAK,       text: "B", c1: {h: 300, s:  85, l:  85}, c2: "#ff0"},
+    {note: "Laser",       type: PU_LASER,       text: "L", c1: {h:   0, s: 100, l:  50}, c2: "#ff0"}, // Working
+    {note: "Break",       type: PU_BREAK,       text: "B", c1: {h: 300, s:  85, l:  85}, c2: "#ff0"}, // Partial
     {note: "Player",      type: PU_PLAYER,      text: "P", c1: {h:   0, s:   0, l:  50}, c2: "#08f"}, // Working
-    {note: "Twin",        type: PU_TWIN,        text: "T", c1: {h: 200, s: 100, l:  30}, c2: "#ff0"},
+    {note: "Twin",        type: PU_TWIN,        text: "T", c1: {h: 200, s: 100, l:  30}, c2: "#ff0"}, // Working
     {note: "Megaball",    type: PU_MEGABALL,    text: "M", c1: {h: 300, s: 100, l:  50}, c2: "#ff0"}, // Working
     {note: "Illusion",    type: PU_ILLUSION,    text: "I", c1: {h: 120, s: 100, l:  25}, c2: "#ff0"},
     {note: "Reduce",      type: PU_REDUCE,      text: "R", c1: {h:   0, s:   0, l:  10}, c2: "#ff0"}, // Working
@@ -65,8 +65,13 @@ class Pill {
 
         // Check if collided with paddle
 	const paddle_center = paddle.pos.x + (paddle.width / 2);
-	if (this.pos.y + this.height >= paddle.pos.y) {
-	    if (Math.abs(this.pos.x + (this.width / 2) - paddle_center) < paddle.width / 2) {
+	const twin_center = paddle_center + paddle.twin_offset;
+	if (this.pos.y + this.height >= paddle.pos.y && this.pos.y <= paddle.pos.y + paddle.height) {
+	    let twin_intersect = false;
+	    let paddle_intersect = Math.abs(this.pos.x + (this.width / 2) - paddle_center) < paddle.width / 2
+	    if (current_powerup == PU_TWIN)
+		twin_intersect = Math.abs(this.pos.x + (this.width / 2) - twin_center) < paddle.width / 2
+	    if (paddle_intersect || twin_intersect) {
 		this.remove = true;
 
 		// Reset things

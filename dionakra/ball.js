@@ -279,7 +279,9 @@ class Ball {
 	    ball_top_edge < paddle.pos.y + paddle.height) {
 
 	    // Make sure for the last frame we were not colliding...
-	    if (ball_prev_bottom_edge < paddle.pos.y) {
+	    if (ball_prev_bottom_edge < paddle.pos.y ||
+		ball_prev_left_edge > paddle.pos.x + paddle.width ||
+		ball_prev_right_edge < paddle.pos.x) {
 
 		// Arkanoid Style bounce
 		this.v = bounceArkanoidStyle(this, paddle);
@@ -301,13 +303,29 @@ class Ball {
 		ball_top_edge < paddle.pos.y + paddle.height) {
 
 		// Make sure for the last frame we were not colliding...
-		if (ball_prev_bottom_edge < paddle.pos.y) {
+		if (ball_prev_bottom_edge < paddle.pos.y ||
+		    ball_prev_left_edge > paddle.pos.x + paddle.twin_offset + paddle.width ||
+		    ball_prev_right_edge < paddle.pos.x + paddle.twin_offset) {
 
 		    // Arkanoid Style bounce
 		    this.v = bounceArkanoidStyle(this, paddle, paddle.twin_offset);
 
 		    return;
 		}
+	    }
+	}
+
+	// Collide with illusion
+	if (current_powerup == PU_ILLUSION) {
+	    if (ball_right_edge > Math.min(paddle.pos.x, paddle.illusion_pos.x) &&
+		ball_left_edge < Math.max(paddle.pos.x, paddle.illusion_pos.x) &&
+		ball_bottom_edge > paddle.pos.y &&
+		ball_top_edge < paddle.pos.y + paddle.height) {
+
+		if (this.v.y > 0)
+		    this.v.y *= -1;
+
+		return;
 	    }
 	}
 

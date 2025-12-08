@@ -14,6 +14,7 @@ class Paddle {
         this.color_inner = "#00ffff";
 
 	this.twin_offset = 0;
+	this.illusion_pos = {x: 0};
 
         this.radius = 5;
         this.border = 2;
@@ -81,6 +82,7 @@ class Paddle {
 	    }
 	}
 
+	// Twin Paddle Movements
 	if (current_powerup == PU_TWIN) {
 	    if (this.twin_offset < (this.width * 1.25))
 		this.twin_offset += ms * .2;
@@ -89,6 +91,21 @@ class Paddle {
 	} else {
 	    if (this.twin_offset > 0)
 		this.twin_offset -= ms * .2;
+	}
+
+	// Illusion Movement
+	if (current_powerup == PU_ILLUSION) {
+	    let illusion_distance = this.illusion_pos.x - this.pos.x;  // - left, + right
+	    // Cap distance
+	    if (illusion_distance < -1.75 * this.width)
+		this.illusion_pos.x = this.pos.x - (this.width * 1.75);
+	    if (illusion_distance > 1.75 * this.width + this.width)
+		this.illusion_pos.x = this.pos.x + this.width + (this.width * 1.75);
+	    // Slowly retract
+	    if (illusion_distance < 0)
+		this.illusion_pos.x += .05 * ms;
+	    if (illusion_distance > 0)
+		this.illusion_pos.x -= .05 * ms;
 	}
 
 	this.collide();
@@ -183,13 +200,36 @@ class Paddle {
     }
 
     render_laser_paddle() {
-	// Draw Shadow
-        // this.ctx_shadow.save();
-        // this.ctx_shadow.translate(sizes.shadow_offset.horizontal, sizes.shadow_offset.vertical);
-        // this.ctx_shadow.fillStyle = "#000000";
+	let middle_width = this.width - (sizes.paddle.side_width * 2);
 
-        // this.ctx_shadow.fill();
-        // this.ctx_shadow.restore();
+	// Draw Shadow
+        this.ctx_shadow.save();
+        this.ctx_shadow.translate(sizes.shadow_offset.horizontal, sizes.shadow_offset.vertical);
+        this.ctx_shadow.fillStyle = "#000000";
+
+
+	this.ctx_shadow.moveTo(this.pos.x, this.light_vertical_center);
+        this.ctx_shadow.beginPath();
+        this.ctx_shadow.arc(this.pos.x + sizes.ball.radius, this.light_vertical_center, sizes.ball.radius, 0, 2*Math.PI);
+        this.ctx_shadow.fill();
+
+	this.ctx_shadow.moveTo(this.pos.x + this.width, this.light_vertical_center);
+        this.ctx_shadow.beginPath();
+        this.ctx_shadow.arc(this.pos.x + this.width - sizes.ball.radius, this.light_vertical_center, sizes.ball.radius, 0, 2*Math.PI);
+        this.ctx_shadow.fill();
+
+	// Main body
+	canvas_draw_rounded_rectangle(this.ctx_shadow, this.pos.x + sizes.paddle.side_width, this.pos.y, middle_width, this.height, this.radius);
+        this.ctx_shadow.fill();
+
+	// Sides
+	canvas_draw_left_laser_paddle(this.ctx_shadow, this.pos.x, this.pos.y, sizes.paddle.side_width, this.height, this.radius);
+        this.ctx_shadow.fill();
+	canvas_draw_right_laser_paddle(this.ctx_shadow, this.pos.x + this.width - sizes.paddle.side_width, this.pos.y, sizes.paddle.side_width, this.height, this.radius);
+        this.ctx_shadow.fill();
+
+        this.ctx_shadow.fill();
+        this.ctx_shadow.restore();
 
 	// lights
 	const light_color = this.hsl_to_string(
@@ -211,7 +251,6 @@ class Paddle {
         this.ctx.fill();
 
 	// Main body
-	let middle_width = this.width - (sizes.paddle.side_width * 2);
 	this.ctx.fillStyle = this.gradient_grey;
 	canvas_draw_rounded_rectangle(this.ctx, this.pos.x + sizes.paddle.side_width, this.pos.y, middle_width, this.height, this.radius);
         this.ctx.fill();
@@ -242,14 +281,36 @@ class Paddle {
 
     }
 
+    render_illusion() {
+        this.ctx.fillStyle = "rgba(128, 63, 193, .4)";
+
+	let left_edge = Math.min(this.pos.x + (this.width / 2), this.illusion_pos.x);
+	let width = Math.abs(this.pos.x + (this.width / 2) - this.illusion_pos.x);
+
+        canvas_draw_rounded_rectangle(
+	    this.ctx,
+	    left_edge,
+	    this.pos.y,
+	    width,
+	    this.height,
+	    this.radius,
+	);
+        this.ctx.fill();
+    }
+
     render() {
+	if (current_powerup == PU_ILLUSION)
+	    this.render_illusion();
+
 	if (this.twin_offset > 0)
 	    this.render_normal_paddle(this.twin_offset);
+
 	if (current_powerup == PU_LASER)
 	    this.render_laser_paddle();
 	else
 	    this.render_normal_paddle()
-	return;;
+
+	return;
     }
 }
 
