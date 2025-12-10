@@ -52,7 +52,7 @@ function draw_frame_shadow(ctx) {
 	0 + sizes.shadow_offset.horizontal,
 	0 + sizes.shadow_offset.vertical,
 	sizes.frame.left,
-	sizes.canvas.height
+	sizes.arena.height - sizes.shadow_offset.vertical,
     );
 
     ctx.fillRect(

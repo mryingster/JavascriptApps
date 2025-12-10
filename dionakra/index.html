@@ -20,20 +20,19 @@
   <body>
 
     <div id="content">
-      <img src="images/dionakra.svg" width="300px">
-      <div id="controls">
-        <button id="pause">Pause</button>
-        <button id="newgame">New Game</button>
-        Score:<span id="score">0</span>
-        Lives:<span id="lives"></span>
+      <img id="logo" src="images/dionakra.svg" width="300px">
+      <div id="info">
+        <p id="level_div"><span class="label">Level:</span><span id="level">-</span></p>
+        <p id="lives_div"><span class="label">Lives:</span><span id="lives">-</span></p>
+        <p id="score_div"><span class="label">Score:</span><span id="score">0</span></p>
       </div>
 
       <div id="canvases">
-        <canvas id="canvas_background" width="672" height="720"></canvas>
-        <canvas id="canvas_shadow"     width="672" height="720"></canvas>
+        <canvas id="canvas_background" width="672" height="820"></canvas>
+        <canvas id="canvas_shadow"     width="672" height="820"></canvas>
         <object data="images/frame.svg" id="frame" type="image/svg+xml"></object>
-        <canvas id="canvas_dynamic"    width="672" height="720"></canvas>
-        <canvas id="canvas_overlay"    width="672" height="720"></canvas>
+        <canvas id="canvas_dynamic"    width="672" height="820"></canvas>
+        <canvas id="canvas_overlay"    width="672" height="820"></canvas>
       </div>
 
     </div>

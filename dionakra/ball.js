@@ -146,7 +146,7 @@ function sweepCircleAABB(P0x, P0y, dx, dy, radius, bx, by, bw, bh) {
 }
 
 class Ball {
-    constructor(ctx, ctx_shadow, caught=false) {
+    constructor(ctx, ctx_shadow, caught=false, pos=null, v=null) {
 	this.ctx = ctx;
         this.ctx_shadow = ctx_shadow;
 
@@ -154,17 +154,30 @@ class Ball {
 	    x: 300,
 	    y: 400,
 	};
+	if (pos !== null) {
+	    this.pos.x = pos.x;
+	    this.pos.y = pos.y;
+	}
 
         this.prev = {
             x: 0,
             y: 0,
         }
+	if (pos !== null) {
+	    this.prev.x = pos.x;
+	    this.prev.y = pos.y;
+	}
 
 	this.v = {
 	    x: 16,
 	    y: -32,
 	    s: 40,
 	};
+	if (v !== null) {
+	    this.v.x = v.x;
+	    this.v.y = v.y;
+	    this.v.s = v.s
+	}
 
 	normalizeSpeed(this.v);
 

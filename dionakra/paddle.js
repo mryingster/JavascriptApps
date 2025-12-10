@@ -6,15 +6,15 @@ class Paddle {
         this.height = sizes.paddle.height;
 
 	this.pos = {
-	    x: this.ctx.canvas.width / 2,
-	    y: this.ctx.canvas.height - this.ctx.canvas.height / 14 - this.height,
+	    x: sizes.canvas.width / 2 - (this.width / 2),
+	    y: sizes.paddle.ypos,
 	};
 
         this.color_outer = "#ffffff";
         this.color_inner = "#00ffff";
 
 	this.twin_offset = 0;
-	this.illusion_pos = {x: 0};
+	this.illusion_pos = {x: -1};
 
         this.radius = 5;
         this.border = 2;
@@ -29,7 +29,7 @@ class Paddle {
 	this.gradient_red = this.ctx.createLinearGradient(0, this.pos.y, 0, this.pos.y + this.height);
 	this.gradient_red.addColorStop(0,   "#fe5d24");
 	this.gradient_red.addColorStop(0.2, "#ffffff");
-	this.gradient_red.addColorStop(.6,   "#fe5d24");
+	this.gradient_red.addColorStop(.6,  "#fe5d24");
 	this.gradient_red.addColorStop(1,   "#bb2e15");
 
 	this.light_vertical_center = this.pos.y + (this.height / 2)
@@ -42,8 +42,10 @@ class Paddle {
     }
 
     reset() {
-	this.pos.x = this.ctx.canvas.width / 2;
-	this.pos.y = this.ctx.canvas.height - this.ctx.canvas.height / 14 - this.height;
+	this.pos = {
+	    x: sizes.canvas.width / 2 - (this.width / 2),
+	    y: sizes.paddle.ypos,
+	};
     }
 
     set_pos(x) {
@@ -95,6 +97,7 @@ class Paddle {
 
 	// Illusion Movement
 	if (current_powerup == PU_ILLUSION) {
+	    if (this.illusion_pos.x < 0) this.illusion_pos = this.pos.x + (this.width / 2);
 	    let illusion_distance = this.illusion_pos.x - this.pos.x;  // - left, + right
 	    // Cap distance
 	    if (illusion_distance < -1.75 * this.width)
@@ -207,7 +210,6 @@ class Paddle {
         this.ctx_shadow.translate(sizes.shadow_offset.horizontal, sizes.shadow_offset.vertical);
         this.ctx_shadow.fillStyle = "#000000";
 
-
 	this.ctx_shadow.moveTo(this.pos.x, this.light_vertical_center);
         this.ctx_shadow.beginPath();
         this.ctx_shadow.arc(this.pos.x + sizes.ball.radius, this.light_vertical_center, sizes.ball.radius, 0, 2*Math.PI);
@@ -298,6 +300,41 @@ class Paddle {
         this.ctx.fill();
     }
 
+    render_controller() {
+	this.ctx.strokeStyle = "#888";
+	this.ctx.fillStyle = "#000";
+	canvas_draw_rounded_rectangle(
+	    this.ctx,
+	    this.pos.x,
+	    sizes.controller.ypos,
+	    sizes.controller.width,
+	    sizes.controller.height,
+	    this.radius
+	);
+        this.ctx.fill();
+	this.ctx.stroke();
+
+	let line_spacing = sizes.controller.width/7;
+	let center = this.pos.x + sizes.controller.width/2;
+	let line_top = sizes.controller.ypos + line_spacing;
+	let line_bottom = sizes.controller.ypos + sizes.controller.height - line_spacing;
+
+	this.ctx.beginPath();
+	this.ctx.moveTo(center - line_spacing, line_top);
+	this.ctx.lineTo(center - line_spacing, line_bottom);
+	this.ctx.stroke();
+
+	this.ctx.beginPath();
+	this.ctx.moveTo(center, line_top);
+	this.ctx.lineTo(center, line_bottom);
+	this.ctx.stroke();
+
+	this.ctx.beginPath();
+	this.ctx.moveTo(center + line_spacing, line_top);
+	this.ctx.lineTo(center + line_spacing, line_bottom);
+	this.ctx.stroke();
+    }
+
     render() {
 	if (current_powerup == PU_ILLUSION)
 	    this.render_illusion();
@@ -309,6 +346,8 @@ class Paddle {
 	    this.render_laser_paddle();
 	else
 	    this.render_normal_paddle()
+
+	this.render_controller();
 
 	return;
     }

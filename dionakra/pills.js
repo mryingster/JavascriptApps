@@ -60,7 +60,7 @@ class Pill {
         this.pos.y += .1 * ms;
 
         // Check if off the screen
-        if (this.pos.y > sizes.canvas.height)
+        if (this.pos.y > sizes.arena.height)
             this.remove = true;
 
         // Check if collided with paddle

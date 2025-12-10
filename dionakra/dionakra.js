@@ -29,6 +29,7 @@ function main_loop(timestamp) {
             // Remove bricks
             for (let i=0; i<bricks.length; i++) {
 		if (bricks[i].hits == 0) {
+		    score += bricks[i].value;
                     bricks.splice(i, 1);
                     i--;
 		}
@@ -125,6 +126,8 @@ function main_loop(timestamp) {
             ball.render();
 
         paddle.render();
+
+	document.getElementById("score").innerHTML = score;
     }
 
     // Call next loop
@@ -133,6 +136,7 @@ function main_loop(timestamp) {
 
 function game_over() {
     active = false;
+    showModal("Game over!");
     return;
 }
 
@@ -150,10 +154,10 @@ function duplicate_ball() {
     balls.push(new Ball(
 	balls[0].ctx,
 	balls[0].ctx_shadow,
+	false,
+	balls[0].pos,
+	balls[0].v,
     ));
-
-    balls[balls.length -1].pos = {...balls[0].pos};
-    balls[balls.length -1].v   = {...balls[0].v};
 }
 
 function disrupt_ball(n=3) {
@@ -161,11 +165,17 @@ function disrupt_ball(n=3) {
 	duplicate_ball()
 }
 
-function advance_level() {
+function advance_level(n=null) {
     level++;
+    if (n !== null)
+	level = n;
+
+    document.getElementById("level").innerHTML = level;
+
     populate_level(level);
     for (let brick of bricks)
 	brick.start_shimmer();
+
     paddle.reset();
     reset_ball();
     reset_powerups();
@@ -188,7 +198,28 @@ function populate_level(l) {
 		bricks.push(new Brick(ctx_dynamic, ctx_shadow, x, y, brick_types[levels[l][y][x]]));
 }
 
-function new_game() {
+function toggle_pause() {
+    paused = !paused;
+
+    clear_context(ctx_overlay);
+    if (paused) {
+	overlay_message("Paused");
+    }
+}
+
+function overlay_message(m) {
+    ctx_overlay.fillStyle = "rgba(0, 0, 0, .5)";
+    ctx_overlay.fillRect(0, 0, canvas_overlay.width, canvas_overlay.height);
+
+    ctx_overlay.font = "bold 32px Arial";
+    ctx_overlay.textAlign = "center";
+    ctx_overlay.lineWidth = 5;
+    ctx_overlay.fillStyle = "#fff";
+    ctx_overlay.fillText(m, canvas_overlay.width / 2, canvas_overlay.height / 2);
+
+}
+
+function new_game(continued=false) {
     if (active) return;
 
     active = true;
@@ -197,16 +228,18 @@ function new_game() {
     paddle.reset();
 
     lives = 5;
-    level = 0;
+    if (continued === false)
+	level = 0;
+    score = 0;
 
     // Set up level information
-    advance_level();
+    advance_level(level);
 
     // Set up ball
     lives--;
     reset_ball();
 
-    pause = false;
+    paused = false;
 
     // Start loop
     main_loop();
@@ -245,12 +278,14 @@ function getCursorPosition(canvas, event) {
 let canvas_dynamic;
 let ctx_dynamic;
 
-let canvas_static;
-let ctx_static;
+let canvas_shadow;
+let ctx_shadow;
 
 let canvas_background;
 let ctx_background;
-let particles = [];
+
+let canvas_overlay;
+let ctx_overlay;
 
 let width;
 let height;
@@ -270,6 +305,10 @@ const PU_REDUCE	     = 11;
 const PU_NEW_DISRUPT = 12;
 
 const size_ratios = {
+    arena : {
+	width: 1,
+	height: 15/14,
+    }, // 224 x 240
     frame: {
 	left: 1/28,
 	right: 1/28,
@@ -291,6 +330,7 @@ const size_ratios = {
 	height: 1/28,
 	side_width: 1/45,
 	middle_width: 1/10,
+	ypos: 232/240,
     },
     pill: {
         radius: 1/112,
@@ -299,12 +339,18 @@ const size_ratios = {
 	width: 1/75,
 	height: 1/32,
 	spacing: 1/17,
-    }
+    },
+    controller: {
+	width: 1/7,
+	height: 1/14,
+	ypos: 31/28,
+    },
 }
 
 let sizes = {};
 
-let active;
+let active = false;;
+let score;
 let level;
 let bricks;
 let pills;
@@ -340,7 +386,8 @@ function resize(canvas) {
 	    left: size_ratios.frame.left * width,
 	    right: width - (size_ratios.frame.left * width),
 	    top: size_ratios.frame.top * width,
-	    bottom: height,
+	    bottom: size_ratios.arena.height * width,
+	    height: size_ratios.arena.height * width,
 	},
 	brick: {
 	    width: size_ratios.brick.width * width,
@@ -363,6 +410,7 @@ function resize(canvas) {
 	    height: size_ratios.paddle.height * width,
 	    side_width: size_ratios.paddle.side_width * width,
 	    middle_width: size_ratios.paddle.middle_width * width,
+	    ypos: size_ratios.paddle.ypos * width,
 	},
         pill: {
 	    width: size_ratios.brick.width * width,
@@ -374,6 +422,11 @@ function resize(canvas) {
 	    width: size_ratios.laser.width * width,
 	    height: size_ratios.laser.height * width,
 	    spacing: size_ratios.laser.spacing * width,
+	},
+	controller: {
+	    width: size_ratios.controller.width * width,
+	    height: size_ratios.controller.height * width,
+	    ypos: size_ratios.controller.ypos * width,
 	},
     }
 }
@@ -390,6 +443,7 @@ function firstLoad() {
     ctx_background = canvas_background.getContext("2d");
 
     canvas_overlay = document.getElementById('canvas_overlay')
+    ctx_overlay = canvas_overlay.getContext("2d");
 
     // Input Listeners
     canvas_overlay.addEventListener('touchstart', function(e) {
@@ -411,10 +465,22 @@ function firstLoad() {
         e.preventDefault();
 	if (touch_start == false) return;
 
-	const distance = Math.abs(Math.hypot(touch_start.x - touch_end.x, touch_start.y - touch_end.y));
-	if (distance < 50 || touch_end == false)
-	    for (let ball of balls)
-		ball.is_caught = false;
+	// If game is inactive, lets make this start a new game
+	if (active === false) {
+	    new_game();
+
+	} else {
+	    // If game is active, split the screen into two halves
+	    if ( touch_end.y < canvas_overlay.height / 2) {
+		toggle_pause();
+	    } else {
+		//this is going to be a click for releasing the ball
+		const distance = Math.abs(Math.hypot(touch_start.x - touch_end.x, touch_start.y - touch_end.y));
+		if (distance < 50 || touch_end == false)
+		    for (let ball of balls)
+			ball.is_caught = false;
+	    }
+	}
 
 	touch_start = false;
 	touch_end = false;
@@ -434,25 +500,32 @@ function firstLoad() {
 
     canvas_overlay.addEventListener('mouseup', function(e) {
 	if (mouse_down == false) return;
-
 	const pos = getCursorPosition(canvas_overlay, e);
-	const distance = Math.abs(Math.hypot(mouse_down.x - pos.x, mouse_down.y - pos.y));
-	if (distance < 10)
-	    for (let ball of balls)
-		ball.is_caught = false;
+
+	// If game is inactive, lets make this start a new game
+	if (active === false) {
+	    new_game();
+
+	} else {
+	    // If game is active, split the screen into two halves
+	    if ( pos.y < canvas_overlay.height / 2) {
+		toggle_pause();
+	    } else {
+		//this is going to be a click for releasing the ball
+		const distance = Math.abs(Math.hypot(mouse_down.x - pos.x, mouse_down.y - pos.y));
+		if (distance < 10)
+		    for (let ball of balls)
+			ball.is_caught = false;
+	    }
+	}
 
 	mouse_down = false;
     });
 
-    document.getElementById("pause").onclick = function(e) {
-        paused = !paused;
-    }
-    document.getElementById("newgame").onclick = function(e) {
-        new_game();
-    }
-
     // Calculate sizes
     resize(canvas_overlay);
+
+    draw_frame_shadow(ctx_shadow);
 
     // Define paddle
     paddle = new Paddle(ctx_dynamic, ctx_shadow);

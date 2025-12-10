@@ -22,15 +22,15 @@ function showModal(message) {
 
     const okBtn = document.createElement('button');
     okBtn.className = 'game-modal-button';
-    okBtn.textContent = 'OK';
+    okBtn.textContent = 'End Game';
     okBtn.onclick = () => closeModal(overlay);
 
     const newGameBtn = document.createElement('button');
     newGameBtn.className = 'game-modal-button';
-    newGameBtn.textContent = 'New Game';
+    newGameBtn.textContent = 'Continue';
     newGameBtn.onclick = () => {
         closeModal(overlay);
-        new_game();
+        new_game(true);
     };
 
     buttons.append(okBtn, newGameBtn);

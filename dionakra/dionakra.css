@@ -1,3 +1,8 @@
+@font-face {
+    font-family: "SegmentedAlpha";
+    src: url('fonts/Digital7Regular.otf');
+}
+
 body {
     background: #222;
     color: #fff;
@@ -7,6 +12,43 @@ body {
 #content {
     width: 672px;
     margin: 0 auto 0 auto;
+}
+
+#info {
+    width: 340px;
+    display: inline-block;
+    vertical-align: bottom;
+    font-family: segmentedalpha;
+    font-size: 2em;
+    height: 110px;
+    margin: 0px;
+    padding: 0px;
+    position: relative;
+}
+
+#level_div {
+    float: left;
+}
+
+#lives_div {
+    float: right;
+}
+
+#score_div {
+    display: block;
+    text-align: center;
+    bottom: 0px;
+    margin: 0px auto;
+    width: inherit;
+    position: absolute;
+}
+
+.label {
+    color: #aaa;
+}
+
+#logo {
+    vertical-align: bottom;
 }
 
 #canvases {
