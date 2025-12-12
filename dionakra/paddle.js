@@ -10,12 +10,17 @@ class Paddle {
 	    y: sizes.paddle.ypos,
 	};
 
+	this.prev = {
+	    x: this.pos.x,
+	    y: this.pos.y,
+	}
+
         this.color_outer = "#ffffff";
         this.color_inner = "#00ffff";
 
 	this.twin_offset = 0;
-	this.illusion_pos = {x: -1};
-
+	this.illusion_pos = {x: 0};
+	this.framebreak = {top:this.pos.y + (this.width / 2), height:0};
         this.radius = 5;
         this.border = 2;
 
@@ -49,6 +54,9 @@ class Paddle {
     }
 
     set_pos(x) {
+	this.prev.x = this.pos.x;
+	this.prev.y = this.pos.y;
+
         this.pos.x = x - (this.width / 2);
         this.collide();
         return;
@@ -97,7 +105,6 @@ class Paddle {
 
 	// Illusion Movement
 	if (current_powerup == PU_ILLUSION) {
-	    if (this.illusion_pos.x < 0) this.illusion_pos = this.pos.x + (this.width / 2);
 	    let illusion_distance = this.illusion_pos.x - this.pos.x;  // - left, + right
 	    // Cap distance
 	    if (illusion_distance < -1.75 * this.width)
@@ -106,9 +113,34 @@ class Paddle {
 		this.illusion_pos.x = this.pos.x + this.width + (this.width * 1.75);
 	    // Slowly retract
 	    if (illusion_distance < 0)
-		this.illusion_pos.x += .05 * ms;
+		this.illusion_pos.x += .1 * ms;
 	    if (illusion_distance > 0)
-		this.illusion_pos.x -= .05 * ms;
+		this.illusion_pos.x -= .1 * ms;
+	}
+
+	// Break Movement
+	if (current_powerup == PU_BREAK) {
+	    // Open break in the wall
+	    if (this.framebreak.top > this.pos.y - this.height)
+		this.framebreak.top -= .1 * ms;
+	    if (this.framebreak.top < this.pos.y - this.height)
+		this.framebreak.top = this.pos.y - this.height;
+
+	    if (this.framebreak.height < this.height * 3)
+		this.framebreak.height += .2 * ms;
+	    if (this.framebreak.height > this.height * 3)
+		this.framebreak.height = this.height * 3;
+	} else {
+	    // Close break in the wall
+	    if (this.framebreak.top < this.pos.y + (this.height / 2))
+		this.framebreak.top += .1 * ms;
+	    if (this.framebreak.top > this.pos.y + (this.height / 2))
+		this.framebreak.top = this.pos.y + (this.height / 2);
+
+	    if (this.framebreak.height > 0)
+		this.framebreak.height -= .2 * ms;
+	    if (this.framebreak.height < 0)
+		this.framebreak.height = 0;
 	}
 
 	this.collide();
@@ -335,7 +367,42 @@ class Paddle {
 	this.ctx.stroke();
     }
 
+    render_break() {
+	// Create opening door
+	this.ctx.beginPath();
+        canvas_draw_rounded_rectangle(
+	    this.ctx,
+	    sizes.arena.right,
+	    this.framebreak.top,
+	    sizes.frame.right,
+	    this.framebreak.height,
+	    sizes.frame.right / 4,
+	);
+	this.ctx.fillStyle = "#333";
+        this.ctx.fill();
+
+	// Draw some energy??
+	const center = sizes.arena.right + sizes.frame.right / 2;
+	let posy = this.framebreak.top
+	this.ctx.beginPath();
+	this.ctx.moveTo(center, this.framebreak.top);
+	while (posy < this.framebreak.top + this.framebreak.height) {
+	    posy += 3;
+	    this.ctx.lineTo(center + Math.random() * (sizes.frame.right / 2) - (sizes.frame.right / 4), posy);
+	}
+
+	this.ctx.lineWidth = 3;
+	this.ctx.strokeStyle = "#0bf";
+	this.ctx.stroke();
+
+	this.ctx.lineWidth = 1;
+	this.ctx.strokeStyle = "#fff";
+	this.ctx.stroke();
+    }
+
     render() {
+	if (this.framebreak.height != 0)
+	    this.render_break();
 	if (current_powerup == PU_ILLUSION)
 	    this.render_illusion();
 

@@ -145,6 +145,18 @@ function sweepCircleAABB(P0x, P0y, dx, dy, radius, bx, by, bw, bh) {
     return { t: tEnter, nx, ny };
 }
 
+function circle_intersect_with_rectangle(cx, cy, cr, rx, ry, rw, rh) {
+    let rect_left = rx - cr;
+    let rect_right = rx + rw + cr;
+    let rect_top = ry - cr;
+    let rect_bottom = ry + rh + cr;
+
+    if (cx >= rect_left && cx <= rect_right &&
+	cy >= rect_top && cy <= rect_bottom)
+	return true;
+    return false;
+}
+
 class Ball {
     constructor(ctx, ctx_shadow, caught=false, pos=null, v=null) {
 	this.ctx = ctx;
@@ -206,11 +218,11 @@ class Ball {
     }
 
     slow() {
-	this.set_speed(this.v.s * .9);
+	this.set_speed(this.v.s * .8);
     }
 
     speedup() {
-	this.set_speed(this.v.s * 1.1);
+	this.set_speed(this.v.s * 1.2);
     }
 
     collide() {
@@ -228,19 +240,19 @@ class Ball {
         if (ball_top_edge <= sizes.arena.top) {
 	    if (this.v.y < 0)
 		this.v.y *= -1;
-	    return;
+	    return true;
         }
 
         if (ball_right_edge >= sizes.arena.right) {
 	    if (this.v.x > 0)
 		this.v.x *= -1;
-	    return;
+	    return true;
 	}
 
 	if (ball_left_edge <= sizes.arena.left) {
 	    if (this.v.x < 0)
 		this.v.x *= -1;
-	    return;
+	    return true;
 	}
 
         // Brick Collisions
@@ -280,22 +292,15 @@ class Ball {
                     this.prev.x = this.pos.x;
                     this.prev.y = this.pos.y;
 
-                    return;
+                    return true;
                 }
             }
         }
 
-        // Collide with paddle
-        if (ball_right_edge > paddle.pos.x &&
-            ball_left_edge < paddle.pos.x + paddle.width &&
-            ball_bottom_edge > paddle.pos.y &&
-	    ball_top_edge < paddle.pos.y + paddle.height) {
-
-	    // Make sure for the last frame we were not colliding...
-	    if (ball_prev_bottom_edge < paddle.pos.y ||
-		ball_prev_left_edge > paddle.pos.x + paddle.width ||
-		ball_prev_right_edge < paddle.pos.x) {
-
+	// Collide with paddle
+	if (circle_intersect_with_rectangle(this.pos.x, this.pos.y, this.radius, paddle.pos.x, paddle.pos.y, paddle.width, paddle.height)) {
+	    // Ensure previous frame had no collision
+	    if (circle_intersect_with_rectangle(this.prev.x, this.prev.y, this.radius, paddle.prev.x, paddle.prev.y, paddle.width, paddle.height)) {
 		// Arkanoid Style bounce
 		this.v = bounceArkanoidStyle(this, paddle);
 
@@ -304,49 +309,47 @@ class Ball {
 		    this.catch_offset = this.pos.x - paddle.pos.x;
 		}
 
-		return;
+		return true;
 	    }
-        }
+	}
 
 	// Collide with twin paddle
 	if (current_powerup == PU_TWIN) {
-            if (ball_right_edge > paddle.pos.x + paddle.twin_offset &&
-		ball_left_edge < paddle.pos.x + paddle.twin_offset + paddle.width &&
-		ball_bottom_edge > paddle.pos.y &&
-		ball_top_edge < paddle.pos.y + paddle.height) {
-
-		// Make sure for the last frame we were not colliding...
-		if (ball_prev_bottom_edge < paddle.pos.y ||
-		    ball_prev_left_edge > paddle.pos.x + paddle.twin_offset + paddle.width ||
-		    ball_prev_right_edge < paddle.pos.x + paddle.twin_offset) {
-
+	    if (circle_intersect_with_rectangle(this.pos.x, this.pos.y, this.radius, paddle.pos.x + paddle.twin_offset, paddle.pos.y, paddle.width, paddle.height)) {
+		// Ensure previous frame had no collision
+		if (circle_intersect_with_rectangle(this.prev.x, this.prev.y, this.radius, paddle.prev.x + paddle.twin_offset, paddle.prev.y, paddle.width, paddle.height)) {
 		    // Arkanoid Style bounce
-		    this.v = bounceArkanoidStyle(this, paddle, paddle.twin_offset);
+		    this.v = bounceArkanoidStyle(this, paddle);
 
-		    return;
+		    if (current_powerup == PU_CATCH) {
+			this.is_caught = true;
+			this.catch_offset = this.pos.x - paddle.pos.x;
+		    }
+
+		    return true;
 		}
 	    }
 	}
 
 	// Collide with illusion
 	if (current_powerup == PU_ILLUSION) {
-	    if (ball_right_edge > Math.min(paddle.pos.x, paddle.illusion_pos.x) &&
-		ball_left_edge < Math.max(paddle.pos.x, paddle.illusion_pos.x) &&
-		ball_bottom_edge > paddle.pos.y &&
-		ball_top_edge < paddle.pos.y + paddle.height) {
-
+	    const illusion_left = Math.min(paddle.pos.x, paddle.illusion_pos.x);
+	    const illusion_width = Math.max(paddle.pos.x, paddle.illusion_pos.x) - illusion_left;
+	    if (circle_intersect_with_rectangle(this.pos.x, this.pos.y, this.radius, illusion_left, paddle.pos.y, illusion_width, paddle.height)) {
 		if (this.v.y > 0)
 		    this.v.y *= -1;
 
-		return;
+		return true;
 	    }
 	}
 
         // Collision with bottom
         if (ball_bottom_edge >= sizes.arena.bottom) {
             this.remove = true;
-	    return;
+	    return true;
         }
+
+	return false;
     }
 
     move(ms) {
@@ -364,7 +367,15 @@ class Ball {
 	}
 
         // Check for collisions
-        this.collide();
+        let collided = this.collide();
+	if (collided)
+	    this.collisions ++;
+
+	// Speedup on collisions
+	if (this.collisions >= 20) {
+	    this.speedup();
+	    this.collisions = 0;
+	}
 
         this.prev.x = this.pos.x
         this.prev.y = this.pos.y
