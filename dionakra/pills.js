@@ -1,3 +1,7 @@
+function reset_pills() {
+    pills = [];
+}
+
 function reset_powerups() {
     current_powerup = PU_NONE;
 

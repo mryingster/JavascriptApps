@@ -98,8 +98,11 @@ function main_loop(timestamp) {
 		game_over();
 		return;
 	    }
-	    reset_ball();
+
+	    paddle.explode();
+	    reset_pills();
 	    reset_powerups();
+	    reset_ball();
 	}
 
 	// Check if level cleared
@@ -123,7 +126,8 @@ function main_loop(timestamp) {
 	    pill.render();
 
         for (const ball of balls)
-            ball.render();
+	    if (!paddle.exploding)
+		ball.render();
 
         paddle.render();
 
@@ -178,9 +182,9 @@ function advance_level(n=null) {
 
     paddle.reset();
     reset_ball();
+    reset_pills();
     reset_powerups();
     reset_lasers();
-    pills = [];
 
     document.getElementById("canvases").style = `background: radial-gradient( circle at 50%, #000, ${["#f00", "#00f", "#0f0"][level % 3]})`;
 }

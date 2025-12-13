@@ -40,6 +40,9 @@ class Paddle {
 	this.light_vertical_center = this.pos.y + (this.height / 2)
 	this.bulb_color = {h:180, s:95, l:52.94}; //"#15f9f9"
 	this.blink = 0;
+
+	this.particles = [];
+	this.exploding = false;
     }
 
     get_pos_center() {
@@ -51,9 +54,26 @@ class Paddle {
 	    x: sizes.canvas.width / 2 - (this.width / 2),
 	    y: sizes.paddle.ypos,
 	};
+	this.exploding = false;
+    }
+
+    explode() {
+	this.exploding = true;
+	for (let i=0; i<30; i++) {
+	    this.particles.push(new Particle(
+		this.ctx,
+		Math.random() * this.width + this.pos.x,
+		Math.random() * this.height + this.pos.y,
+		["#fe5d24", "#fe5d24", "#bb2e15", "#aaa", "#333", "#fff", "#666", "#bbb"][Math.floor(Math.random() * 8)],
+	    ));
+	}
     }
 
     set_pos(x) {
+	// Don't move if exploding
+	if (this.particles.length > 0)
+	    return;
+
 	this.prev.x = this.pos.x;
 	this.prev.y = this.pos.y;
 
@@ -65,6 +85,22 @@ class Paddle {
     move(ms) {
         if (isNaN(ms))
             return;
+
+	// Check for explosion
+	if (this.exploding) {
+	    if (this.particles.length > 0) {
+		for (let i=0; i<this.particles.length; i++) {
+		    this.particles[i].move(ms);
+		    if (this.particles[i].remove) {
+			this.particles.splice(i, 1);
+			i--;
+		    }
+		}
+	    } else {
+		// Explosion done. Reset
+		this.reset();
+	    }
+	}
 
 	if (current_powerup == PU_EXPAND) { // Expand
 	    if (this.width < sizes.paddle.expanded_width) {
@@ -401,6 +437,13 @@ class Paddle {
     }
 
     render() {
+	if (this.particles.length > 0) {
+	    for (let particle of this.particles) {
+		particle.render();
+	    }
+	    return;
+	}
+
 	if (this.framebreak.height != 0)
 	    this.render_break();
 	if (current_powerup == PU_ILLUSION)
@@ -524,5 +567,62 @@ class Laser {
 	    sizes.laser.width / 2,
 	);
         this.ctx.fill();
+    }
+}
+
+class Particle{
+    constructor(ctx, x, y, c){
+        this.ctx = ctx;
+
+        this.pos = {
+            x: x,
+            y: y,
+        };
+
+        this.color = c;
+
+        this.speed = {
+            x: Math.random() * 70 - 35,
+            y: Math.random() * -300
+        };
+
+        this.life = 0;
+	this.remove = false;
+
+        this.flip_speed = Math.random() * 10 - 5;
+        this.rotation_speed = Math.random() * 10 - 5;
+    }
+
+    move(ms){
+        if (isNaN(ms))
+            return;
+
+        // Gravity
+        this.speed.y += 15;
+
+        // Wind resistance
+        this.speed.x *= .99;
+
+        // Move
+        this.pos.x += this.speed.x * ms / 200;
+        this.pos.y += this.speed.y * ms / 5000;
+
+        this.life += ms;
+
+	// Delete
+	if (this.pos.y > sizes.arena.height)
+	    this.remove = true;
+    }
+
+    render(){
+        let width = 10;
+        let height = 10 * Math.sin(this.flip_speed * this.life);
+
+        this.ctx.save()
+        this.ctx.translate(this.pos.x, this.pos.y);
+        this.ctx.rotate(this.life * this.rotation_speed / 100);
+        this.ctx.fillStyle = this.color;
+        this.ctx.fillRect(0 - width/2, 0 - height/2, width, height);
+        this.ctx.restore();
     }
 }
