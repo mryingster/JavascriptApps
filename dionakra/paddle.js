@@ -501,8 +501,10 @@ class Laser {
 		this.pos.x + this.offset < brick.pos.x + brick.width &&
 		this.pos.y > brick.pos.y &&
 		this.pos.y < brick.pos.y + brick.height) {
-		brick.hit();
-		this.remove = true;
+		if (brick.hits != 0) {
+		    brick.hit();
+		    this.remove = true;
+		}
 	    }
 
 	    // Check right
@@ -510,8 +512,10 @@ class Laser {
 		this.pos.x + sizes.laser.spacing + this.offset < brick.pos.x + brick.width &&
 		this.pos.y > brick.pos.y &&
 		this.pos.y < brick.pos.y + brick.height) {
-		brick.hit();
-		this.remove = true;
+		if (brick.hits != 0) {
+		    brick.hit();
+		    this.remove = true;
+		}
 	    }
 	}
     }

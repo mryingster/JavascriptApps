@@ -28,7 +28,7 @@ function main_loop(timestamp) {
 
             // Remove bricks
             for (let i=0; i<bricks.length; i++) {
-		if (bricks[i].hits == 0) {
+		if (bricks[i].remove == true) {
 		    score += bricks[i].value;
                     bricks.splice(i, 1);
                     i--;
@@ -146,7 +146,7 @@ function game_over() {
 
 function level_cleared() {
     for (let brick of bricks)
-	if (brick.type > 0)
+	if (brick.permanent == false)
 	    return false;
     return true;
 }
@@ -176,7 +176,15 @@ function advance_level(n=null) {
 
     document.getElementById("level").innerHTML = level;
 
-    populate_level(level);
+    // Find next level for now
+    for (let l of levels) {
+	if (l.level == level) {
+	    populate_level(l.bricks);
+	    break;
+	}
+    }
+
+    // Start with a shimmer
     for (let brick of bricks)
 	brick.start_shimmer();
 
@@ -196,10 +204,13 @@ function add_life() {
 
 function populate_level(l) {
     bricks = []
-    for (let y = 0; y<levels[l].length; y++)
-        for (let x = 0; x<levels[l][y].length; x++)
-	    if (levels[l][y][x] > -1)
-		bricks.push(new Brick(ctx_dynamic, ctx_shadow, x, y, brick_types[levels[l][y][x]]));
+    console.log(l);
+    for (let y = 0; y<l.length; y++)
+        for (let x = 0; x<l[y].length; x++) {
+	    const brick_type = l[y][x];
+	    if (brick_type in brick_types)
+		bricks.push(new Brick(ctx_dynamic, ctx_shadow, x, y, brick_types[brick_type]));
+	}
 }
 
 function toggle_pause() {
@@ -233,7 +244,7 @@ function new_game(continued=false) {
 
     lives = 5;
     if (continued === false)
-	level = 0;
+	level = 1;
     score = 0;
 
     // Set up level information

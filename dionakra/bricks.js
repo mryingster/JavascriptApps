@@ -1,15 +1,36 @@
-const brick_types = [
-    {note: "0 Gold",   type: 0, h:  55, s: 100, l:  50, hits: -1, score: 200, bevel: .5},
-    {note: "1 Silver", type: 1, h:   0, s:   0, l:  50, hits:  2, score:  50, bevel: .5},
-    {note: "2 Red",    type: 2, h:   0, s: 100, l:  50, hits:  1, score:  90, bevel: .125},
-    {note: "3 Orange", type: 3, h:  40, s: 100, l:  50, hits:  1, score:  60, bevel: .125},
-    {note: "4 Yellow", type: 4, h:  60, s: 100, l:  50, hits:  1, score: 120, bevel: .125},
-    {note: "5 Green",  type: 5, h: 120, s: 100, l:  50, hits:  1, score:  80, bevel: .125},
-    {note: "6 Cyan",   type: 6, h: 180, s: 100, l:  50, hits:  1, score:  70, bevel: .125},
-    {note: "7 Blue",   type: 7, h: 220, s: 100, l:  50, hits:  1, score: 100, bevel: .125},
-    {note: "8 Purple", type: 8, h: 290, s: 100, l:  50, hits:  1, score: 110, bevel: .125},
-    {note: "9 White",  type: 9, h:   0, s:   0, l:  90, hits:  1, score:  50, bevel: .125},
-]
+const brick_types = {
+    0x10: {note: "Stationary White",  type: 9, h:   0, s:   0, l:  90, hits:  1, required:true,  permanent:false, regenerate:false, mobile:false, shimmers:false, drop_chance: .1, score:  50, bevel: .125},
+    0x20: {note: "Stationary Orange", type: 3, h:  40, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:false, shimmers:false, drop_chance: .1, score:  60, bevel: .125},
+    0x30: {note: "Stationary Cyan",   type: 6, h: 180, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:false, shimmers:false, drop_chance: .1, score:  70, bevel: .125},
+    0x40: {note: "Stationary Green",  type: 5, h: 120, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:false, shimmers:false, drop_chance: .1, score:  80, bevel: .125},
+    0x50: {note: "Stationary Red",    type: 2, h:   0, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:false, shimmers:false, drop_chance: .1, score:  90, bevel: .125},
+    0x60: {note: "Stationary Blue",   type: 7, h: 220, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:false, shimmers:false, drop_chance: .1, score: 100, bevel: .125},
+    0x70: {note: "Stationary Purple", type: 8, h: 290, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:false, shimmers:false, drop_chance: .1, score: 110, bevel: .125},
+    0x80: {note: "Stationary Yellow", type: 4, h:  60, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:false, shimmers:false, drop_chance: .1, score: 120, bevel: .125},
+    0x90: {note: "Stationary Silver", type: 1, h:   0, s:   0, l:  50, hits:  2, required:true,  permanent:false, regenerate:false, mobile:false, shimmers:true,  drop_chance:  0, score:  50, bevel: .5},
+    0xA0: {note: "Stationary Gold",   type: 0, h:  55, s: 100, l:  50, hits: -1, required:false, permanent:true,  regenerate:false, mobile:false, shimmers:true,  drop_chance:  0, score: 200, bevel: .5},
+    0xB0: {note: "Stationary Regrow" ,type: 10,h:   0, s:   0, l:  50, hits:  2, required:false, permanent:true,  regenerate:true,  mobile:false, shimmers:true,  drop_chance:  0, score:  50, bevel: .33},
+
+    0x11: {note: "Moveable White",  type: 9, h:   0, s:   0, l:  90, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: .1, score:  50, bevel: .125},
+    0x21: {note: "Moveable Orange", type: 3, h:  40, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: .1, score:  60, bevel: .125},
+    0x31: {note: "Moveable Cyan",   type: 6, h: 180, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: .1, score:  70, bevel: .125},
+    0x41: {note: "Moveable Green",  type: 5, h: 120, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: .1, score:  80, bevel: .125},
+    0x51: {note: "Moveable Red",    type: 2, h:   0, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: .1, score:  90, bevel: .125},
+    0x61: {note: "Moveable Blue",   type: 7, h: 220, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: .1, score: 100, bevel: .125},
+    0x71: {note: "Moveable Purple", type: 8, h: 290, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: .1, score: 110, bevel: .125},
+    0x81: {note: "Moveable Yellow", type: 4, h:  60, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: .1, score: 120, bevel: .125},
+    0x91: {note: "Moveable Silver", type: 1, h:   0, s:   0, l:  50, hits:  2, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:true,  drop_chance:  0, score:  50, bevel: .5},
+    0xA1: {note: "Moveable Gold",   type: 0, h:  55, s: 100, l:  50, hits: -1, required:false, permanent:true,  regenerate:false, mobile:true, shimmers:true,  drop_chance:  0, score: 200, bevel: .5},
+
+    0x12: {note: "Drop White",  type: 9, h:   0, s:   0, l:  90, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: 1, score:  50, bevel: .125},
+    0x22: {note: "Drop Orange", type: 3, h:  40, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: 1, score:  60, bevel: .125},
+    0x32: {note: "Drop Cyan",   type: 6, h: 180, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: 1, score:  70, bevel: .125},
+    0x42: {note: "Drop Green",  type: 5, h: 120, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: 1, score:  80, bevel: .125},
+    0x52: {note: "Drop Red",    type: 2, h:   0, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: 1, score:  90, bevel: .125},
+    0x62: {note: "Drop Blue",   type: 7, h: 220, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: 1, score: 100, bevel: .125},
+    0x72: {note: "Drop Purple", type: 8, h: 290, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: 1, score: 110, bevel: .125},
+    0x82: {note: "Drop Yellow", type: 4, h:  60, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: 1, score: 120, bevel: .125},
+}
 
 class Brick {
     constructor(ctx, ctx_shadow, x, y, style) {
@@ -37,25 +58,36 @@ class Brick {
             y: y * this.height + sizes.frame.top,
         }
 
-        this.drop_chance = .1;
-        if (this.type <= 1)
-            this.drop_chance = 0;
-        this.hits = style.hits;
+        this.drop_chance = style.drop_chance;
+        this.hits_required = style.hits;
+        this.hits = this.hits_required;
+	this.required = style.required;
+	this.regenerates = style.regenerate;
+	this.mobile = style.mobile;
+	this.shimmers = style.shimmers;
+	this.permanent = style.permanent;
+
+	this.regenerate_timeout = 10000; // 10 seconds
+	this.regenerate_timer = 0;
 
 	this.shimmer = 0;
     }
 
     hit(remove=false) {
-	if (remove === true)
+	if (remove === true) {
 	    this.hits = 0;
-	else
+	    if (!this.regenerates) {
+		this.remove = true;
+	    }
+	} else {
             this.hits--;
+	}
 
-	// Check to make sure nothing but golds go negative
-	if (this.hits < 0 && this.type != 0)
-	    this.hits = 0;
+	// Remove blocks that are none permanent, and out of hits
+	if (this.hits <= 0 && !this.permanent)
+	    this.remove = true;
 
-	// If this is gold or silver, shimmer!
+	// If this shimmers, shimmer!
 	this.start_shimmer();
 
 	// Drop a pill?
@@ -64,7 +96,7 @@ class Brick {
     }
 
     start_shimmer() {
-	if (this.type <= 1)
+	if (this.shimmers)
 	    this.shimmer = 500;
     }
 
@@ -74,10 +106,23 @@ class Brick {
 
 	this.shimmer -= ms;
 	this.shimmer = Math.max(this.shimmer, 0);
+
+	if (this.regenerates) {
+	    if (this.hits == 0) {
+		this.regenerate_timer += ms;
+		if (this.regenerate_timer > this.regenerate_timeout) {
+		    this.regenerate_timer = 0;
+		    this.hits = 2;
+		}
+	    }
+	}
     }
 
     render() {
-        // Shadow
+	// Bricks that are gone shouldn't be rendered
+	if (this.hits == 0) return;
+
+	// Shadow
         this.ctx_shadow.fillStyle = "#000";
         this.ctx_shadow.fillRect(this.pos.x+sizes.shadow_offset.horizontal, this.pos.y+sizes.shadow_offset.vertical, this.width, this.height);
 
