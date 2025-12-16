@@ -66,9 +66,14 @@ function sweepAgainstBricks(P0x, P0y, P1x, P1y, radius, bricks) {
     const dy = P1y - P0y;
 
     for (const brick of bricks) {
+	// See if brick is hittable
+	if (brick.hits == 0)
+	    continue;
+
 	// See if ball is close to brick before bothering to check for intersection
 	let d = Math.hypot(brick.pos.x - P1x, brick.pos.y - P1y);
-	if (d > 300) continue;
+	if (d > 300)
+	    continue;
 
         const result = sweepCircleAABB(
             P0x, P0y, dx, dy, radius,
@@ -300,7 +305,7 @@ class Ball {
 	// Collide with paddle
 	if (circle_intersect_with_rectangle(this.pos.x, this.pos.y, this.radius, paddle.pos.x, paddle.pos.y, paddle.width, paddle.height)) {
 	    // Ensure previous frame had no collision
-	    if (circle_intersect_with_rectangle(this.prev.x, this.prev.y, this.radius, paddle.prev.x, paddle.prev.y, paddle.width, paddle.height)) {
+	    if (!circle_intersect_with_rectangle(this.prev.x, this.prev.y, this.radius, paddle.prev.x, paddle.prev.y, paddle.width, paddle.height)) {
 		// Arkanoid Style bounce
 		this.v = bounceArkanoidStyle(this, paddle);
 
@@ -317,14 +322,9 @@ class Ball {
 	if (current_powerup == PU_TWIN) {
 	    if (circle_intersect_with_rectangle(this.pos.x, this.pos.y, this.radius, paddle.pos.x + paddle.twin_offset, paddle.pos.y, paddle.width, paddle.height)) {
 		// Ensure previous frame had no collision
-		if (circle_intersect_with_rectangle(this.prev.x, this.prev.y, this.radius, paddle.prev.x + paddle.twin_offset, paddle.prev.y, paddle.width, paddle.height)) {
+		if (!circle_intersect_with_rectangle(this.prev.x, this.prev.y, this.radius, paddle.prev.x + paddle.twin_offset, paddle.prev.y, paddle.width, paddle.height)) {
 		    // Arkanoid Style bounce
-		    this.v = bounceArkanoidStyle(this, paddle);
-
-		    if (current_powerup == PU_CATCH) {
-			this.is_caught = true;
-			this.catch_offset = this.pos.x - paddle.pos.x;
-		    }
+		    this.v = bounceArkanoidStyle(this, paddle, paddle.twin_offset);
 
 		    return true;
 		}
