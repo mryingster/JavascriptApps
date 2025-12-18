@@ -108,6 +108,7 @@ function main_loop(timestamp) {
 	// Check if level cleared
 	if (level_cleared()) {
 	    advance_level();
+            return;
 	}
 
         // Render
@@ -176,25 +177,19 @@ function advance_level(n=null) {
 
     document.getElementById("level").innerHTML = level;
 
-    // Find next level for now
-    for (let l of levels) {
-	if (l.level == level) {
-	    populate_level(l.bricks);
-	    break;
-	}
-    }
+    // Show modal for now to select level?
+    let levelIndicies = []
+    for (let i=0; i<levels.length; i++)
+	if (levels[i].level == level)
+            levelIndicies.push(i);
 
-    // Start with a shimmer
-    for (let brick of bricks)
-	brick.start_shimmer();
+    showLevelSelection(level, levelIndicies);
 
     paddle.reset();
     reset_ball();
     reset_pills();
     reset_powerups();
     reset_lasers();
-
-    document.getElementById("canvases").style = `background: radial-gradient( circle at 50%, #000, ${["#f00", "#00f", "#0f0"][level % 3]})`;
 }
 
 function add_life() {
@@ -203,14 +198,21 @@ function add_life() {
 }
 
 function populate_level(l) {
+    document.getElementById("canvases").style = `background: radial-gradient( circle at 50%, #000, ${l.background})`;
     bricks = []
-    console.log(l);
-    for (let y = 0; y<l.length; y++)
-        for (let x = 0; x<l[y].length; x++) {
-	    const brick_type = l[y][x];
+    for (let y = 0; y<l.bricks.length; y++)
+        for (let x = 0; x<l.bricks[y].length; x++) {
+	    const brick_type = l.bricks[y][x];
 	    if (brick_type in brick_types)
 		bricks.push(new Brick(ctx_dynamic, ctx_shadow, x, y, brick_types[brick_type]));
 	}
+
+    // Start with a shimmer
+    for (let brick of bricks)
+	brick.start_shimmer();
+
+    // Start loop
+    main_loop();
 }
 
 function toggle_pause() {
@@ -234,7 +236,7 @@ function overlay_message(m) {
 
 }
 
-function new_game(continued=false) {
+function new_game(continued=false, demo=null) {
     if (active) return;
 
     active = true;
@@ -247,17 +249,19 @@ function new_game(continued=false) {
 	level = 1;
     score = 0;
 
-    // Set up level information
-    advance_level(level);
-
     // Set up ball
     lives--;
     reset_ball();
+    reset_pills();
+    reset_lasers();
+
+    // Set up level information
+    if (demo == null)
+	advance_level(level);
+    else
+	populate_level(demo);
 
     paused = false;
-
-    // Start loop
-    main_loop();
 }
 
 function getTouchPosition(event) {
@@ -544,6 +548,14 @@ function firstLoad() {
 
     // Define paddle
     paddle = new Paddle(ctx_dynamic, ctx_shadow);
+
+    // Look for editor input from menu bar
+    let demo_level_encoded = window.location.href.split('?')[1];
+    if (demo_level_encoded) {
+        let demo_level = JSON.parse(atob(demo_level_encoded));
+	console.log(demo_level);
+	new_game(false, demo_level);
+    }
 }
 
 window.onload = function() {

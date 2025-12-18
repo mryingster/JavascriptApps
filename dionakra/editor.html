@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Dionakra Editor</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=672px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
+    <script src="bricks.js"></script>
+    <style>
+      canvas {
+          border: 1px solid black;
+      }
+      #input, #results {
+          display: inline-block;
+          vertical-align: top;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <div id="content">
+      <h1>Dionakra Simple Level Editor</h1>
+      <div id="results">
+        <canvas id="canvas_preview" width="672" height="820"></canvas>
+        <br>
+        <pre id="output"></pre>
+        <br>
+        <button id="copy" onclick="copyToClipboard();">Copy Output</button>
+        <a id="demo" href="#">Try level</a>
+      </div>
+      <div id="input">
+        <canvas id="canvas_selection" width="250" height="820"></canvas>
+        <br>
+        Source:<input id="source"></input><br>
+        Level:<input id="level"></input><br>
+        Description:<input id="desc"></input><br>
+        Background:<input id="background" value="#0000FF"></input><br>
+        <button onclick="levelclear();">Clear</button>
+        <input type="file" id="imageInput" accept="image/*"></input>
+        <br>
+        <canvas id="screenshot" width="224" height="256"></canvas>
+      </div>
+    </div>
+
+  </body>
+
+  <script>
+    const preview = document.getElementById("canvas_preview");
+    const ctx_preview = preview.getContext("2d");
+    preview.width = 13 * 50;
+    preview.height = 18 * 25;
+
+    const selection = document.getElementById("canvas_selection");
+    const ctx_selection = selection.getContext("2d");
+
+    let selected_bricktype = null;
+
+    // Setup blank level
+    levelclear();
+
+    function levelclear() {
+        level = [];
+        for (let y=0; y<18; y++) {
+            let row = [];
+            for (let x=0; x<13; x++) {
+                row.push(null);
+            }
+            level.push(row);
+        }
+        render();
+    }
+
+    // File Input Support
+    const input = document.getElementById("imageInput");
+
+    input.addEventListener("change", handleImageUpload);
+
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const img = new Image();
+        img.onload = () => processImage(img);
+        img.src = URL.createObjectURL(file);
+    }
+
+    function processImage(img) {
+        // Force resize target
+        const TARGET_WIDTH = 224;
+        const TARGET_HEIGHT = 256;
+
+        // Create offscreen canvas
+        const canvas = document.getElementById("screenshot");
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        const ctx = canvas.getContext("2d");
+
+        // Draw image scaled to target size
+        ctx.drawImage(img, 0, 0, TARGET_WIDTH, TARGET_HEIGHT);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        const startX = 15;
+        const startY = 28;
+        const stepX = 16;
+        const stepY = 8;
+
+        const cols = 13;
+        const rows = 18;
+
+        const hueGrid = [];
+
+        for (let row = 0; row < rows; row++) {
+            const rowData = [];
+
+            for (let col = 0; col < cols; col++) {
+                const x = startX + col * stepX;
+                const y = startY + row * stepY;
+
+                // Bounds check (important for smaller images)
+                if (x >= canvas.width || y >= canvas.height) {
+                    rowData.push(null);
+                    continue;
+                }
+
+                const idx = (y * canvas.width + x) * 4;
+
+                const r = data[idx];
+                const g = data[idx + 1];
+                const b = data[idx + 2];
+
+                const hsl = rgbToHsl(r, g, b);
+                rowData.push(hsl);
+            }
+
+            hueGrid.push(rowData);
+        }
+
+        guessAndPopulate(hueGrid);
+    }
+
+    function rgbToHsl(r, g, b) {
+        r /= 255;
+        g /= 255;
+        b /= 255;
+
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const delta = max - min;
+
+        let h = 0;
+        let s = 0;
+        const l = (max + min) / 2;
+
+        if (delta !== 0) {
+            s = delta / (1 - Math.abs(2 * l - 1));
+
+            switch (max) {
+            case r:
+                h = ((g - b) / delta) % 6;
+                break;
+            case g:
+                h = (b - r) / delta + 2;
+                break;
+            case b:
+                h = (r - g) / delta + 4;
+                break;
+            }
+
+            h *= 60;
+            if (h < 0) h += 360;
+        }
+
+        return {
+            h: h,           // 0–360
+            s: s * 100,     // 0–100
+            l: l * 100      // 0–100
+        };
+    }
+
+    function guessAndPopulate(a) {
+        levelclear();
+        console.log(a)
+        for (let y=0; y<18; y++) {
+            for (let x=0; x<13; x++) {
+                let found = false;
+                for (let brick in brick_types){
+                    if (Math.abs(a[y][x].h - brick_types[brick].h) < 4 &&
+                        Math.abs(a[y][x].s - brick_types[brick].s) < 3 &&
+                        Math.abs(a[y][x].l - brick_types[brick].l) < 10) {
+                        level[y][x] = Number(brick);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found == true) continue;
+            }
+            }
+
+            render();
+    }
+
+    function copyToClipboard() {
+        const pre = document.getElementById("output");
+        const text = pre.innerText;
+
+        if (!text) return;
+
+        // Preferred modern API
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).catch(err => {
+                console.error("Clipboard write failed:", err);
+            });
+            return;
+        }
+
+        // Fallback for older browsers / non-secure contexts
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        textarea.setAttribute("readonly", "");
+
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+    }
+
+    // Rendering
+    function render() {
+        let background = document.getElementById("background").value;
+        let source = document.getElementById("source").value;
+        let levelnum = Number(document.getElementById("level").value);
+        let description = document.getElementById("desc").value;
+
+        ctx_preview.clearRect(0, 0, preview.width, preview.height);
+
+        // Background
+        ctx_preview.save();
+        ctx_preview.globalAlpha = .5;
+        ctx_preview.fillStyle = background;
+        ctx_preview.fillRect(0, 0, preview.width, preview.height);
+        ctx_preview.restore();
+
+        // Bricks
+        for (let y=0; y<18; y++) {
+            for (let x=0; x<13; x++) {
+                let brick = level[y][x];
+                if (brick == null) continue;
+
+                let type = brick_types[level[y][x]];
+                let color = `hsl(${type.h} ${type.s}% ${type.l}%)`;
+                ctx_preview.fillStyle = color;
+                ctx_preview.fillRect(x*50, y*25, 50, 25);
+            }
+        }
+
+        // Grid
+        ctx_preview.lineWidth = 1;
+        ctx_preview.strokeStyle = "#000";
+        for (let y=1; y<18; y++) {
+            ctx_preview.beginPath();
+            ctx_preview.moveTo(0, y * 25 + .5);
+            ctx_preview.lineTo(ctx_preview.canvas.width, y * 25 + .5);
+            ctx_preview.stroke();
+        }
+        for (let x=1; x<13; x++) {
+            ctx_preview.beginPath();
+            ctx_preview.moveTo(x * 50 + .5, 0);
+            ctx_preview.lineTo(x * 50 + .5, ctx_preview.canvas.height);
+            ctx_preview.stroke();
+        }
+
+        // Produce output code
+        const tab="    ";
+        let output = "{\n";
+        output += `${tab}source: "${source}",\n`;
+        output += `${tab}level: ${levelnum},\n`;
+        output += `${tab}description: "${description}",\n`;
+        output += `${tab}background: "${background}",\n`;
+        output += `${tab}bricks: [\n`;
+        for (let row of level) {
+            rowOut = [];
+            for (let cell of row) {
+                if (cell == null)
+                    rowOut.push("null");
+                else
+                    rowOut.push(`0x${cell.toString(16)}`);
+            }
+            output += `${tab}${tab}[${rowOut.join(',')}],\n`;
+        }
+        output += `${tab}]\n},`;
+
+        document.getElementById("output").innerHTML = output;
+	update_demo_link();
+    }
+
+    function getCursorPosition(canvas, event) {
+        // Determine where clicked
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        //document.getElementById("coords").innerHTML = x + ", " + y;
+
+        return {x:x, y:y};
+    }
+
+    selection.addEventListener('mousedown', function(e) {
+	let pos = getCursorPosition(selection, e);
+        let selectionIndex = Math.floor(pos.y/25);
+        let numbricktypes = Object.keys(brick_types).length;
+        if (selectionIndex < numbricktypes)
+            selected_bricktype = Number([ ...Object.keys(brick_types) ][selectionIndex]);
+        else
+            selected_bricktype = null;
+    });
+
+    let mouse_down = false;
+    let erasing = false;
+
+    preview.addEventListener('mousedown', function(e) {
+        mouse_down = true;
+	let pos = getCursorPosition(preview, e);
+        let x = Math.floor(pos.x / 50);
+        let y = Math.floor(pos.y / 25);
+
+        if (x >= 13 || x < 0) return;
+        if (y >= 18 || y < 0) return;
+
+        if (level[y][x] == selected_bricktype) {
+            erasing = true;
+            level[y][x] = null;
+        } else {
+            level[y][x] = selected_bricktype;
+            erasing = false;
+        }
+
+        render();
+    });
+
+    preview.addEventListener('mousemove', function(e) {
+        if (mouse_down != true) return;
+
+	let pos = getCursorPosition(preview, e);
+        let x = Math.floor(pos.x / 50);
+        let y = Math.floor(pos.y / 25);
+
+        if (x >= 13 || x < 0) return;
+        if (y >= 18 || y < 0) return;
+
+        if (erasing)
+            level[y][x] = null;
+        else
+            level[y][x] = selected_bricktype;
+
+        render();
+    });
+
+    preview.addEventListener('mouseup', function(e) {
+        mouse_down = false;
+        erasing = false;
+        render();
+    });
+
+function update_demo_link() {
+    var c2 = btoa(JSON.stringify({
+	background: document.getElementById("background").value,
+	bricks: level,
+    }));
+    document.getElementById("demo").href = "index.html?" + c2;
+}
+
+    window.onload = function() {
+        document.getElementById("desc").oninput = function() { render(); };
+        document.getElementById("level").oninput = function() { render(); };
+        document.getElementById("source").oninput = function() { render(); };
+        document.getElementById("background").oninput = function() { render(); };
+
+        selection.height = (Object.keys(brick_types).length + 1) * 25;
+
+        ctx_selection.font = "bold 18px Arial";
+        let x = 0;
+        let y = 0;
+        for (let brick in brick_types){
+            ctx_selection.fillStyle = `hsl(${brick_types[brick].h} ${brick_types[brick].s}% ${brick_types[brick].l}%)`;
+            ctx_selection.fillRect(x, y, 50, 25);
+            ctx_selection.fillStyle = "#000";
+            ctx_selection.fillText(brick_types[brick].note, x + 60, y + 20);
+
+            y += 25;
+        }
+        ctx_selection.fillText("Erase", x + 60, y + 20);
+
+        render();
+    }
+</script>
+</html>
