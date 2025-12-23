@@ -67,7 +67,7 @@ canvas {
     touch-action: manipulation;
 }
 
-#canvas_shadow {
+#canvas_shadow_dynamic, #canvas_shadow_static {
     opacity: .35;
 }
 

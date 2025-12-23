@@ -1,7 +1,11 @@
+const NOHIT         = 0;
+const HORIZONTALHIT = 1;
+const VERTICALHIT   = 2;
+
 function reset_ball() {
     document.getElementById("lives").innerHTML = lives;
     balls = []
-    balls.push(new Ball(ctx_dynamic, ctx_shadow, true));
+    balls.push(new Ball(ctx_dynamic, ctx_shadow_dynamic, true));
 }
 
 // 26.5, 30, 37, 68 < default?
@@ -34,120 +38,71 @@ function bounceArkanoidStyle(ball, paddle, offset=0) {
     };
 }
 
-function normalizeSpeed(v) {
-  // Current magnitude of vector
-  const mag = Math.hypot(v.x, v.y);
+function sweptBallAABB(ball, brick) {
+    const dx = ball.pos.x - ball.prev.x;
+    const dy = ball.pos.y - ball.prev.y;
 
-  // Avoid division by zero
-  if (mag === 0) {
-    // Give it a tiny upward nudge if needed
-    v.x = 0;
-    v.y = -v.s;
-    return v;
-  }
+    // Expand brick by ball radius
+    const minX = brick.pos.x - ball.radius;
+    const maxX = brick.pos.x + brick.width + ball.radius;
+    const minY = brick.pos.y - ball.radius;
+    const maxY = brick.pos.y + brick.height + ball.radius;
 
-  const scale = v.s / mag;
+    let txEntry, txExit;
+    let tyEntry, tyExit;
 
-  v.x *= scale;
-  v.y *= scale;
-
-  return v;
-}
-
-function clamp(v, min, max) {
-  return v < min ? min : v > max ? max : v;
-}
-
-function sweepAgainstBricks(P0x, P0y, P1x, P1y, radius, bricks) {
-    let hit = null;
-    let bestT = 1;
-
-    const dx = P1x - P0x;
-    const dy = P1y - P0y;
-
-    for (const brick of bricks) {
-	// See if brick is hittable
-	if (brick.hits == 0)
-	    continue;
-
-	// See if ball is close to brick before bothering to check for intersection
-	let d = Math.hypot(brick.pos.x - P1x, brick.pos.y - P1y);
-	if (d > 300)
-	    continue;
-
-        const result = sweepCircleAABB(
-            P0x, P0y, dx, dy, radius,
-            brick.pos.x, brick.pos.y,
-            brick.width, brick.height
-        );
-
-        if (result && result.t < bestT) {
-            bestT = result.t;
-            hit = { t: result.t, nx: result.nx, ny: result.ny, brick };
-        }
-    }
-
-    return hit;
-}
-
-function sweepCircleAABB(P0x, P0y, dx, dy, radius, bx, by, bw, bh) {
-    // Expand AABB by circle radius
-    const minX = bx - radius;
-    const maxX = bx + bw + radius;
-    const minY = by - radius;
-    const maxY = by + bh + radius;
-
-    let tEnter = 0;
-    let tExit  = 1;
-
-    let nx = 0, ny = 0;
-
-    // ===== X Axis =====
-    if (dx !== 0) {
-        let tx1 = (minX - P0x) / dx;
-        let tx2 = (maxX - P0x) / dx;
-
-        let tMin = Math.min(tx1, tx2);
-        let tMax = Math.max(tx1, tx2);
-
-        if (tMin > tEnter) {
-            tEnter = tMin;
-            // Normal faces opposite direction of motion
-            nx = (tx1 < tx2) ? -1 : 1;
-            ny = 0;
-        }
-
-        tExit = Math.min(tExit, tMax);
-        if (tEnter > tExit) return null;
+    // X axis
+    if (dx === 0) {
+        if (ball.prev.x < minX || ball.prev.x > maxX) return false;
+        txEntry = -Infinity;
+        txExit = Infinity;
     } else {
-        // No movement along X → must be inside slab
-        if (P0x < minX || P0x > maxX) return null;
+        const invDx = 1 / dx;
+        txEntry = (minX - ball.prev.x) * invDx;
+        txExit  = (maxX - ball.prev.x) * invDx;
+        if (txEntry > txExit) [txEntry, txExit] = [txExit, txEntry];
     }
 
-    // ===== Y Axis =====
-    if (dy !== 0) {
-        let ty1 = (minY - P0y) / dy;
-        let ty2 = (maxY - P0y) / dy;
-
-        let tMin = Math.min(ty1, ty2);
-        let tMax = Math.max(ty1, ty2);
-
-        if (tMin > tEnter) {
-            tEnter = tMin;
-            nx = 0;
-            ny = (ty1 < ty2) ? -1 : 1;
-        }
-
-        tExit = Math.min(tExit, tMax);
-        if (tEnter > tExit) return null;
+    // Y axis
+    if (dy === 0) {
+        if (ball.prev.y < minY || ball.prev.y > maxY) return false;
+        tyEntry = -Infinity;
+        tyExit = Infinity;
     } else {
-        if (P0y < minY || P0y > maxY) return null;
+        const invDy = 1 / dy;
+        tyEntry = (minY - ball.prev.y) * invDy;
+        tyExit  = (maxY - ball.prev.y) * invDy;
+        if (tyEntry > tyExit) [tyEntry, tyExit] = [tyExit, tyEntry];
     }
 
-    // No collision within this movement
-    if (tEnter < 0 || tEnter > 1) return null;
+    const tEntry = Math.max(txEntry, tyEntry);
+    const tExit  = Math.min(txExit, tyExit);
 
-    return { t: tEnter, nx, ny };
+    return !(tEntry > tExit || tEntry < 0 || tEntry > 1);
+}
+
+function penetrationInfo(ball, brick) {
+    const cx = ball.pos.x;
+    const cy = ball.pos.y;
+
+    const closestX = Math.max(
+        brick.pos.x,
+        Math.min(cx, brick.pos.x + brick.width)
+    );
+    const closestY = Math.max(
+        brick.pos.y,
+        Math.min(cy, brick.pos.y + brick.height)
+    );
+
+    const dx = cx - closestX;
+    const dy = cy - closestY;
+    const dist = Math.hypot(dx, dy);
+
+    return {
+        depth: ball.radius - dist,
+        dx,
+        dy
+    };
 }
 
 function circle_intersect_with_rectangle(cx, cy, cr, rx, ry, rw, rh) {
@@ -196,7 +151,7 @@ class Ball {
 	    this.v.s = v.s
 	}
 
-	normalizeSpeed(this.v);
+	this.normalizeSpeed();
 
         this.color_outer = "#ffffff";
         this.color_inner = "#00ffff";
@@ -208,6 +163,7 @@ class Ball {
         this.border = 2;
 
         this.hits = 0;
+        this.collisions = 0;
 
 	this.is_caught = caught;
 	this.catch_offset = 3/4 * sizes.paddle.width;
@@ -219,7 +175,24 @@ class Ball {
 
     set_speed(s) {
 	this.v.s = s;
-	normalizeSpeed(this.v);
+	this.normalizeSpeed();
+    }
+
+    normalizeSpeed(v) {
+	// Current magnitude of vector
+	const mag = Math.hypot(this.v.x, this.v.y);
+
+	// Avoid division by zero
+	if (mag === 0) {
+	    // Give it a tiny upward nudge if needed
+	    this.v.x = 0;
+	    this.v.y = -v.s;
+	}
+
+	const scale = this.v.s / mag;
+
+	this.v.x *= scale;
+	this.v.y *= scale;
     }
 
     slow() {
@@ -227,7 +200,7 @@ class Ball {
     }
 
     speedup() {
-	this.set_speed(this.v.s * 1.2);
+	this.set_speed(this.v.s * 1.1);
     }
 
     collide() {
@@ -241,63 +214,69 @@ class Ball {
 	let ball_prev_top_edge    = this.prev.y - this.radius;
 	let ball_prev_bottom_edge = this.prev.y + this.radius;
 
+
+	let vertical_collision   = false;
+	let horizontal_collision = false;
+	let paddle_collision     = false;
+
         // Collisions with walls
         if (ball_top_edge <= sizes.arena.top) {
 	    if (this.v.y < 0)
-		this.v.y *= -1;
-	    return true;
+		horizontal_collision = true;
         }
 
         if (ball_right_edge >= sizes.arena.right) {
 	    if (this.v.x > 0)
-		this.v.x *= -1;
-	    return true;
+		vertical_collision = true;
 	}
 
 	if (ball_left_edge <= sizes.arena.left) {
 	    if (this.v.x < 0)
-		this.v.x *= -1;
-	    return true;
+		vertical_collision = true;
 	}
 
         // Brick Collisions
         if (this.prev.y != this.pos.y) {
-            const hit = sweepAgainstBricks(
-                this.prev.x, this.prev.y,
-                this.pos.x, this.pos.y,
-                this.radius,
-                bricks
-            );
 
-            if (hit) {
-                if (hit.nx != 0 || hit.ny != 0) {
-                    // Move ball to collision point
-                    const t = hit.t;
-                    const P0x = this.prev.x;
-                    const P0y = this.prev.y;
-                    const dx = this.pos.x - P0x;
-                    const dy = this.pos.y - P0y;
+            // Get all candidate bricks that have intersection
+            let candidates = [];
+            for (const brick of bricks) {
+                // Ignore bircks that are too far away
+                if (Math.hypot(brick.pos.x - this.pos.x, brick.pos.y - this.pos.y) > 100) continue;
+                if (sweptBallAABB(this, brick))
+                    candidates.push(brick);
+            }
 
-                    this.pos.x = P0x + dx * t;
-                    this.pos.y = P0y + dy * t;
+            // If megaball, just erase all of them!
+            if (current_powerup == PU_MEGABALL) {
+                for (let candidate of candidates)
+                    candidate.hit(true);
+            } else {
 
-                    // Reflect velocity using normal
-		    if (current_powerup != PU_MEGABALL) {
-			const nx = hit.nx;
-			const ny = hit.ny;
-			const dot = this.v.x * nx + this.v.y * ny;
+                // Get most overlapped
+                let bestBrick = null;
+                let bestPenetration = null;
 
-			this.v.x = this.v.x - 2 * dot * nx;
-			this.v.y = this.v.y - 2 * dot * ny;
-		    }
+                for (let candidate of candidates) {
+                    const p = penetrationInfo(this, candidate);
+                    if (p.depth <= 0) continue;
 
-                    // Apply the hit to the brick
-                    hit.brick.hit(current_powerup == PU_MEGABALL);
+                    if (!bestPenetration || p.depth > bestPenetration.depth) {
+                        bestPenetration = p;
+                        bestBrick = candidate;
+                    }
+                }
 
-                    this.prev.x = this.pos.x;
-                    this.prev.y = this.pos.y;
+                if (bestBrick) {
+                    // Determine which side is hit, and reflect accordingly
+                    bestBrick.hit();
 
-                    return true;
+                    let axis;
+                    if (Math.abs(bestPenetration.dx) > Math.abs(bestPenetration.dy)) {
+                        vertical_collision = true;
+                    } else {
+                        horizontal_collision = true;
+                    }
                 }
             }
         }
@@ -314,7 +293,7 @@ class Ball {
 		    this.catch_offset = this.pos.x - paddle.pos.x;
 		}
 
-		return true;
+		paddle_collision = true;
 	    }
 	}
 
@@ -326,7 +305,7 @@ class Ball {
 		    // Arkanoid Style bounce
 		    this.v = bounceArkanoidStyle(this, paddle, paddle.twin_offset);
 
-		    return true;
+		    paddle_collision = true;
 		}
 	    }
 	}
@@ -337,9 +316,7 @@ class Ball {
 	    const illusion_width = Math.max(paddle.pos.x, paddle.illusion_pos.x) - illusion_left;
 	    if (circle_intersect_with_rectangle(this.pos.x, this.pos.y, this.radius, illusion_left, paddle.pos.y, illusion_width, paddle.height)) {
 		if (this.v.y > 0)
-		    this.v.y *= -1;
-
-		return true;
+		    horizontal_collision = true;
 	    }
 	}
 
@@ -349,7 +326,15 @@ class Ball {
 	    return true;
         }
 
-	return false;
+	// Perform collision(s)
+	if (horizontal_collision)
+	    this.v.y *= -1;
+
+	if (vertical_collision)
+	    this.v.x *= -1;
+
+
+	return vertical_collision || horizontal_collision || paddle_collision;
     }
 
     move(ms) {
@@ -369,10 +354,10 @@ class Ball {
         // Check for collisions
         let collided = this.collide();
 	if (collided)
-	    this.collisions ++;
+	    this.collisions++;
 
 	// Speedup on collisions
-	if (this.collisions >= 20) {
+	if (this.collisions >= 50) {
 	    this.speedup();
 	    this.collisions = 0;
 	}

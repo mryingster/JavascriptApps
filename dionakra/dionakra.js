@@ -1,4 +1,4 @@
-function main_loop(timestamp) {
+function main_loop(timestamp, refresh=false) {
     // Detrmine how many MS it's been
     if (last_frame === undefined) {
         last_frame = timestamp;
@@ -23,15 +23,15 @@ function main_loop(timestamp) {
 	// Paddle Lights
 	paddle.pulse(elapsed);
 
+        // Remove bricks
 	for (const ball of balls) {
             ball.move(elapsed);
-
-            // Remove bricks
             for (let i=0; i<bricks.length; i++) {
 		if (bricks[i].remove == true) {
 		    score += bricks[i].value;
                     bricks.splice(i, 1);
                     i--;
+                    refresh = true;
 		}
 	    }
         }
@@ -48,6 +48,14 @@ function main_loop(timestamp) {
         for (let i=0; i<lasers.length; i++) {
             if (lasers[i].remove == true) {
                 lasers.splice(i, 1);
+                i--;
+            }
+        }
+
+        // Remove pills
+        for (let i=0; i<pills.length; i++) {
+            if (pills[i].remove == true) {
+                pills.splice(i, 1);
                 i--;
             }
         }
@@ -83,14 +91,6 @@ function main_loop(timestamp) {
 	    }
 	}
 
-        // Remove pills
-        for (let i=0; i<pills.length; i++) {
-            if (pills[i].remove == true) {
-                pills.splice(i, 1);
-                i--;
-            }
-        }
-
         // No balls on screen? Lose a life and reset
 	if (balls.length <= 0) {
 	    lives--;
@@ -111,14 +111,23 @@ function main_loop(timestamp) {
             return;
 	}
 
-        // Render
-        clear_context(ctx_shadow);
-        clear_context(ctx_dynamic);
+        // Render bricks only when necessary
+        if (refresh) {
+            clear_context(ctx_shadow_static);
+            clear_context(ctx_bricks);
 
-	draw_frame_shadow(ctx_shadow);
+	    draw_frame_shadow(ctx_shadow_static);
+
+            for (const brick of bricks)
+	        brick.render();
+        }
+
+        // Render Dynamic Things every frame
+        clear_context(ctx_dynamic);
+        clear_context(ctx_shadow_dynamic);
 
         for (const brick of bricks)
-	    brick.render();
+	    brick.renderShimmer();
 
 	for (const laser of lasers)
 	    laser.render();
@@ -152,16 +161,34 @@ function level_cleared() {
     return true;
 }
 
+function drop_pill(x, y) {
+    pills.push(
+        new Pill(
+            ctx_dynamic,
+            ctx_shadow_dynamic,
+            x,
+            y,
+            pill_types[Math.floor(Math.random() * pill_types.length)]
+        )
+    );
+}
+
 function duplicate_ball() {
     if (balls.length == 0)
 	return;
+
+    let new_v = {
+	x: balls[0].v.x + (Math.random() * 24) - 12, // Not great, but okay...
+	y: balls[0].v.y,
+	s: balls[0].v.s,
+    };
 
     balls.push(new Ball(
 	balls[0].ctx,
 	balls[0].ctx_shadow,
 	false,
 	balls[0].pos,
-	balls[0].v,
+	new_v,
     ));
 }
 
@@ -204,7 +231,7 @@ function populate_level(l) {
         for (let x = 0; x<l.bricks[y].length; x++) {
 	    const brick_type = l.bricks[y][x];
 	    if (brick_type in brick_types)
-		bricks.push(new Brick(ctx_dynamic, ctx_shadow, x, y, brick_types[brick_type]));
+		bricks.push(new Brick(ctx_bricks, ctx_dynamic, ctx_shadow_static, x, y, brick_types[brick_type]));
 	}
 
     // Start with a shimmer
@@ -212,7 +239,7 @@ function populate_level(l) {
 	brick.start_shimmer();
 
     // Start loop
-    main_loop();
+    main_loop(undefined, true);
 }
 
 function toggle_pause() {
@@ -296,6 +323,9 @@ function getCursorPosition(canvas, event) {
 
 let canvas_dynamic;
 let ctx_dynamic;
+
+let canvas_bricks;
+let ctx_bricks;
 
 let canvas_shadow;
 let ctx_shadow;
@@ -455,8 +485,14 @@ function firstLoad() {
     canvas_dynamic = document.getElementById('canvas_dynamic')
     ctx_dynamic = canvas_dynamic.getContext("2d");
 
-    canvas_shadow = document.getElementById('canvas_shadow')
-    ctx_shadow = canvas_shadow.getContext("2d");
+    canvas_bricks = document.getElementById('canvas_bricks')
+    ctx_bricks = canvas_bricks.getContext("2d");
+
+    canvas_shadow = document.getElementById('canvas_shadow_dynamic')
+    ctx_shadow_dynamic = canvas_shadow.getContext("2d");
+
+    canvas_shadow = document.getElementById('canvas_shadow_static')
+    ctx_shadow_static = canvas_shadow.getContext("2d");
 
     canvas_background = document.getElementById('canvas_background')
     ctx_background = canvas_background.getContext("2d");
@@ -470,7 +506,8 @@ function firstLoad() {
 	touch_start = getTouchPosition(e);
 
 	if (current_powerup == PU_LASER) {
-	    lasers.push(new Laser(ctx_dynamic, ctx_shadow, paddle.pos.x, paddle.pos.y));
+            if (lasers.length < 3)
+	        lasers.push(new Laser(ctx_dynamic, ctx_shadow_dynamic, paddle.pos.x, paddle.pos.y));
 	}
     });
 
@@ -509,7 +546,7 @@ function firstLoad() {
 	mouse_down = getCursorPosition(canvas_overlay, e);
 
 	if (current_powerup == PU_LASER) {
-	    lasers.push(new Laser(ctx_dynamic, ctx_shadow, paddle.pos.x, paddle.pos.y));
+	    lasers.push(new Laser(ctx_dynamic, ctx_shadow_dynamic, paddle.pos.x, paddle.pos.y));
 	}
     });
 
@@ -544,10 +581,10 @@ function firstLoad() {
     // Calculate sizes
     resize(canvas_overlay);
 
-    draw_frame_shadow(ctx_shadow);
+    draw_frame_shadow(ctx_shadow_static);
 
     // Define paddle
-    paddle = new Paddle(ctx_dynamic, ctx_shadow);
+    paddle = new Paddle(ctx_dynamic, ctx_shadow_dynamic);
 
     // Look for editor input from menu bar
     let demo_level_encoded = window.location.href.split('?')[1];

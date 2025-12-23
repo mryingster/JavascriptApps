@@ -33,8 +33,9 @@ const brick_types = {
 }
 
 class Brick {
-    constructor(ctx, ctx_shadow, x, y, style) {
+    constructor(ctx, ctx_dynamic, ctx_shadow, x, y, style) {
         this.ctx = ctx;
+        this.ctx_dynamic = ctx_dynamic;
         this.ctx_shadow = ctx_shadow;
 
 	this.type = style.type;
@@ -92,7 +93,7 @@ class Brick {
 
 	// Drop a pill?
         if (this.hits === 0 && Math.random() <= this.drop_chance)
-            pills.push(new Pill(ctx_dynamic, ctx_shadow,  this.pos.x, this.pos.y + this.height, pill_types[Math.floor(Math.random() * pill_types.length)]));
+            drop_pill(this.pos.x, this.pos.y + this.height);
     }
 
     start_shimmer() {
@@ -165,26 +166,27 @@ class Brick {
         this.ctx.lineTo(this.pos.x, this.pos.y + this.height);
         this.ctx.fillStyle = this.colors[3];
         this.ctx.fill();
+    }
 
-
+    renderShimmer() {
 	if (this.shimmer > 0) {
 	    let offset = -this.width + ((500 - this.shimmer)/500 * 3 * this.width);
-	    this.ctx.save();
-	    this.ctx.rect(this.pos.x, this.pos.y, this.width, this.height);
-            this.ctx.clip();
+	    this.ctx_dynamic.save();
+	    this.ctx_dynamic.rect(this.pos.x, this.pos.y, this.width, this.height);
+            this.ctx_dynamic.clip();
 
-	    this.ctx.beginPath();
-	    this.ctx.moveTo(this.pos.x + offset, this.pos.y);
-            this.ctx.lineTo(this.pos.x + offset + this.width, this.pos.y);
-            this.ctx.lineTo(this.pos.x + offset + (this.width / 2), this.pos.y + (this.height / 2));
-            this.ctx.lineTo(this.pos.x + offset + (this.width / 4), this.pos.y + this.height);
-            this.ctx.lineTo(this.pos.x + offset, this.pos.y + this.height);
-            this.ctx.lineTo(this.pos.x + offset - (this.width / 2), this.pos.y + this.height);
-            this.ctx.lineTo(this.pos.x + offset - (this.width / 4), this.pos.y + (this.height / 2));
-            this.ctx.fillStyle = "rgba(255, 255, 255, .75)";
-            this.ctx.fill();
+	    this.ctx_dynamic.beginPath();
+	    this.ctx_dynamic.moveTo(this.pos.x + offset, this.pos.y);
+            this.ctx_dynamic.lineTo(this.pos.x + offset + this.width, this.pos.y);
+            this.ctx_dynamic.lineTo(this.pos.x + offset + (this.width / 2), this.pos.y + (this.height / 2));
+            this.ctx_dynamic.lineTo(this.pos.x + offset + (this.width / 4), this.pos.y + this.height);
+            this.ctx_dynamic.lineTo(this.pos.x + offset, this.pos.y + this.height);
+            this.ctx_dynamic.lineTo(this.pos.x + offset - (this.width / 2), this.pos.y + this.height);
+            this.ctx_dynamic.lineTo(this.pos.x + offset - (this.width / 4), this.pos.y + (this.height / 2));
+            this.ctx_dynamic.fillStyle = "rgba(255, 255, 255, .75)";
+            this.ctx_dynamic.fill();
 
-	    this.ctx.restore();
+	    this.ctx_dynamic.restore();
 	}
     }
 }
