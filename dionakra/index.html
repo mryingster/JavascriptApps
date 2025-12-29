@@ -15,6 +15,7 @@
     <script src="bricks.js"></script>
     <script src="levels.js"></script>
     <script src="pills.js"></script>
+    <script src="sounds.js"></script>
   </head>
 
   <body>
@@ -29,8 +30,10 @@
 
       <div id="canvases">
         <canvas id="canvas_background" width="672" height="820"></canvas>
-        <canvas id="canvas_shadow"     width="672" height="820"></canvas>
+        <canvas id="canvas_shadow_static" width="672" height="820"></canvas>
+        <canvas id="canvas_shadow_dynamic" width="672" height="820"></canvas>
         <object data="images/frame.svg" id="frame" type="image/svg+xml"></object>
+        <canvas id="canvas_bricks"     width="672" height="820"></canvas>
         <canvas id="canvas_dynamic"    width="672" height="820"></canvas>
         <canvas id="canvas_overlay"    width="672" height="820"></canvas>
       </div>

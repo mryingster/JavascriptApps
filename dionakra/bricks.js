@@ -85,8 +85,16 @@ class Brick {
 	}
 
 	// Remove blocks that are none permanent, and out of hits
-	if (this.hits <= 0 && !this.permanent)
+	if (this.hits <= 0 && !this.permanent) {
+            sounds[WALL_HIT_2].play();
 	    this.remove = true;
+        } else {
+            if (this.type == 0) {
+                sounds[GOLD_HIT].play();
+            } else {
+                sounds[SILVER_HIT].play();
+            }
+        }
 
 	// If this shimmers, shimmer!
 	this.start_shimmer();

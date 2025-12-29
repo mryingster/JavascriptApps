@@ -82,6 +82,18 @@ class Pill {
 		reset_powerups();
 
 		current_powerup = this.type;
+
+                switch (this.type) {
+                case PU_PLAYER:
+                    sounds[PLAYER_EXTEND].play();
+                    break;
+                case PU_EXPAND:
+                    sounds[PADDLE_EXPAND].play();
+                    break;
+                case PU_REDUCE:
+                    sounds[PADDLE_SHRINK].play();
+                    break;
+                }
 	    }
 	}
 

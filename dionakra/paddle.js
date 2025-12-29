@@ -41,8 +41,11 @@ class Paddle {
 	this.bulb_color = {h:180, s:95, l:52.94}; //"#15f9f9"
 	this.blink = 0;
 
+	this.freeze = false;
 	this.particles = [];
 	this.exploding = false;
+	this.visible   = true;
+	this.animate_break = false;
     }
 
     get_pos_center() {
@@ -54,11 +57,20 @@ class Paddle {
 	    x: sizes.canvas.width / 2 - (this.width / 2),
 	    y: sizes.paddle.ypos,
 	};
+
+	this.freeze = false;
+	this.animate_break = false;
 	this.exploding = false;
+	this.visible = true;
+        //sounds[GAME_START].play(); // Do we want a sound every time??
     }
 
     explode() {
+	this.freeze = true;
 	this.exploding = true;
+	this.visible = false;
+
+        sounds[PADDLE_EXPLODE].play();
 	for (let i=0; i<30; i++) {
 	    this.particles.push(new Particle(
 		this.ctx,
@@ -70,8 +82,8 @@ class Paddle {
     }
 
     set_pos(x) {
-	// Don't move if exploding
-	if (this.particles.length > 0)
+	// Don't move if necessary
+	if (this.freeze == true)
 	    return;
 
 	this.prev.x = this.pos.x;
@@ -179,6 +191,10 @@ class Paddle {
 		this.framebreak.height = 0;
 	}
 
+	if (this.animate_break == true) {
+	    this.pos.x += .1 * ms;
+	}
+
 	this.collide();
     }
 
@@ -199,9 +215,18 @@ class Paddle {
 		this.pos.x = sizes.arena.right - (this.width + this.twin_offset);
 	}
 
-	if (current_powerup == PU_BREAK)
-	    if (this.pos.x + this.width/2 >= sizes.arena.right)
+	if (current_powerup == PU_BREAK) {
+	    if (this.pos.x + this.width >= sizes.arena.right) {
+		this.freeze = true;
+		this.animate_break = true;
+		sounds[SFX_BREAK].play();
+		//advance_level();
+	    }
+	    if (this.pos.x > sizes.arena.right) {
+		this.visible = false;
 		advance_level();
+	    }
+	}
     }
 
     hsl_to_string(h, s, l) {
@@ -441,11 +466,16 @@ class Paddle {
 	    for (let particle of this.particles) {
 		particle.render();
 	    }
-	    return;
 	}
+
+	this.render_controller();
 
 	if (this.framebreak.height != 0)
 	    this.render_break();
+
+	if (this.visible == false)
+	    return;
+
 	if (current_powerup == PU_ILLUSION)
 	    this.render_illusion();
 
@@ -456,8 +486,6 @@ class Paddle {
 	    this.render_laser_paddle();
 	else
 	    this.render_normal_paddle()
-
-	this.render_controller();
 
 	return;
     }

@@ -94,15 +94,16 @@ function main_loop(timestamp, refresh=false) {
         // No balls on screen? Lose a life and reset
 	if (balls.length <= 0) {
 	    lives--;
-	    if (lives < 0) {
-		game_over();
-		return;
-	    }
-
 	    paddle.explode();
 	    reset_pills();
 	    reset_powerups();
 	    reset_ball();
+	}
+
+	// End game once no lives left, and animations are complete
+	if (lives < 0 && paddle.exploding == false) {
+	    game_over();
+	    return;
 	}
 
 	// Check if level cleared
@@ -150,6 +151,7 @@ function main_loop(timestamp, refresh=false) {
 
 function game_over() {
     active = false;
+    sounds[GAME_END].play();
     showModal("Game over!");
     return;
 }
@@ -237,6 +239,9 @@ function populate_level(l) {
     // Start with a shimmer
     for (let brick of bricks)
 	brick.start_shimmer();
+
+    // Sounds!
+    sounds[STAGE_START].play();
 
     // Start loop
     main_loop(undefined, true);
@@ -408,7 +413,8 @@ let balls;
 let paused;
 let lives;
 let lasers;
-
+let sounds = [];
+let MUTED = false;
 let current_powerup = PU_NONE;
 
 let mouse_down = false;
@@ -500,14 +506,23 @@ function firstLoad() {
     canvas_overlay = document.getElementById('canvas_overlay')
     ctx_overlay = canvas_overlay.getContext("2d");
 
+    // Load Sound Effects
+    for (let sound_definition of SOUND_DEFINITIONS)
+        sounds.push(new SOUND(sound_definition));
+
+    if (navigator.vendor && navigator.vendor.indexOf('Apple') > -1)
+        MUTED = true;
+
     // Input Listeners
     canvas_overlay.addEventListener('touchstart', function(e) {
         e.preventDefault();
 	touch_start = getTouchPosition(e);
 
 	if (current_powerup == PU_LASER) {
-            if (lasers.length < 3)
+            if (lasers.length < 3) {
+                sounds[LASER_FIRE].play();
 	        lasers.push(new Laser(ctx_dynamic, ctx_shadow_dynamic, paddle.pos.x, paddle.pos.y));
+            }
 	}
     });
 
@@ -546,8 +561,11 @@ function firstLoad() {
 	mouse_down = getCursorPosition(canvas_overlay, e);
 
 	if (current_powerup == PU_LASER) {
-	    lasers.push(new Laser(ctx_dynamic, ctx_shadow_dynamic, paddle.pos.x, paddle.pos.y));
-	}
+            if (lasers.length < 3) {
+                sounds[LASER_FIRE].play();
+	        lasers.push(new Laser(ctx_dynamic, ctx_shadow_dynamic, paddle.pos.x, paddle.pos.y));
+	    }
+        }
     });
 
     canvas_overlay.addEventListener('mousemove', function(e) {

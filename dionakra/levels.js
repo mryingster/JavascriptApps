@@ -3420,4 +3420,33 @@ const levels = [
             [null,0xa0,null,null,null,null,null,null,null,null,null,null,null],
         ]
     },
+
+    // Original Levels
+    {
+        source: "Dionakra",
+        note: "",
+        level: 17,
+        description: "Amogus",
+	background: "#ff00ff",
+	bricks: [
+	    [null,null,null,null,null,null,null,null,null,null,null,null,null],
+	    [null,null,null,null,null,null,null,null,null,null,null,null,null],
+	    [null,null,null,null,null,null,82,null,null,null,null,null,null],
+	    [null,null,null,null,null,80,80,80,null,null,null,null,null],
+	    [null,null,null,null,80,48,48,176,80,null,null,null,null],
+	    [null,null,null,null,80,48,48,48,80,null,null,null,null],
+	    [null,null,80,null,80,48,48,48,80,82,null,null,null],
+	    [82,80,80,null,80,80,80,80,80,82,null,null,null],
+	    [null,80,80,null,82,80,80,80,80,82,null,null,null],
+	    [null,null,80,null,80,80,82,80,80,82,null,null,null],
+	    [null,null,null,null,80,80,80,80,80,82,null,null,null],
+	    [null,null,null,null,80,80,80,80,80,null,null,null,null],
+	    [null,null,null,null,80,80,null,80,80,null,null,null,null],
+	    [null,null,null,null,80,80,null,80,80,null,null,null,null],
+	    [null,null,null,null,80,80,null,80,80,null,null,null,null],
+	    [null,null,null,null,null,null,null,null,null,null,null,null,null],
+	    [null,null,null,null,null,null,null,null,null,null,null,null,null],
+	    [null,null,null,null,null,null,null,null,null,null,null,null,null]
+	]
+    }
 ]

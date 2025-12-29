@@ -3,7 +3,7 @@ const HORIZONTALHIT = 1;
 const VERTICALHIT   = 2;
 
 function reset_ball() {
-    document.getElementById("lives").innerHTML = lives;
+    document.getElementById("lives").innerHTML = Math.max(0, lives);;
     balls = []
     balls.push(new Ball(ctx_dynamic, ctx_shadow_dynamic, true));
 }
@@ -219,20 +219,28 @@ class Ball {
 	let horizontal_collision = false;
 	let paddle_collision     = false;
 
+        let collision_sound = null;
+
         // Collisions with walls
         if (ball_top_edge <= sizes.arena.top) {
-	    if (this.v.y < 0)
+	    if (this.v.y < 0) {
 		horizontal_collision = true;
+                collision_sound = WALL_HIT_1;
+            }
         }
 
         if (ball_right_edge >= sizes.arena.right) {
-	    if (this.v.x > 0)
+	    if (this.v.x > 0) {
 		vertical_collision = true;
-	}
+                collision_sound = WALL_HIT_1;
+	    }
+        }
 
 	if (ball_left_edge <= sizes.arena.left) {
-	    if (this.v.x < 0)
+	    if (this.v.x < 0) {
 		vertical_collision = true;
+                collision_sound = WALL_HIT_1;
+	    }
 	}
 
         // Brick Collisions
@@ -293,6 +301,9 @@ class Ball {
 		    this.catch_offset = this.pos.x - paddle.pos.x;
 		}
 
+                collision_sound = WALL_HIT_1;
+                if (current_powerup == PU_CATCH)
+                    collision_sound = BALL_CATCH;
 		paddle_collision = true;
 	    }
 	}
@@ -305,6 +316,7 @@ class Ball {
 		    // Arkanoid Style bounce
 		    this.v = bounceArkanoidStyle(this, paddle, paddle.twin_offset);
 
+                    collision_sound = WALL_HIT_1;
 		    paddle_collision = true;
 		}
 	    }
@@ -315,8 +327,10 @@ class Ball {
 	    const illusion_left = Math.min(paddle.pos.x, paddle.illusion_pos.x);
 	    const illusion_width = Math.max(paddle.pos.x, paddle.illusion_pos.x) - illusion_left;
 	    if (circle_intersect_with_rectangle(this.pos.x, this.pos.y, this.radius, illusion_left, paddle.pos.y, illusion_width, paddle.height)) {
-		if (this.v.y > 0)
+		if (this.v.y > 0) {
+                    collision_sound = ILLUSION_HIT;
 		    horizontal_collision = true;
+		}
 	    }
 	}
 
@@ -333,6 +347,8 @@ class Ball {
 	if (vertical_collision)
 	    this.v.x *= -1;
 
+        if (collision_sound != null)
+            sounds[collision_sound].play()
 
 	return vertical_collision || horizontal_collision || paddle_collision;
     }
