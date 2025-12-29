@@ -9,7 +9,7 @@ const brick_types = {
     0x80: {note: "Stationary Yellow", type: 4, h:  60, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:false, shimmers:false, drop_chance: .1, score: 120, bevel: .125},
     0x90: {note: "Stationary Silver", type: 1, h:   0, s:   0, l:  60, hits:  2, required:true,  permanent:false, regenerate:false, mobile:false, shimmers:true,  drop_chance:  0, score:  50, bevel: .5},
     0xA0: {note: "Stationary Gold",   type: 0, h:  55, s: 100, l:  40, hits: -1, required:false, permanent:true,  regenerate:false, mobile:false, shimmers:true,  drop_chance:  0, score: 200, bevel: .5},
-    0xB0: {note: "Stationary Regrow" ,type: 10,h:   0, s:   0, l:  50, hits:  2, required:false, permanent:true,  regenerate:true,  mobile:false, shimmers:true,  drop_chance:  0, score:  50, bevel: .33},
+    0xB0: {note: "Stationary Regrow" ,type: 10,h:   0, s:   0, l:  50, hits:  2, required:false, permanent:true,  regenerate:true,  mobile:false, shimmers:true,  drop_chance:  0, score:  50, bevel: .5},
 
     0x11: {note: "Moveable White",  type: 9, h:   0, s:   0, l:  90, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: .1, score:  50, bevel: .125},
     0x21: {note: "Moveable Orange", type: 3, h:  35, s: 100, l:  50, hits:  1, required:true,  permanent:false, regenerate:false, mobile:true, shimmers:false, drop_chance: .1, score:  60, bevel: .125},
@@ -33,10 +33,11 @@ const brick_types = {
 }
 
 class Brick {
-    constructor(ctx, ctx_dynamic, ctx_shadow, x, y, style) {
+    constructor(ctx, ctx_dynamic, ctx_shadow, ctx_shadow_dynamic, x, y, style) {
         this.ctx = ctx;
         this.ctx_dynamic = ctx_dynamic;
         this.ctx_shadow = ctx_shadow;
+	this.ctx_shadow_dynamic = ctx_shadow_dynamic;
 
 	this.type = style.type;
 	this.value = style.score;
@@ -68,7 +69,7 @@ class Brick {
 	this.shimmers = style.shimmers;
 	this.permanent = style.permanent;
 
-	this.regenerate_timeout = 10000; // 10 seconds
+	this.regenerate_timeout = 5000; // 5 seconds
 	this.regenerate_timer = 0;
 
 	this.shimmer = 0;
@@ -82,6 +83,9 @@ class Brick {
 	    }
 	} else {
             this.hits--;
+	    if (this.regenerates) {
+		this.hits = Math.max(0, this.hits);
+	    }
 	}
 
 	// Remove blocks that are none permanent, and out of hits
@@ -127,56 +131,80 @@ class Brick {
 	}
     }
 
+    render_bevel(ctx, ctx_shadow, x, y, w, h) {
+	// Shadow
+        ctx_shadow.fillStyle = "#000";
+        ctx_shadow.fillRect(x + sizes.shadow_offset.horizontal, y + sizes.shadow_offset.vertical, w, h);
+
+        // Fill in background color
+        ctx.fillStyle = this.colors[2];
+        ctx.fillRect(x, y, w, h);
+
+        // North edge
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + this.bevel, y + this.bevel);
+        ctx.lineTo(x + w - this.bevel, y + this.bevel);
+        ctx.lineTo(x + w, y);
+        ctx.fillStyle = this.colors[4];
+        ctx.fill();
+
+        // East edge
+        ctx.beginPath();
+        ctx.moveTo(x + w, y);
+        ctx.lineTo(x + w - this.bevel, y + this.bevel);
+        ctx.lineTo(x + w - this.bevel, y + h - this.bevel);
+        ctx.lineTo(x + w, y + h);
+        ctx.fillStyle = this.colors[1];
+        ctx.fill();
+
+        // South edge
+        ctx.beginPath();
+        ctx.moveTo(x, y + h);
+        ctx.lineTo(x + this.bevel, y  + h - this.bevel);
+        ctx.lineTo(x + w - this.bevel, y + h - this.bevel);
+        ctx.lineTo(x + w, y + h);
+        ctx.fillStyle = this.colors[0];
+        ctx.fill();
+
+        // West edge
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + this.bevel, y + this.bevel);
+        ctx.lineTo(x + this.bevel, y + h - this.bevel);
+        ctx.lineTo(x, y + h);
+        ctx.fillStyle = this.colors[3];
+        ctx.fill();
+    }
+
     render() {
 	// Bricks that are gone shouldn't be rendered
 	if (this.hits == 0) return;
 
-	// Shadow
-        this.ctx_shadow.fillStyle = "#000";
-        this.ctx_shadow.fillRect(this.pos.x+sizes.shadow_offset.horizontal, this.pos.y+sizes.shadow_offset.vertical, this.width, this.height);
+	// Mobile and Regenerative bricks render elsewhere...
+	if (this.mobile == true || this.regenerates == true)
+	    return;
 
-        // Fill in background color
-        this.ctx.fillStyle = this.colors[2];
-        this.ctx.fillRect(this.pos.x, this.pos.y, this.width, this.height);
-
-        // North edge
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.pos.x, this.pos.y);
-        this.ctx.lineTo(this.pos.x + this.bevel, this.pos.y + this.bevel);
-        this.ctx.lineTo(this.pos.x + this.width - this.bevel, this.pos.y + this.bevel);
-        this.ctx.lineTo(this.pos.x + this.width, this.pos.y);
-        this.ctx.fillStyle = this.colors[4];
-        this.ctx.fill();
-
-        // East edge
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.pos.x + this.width, this.pos.y);
-        this.ctx.lineTo(this.pos.x + this.width - this.bevel, this.pos.y + this.bevel);
-        this.ctx.lineTo(this.pos.x + this.width - this.bevel, this.pos.y + this.height - this.bevel);
-        this.ctx.lineTo(this.pos.x + this.width, this.pos.y + this.height);
-        this.ctx.fillStyle = this.colors[1];
-        this.ctx.fill();
-
-        // South edge
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.pos.x, this.pos.y + this.height);
-        this.ctx.lineTo(this.pos.x + this.bevel, this.pos.y  + this.height - this.bevel);
-        this.ctx.lineTo(this.pos.x + this.width - this.bevel, this.pos.y + this.height - this.bevel);
-        this.ctx.lineTo(this.pos.x + this.width, this.pos.y + this.height);
-        this.ctx.fillStyle = this.colors[0];
-        this.ctx.fill();
-
-        // West edge
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.pos.x, this.pos.y);
-        this.ctx.lineTo(this.pos.x + this.bevel, this.pos.y + this.bevel);
-        this.ctx.lineTo(this.pos.x + this.bevel, this.pos.y + this.height - this.bevel);
-        this.ctx.lineTo(this.pos.x, this.pos.y + this.height);
-        this.ctx.fillStyle = this.colors[3];
-        this.ctx.fill();
+	// Regular blocks go to static canvas
+	this.render_bevel(this.ctx, this.ctx_shadow, this.pos.x, this.pos.y, this.width, this.height);
     }
 
     renderShimmer() {
+	// If there are no hits left, don't render
+	if (this.hits == 0)
+	    return;
+
+	// If this is a moving block, it renders on the dynamic canvas
+	if (this.mobile == true) {
+	    this.render_bevel(this.ctx_dynamic, this.ctx_shadow_dynamic, this.pos.x, this.pos.y, this.width, this.height);
+	}
+
+	// If this is a regenerating block, it renders on dynamic canvas twice
+	if (this.regenerates == true) {
+	    this.render_bevel(this.ctx_dynamic, this.ctx_shadow_dynamic, this.pos.x, this.pos.y, this.width / 2, this.height);
+	    this.render_bevel(this.ctx_dynamic, this.ctx_shadow_dynamic, this.pos.x + (this.width / 2), this.pos.y, this.width / 2, this.height);
+	}
+
 	if (this.shimmer > 0) {
 	    let offset = -this.width + ((500 - this.shimmer)/500 * 3 * this.width);
 	    this.ctx_dynamic.save();

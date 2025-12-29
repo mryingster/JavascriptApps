@@ -233,7 +233,7 @@ function populate_level(l) {
         for (let x = 0; x<l.bricks[y].length; x++) {
 	    const brick_type = l.bricks[y][x];
 	    if (brick_type in brick_types)
-		bricks.push(new Brick(ctx_bricks, ctx_dynamic, ctx_shadow_static, x, y, brick_types[brick_type]));
+		bricks.push(new Brick(ctx_bricks, ctx_dynamic, ctx_shadow_static, ctx_shadow_dynamic, x, y, brick_types[brick_type]));
 	}
 
     // Start with a shimmer

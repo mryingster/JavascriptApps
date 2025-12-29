@@ -251,6 +251,10 @@ class Ball {
             for (const brick of bricks) {
                 // Ignore bircks that are too far away
                 if (Math.hypot(brick.pos.x - this.pos.x, brick.pos.y - this.pos.y) > 100) continue;
+
+		// Ignore bricks we can;t interact with
+		if (brick.hits == 0) continue;
+
                 if (sweptBallAABB(this, brick))
                     candidates.push(brick);
             }
