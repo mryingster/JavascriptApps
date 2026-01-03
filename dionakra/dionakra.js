@@ -28,19 +28,7 @@ function main_loop(timestamp, refresh=false) {
             ball.move(elapsed);
             for (let i=0; i<bricks.length; i++) {
 		if (bricks[i].remove == true) {
-                    let add_to_score = bricks[i].value;
-
-                    // Double score when reduced
-                    if (current_powerup == PU_REDUCE)
- 		        add_to_score *= 2;
-
-                    // Check for enough points for extra life
-                    if (score  % 25000 + add_to_score > 25000) {
-                        sounds[PLAYER_EXTEND].play();
-                        current_powerup = PU_PLAYER;
-                    }
-
-                    score += add_to_score;
+                    update_score(bricks[i].value);
 
                     // Remove Brick
                     bricks.splice(i, 1);
@@ -155,8 +143,6 @@ function main_loop(timestamp, refresh=false) {
 		ball.render();
 
         paddle.render();
-
-	document.getElementById("score").innerHTML = score;
     }
 
     // Call next loop
@@ -199,6 +185,26 @@ function duplicate_ball() {
 function disrupt_ball(n=3) {
     while (balls.length < n)
 	duplicate_ball()
+}
+
+function update_score(add_to_score) {
+    // Double score when reduced
+    if (current_powerup == PU_REDUCE)
+ 	add_to_score *= 2;
+
+    // Check for enough points for extra life
+    if (score  % 25000 + add_to_score > 25000) {
+        sounds[PLAYER_EXTEND].play();
+        current_powerup = PU_PLAYER;
+    }
+
+    score += add_to_score;
+
+    if (score > highscore)
+        highscore = score;
+
+    document.getElementById("score").innerHTML = score;
+    document.getElementById("highscore").innerHTML = highscore;
 }
 
 function advance_level(n=null) {
@@ -308,6 +314,8 @@ function new_game(continued=false, demo=null) {
 	populate_level(demo);
 
     paused = false;
+
+    update_score(0);
 }
 
 function getTouchPosition(event) {
@@ -405,6 +413,7 @@ let sizes = {};
 
 let active = false;;
 let score;
+let highscore = 50000;
 let level;
 let bricks;
 let pills;

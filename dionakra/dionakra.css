@@ -26,21 +26,30 @@ body {
     position: relative;
 }
 
+#player, #scores {
+    display: block;
+    height: 30px;
+}
+
 #level_div {
-    float: left;
+    position: absolute;
+    left: 0px;
 }
 
 #lives_div {
-    float: right;
+    position: absolute;
+    left: 0px;
 }
 
+
 #score_div {
-    display: block;
-    text-align: center;
-    bottom: 0px;
-    margin: 0px auto;
-    width: inherit;
     position: absolute;
+    right: 0px;
+}
+
+#highscore_div {
+    position: absolute;
+    right: 0px;
 }
 
 .label {
