@@ -46,6 +46,7 @@ class Paddle {
 	this.exploding = false;
 	this.visible   = true;
 	this.animate_break = false;
+        this.autopiloting = 0;
     }
 
     get_pos_center() {
@@ -198,7 +199,17 @@ class Paddle {
         // Autopilot
         if (current_powerup == PU_AUTO_PILOT && balls.length > 0) {
             this.pos.x = balls[0].pos.x - (this.width / 2);
+
+            this.autopiloting += ms;
+
+            // Only autopilot for 15 seconds
+            if (this.autopiloting >= 15000) {
+                this.autopiloting = 0;
+                current_powerup = PU_NONE;
+            }
         }
+        if (current_powerup != PU_AUTO_PILOT && this.autopiloting > 0)
+            this.autopiloting = 0;
 
 	this.collide();
     }

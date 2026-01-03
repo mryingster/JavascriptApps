@@ -28,10 +28,21 @@ function main_loop(timestamp, refresh=false) {
             ball.move(elapsed);
             for (let i=0; i<bricks.length; i++) {
 		if (bricks[i].remove == true) {
-		    score += bricks[i].value;
+                    let add_to_score = bricks[i].value;
+
                     // Double score when reduced
                     if (current_powerup == PU_REDUCE)
- 		        score += bricks[i].value;
+ 		        add_to_score *= 2;
+
+                    // Check for enough points for extra life
+                    if (score  % 25000 + add_to_score > 25000) {
+                        sounds[PLAYER_EXTEND].play();
+                        current_powerup = PU_PLAYER;
+                    }
+
+                    score += add_to_score;
+
+                    // Remove Brick
                     bricks.splice(i, 1);
                     i--;
                     refresh = true;
@@ -403,8 +414,9 @@ let paused;
 let lives;
 let lasers;
 let sounds = [];
-let MUTED = false;
 let current_powerup = 0;
+
+let MUTED = false;
 
 let mouse_down = false;
 let touch_start = false;
