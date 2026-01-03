@@ -62,6 +62,12 @@ class Brick {
 
         this.drop_chance = style.drop_chance;
         this.hits_required = style.hits;
+
+        // Scale silvers to require extra hit for each 8 levels
+        if (this.type == 1) {
+            this.hits_required += Math.floor(level / 8);
+        }
+
         this.hits = this.hits_required;
 	this.required = style.required;
 	this.regenerates = style.regenerate;

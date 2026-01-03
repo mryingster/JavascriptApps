@@ -75,3 +75,12 @@ canvas {
     position: absolute;
     width: 672px;
 }
+
+.texture {
+    position: absolute;
+    width: 672px;
+}
+
+.hidden {
+    display: none;
+}

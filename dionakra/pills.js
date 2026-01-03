@@ -1,3 +1,64 @@
+const PU_NONE        = 0;
+const PU_SLOW        = 1;
+const PU_CATCH	     = 2;
+const PU_EXPAND	     = 3;
+const PU_DISRUPT     = 4;
+const PU_LASER	     = 5;
+const PU_BREAK	     = 6;
+const PU_PLAYER	     = 7;
+const PU_TWIN	     = 8;
+const PU_MEGABALL    = 9;
+const PU_ILLUSION    = 10;
+const PU_REDUCE	     = 11;
+const PU_NEW_DISRUPT = 12;
+const PU_AUTO_PILOT  = 13;
+
+const pill_types = [
+    { note: "NONE",        type: PU_NONE,        text: "-", c1: {h:   0, s:  50, l:  50}, c2: "#ff0", weight: 0 },
+    { note: "Slow",        type: PU_SLOW,        text: "S", c1: {h:  40, s: 100, l:  50}, c2: "#ff0", weight: 5 },
+    { note: "Catch",       type: PU_CATCH,       text: "C", c1: {h: 120, s: 100, l:  50}, c2: "#ff0", weight: 5 },
+    { note: "Expand",      type: PU_EXPAND,      text: "E", c1: {h: 240, s: 100, l:  50}, c2: "#ff0", weight: 5 },
+    { note: "Disrupt",     type: PU_DISRUPT,     text: "D", c1: {h: 180, s: 100, l:  50}, c2: "#ff0", weight: 5 },
+    { note: "Laser",       type: PU_LASER,       text: "L", c1: {h:   0, s: 100, l:  50}, c2: "#ff0", weight: 5 },
+    { note: "Break",       type: PU_BREAK,       text: "B", c1: {h: 300, s:  85, l:  85}, c2: "#ff0", weight: 1 },
+    { note: "Player",      type: PU_PLAYER,      text: "P", c1: {h:   0, s:   0, l:  50}, c2: "#08f", weight: 2 },
+    { note: "Twin",        type: PU_TWIN,        text: "T", c1: {h: 200, s: 100, l:  30}, c2: "#ff0", weight: 4 },
+    { note: "Megaball",    type: PU_MEGABALL,    text: "M", c1: {h: 300, s: 100, l:  50}, c2: "#ff0", weight: 3 },
+    { note: "Illusion",    type: PU_ILLUSION,    text: "I", c1: {h: 120, s: 100, l:  25}, c2: "#ff0", weight: 4 },
+    { note: "Reduce",      type: PU_REDUCE,      text: "R", c1: {h:   0, s:   0, l:  10}, c2: "#ff0", weight: 3 },
+    { note: "New Disrupt", type: PU_NEW_DISRUPT, text: "N", c1: {h:   0, s:   0, l:  90}, c2: "#ff0", weight: 3 },
+    { note: "Auto Pilot",  type: PU_AUTO_PILOT,  text: "A", c1: {h:  60, s: 100, l:  50}, c2: "#ff0", weight: 7 },
+]
+
+let weighted_pills = [];
+
+function drop_pill(x=null, y=null, type=null) {
+    if (x === null) x = sizes.canvas.width / 2;
+    if (y === null) y = sizes.arena.height / 2;
+
+    if (type == null) {
+        // Populate our list if this is first time
+        if (weighted_pills.length == 0) {
+            for (let type of pill_types)
+                for (let i=0; i<type.weight; i++)
+                    weighted_pills.push(type.type);
+        }
+
+        // Select random powerup
+        type = weighted_pills[Math.floor(Math.random() * weighted_pills.length)];
+    }
+
+    pills.push(
+        new Pill(
+            ctx_dynamic,
+            ctx_shadow_dynamic,
+            x,
+            y,
+            pill_types[type]
+        )
+    );
+}
+
 function reset_pills() {
     pills = [];
 }
@@ -10,21 +71,6 @@ function reset_powerups() {
 
     new_disrupt = false;
 }
-
-const pill_types = [
-    {note: "Slow",        type: PU_SLOW,        text: "S", c1: {h:  40, s: 100, l:  50}, c2: "#ff0"}, // Working
-    {note: "Catch",       type: PU_CATCH,       text: "C", c1: {h: 120, s: 100, l:  50}, c2: "#ff0"}, // Working
-    {note: "Expand",      type: PU_EXPAND,      text: "E", c1: {h: 240, s: 100, l:  50}, c2: "#ff0"}, // Working
-    {note: "Disrupt",     type: PU_DISRUPT,     text: "D", c1: {h: 180, s: 100, l:  50}, c2: "#ff0"}, // Working
-    {note: "Laser",       type: PU_LASER,       text: "L", c1: {h:   0, s: 100, l:  50}, c2: "#ff0"}, // Working
-    {note: "Break",       type: PU_BREAK,       text: "B", c1: {h: 300, s:  85, l:  85}, c2: "#ff0"}, // Partial
-    {note: "Player",      type: PU_PLAYER,      text: "P", c1: {h:   0, s:   0, l:  50}, c2: "#08f"}, // Working
-    {note: "Twin",        type: PU_TWIN,        text: "T", c1: {h: 200, s: 100, l:  30}, c2: "#ff0"}, // Working
-    {note: "Megaball",    type: PU_MEGABALL,    text: "M", c1: {h: 300, s: 100, l:  50}, c2: "#ff0"}, // Working
-    {note: "Illusion",    type: PU_ILLUSION,    text: "I", c1: {h: 120, s: 100, l:  25}, c2: "#ff0"},
-    {note: "Reduce",      type: PU_REDUCE,      text: "R", c1: {h:   0, s:   0, l:  10}, c2: "#ff0"}, // Working
-    {note: "New Disrupt", type: PU_NEW_DISRUPT, text: "N", c1: {h:   0, s:   0, l:  90}, c2: "#ff0"}, // Working
-]
 
 class Pill {
     constructor(ctx, ctx_shadow, x, y, style) {

@@ -195,6 +195,11 @@ class Paddle {
 	    this.pos.x += .1 * ms;
 	}
 
+        // Autopilot
+        if (current_powerup == PU_AUTO_PILOT && balls.length > 0) {
+            this.pos.x = balls[0].pos.x - (this.width / 2);
+        }
+
 	this.collide();
     }
 
@@ -261,8 +266,12 @@ class Paddle {
         this.ctx.save();
         this.ctx.translate(offset, 0);
 
+        let bulb_hue = this.bulb_color.h;
+        if (current_powerup == PU_AUTO_PILOT)
+            bulb_hue = 0;
+
 	const light_color = this.hsl_to_string(
-	    this.bulb_color.h,
+            bulb_hue,
 	    this.bulb_color.s,
 	    Math.sin(this.blink) * 100,
 	);

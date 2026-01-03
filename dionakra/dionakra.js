@@ -29,6 +29,9 @@ function main_loop(timestamp, refresh=false) {
             for (let i=0; i<bricks.length; i++) {
 		if (bricks[i].remove == true) {
 		    score += bricks[i].value;
+                    // Double score when reduced
+                    if (current_powerup == PU_REDUCE)
+ 		        score += bricks[i].value;
                     bricks.splice(i, 1);
                     i--;
                     refresh = true;
@@ -92,7 +95,7 @@ function main_loop(timestamp, refresh=false) {
 	}
 
         // No balls on screen? Lose a life and reset
-	if (balls.length <= 0) {
+	if (balls.length <= 0 && paddle.animate_break == false) {
 	    lives--;
 	    paddle.explode();
 	    reset_pills();
@@ -163,18 +166,6 @@ function level_cleared() {
     return true;
 }
 
-function drop_pill(x, y) {
-    pills.push(
-        new Pill(
-            ctx_dynamic,
-            ctx_shadow_dynamic,
-            x,
-            y,
-            pill_types[Math.floor(Math.random() * pill_types.length)]
-        )
-    );
-}
-
 function duplicate_ball() {
     if (balls.length == 0)
 	return;
@@ -200,6 +191,7 @@ function disrupt_ball(n=3) {
 }
 
 function advance_level(n=null) {
+    console.log("Advancing from Level", level);
     level++;
     if (n !== null)
 	level = n;
@@ -227,7 +219,18 @@ function add_life() {
 }
 
 function populate_level(l) {
+    // Update background
     document.getElementById("canvases").style = `background: radial-gradient( circle at 50%, #000, ${l.background})`;
+
+    const texture_list = ["texture1","texture2","texture3"];
+    for (let texture_index in texture_list) {
+        document.getElementById(texture_list[texture_index]).classList.add("hidden");
+
+        if (texture_index == (level - 1) % texture_list.length)
+            document.getElementById(texture_list[texture_index]).classList.remove("hidden");
+    }
+
+    // Create bricks
     bricks = []
     for (let y = 0; y<l.bricks.length; y++)
         for (let x = 0; x<l.bricks[y].length; x++) {
@@ -344,20 +347,6 @@ let ctx_overlay;
 let width;
 let height;
 
-const PU_NONE        = 0;
-const PU_SLOW        = 1;
-const PU_CATCH	     = 2;
-const PU_EXPAND	     = 3;
-const PU_DISRUPT     = 4;
-const PU_LASER	     = 5;
-const PU_BREAK	     = 6;
-const PU_PLAYER	     = 7;
-const PU_TWIN	     = 8;
-const PU_MEGABALL    = 9;
-const PU_ILLUSION    = 10;
-const PU_REDUCE	     = 11;
-const PU_NEW_DISRUPT = 12;
-
 const size_ratios = {
     arena : {
 	width: 1,
@@ -415,7 +404,7 @@ let lives;
 let lasers;
 let sounds = [];
 let MUTED = false;
-let current_powerup = PU_NONE;
+let current_powerup = 0;
 
 let mouse_down = false;
 let touch_start = false;
