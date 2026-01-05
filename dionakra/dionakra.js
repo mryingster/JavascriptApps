@@ -151,7 +151,7 @@ function main_loop(timestamp, refresh=false) {
 
 function game_over() {
     active = false;
-    sounds[GAME_END].play();
+    play_sound("GAME_END");
     showModal("Game over!");
     return;
 }
@@ -194,7 +194,7 @@ function update_score(add_to_score) {
 
     // Check for enough points for extra life
     if (score  % 25000 + add_to_score > 25000) {
-        sounds[PLAYER_EXTEND].play();
+        play_sound("PLAYER_EXTEND");
         current_powerup = PU_PLAYER;
     }
 
@@ -261,7 +261,7 @@ function populate_level(l) {
 	brick.start_shimmer();
 
     // Sounds!
-    sounds[STAGE_START].play();
+    play_sound("STAGE_START");
 
     // Start loop
     main_loop(undefined, true);
@@ -290,8 +290,16 @@ function overlay_message(m) {
 
 function new_game(continued=false, demo=null) {
     if (active) return;
-
     active = true;
+
+    // Setup Audio
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+	// Load Sound Effects
+	for (let name in SOUND_DEFINITIONS)
+	    load_sound(name, SOUND_DEFINITIONS[name]);
+    }
 
     // Move paddle to default position
     paddle.reset();
@@ -422,10 +430,11 @@ let balls;
 let paused;
 let lives;
 let lasers;
-let sounds = [];
+let sounds = {};
 let current_powerup = 0;
 
-let MUTED = false;
+let audioCtx;
+let muted = false;
 
 let mouse_down = false;
 let touch_start = false;
@@ -516,13 +525,6 @@ function firstLoad() {
     canvas_overlay = document.getElementById('canvas_overlay')
     ctx_overlay = canvas_overlay.getContext("2d");
 
-    // Load Sound Effects
-    for (let sound_definition of SOUND_DEFINITIONS)
-        sounds.push(new SOUND(sound_definition));
-
-    if (navigator.vendor && navigator.vendor.indexOf('Apple') > -1)
-        MUTED = true;
-
     // Input Listeners
     canvas_overlay.addEventListener('touchstart', function(e) {
         e.preventDefault();
@@ -530,7 +532,7 @@ function firstLoad() {
 
 	if (current_powerup == PU_LASER) {
             if (lasers.length < 3) {
-                sounds[LASER_FIRE].play();
+                play_sound("LASER_FIRE");
 	        lasers.push(new Laser(ctx_dynamic, ctx_shadow_dynamic, paddle.pos.x, paddle.pos.y));
             }
 	}
@@ -572,7 +574,7 @@ function firstLoad() {
 
 	if (current_powerup == PU_LASER) {
             if (lasers.length < 3) {
-                sounds[LASER_FIRE].play();
+                play_sound("LASER_FIRE");
 	        lasers.push(new Laser(ctx_dynamic, ctx_shadow_dynamic, paddle.pos.x, paddle.pos.y));
 	    }
         }

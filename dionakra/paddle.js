@@ -63,7 +63,7 @@ class Paddle {
 	this.animate_break = false;
 	this.exploding = false;
 	this.visible = true;
-        //sounds[GAME_START].play(); // Do we want a sound every time??
+        //play_sound("GAME_START"); // Add sound for each life?
     }
 
     explode() {
@@ -71,7 +71,7 @@ class Paddle {
 	this.exploding = true;
 	this.visible = false;
 
-        sounds[PADDLE_EXPLODE].play();
+        play_sound("PADDLE_EXPLODE");
 	for (let i=0; i<30; i++) {
 	    this.particles.push(new Particle(
 		this.ctx,
@@ -198,7 +198,10 @@ class Paddle {
 
         // Autopilot
         if (current_powerup == PU_AUTO_PILOT && balls.length > 0) {
-            this.pos.x = balls[0].pos.x - (this.width / 2);
+            if (balls[0].v.x > 0)
+                this.pos.x = balls[0].pos.x - (this.width * .6);
+            else
+                this.pos.x = balls[0].pos.x - (this.width * .4);
 
             this.autopiloting += ms;
 
@@ -235,7 +238,7 @@ class Paddle {
 	    if (this.pos.x + this.width >= sizes.arena.right) {
 		this.freeze = true;
 		this.animate_break = true;
-		sounds[SFX_BREAK].play();
+		play_sound("SFX_BREAK");
 		//advance_level();
 	    }
 	    if (this.pos.x > sizes.arena.right) {

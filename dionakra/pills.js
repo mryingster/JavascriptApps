@@ -131,13 +131,13 @@ class Pill {
 
                 switch (this.type) {
                 case PU_PLAYER:
-                    sounds[PLAYER_EXTEND].play();
+                    play_sound("PLAYER_EXTEND");
                     break;
                 case PU_EXPAND:
-                    sounds[PADDLE_EXPAND].play();
+                    play_sound("PADDLE_EXPAND");
                     break;
                 case PU_REDUCE:
-                    sounds[PADDLE_SHRINK].play();
+                    play_sound("PADDLE_SHRINK");
                     break;
                 }
 	    }
