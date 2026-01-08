@@ -2,13 +2,24 @@ body {
     margin: 0px;
 }
 
-canvas {
+#mandelbrot_canvas {
     margin : 0px;
     position: absolute;
     bottom: 0px;
     left: 0px;
     width: 100%;
     height: 100%
+}
+
+#julia_canvas {
+    position: absolute;
+    bottom: 35px;
+    right: 25px;
+    border: 0px solid black;
+    border-radius: 20px;
+    width: 256px;
+    height: 256x;
+    box-shadow: 0px 5px 15px rgba(0,0,0,.5);
 }
 
 #controls {
@@ -68,7 +79,7 @@ input {
 }
 
 #depthSelection {
-    width: max(100px, calc(100% - 800px));
+    width: max(100px, calc(100% - 850px));
 }
 
 .hidden  {
@@ -95,4 +106,10 @@ h2 {
 
 #close {
     float: right;
+    font-size: 2em;
+    margin-top: -7px;
+}
+
+#close:hover {
+    cursor: pointer;
 }

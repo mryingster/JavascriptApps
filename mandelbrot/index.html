@@ -5,17 +5,19 @@
     <title>Mandelbrot</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" type="text/css" media="screen" href="style.css">
-    <script src="mandelbrot.js"></script>~
+    <script src="interface.js"></script>
+    <script src="mandelbrot.js"></script>
     <script src="/apps/shared/jscolor.js"></script>
     <meta charset="utf-8">
   </head>
   <body onresize="resize_canvas();" onload="first_run();">
 
-    <canvas id="canvas"></canvas>
+    <canvas id="mandelbrot_canvas"></canvas>
+    <canvas id="julia_canvas"></canvas>
 
     <div id="controls">
-    <button class="zoom" onclick="zoom(false, null)">-</button>
-    <button class="zoom" onclick="zoom(true, null)">+</button>
+    <button id="zoom-out" class="zoom">-</button>
+    <button id="zoom-in" class="zoom">+</button>
       Depth:
       <input type="range" min="1" max="512" value="214" oninput="slide_depth();" id="depthSelection">
       <span id="depth">32</span>
@@ -42,16 +44,17 @@
         <option>Zebra</option>
         <option>Set Only</option>
       </select>
-      <button id="editgradient" onclick="document.getElementById('customgradient').classList.remove('hidden')">Edit</button>
-      <input type="checkbox" id="preview" name="preview" value="preview" checked><label for="preview">Preview</label>
+      <button id="editgradient">Edit</button>
+      <input type="checkbox" id="preview" name="preview" value="preview" checked /><label for="preview">Preview</label>
+      <input type="checkbox" id="julia" name="julia" value="julia"><label for="julia" />Julia</label>
 
       <span id="share"><a href="#" id="share_link">Share Link</a></span>
-      <span id="download"><a href="#" id="download_link" onclick="save_image();" download="mandelbrot.png">Download PNG</a></span>
+      <span id="download"><a href="#" id="download_link" download="mandelbrot.png">Download PNG</a></span>
     </div>
 
     <div class="hidden" id="customgradient">
       <h2>Color Scheme</h2>
-      <span id="close" onclick="document.getElementById('customgradient').classList.add('hidden')">X</span>
+      <span id="close">×</span>
 
       <br>
       Mandelbrot Color:
@@ -62,11 +65,11 @@
       Gradient Colors:
       <div id="gradientstops">
       </div>
-    <button onclick="add_color_stop('gradientstops', '#ffffff');">Add Color</button>
+    <button id="add-color-stop">Add Color</button>
 
       <hr>
-      <input type="checkbox" id="gradient" name="gradient" value="gradient" onchange="update_custom();" checked><label for="gradient">Gradient</label>
-      <input type="checkbox" id="proportional" name="proportional" value="proportional" onchange="update_custom();" checked><label for="proportional">Proportional</label>
+      <input type="checkbox" id="gradient" name="gradient" value="gradient" onchange="update_custom();" checked><label for="gradient" />Gradient</label>
+      <input type="checkbox" id="proportional" name="proportional" value="proportional" onchange="update_custom();" checked><label for="proportional" />Proportional</label>
     </div>
 
     <div id="coords_div" class="note">
@@ -79,232 +82,51 @@
 
     <script>
 
-function format_time(d) {
-    let minutes = Math.floor(d/1000/60);
-    let seconds = Math.floor(d/1000) % 60;
-    let miliseconds = (Math.floor(d) % 1000).toString();
-    if (seconds < 10) seconds = "0" + seconds;
-    if (minutes < 10) minutes = "0" + minutes;
-    while (miliseconds.length < 3) miliseconds = "0" + miliseconds;
-    return minutes +":"+ seconds +"."+ miliseconds;
-}
-
-let mandelbrot = new Mandelbrot(
-    document.getElementById("canvas"),
-    document.getElementById("depthSelection"),
-    document.getElementById("scaleSelection"),
-    document.getElementById("coords"),
-    document.getElementById("preview"),
-)
-
-function zoom(z) {
-    mandelbrot.update_zoom(z);
-}
-
-function rerender(preview=false) {
-    mandelbrot.render(preview);
-}
-
-function slide_depth() {
-    rerender(true);
-    document.getElementById("depth").innerHTML = mandelbrot.depth;
-}
-
-function set_slider(value) {
-    let slider = document.getElementById("depthSelection");
-    let minp = slider.min;
-    let maxp = slider.max;
-
-    let minv = Math.log(1);
-    let maxv = Math.log(10000);
-
-    let scale = (maxv - minv) / (maxp - minp);
-
-    slider.value = (Math.log(value) - minv) / scale + minp;
-    document.getElementById("depth").innerHTML = value;
-}
-
-function resize_canvas() {
-    mandelbrot.resize_canvas();
-    mandelbrot.render();
-}
-
-function create_gradient(colors) {
-    let gradient = [];
-    for (let j=0; j<colors.length-1; j++) {
-        for (let i=0; i<255; i++) {
-            let color = {a:1}
-            for (let component of ["r", "g", "b"]) {
-                let d = colors[j][component] - colors[j+1][component];
-                color[component] = colors[j][component] - (d / 255 * i);
-            }
-            gradient.push(color);
-        }
-    }
-    return gradient;
-}
-
-function random_color() {
-    return "rgba(" + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + "," + Math.floor(Math.random() * 255) + ",1)";
-}
-
-function update_custom() {
-    let colorstops = [];
-    let is_gradient = document.getElementById("gradient").checked;
-
-    let is_proportional = false;
-    document.getElementById("proportional").disabled = true;
-    if (is_gradient) {
-        document.getElementById("proportional").disabled = false;
-        is_proportional = document.getElementById("proportional").checked;
-    }
-
-    let mandelbrot_color;
-
-    for (let stop of document.getElementsByClassName("jscolor")) {
-        if (stop.classList.contains("mandelbrot_color"))
-            mandelbrot_color = stop.jscolor.channels;
-        else
-            colorstops.push(stop.jscolor.channels);
-    }
-
-    mandelbrot.mandelbrot_color = mandelbrot_color;
-    if (is_gradient)
-        mandelbrot.gradient = create_gradient(colorstops);
-    else
-        mandelbrot.gradient = colorstops;
-    mandelbrot.proportional_color = is_proportional;
-    mandelbrot.clear_canvas_on_redraw = false;
-    mandelbrot.render(true);
-}
-
-function add_color_stop(divname, color) {
-    let div = document.getElementById(divname);
-
-    let stop = document.createElement("button");
-    stop.classList.add("jscolor", "{value:'" + color + "',position:'bottom',paletteCols:13,hideOnPaletteClick:true,onInput:'update_custom();'}");
-    if (divname == "mandelbrotcolordiv")
-        stop.classList.add("mandelbrot_color");
-
-    div.appendChild(stop);
-
-    div.appendChild(document.createElement("br"));
-
-    jscolor.install()
-
-    update_custom();
-}
-
-function clear_div(divname) {
-    document.getElementById(divname).innerHTML = "";
-}
-
-function clear_color_stops() {
-    clear_div("mandelbrotcolordiv");
-    clear_div("gradientstops");
-}
-
-function remove_stop() {
-}
-
-function update_gradient() {
-    let selection = document.getElementById("scheme").value;
-    let mandelcolor;
-    let stops = [];
-    let proportional_color;
-    let graident;
-    let clear_canvas = false;
-
-    if (selection == "Spectrum") {
-        mandelcolor = "rgba(0,0,0,1)";
-        stops = ["rgba(255,0,0,1)","rgba(255,255,0,1)","rgba(0,255,0,1)","rgba(0,255,255,1)","rgba(0,0,255,1)","rgba(255,0,255,1)","rgba(255,0,0,1)"];
-        proportional_color = true;
-        gradient = true;
-    }
-    if (selection == "Red") {
-        mandelcolor = "rgba(0,0,0,1)";
-        stops = ["rgba(0,0,0,1)","rgba(255,0,0,1)"];
-        proportional_color = true;
-        gradient = true;
-    }
-    if (selection == "Green") {
-        mandelcolor = "rgba(0,0,0,1)";
-        stops = ["rgba(0,0,0,1)","rgba(0,255,0,1)"];
-        proportional_color = true;
-        gradient = true;
-    }
-    if (selection == "Blue") {
-        mandelcolor = "rgba(0,0,0,1)";
-        stops = ["rgba(0,0,0,1)","rgba(0,0,255,1)"];
-        proportional_color = true;
-        gradient = true;
-    }
-    if (selection == "White") {
-        mandelcolor = "rgba(0,0,0,1)";
-        stops = ["rgba(0,0,0,1)","rgba(255,255,255,1)"];
-        proportional_color = true;
-        gradient = true;
-    }
-    if (selection == "Sunset") {
-        mandelcolor = "rgba(0,0,0,1)";
-        stops = ["rgba(255,255,0,1)","rgba(255,0,255,1)","rgba(0,0,255,1)"];
-        proportional_color = true;
-        gradient = true;
-    }
-    if (selection == "Random Gradient") {
-        mandelcolor = "rgba(0,0,0,1)";
-        stops = [random_color(), random_color()];
-        proportional_color = true;
-        gradient = true;
-    }
-    if (selection == "Spectrum Cycle") {
-        mandelcolor = "rgba(0,0,0,1)";
-        stops = ["rgba(255,0,0,1)","rgba(255,255,0,1)","rgba(0,255,0,1)","rgba(0,255,255,1)","rgba(0,0,255,1)","rgba(255,0,255,1)"];
-        proportional_color = false;
-        gradient = false;
-    }
-    if (selection == "Random Colors") {
-        mandelcolor = "rgba(0,0,0,1)";
-        for (let i=0; i<10; i++)
-            stops.push(random_color());
-        proportional_color = false;
-        gradient = false;
-    }
-    if (selection == "Zebra") {
-        mandelcolor = "rgba(0,0,0,1)";
-        stops = ["rgba(0,0,0,1)","rgba(255,255,255,1)"];
-        proportional_color = false;
-        gradient = false;
-    }
-    if (selection == "Set Only") {
-        mandelcolor = "rgba(0,0,0,1)";
-        stops = ["rgba(0,0,0,0)"];
-        proportional_color = false;
-        gradient = false;
-        clear_canvas = true;
-    }
-
-    clear_color_stops();
-    add_color_stop("mandelbrotcolordiv", mandelcolor);
-    for (let stop of stops)
-        add_color_stop("gradientstops", stop);
-    document.getElementById("proportional").checked = proportional_color;
-    document.getElementById("gradient").checked = gradient;
-
-    update_custom();
-    //mandelbrot.gradient = gradient;
-    //mandelbrot.proportional_color = proportional_color;
-    //mandelbrot.clear_canvas_on_redraw = clear_canvas;
-    //mandelbrot.render(true);
-}
-
-function save_image() {
-    let canvas = document.getElementById("canvas");
-    document.getElementById("download_link").download = "image.png";
-    document.getElementById("download_link").href = canvas.toDataURL("image/png").replace(/^data:image\/[^;]/, 'data:application/octet-stream');
-}
+let mandelbrot;
+let julia;
 
 function first_run() {
+    // Bind interactive elements
+    document.getElementById("zoom-out").onclick = () => { zoom(false, null); };
+    document.getElementById("zoom-in").onclick = () => { zoom(true, null); };
+    document.getElementById("editgradient").onclick = () => { document.getElementById('customgradient').classList.toggle('hidden'); };
+    document.getElementById("julia").onclick = () => { toggle_julia(); };
+    document.getElementById("download").onclick = () => { save_image(); };
+    document.getElementById("close").onclick = () => { document.getElementById('customgradient').classList.add('hidden'); };
+    document.getElementById("add-color-stop").onclick = () => { add_color_stop('gradientstops', '#ffffff'); };
+
+    // Create mandelbrot classes
+    julia = new Mandelbrot(
+        document.getElementById("julia_canvas"),
+        document.getElementById("depthSelection"),
+        document.getElementById("scaleSelection"),
+        document.getElementById("coords"),
+        document.getElementById("preview"),
+        256,
+        256,
+        "julia",
+        false,
+        null,
+    );
+
+    toggle_julia();
+    let julia_callback = (x, y) => { julia.recenter(x, y); };
+
+    mandelbrot = new Mandelbrot(
+        document.getElementById("mandelbrot_canvas"),
+        document.getElementById("depthSelection"),
+        document.getElementById("scaleSelection"),
+        document.getElementById("coords"),
+        document.getElementById("preview"),
+        512,
+        512,
+        "mandelbrot",
+        true,
+        julia_callback
+    );
+
+    resize_canvas()
+
     // Check if the URL contains coordinates
     let url = window.location.href;
     if (url.indexOf('?') > -1) {
@@ -314,8 +136,10 @@ function first_run() {
         let z = Number(coords.split(":")[2]);
         let d = Number(coords.split(":")[3]);
 
-        if (!isNaN(x) && !isNaN(y))
+        if (!isNaN(x) && !isNaN(y)) {
             mandelbrot.recenter(x, y);
+	    julia.recenter(x, y);
+	}
 
         if (!isNaN(z))
             mandelbrot.zoom = z;

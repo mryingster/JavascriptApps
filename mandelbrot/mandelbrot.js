@@ -1,8 +1,14 @@
 class Mandelbrot {
-    constructor(canvas, depth_selection, scale_selection, coord_display, preview_cb) {
+    constructor(canvas, depth_selection, scale_selection, coord_display, preview_cb, w, h, type, interactive, callback) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
 
+        this.type = type;
+        this.interactive = interactive;
+        this.callback = callback;
+
+        this.target_width = w;
+        this.target_height = h;
         this.coords = {x:0, y:0};
 
         this.depth_selection = depth_selection;
@@ -12,6 +18,7 @@ class Mandelbrot {
         this.scale = 1;
 
         this.preview_cb = preview_cb;
+	this.enabled = true;
 
         this.zoom = .004;
 
@@ -32,18 +39,20 @@ class Mandelbrot {
         this.requests = [];
         this.render_start_time;
 
-        // Mouse listeners
-        this.canvas.addEventListener('mousedown',  (event) => this.input_mouse_down(event));
-        this.canvas.addEventListener('mousemove',  (event) => this.input_mouse_move(event));
-        this.canvas.addEventListener('mouseup',    (event) => this.input_mouse_up(event));
-        this.canvas.addEventListener('mouseout',   (event) => this.input_mouse_up(event));
-        this.canvas.addEventListener('wheel',      (event) => this.input_mouse_wheel(event));
+        if (this.interactive) {
 
-        // Touch Listeners
-        this.canvas.addEventListener('touchstart', (event) => this.input_touch_start(event), false);
-        this.canvas.addEventListener('touchmove',  (event) => this.input_touch_move(event), false);
-        this.canvas.addEventListener('touchend',   (event) => this.input_touch_end(event), false);
+            // Mouse listeners
+            this.canvas.addEventListener('mousedown',  (event) => this.input_mouse_down(event));
+            this.canvas.addEventListener('mousemove',  (event) => this.input_mouse_move(event));
+            this.canvas.addEventListener('mouseup',    (event) => this.input_mouse_up(event));
+            this.canvas.addEventListener('mouseout',   (event) => this.input_mouse_up(event));
+            this.canvas.addEventListener('wheel',      (event) => this.input_mouse_wheel(event));
 
+            // Touch Listeners
+            this.canvas.addEventListener('touchstart', (event) => this.input_touch_start(event), false);
+            this.canvas.addEventListener('touchmove',  (event) => this.input_touch_move(event), false);
+            this.canvas.addEventListener('touchend',   (event) => this.input_touch_end(event), false);
+        }
     }
 
     // Mouse Input
@@ -66,7 +75,10 @@ class Mandelbrot {
 
 	    this.render(true, x_diff, y_diff);
         } else {
-	    this.update_coords(this.get_cursor_coordinates(e));
+            let coords = this.get_cursor_coordinates(e);
+	    this.update_coords(coords);
+            if (this.callback != null)
+                this.callback(coords.x, coords.y);
         }
     }
 
@@ -252,7 +264,8 @@ class Mandelbrot {
         while (string.length < 17)
 	    string += "0";
 
-        this.coord_display.innerHTML = string;
+        if (this.coord_display)
+            this.coord_display.innerHTML = string;
     }
 
     read_slider() {
@@ -271,8 +284,19 @@ class Mandelbrot {
 
     read_settings() {
         this.depth = this.read_slider();
-        this.preview_enabled = this.preview_cb.checked;
-        this.scale = Number(this.scale_selection.value);
+
+	if (this.type != "julia") {
+            this.preview_enabled = false;
+            if (this.preview_cb)
+		this.preview_enabled = this.preview_cb.checked;
+            this.scale = Number(this.scale_selection.value);
+	}
+    }
+
+    resize(w, h) {
+        this.target_width = w;
+        this.target_height = h;
+        this.resize_canvas();
     }
 
     resize_canvas() {
@@ -281,14 +305,17 @@ class Mandelbrot {
         let buffer_ctx    = buffer_canvas.getContext("2d");
         buffer_ctx.putImageData(this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height), 0, 0);
 
-        this.canvas.width  = Math.ceil(window.innerWidth  / this.scale);
-        this.canvas.height = Math.ceil(window.innerHeight / this.scale);
+        this.canvas.width  = Math.ceil(this.target_width  / this.scale);
+        this.canvas.height = Math.ceil(this.target_height / this.scale);
 
         // Paste back what we had before (but scaled for the new canvas size)
-        this.ctx.drawImage(buffer_canvas, 0, 0, canvas.width, canvas.height);
+        this.ctx.drawImage(buffer_canvas, 0, 0, this.canvas.width, this.canvas.height);
     }
 
     render(preview = false, x_offset = 0, y_offset = 0) {
+	if (!this.enabled)
+	    return;
+
         // Set settings
         this.read_settings();
 
@@ -296,6 +323,65 @@ class Mandelbrot {
         // Clear existing timeouts (requests for final frames)
         clearTimeout(this.final_render_timer);
 
+	if (this.type == "julia")
+	    this.render_julia();
+	else
+	    this.render_mandelbrot(preview, x_offset, y_offset);
+    }
+
+    render_julia() {
+        // Resize canvas according to scale
+        this.resize_canvas();
+
+	const w = this.canvas.width;
+	const h = this.canvas.height;
+
+	let buffer_canvas = new OffscreenCanvas(w, h);
+        let buffer_ctx    = buffer_canvas.getContext("2d");
+        let buffer        = buffer_ctx.getImageData(0, 0, w, h);
+        let buffer_index  = 0;
+
+
+	for (let cy=1; cy>-1; cy-=2/w) {
+	    for (let cx=-1; cx<1; cx+=2/h) {
+		let result = this.julia(
+		    cx,
+		    cy,
+		    this.coords.x,
+		    this.coords.y,
+		    this.depth
+		);
+
+		// Choose a color
+                let finalColor = this.mandelbrot_color;
+		if (this.gradient.length > 1)
+                if (result != -1)
+                    if (this.proportional_color) {
+                        finalColor = this.gradient[Math.floor(this.gradient.length / this.depth * result)];
+                    } else {
+                        finalColor = this.gradient[result % this.gradient.length];
+                    }
+
+                // Draw the pixel too all the pixels necessary
+                buffer.data[buffer_index + 0] = finalColor.r; // R
+                buffer.data[buffer_index + 1] = finalColor.g; // G
+                buffer.data[buffer_index + 2] = finalColor.b; // B
+                buffer.data[buffer_index + 3] = Math.floor(finalColor.a * 255); // A
+
+                buffer_index += 4;
+	    }
+	}
+
+	// If clear canvas enabled
+        //if (this.clear_canvas_on_redraw)
+        this.ctx.clearRect(0, 0, w, h);
+
+        // Draw back to the onscreen canvas
+        buffer_ctx.putImageData(buffer, 0, 0);
+        this.ctx.drawImage(buffer_canvas, 0, 0, w, h);
+    }
+
+    render_mandelbrot(preview = false, x_offset = 0, y_offset = 0) {
         // If preview requested...
         if (preview == true && this.preview_enabled && this.scale != 8) {
 	    this.scale = 8;
@@ -436,6 +522,28 @@ class Mandelbrot {
         this.requests.push(window.requestAnimationFrame(() => this.animate(quadrants)));
     }
 
+    julia(x, y, cx, cy, depth) {
+	// Start z at pixel coordinate
+	let zx = x;
+	let zy = y;
+
+	let i = 0;
+
+	for (i = 0; i < depth; i++) {
+            const xt = zx * zx - zy * zy + cx;
+            const yt = 2 * zx * zy + cy;
+
+            zx = xt;
+            zy = yt;
+
+            if (zx * zx + zy * zy > 4) {
+		return i; // escaped
+            }
+	}
+
+	return -1; // inside
+    }
+
     mandel(x, y, depth) {
         // Prime Values
         let xP = 0;
@@ -461,5 +569,6 @@ class Mandelbrot {
     recenter(x, y) {
         this.coords.x = x;
         this.coords.y = y;
+        this.render();
     }
 }
