@@ -5,9 +5,43 @@
     vertical-align: top;
 }
 
-.icon {
+.icon_old {
     width: 150px;
     height: 150px;
     border-radius: 36px;
     box-shadow: 0px 10px 15px gray;
 }
+
+.icon-wrapper {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  display: inline-block;
+  overflow: hidden;
+  border-radius: 36px; /* Match the image so the ribbon clips */
+  box-shadow: 0px 10px 15px gray;
+}
+
+.icon {
+  width: 100%;
+  height: 100%;
+  border-radius: 36px;
+  display: block;
+}
+
+.icon-banner::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: 20px;         /* adjust as needed */
+  right: -45px;         /* shifts ribbon so its center hits the corner */
+  background: var(--ribbon-color);
+  color: white;
+  padding: 5px 60px;    /* long so the diagonal spans the corner */
+  font-size: 14px;
+  font-weight: bold;
+  transform: rotate(-45deg);
+  pointer-events: none;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+  text-align: center;
+}
+

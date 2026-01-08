@@ -1,103 +1,998 @@
-const COMPLETE    = 1;
-const IDEA        = 2;
-const DEVELOPMENT = 3;
+const RELEASE     = 1;
+const DEVELOPMENT = 2;
+const IDEA        = 3;
 
-const descriptions = {
-    "Games"     : "",
-    "Utilities" : "",
-    "Demos"     : "These demonstrations are intended to illustrate a concept or idea. More than likely they were created for an accompanying blog post.",
-    "Toys"      : "These are simple apps that are meant to be interesting, but serve no real purpose. Pretty much the fidget spinners of apps on this website.",
-    "Medical"   : "These apps were produced because of my interest in human biology. However these apps should not be used for medical diagnosis. They are for interest and novelty use only.",
-};
+const categories = [
+    {"name": "Demos",       "description": "These demonstrations are intended to illustrate a concept or idea. Many stemmed from either an idea for a blog post, or from coding interview questions."},
+    {"name": "Games",       "description": ""},
+    {"name": "Utilities",   "description": ""},
+    {"name": "Toys",        "description": "These are simple apps that are meant to be interesting, but serve no real purpose. Pretty much the fidget spinners of apps on this website."},
+    {"name": "NYT Helpers", "description": "These utilities are helpful for solving the NYT word games."},
+    {"name": "Medical",     "description": "These apps were produced because of my interest in human biology. However these apps should not be used for medical diagnosis. They are for interest and novelty use only."},
+    {"name": "Ideas",       "description": "These are unproduced ideas. As I have time, I may augment these into fully functional apps."},
+];
 
 const apps = [
-    { "name" : "2-XL Simulator",       "location" : "2xl",                     "category" : "Toys",      "icon" : "icon_2xl",       "status" : COMPLETE,    "description" : "2-XL Toy Simulator" },
-    { "name" : "3-Tris",               "location" : "tetriscubed",             "category" : "Games",     "icon" : "icon_3tris",     "status" : COMPLETE,    "description" : "Top-down 3D Tetris-style game. It's very much inspired by the old Macintosh game 3Tris/3Wiz! " },
-    { "name" : "8-Ball",               "location" : "8ball/",                  "category" : "Toys",      "icon" : "icon_8ball",     "status" : COMPLETE,    "description" : "Eons ago, I made a digital Magic 8-Ball using Bryce, Photoshop, and Illustrator, then made it work using server-side include commands. This is a re-implementation using SVG and Javascript." },
-    { "name" : "Barcode Generator",    "location" : "barcode",                 "category" : "Utilities", "icon" : "icon_barcode",   "status" : COMPLETE,    "description" : "A simple barcode 128 generator using Javascript and an HTML canvas." },
-    { "name" : "Bayes",                "location" : "bayes",                   "category" : "Demos",     "icon" : "icon_bayes",     "status" : COMPLETE,    "description" : "Interactive bayes demonstration for understanding statistical test results." },
-    { "name" : "Bezier",               "location" : "bezier",                  "category" : "Demos",     "icon" : "icon_bezier",    "status" : COMPLETE,    "description" : "Bezier Curve Demo that visually shows how b&eacute; curves are constructed." },
-    { "name" : "Boing",                "location" : "boing/",                  "category" : "Toys",      "icon" : "icon_boing",     "status" : COMPLETE,    "description" : "A reimagining of the classic Amiga Boing demo app using SVG. The rotation is done by color cycling just like the original." },
-    { "name" : "BoogieBoardy",         "location" : "boogie",                  "category" : "Toys",      "icon" : "icon_boogie",    "status" : COMPLETE,    "description" : "Basic drawing for kids, just like a real Boogie Board" },
-    { "name" : "CandyRain",            "location" : "candyrain",               "category" : "Games",     "icon" : "icon_candyrain", "status" : COMPLETE,    "description" : "Good and Plenties are so good they deserve their own game!" },
-    { "name" : "Cheatle",              "location" : "cheatle",                 "category" : "Utilities", "icon" : "icon_cheatle",   "status" : COMPLETE,    "description" : "Tired of not winning at Wordle? Use Cheatle to help suss out the words you just can't get." },
-    { "name" : "Circle Illusion",      "location" : "circle",                  "category" : "Toys",      "icon" : "icon_circle",    "status" : COMPLETE,    "description" : "The appearance of a circle generated with only linear motion" },
-    { "name" : "Codey",                "location" : "codey/",                  "category" : "Games",     "icon" : "icon_codey",     "status" : COMPLETE,    "description" : "Guess the color code within 10 guesses to win!" },
-    { "name" : "Cone Test",            "location" : "medical/cone.html",       "category" : "Medical",   "icon" : "icon_conetest",  "status" : COMPLETE,    "description" : "Eye test that checks for cone sensitivity to red, green, and blue wavelengths. Novelty use only, not to be used as a diagnosis tool." },
-    { "name" : "Day Calculator",       "location" : "date",                    "category" : "Demos",     "icon" : "icon_date",      "status" : COMPLETE,    "description" : "Calculate the day of the week for any date using Lewis Carrol's method." },
-    { "name" : "Dots",                 "location" : "dots",                    "category" : "Games",     "icon" : "icon_dots",      "status" : COMPLETE,    "description" : "The classic game of making squares from dots" },
-    { "name" : "DTMF Simulator",       "location" : "dtmf",                    "category" : "Toys",      "icon" : "icon_dtmf",      "status" : COMPLETE,    "description" : "Generate dual tone signals like the good old days" },
-    { "name" : "DVD Screensaver",      "location" : "dvd",                     "category" : "Toys",      "icon" : "icon_dvd",       "status" : COMPLETE,    "description" : "A reimagining of the classic DVD screensaver" },
-    { "name" : "Dicey",                "location" : "dicey",                   "category" : "Games",     "icon" : "icon_dicey",     "status" : COMPLETE,    "description" : "Dicey is a familiar dice game where you score points by rolling various combinations using 5 dice." },
-    { "name" : "Fling Solver",         "location" : "fling/",                  "category" : "Utilities", "icon" : "icon_fling",     "status" : COMPLETE,    "description" : "Tool to help find solutions to the iPhone game called Fling" },
-    { "name" : "Game Of Life",         "location" : "life",                    "category" : "Toys",      "icon" : "icon_gol",       "status" : COMPLETE,    "description" : "Conway's classic game of life built using Javascript and HTML5 canvas." },
-    { "name" : "Groups",               "location" : "groups",                  "category" : "Games",     "icon" : "icon_groups",    "status" : COMPLETE,    "description" : "Find groups of 3 cards whose characterstics are either all the same, or all different. The game ends when all the cards are gone." },
-    { "name" : "Hearing Test",         "location" : "medical/hearing.html",    "category" : "Medical",   "icon" : "icon_hearing",   "status" : COMPLETE, "description" : "Hearing test is a pure tone audiometry test designed to map the sensitivity to frequencies in the normal range of hearing. Novelty use only, not to be used as a diagnosis tool." },
-    { "name" : "Hopeless",             "location" : "hopeless",                "category" : "Games",     "icon" : "icon_hopeless",  "status" : COMPLETE,    "description" : "A puzzle game where you try remove all the blocks by clicking on groups of more than 2. This was an exercize in getting familiar with the canvas." },
-    { "name" : "Hue're Adorable",      "location" : "huey/",                   "category" : "Games",     "icon" : "icon_hue",       "status" : COMPLETE,    "description" : "A simple game where you reconstruct a gradient that's been split into pieces and shuffled." },
-    { "name" : "Ishihara Test",        "location" : "medical/ishihara.html",   "category" : "Medical",   "icon" : "icon_ishihara",  "status" : COMPLETE,    "description" : "Randomly generated Ishihara plates for testing Red/Green color blindness. Novelty use only, not to be used as a diagnosis tool." },
-    { "name" : "LCARS Clock",          "location" : "lcars",                   "category" : "Utilities", "icon" : "icon_lcars",     "status" : COMPLETE,    "description" : "The LCARS clock is a simple clock and weather viewer using the Star Trek TNG LCARS aesthetic. You can read about building it on my blog." },
-    { "name" : "Lights Out",           "location" : "lightsout",               "category" : "Games",     "icon" : "icon_lightsout", "status" : COMPLETE,    "description" : "The standard puzzle game where you attempt to turn off all the lights by pressing buttons." },
-    { "name" : "Mandley",              "location" : "mandelbrot/",             "category" : "Toys",      "icon" : "icon_mandley",   "status" : COMPLETE,    "description" : "A rudimentary Mandelbrot fractal explorer built using the canvas and javascript." },
-    { "name" : "Manhattan",            "location" : "manhattan/",              "category" : "Demos",     "icon" : "icon_manhattan", "status" : COMPLETE,    "description" : "Manhattan distance problem I developed for a coding interview!" },
-    { "name" : "Math",                 "location" : "math",                    "category" : "Utilities", "icon" : "icon_math",      "status" : COMPLETE,    "description" : "Math Flashcards for Addition, Subtraction, Division, and Multiplication facts" },
-    { "name" : "Maze Generator",       "location" : "maze",                    "category" : "Utilities", "icon" : "icon_maze",      "status" : COMPLETE,    "description" : "A small utility to create mazes of various sizes. Results can be saved as PNGs." },
-    { "name" : "Miney",                "location" : "mines",                   "category" : "Games",     "icon" : "icon_miney",     "status" : COMPLETE,    "description" : "A reinvention of the classic Minesweeper. Nothing fancy!" },
-    { "name" : "N-Tris",               "location" : "ntris/",                  "category" : "Games",     "icon" : "icon_ntris",     "status" : COMPLETE,    "description" : "Tetris clone that uses all possible shapes using up to 5 blocks." },
-    { "name" : "Nomis",                "location" : "nomis",                   "category" : "Games",     "icon" : "icon_nomis",     "status" : COMPLETE,    "description" : "You had better do what Nomis says in this classic game of repeating button presses" },
-    { "name" : "Peripheral Test",      "location" : "medical/peripheral.html", "category" : "Medical",   "icon" : "icon_peripheral","status" : COMPLETE,    "description" : "Eye test that checks for peripheral vision sensitivity. Novelty use only, not to be used as a diagnosis tool." },
-    { "name" : "Pinecone Packing",     "location" : "pinecone",                "category" : "Demos",     "icon" : "icon_pinecone",  "status" : COMPLETE,    "description" : "Pack points the pinecone way" },
-    { "name" : "Runes",                "location" : "runes",                   "category" : "Utilities", "icon" : "icon_runes",     "status" : COMPLETE,    "description" : "Interactive guide for solving the Phasmophobia rune puzzle" },
-    { "name" : "SIRDSy",               "location" : "sirdsy",                  "category" : "Utilities", "icon" : "icon_sirdsy",    "status" : COMPLETE,    "description" : "A Single Image Random Dot Stereogram (SIRDS) generator. You can make custom images by uploading black and white depth maps and textures. Results can be saved as PNGs." },
-    { "name" : "Scramble",             "location" : "scramble",                "category" : "Games",     "icon" : "icon_scramble",  "status" : COMPLETE,    "description" : "A word game based on finding words using 9 tiles. See how many words you can find in 3 minutes!" },
-    { "name" : "Snakey",               "location" : "snake",                   "category" : "Games",     "icon" : "icon_snakey",    "status" : COMPLETE,    "description" : "Reimplementation of the classic snake game using appropriated sprites in javascript." },
-    { "name" : "Sorry Cards",          "location" : "sorry",                   "category" : "Utilities", "icon" : "icon_sorry",     "status" : COMPLETE,    "description" : "Infinite sorry cards so there is no more need to shuffle the deck 20 times per game!" },
-    { "name" : "Sorty",                "location" : "sorty",                   "category" : "Demos",     "icon" : "icon_sorty",     "status" : COMPLETE,    "description" : "Demonstration that attempts to animate various methods of sorting arrays." },
-    { "name" : "Speech Timer",         "location" : "tmtimer",                 "category" : "Utilities", "icon" : "icon_timer",     "status" : COMPLETE,    "description" : "This is a speech timer made for my local Toastmasters International club. It provides the speaker with a visual indication of when the speech should be completed." },
-    { "name" : "Stary",                "location" : "stars",                   "category" : "Toys",      "icon" : "icon_stary",     "status" : COMPLETE,    "description" : "A star simulator that replicates the experience of looking out of a ship's viewport while traveling at warp speed." },
-    { "name" : "Sudoku",               "location" : "sudoku",                  "category" : "Utilities", "icon" : "icon_sudoku",    "status" : COMPLETE,    "description" : "A Sudoku puzzle creator and solver utility." },
-    { "name" : "Tunic Decoder",        "location" : "tunic/",                  "category" : "Utilities", "icon" : "icon_tunic",     "status" : COMPLETE,    "description" : "A simple interface for entering words from game Tunic to aid with decoding" },
-    { "name" : "Word Finder",          "location" : "words",                   "category" : "Utilities", "icon" : "icon_words",     "status" : COMPLETE,    "description" : "Find words based on given letters. Developed to help solve the Spelling Bee" },
-    { "name" : "Wordy",                "location" : "wordy",                   "category" : "Games",     "icon" : "icon_wordy",     "status" : COMPLETE,    "description" : "Wordy is a familiar puzzle game where you have to make words by connecting adjacent letters in a grid." },
+    {
+        "name"          : "2-XL Simulator",
+        "location"      : "2xl",
+        "category"      : "Toys",
+        "icon"          : "icon_2xl",
+        "status"        : RELEASE,
+        "description"   : "2-XL Toy Simulator",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "3-Tris",
+        "location"      : "tetriscubed",
+        "category"      : "Games",
+        "icon"          : "icon_3tris",
+        "status"        : RELEASE,
+        "description"   : "Top-down 3D Tetris-style game. It's very much inspired by the old Macintosh game 3Tris/3Wiz!",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "8-Ball",
+        "location"      : "8ball/",
+        "category"      : "Toys",
+        "icon"          : "icon_8ball",
+        "status"        : RELEASE,
+        "description"   : "Eons ago, I made a digital Magic 8-Ball using Bryce, Photoshop, and Illustrator, then made it work using server-side include commands. This is a re-implementation using SVG and Javascript.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Barcode Generator",
+        "location"      : "barcode",
+        "category"      : "Utilities",
+        "icon"          : "icon_barcode",
+        "status"        : RELEASE,
+        "description"   : "A simple barcode 128 generator using Javascript and an HTML canvas.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Bayes",
+        "location"      : "bayes",
+        "category"      : "Demos",
+        "icon"          : "icon_bayes",
+        "status"        : RELEASE,
+        "description"   : "Interactive bayes demonstration for understanding statistical test results.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Bezier",
+        "location"      : "bezier",
+        "category"      : "Demos",
+        "icon"          : "icon_bezier",
+        "status"        : RELEASE,
+        "description"   : "Bezier Curve Demo that visually shows how b&eacute; curves are constructed.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Boing",
+        "location"      : "boing/",
+        "category"      : "Toys",
+        "icon"          : "icon_boing",
+        "status"        : RELEASE,
+        "description"   : "A reimagining of the classic Amiga Boing demo app using SVG. The rotation is done by color cycling just like the original.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "BoogieBoardy",
+        "location"      : "boogie",
+        "category"      : "Toys",
+        "icon"          : "icon_boogie",
+        "status"        : RELEASE,
+        "description"   : "Basic drawing for kids, just like a real Boogie Board",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "CandyRain",
+        "location"      : "candyrain",
+        "category"      : "Games",
+        "icon"          : "icon_candyrain",
+        "status"        : RELEASE,
+        "description"   : "Good and Plenties are so good they deserve their own game!",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Cheatle",
+        "location"      : "cheatle",
+        "category"      : "NYT Helpers",
+        "icon"          : "icon_cheatle",
+        "status"        : RELEASE,
+        "description"   : "Tired of not winning at Wordle? Use Cheatle to help suss out the words you just can't get.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Circle Illusion",
+        "location"      : "circle",
+        "category"      : "Toys",
+        "icon"          : "icon_circle",
+        "status"        : RELEASE,
+        "description"   : "The appearance of a circle generated with only linear motion",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Codey",
+        "location"      : "codey/",
+        "category"      : "Games",
+        "icon"          : "icon_codey",
+        "status"        : RELEASE,
+        "description"   : "Guess the color code within 10 guesses to win!",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Cone Test",
+        "location"      : "medical/cone.html",
+        "category"      : "Medical",
+        "icon"          : "icon_conetest",
+        "status"        : RELEASE,
+	"description"   : "Eye test that checks for cone sensitivity to red, green, and blue wavelengths. Novelty use only, not to be used as a diagnosis tool.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Day Calculator",
+        "location"      : "date",
+        "category"      : "Demos",
+        "icon"          : "icon_date",
+        "status"        : RELEASE,
+        "description"   : "Calculate the day of the week for any date using Lewis Carrol's method.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Dots",
+        "location"      : "dots",
+        "category"      : "Games",
+        "icon"          : "icon_dots",
+        "status"        : RELEASE,
+        "description"   : "The classic game of making squares from dots",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "DTMF Simulator",
+        "location"      : "dtmf",
+        "category"      : "Toys",
+        "icon"          : "icon_dtmf",
+        "status"        : RELEASE,
+        "description"   : "Generate dual tone signals like the good old days",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "DVD Screensaver",
+        "location"      : "dvd",
+        "category"      : "Toys",
+        "icon"          : "icon_dvd",
+        "status"        : RELEASE,
+        "description"   : "A reimagining of the classic DVD screensaver",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Dicey",
+        "location"      : "dicey",
+        "category"      : "Games",
+        "icon"          : "icon_dicey",
+        "status"        : RELEASE,
+        "description"   : "Dicey is a familiar dice game where you score points by rolling various combinations using 5 dice.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Dionakra",
+        "location"      : "dionakra",
+        "category"      : "Games",
+        "icon"          : "icon_dionakra",
+        "status"        : DEVELOPMENT,
+        "description"   : "This is a basic breakout clone.",
+	"date"		: "11/30/2025",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Fling Solver",
+        "location"      : "fling/",
+        "category"      : "Utilities",
+        "icon"          : "icon_fling",
+        "status"        : RELEASE,
+        "description"   : "Tool to help find solutions to the iPhone game called Fling",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Game Of Life",
+        "location"      : "life",
+        "category"      : "Toys",
+        "icon"          : "icon_gol",
+        "status"        : RELEASE,
+        "description"   : "Conway's classic game of life built using Javascript and HTML5 canvas.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Groups",
+        "location"      : "groups",
+        "category"      : "Games",
+        "icon"          : "icon_groups",
+        "status"        : RELEASE,
+        "description"   : "Find groups of 3 cards whose characterstics are either all the same, or all different. The game ends when all the cards are gone.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Hearing Test",
+        "location"      : "medical/hearing.html",
+        "category"      : "Medical",
+        "icon"          : "icon_hearing",
+        "status"        : RELEASE,
+        "description"   : "Hearing test is a pure tone audiometry test designed to map the sensitivity to frequencies in the normal range of hearing. Novelty use only, not to be used as a diagnosis tool.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Hopeless",
+        "location"      : "hopeless",
+        "category"      : "Games",
+        "icon"          : "icon_hopeless",
+        "status"        : RELEASE,
+        "description"   : "A puzzle game where you try remove all the blocks by clicking on groups of more than 2. This was an exercize in getting familiar with the canvas.",
+	"date"		: "Unknown",
+	"tags"		: ["Updated"],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Hue're Adorable",
+        "location"      : "huey/",
+        "category"      : "Games",
+        "icon"          : "icon_hue",
+        "status"        : RELEASE,
+        "description"   : "A simple game where you reconstruct a gradient that's been split into pieces and shuffled.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Ishihara Test",
+        "location"      : "medical/ishihara.html",
+        "category"      : "Medical",
+        "icon"          : "icon_ishihara",
+        "status"        : RELEASE,
+        "description"   : "Randomly generated Ishihara plates for testing Red/Green color blindness. Novelty use only, not to be used as a diagnosis tool.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "LCARS Clock",
+        "location"      : "lcars",
+        "category"      : "Utilities",
+        "icon"          : "icon_lcars",
+        "status"        : RELEASE,
+        "description"   : "The LCARS clock is a simple clock and weather viewer using the Star Trek TNG LCARS aesthetic. You can read about building it on my blog.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Lights Out",
+        "location"      : "lightsout",
+        "category"      : "Games",
+        "icon"          : "icon_lightsout",
+        "status"        : RELEASE,
+        "description"   : "The standard puzzle game where you attempt to turn off all the lights by pressing buttons.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Mandley",
+        "location"      : "mandelbrot/",
+        "category"      : "Toys",
+        "icon"          : "icon_mandley",
+        "status"        : RELEASE,
+        "description"   : "A rudimentary Mandelbrot fractal explorer built using the canvas and javascript.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Manhattan",
+        "location"      : "manhattan/",
+        "category"      : "Demos",
+        "icon"          : "icon_manhattan",
+        "status"        : RELEASE,
+        "description"   : "Manhattan distance problem I developed for a coding interview!",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Math",
+        "location"      : "math",
+        "category"      : "Utilities",
+        "icon"          : "icon_math",
+        "status"        : RELEASE,
+        "description"   : "Math Flashcards for Addition, Subtraction, Division, and Multiplication facts",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Maze Generator",
+        "location"      : "maze",
+        "category"      : "Utilities",
+        "icon"          : "icon_maze",
+        "status"        : RELEASE,
+        "description"   : "A small utility to create mazes of various sizes. Results can be saved as PNGs.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Miney",
+        "location"      : "mines",
+        "category"      : "Games",
+        "icon"          : "icon_miney",
+        "status"        : RELEASE,
+        "description"   : "A reinvention of the classic Minesweeper. Nothing fancy!",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "N-Tris",
+        "location"      : "ntris/",
+        "category"      : "Games",
+        "icon"          : "icon_ntris",
+        "status"        : RELEASE,
+        "description"   : "Tetris clone that uses all possible shapes using up to 5 blocks.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Nomis",
+        "location"      : "nomis",
+        "category"      : "Games",
+        "icon"          : "icon_nomis",
+        "status"        : RELEASE,
+        "description"   : "You had better do what Nomis says in this classic game of repeating button presses",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Peripheral Test",
+        "location"      : "medical/peripheral.html",
+        "category"      : "Medical",
+        "icon"          : "icon_peripheral",
+        "status"        : RELEASE,
+        "description"   : "Eye test that checks for peripheral vision sensitivity. Novelty use only, not to be used as a diagnosis tool.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Pinecone Packing",
+        "location"      : "pinecone",
+        "category"      : "Demos",
+        "icon"          : "icon_pinecone",
+        "status"        : RELEASE,
+        "description"   : "Pack points the pinecone way",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Runes",
+        "location"      : "runes",
+        "category"      : "Utilities",
+        "icon"          : "icon_runes",
+        "status"        : RELEASE,
+        "description"   : "Interactive guide for solving the Phasmophobia rune puzzle",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "SIRDSy",
+        "location"      : "sirdsy",
+        "category"      : "Utilities",
+        "icon"          : "icon_sirdsy",
+        "status"        : RELEASE,
+        "description"   : "A Single Image Random Dot Stereogram (SIRDS) generator. You can make custom images by uploading black and white depth maps and textures. Results can be saved as PNGs.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Scramble",
+        "location"      : "scramble",
+        "category"      : "Games",
+        "icon"          : "icon_scramble",
+        "status"        : RELEASE,
+        "description"   : "A word game based on finding words using 9 tiles. See how many words you can find in 3 minutes!",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Snakey",
+        "location"      : "snake",
+        "category"      : "Games",
+        "icon"          : "icon_snakey",
+        "status"        : RELEASE,
+        "description"   : "Reimplementation of the classic snake game using appropriated sprites in javascript.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Sorry Cards",
+        "location"      : "sorry",
+        "category"      : "Utilities",
+        "icon"          : "icon_sorry",
+        "status"        : RELEASE,
+        "description"   : "Infinite sorry cards so there is no more need to shuffle the deck 20 times per game!",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Sorty",
+        "location"      : "sorty",
+        "category"      : "Demos",
+        "icon"          : "icon_sorty",
+        "status"        : RELEASE,
+        "description"   : "Demonstration that attempts to animate various methods of sorting arrays.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Speech Timer",
+        "location"      : "tmtimer",
+        "category"      : "Utilities",
+        "icon"          : "icon_timer",
+        "status"        : RELEASE,
+        "description"   : "This is a speech timer made for my local Toastmasters International club. It provides the speaker with a visual indication of when the speech should be completed.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Stary",
+        "location"      : "stars",
+        "category"      : "Toys",
+        "icon"          : "icon_stary",
+        "status"        : RELEASE,
+        "description"   : "A star simulator that replicates the experience of looking out of a ship's viewport while traveling at warp speed.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Sudoku",
+        "location"      : "sudoku",
+        "category"      : "Utilities",
+        "icon"          : "icon_sudoku",
+        "status"        : RELEASE,
+        "description"   : "A Sudoku puzzle creator and solver utility.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Tunic Decoder",
+        "location"      : "tunic/",
+        "category"      : "Utilities",
+        "icon"          : "icon_tunic",
+        "status"        : RELEASE,
+        "description"   : "A simple interface for entering words from game Tunic to aid with decoding",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Word Finder",
+        "location"      : "words",
+        "category"      : "NYT Helpers",
+        "icon"          : "icon_words",
+        "status"        : RELEASE,
+        "description"   : "Find words based on given letters. Developed to help solve the Spelling Bee",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Wordy",
+        "location"      : "wordy",
+        "category"      : "Games",
+        "icon"          : "icon_wordy",
+        "status"        : RELEASE,
+        "description"   : "Wordy is a familiar puzzle game where you have to make words by connecting adjacent letters in a grid.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Ball Simulator",
+        "location"      : "balls",
+        "category"      : "Toys",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Ball phsyics simulation",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Binary",
+        "location"      : "binary",
+        "category"      : "Utilities",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Simple binary converter",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Clue Sheet",
+        "location"      : "clue",
+        "category"      : "Utilities",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Digital clue sheet for the board game, Clue",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Color Adjust",
+        "location"      : "coloradjust",
+        "category"      : "Utilities",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Adjust the brightness and contrast of individual color channels.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Color Survey",
+        "location"      : "color",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Identify colors to see where you precieve one color to start and the other to end.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Ephemidraw",
+        "location"      : "draw",
+        "category"      : "Toys",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Drawing, but ephemerally",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "Icony",
+        "location"      : "icony/",
+        "category"      : "Utilities",
+        "icon"          : "icon_icony",
+        "status"        : DEVELOPMENT,
+        "description"   : "Draw pixelated icons as if you are using ResEdit!",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "LDS Typing Practice",
+        "location"      : "typing",
+        "category"      : "Utilities",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Practice typing while learning cripture mastery verses",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Lightning Locator",
+        "location"      : "lightninglocator",
+        "category"      : "Utilities",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Locate where lightning may have struck using the timing of the flash and sound.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: true,
+    },
+    {
+        "name"          : "N^2-Tris",
+        "location"      : "nntris",
+        "category"      : "Games",
+        "icon"          : "icon_ntris",
+        "status"        : DEVELOPMENT,
+        "description"   : "Play N-Tris head-to-head locally on the same computer",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Paint Mixer",
+        "location"      : "paintmixer/",
+        "category"      : "Toys",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Mix CMYK paints to make new colors!",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Palindrome Finder",
+        "location"      : "palindrome",
+        "category"      : "Demos",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Search a body of text for palindromes",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Pony Picker",
+        "location"      : "ponies/",
+        "category"      : "Toys",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Customize your own My Little Pony",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Radical",
+        "location"      : "radical",
+        "category"      : "Games",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Space fighting game meant to resemble the 80's game, Awesome",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Scattergories",
+        "location"      : "scattergories",
+        "category"      : "Games",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Simple method to play Scategories without purchasing the game!",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Signal",
+        "location"      : "signal",
+        "category"      : "Utilities",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "An attempt at creating a signal generator",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Sine",
+        "location"      : "sine",
+        "category"      : "Demos",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "See how a sine relates to a circle",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Strands Helper",
+        "location"      : "strands/",
+        "category"      : "NYT Helpers",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Get help finding words in the NYT Strands puzzle.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Topic Spinner",
+        "location"      : "topicspinners/",
+        "category"      : "Utilities",
+        "icon"          : "icon_missing",
+        "status"        : DEVELOPMENT,
+        "description"   : "Tool for randomly generating Table Topics for Toastmaster meetings.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
 
-    { "name" : "Ball Simulator",       "location" : "balls",                   "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Ball phsyics simulation" },
-    { "name" : "Binary",               "location" : "binary",                  "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Simple binary converter" },
-    { "name" : "Clue Sheet",           "location" : "clue",                    "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Digital clue sheet for the board game, Clue" },
-    { "name" : "Color Adjust",         "location" : "coloradjust",             "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Adjust the brightness and contrast of individual color channels." },
-    { "name" : "Color Survey",         "location" : "color",                   "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Identify colors to see where you precieve one color to start and the other to end." },
-    { "name" : "Ephemidraw",           "location" : "draw",                    "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Drawing, but ephemerally" },
-    { "name" : "Icony",                "location" : "icony/",                  "category" : "Utilities", "icon" : "icon_icony",     "status" : DEVELOPMENT, "description" : "Draw pixelated icons as if you are using ResEdit!" },
-    { "name" : "LDS Typing Practice",  "location" : "typing",                  "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Practice typing while learning cripture mastery verses" },
-    { "name" : "N^2-Tris",             "location" : "nntris",                  "category" : "Games",     "icon" : "icon_ntris",     "status" : DEVELOPMENT, "description" : "Play N-Tris head-to-head locally on the same computer" },
-    { "name" : "Paint Mixer",          "location" : "paintmixer/",             "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Mix CMYK paints to make new colors!" },
-    { "name" : "Palindrome Finder",    "location" : "palindrome",              "category" : "Demos",     "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Search a body of text for palindromes" },
-    { "name" : "Pony Picker",          "location" : "ponies/",                 "category" : "Toys",      "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Customize your own My Little Pony" },
-    { "name" : "Radical",              "location" : "radical",                 "category" : "Games",     "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Space fighting game meant to resemble the 80's game, Awesome" },
-    { "name" : "Scattergories",        "location" : "scattergories",           "category" : "Games",     "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Simple method to play Scategories without purchasing the game!" },
-    { "name" : "Signal",               "location" : "signal",                  "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "An attempt at creating a signal generator" },
-    { "name" : "Sine",                 "location" : "sine",                    "category" : "Demos",     "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "See how a sine relates to a circle" },
-    { "name" : "Topic Spinner",        "location" : "topicspinners/",          "category" : "Utilities", "icon" : "icon_missing",   "status" : DEVELOPMENT, "description" : "Tool for randomly generating Table Topics for Toastmaster meetings." },
-
-    { "name" : "3072",                 "location" : "3072",                    "category" : "Games",     "icon" : "icon_missing",   "status" : IDEA,        "description" : "A game like 2048, but with hexagons!" },
-    { "name" : "Angle",                "location" : "angle",                   "category" : "Misc",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "A line recursively curved can form many shapes. Almost like a spirograph." },
-    { "name" : "Arc",                  "location" : "arc",                     "category" : "Misc",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "Calculate the trajectory of arcs" },
-    { "name" : "Arkanoid 2 Editor",    "location" : "arkanoid",                "category" : "Utilities", "icon" : "icon_missing",   "status" : IDEA,        "description" : "Arkanoid level editor" },
-    { "name" : "Boaty",                "location" : "boaty",                   "category" : "Games",     "icon" : "icon_missing",   "status" : IDEA,        "description" : "Guide boats to their docks safely" },
-    { "name" : "Bricky",               "location" : "bricks/",                 "category" : "Games",     "icon" : "icon_missing",   "status" : IDEA,        "description" : "Breakout type game" },
-    { "name" : "Bubbly",               "location" : "bubble/",                 "category" : "Games",     "icon" : "icon_missing",   "status" : IDEA,        "description" : "Puzzle Bobble style game" },
-    { "name" : "CircleMan",            "location" : "circleman",               "category" : "Games",     "icon" : "icon_missing",   "status" : IDEA,        "description" : "Move CircleMan around in his circular world" },
-    { "name" : "DNA",                  "location" : "dna",                     "category" : "Toys",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "Simple model of a DNA strand" },
-    { "name" : "DecimalTime",          "location" : "decimaltime/",            "category" : "Misc",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "The calendar should be made of 13 28 day months, and days should just have 10 hours. Here's what time it would be." },
-    { "name" : "Etchy",                "location" : "etch",                    "category" : "Toys",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "Digital Etch-a-Sketch implementation" },
-    { "name" : "GameBoy",              "location" : "gameboy/",                "category" : "Utilities", "icon" : "icon_missing",   "status" : IDEA,        "description" : "Gameboy emulator (someday)" },
-    { "name" : "Hexdoku",              "location" : "hexdoku/",                "category" : "Games",     "icon" : "icon_missing",   "status" : IDEA,        "description" : "Sudoku using hex digits in a 16 x 16 square" },
-    { "name" : "Poll",                 "location" : "poll/",                   "category" : "Utilities", "icon" : "icon_missing",   "status" : IDEA,        "description" : "Simple polling with bars that update as you tally votes" },
-    { "name" : "Reflections",          "location" : "reflections",             "category" : "Misc",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "A study in how lines reflect" },
-    { "name" : "Sirdsteroids",         "location" : "sirdsteroids/",           "category" : "Games",     "icon" : "icon_missing",   "status" : IDEA,        "description" : "An Asteroids clone that uses SIRDs to display the game in 3D" },
-    { "name" : "Sparky",               "location" : "sparky/",                 "category" : "Games",     "icon" : "icon_missing",   "status" : IDEA,        "description" : "A Qix clone" },
-    { "name" : "Line-ify",             "location" : "lineify",                 "category" : "Misc",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "Filter to represent images by horizontal line of varying thickness" },
-    { "name" : "Saw Display",          "location" : "saw",                     "category" : "Misc",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "Graphical display for panel saw project." },
-    { "name" : "Sun and Moon",         "location" : "sunmoon/",                "category" : "Misc",      "icon" : "icon_missing",   "status" : IDEA,        "description" : "Experimental clock that shows sun and moon rises based on your location." },
+    {
+        "name"          : "3072",
+        "location"      : "3072",
+        "category"      : "Games",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "A game like 2048, but with hexagons!",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Angle",
+        "location"      : "angle",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "A line recursively curved can form many shapes. Almost like a spirograph.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Arc",
+        "location"      : "arc",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Calculate the trajectory of arcs",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Arkanoid 2 Editor",
+        "location"      : "arkanoid",
+        "category"      : "Utilities",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Arkanoid level editor",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Boaty",
+        "location"      : "boaty",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Guide boats to their docks safely",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Bricky",
+        "location"      : "bricks/",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Breakout type game",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Bubbly",
+        "location"      : "bubble/",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Puzzle Bobble style game",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "CircleMan",
+        "location"      : "circleman",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Move CircleMan around in his circular world",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "DNA",
+        "location"      : "dna",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Simple model of a DNA strand",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "DecimalTime",
+        "location"      : "decimaltime/",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "The calendar should be made of 13 28 day months, and days should just have 10 hours. Here's what time it would be.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Etchy",
+        "location"      : "etch",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Digital Etch-a-Sketch implementation",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "GameBoy",
+        "location"      : "gameboy/",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Gameboy emulator (someday)",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Hexdoku",
+        "location"      : "hexdoku/",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Sudoku using hex digits in a 16 x 16 square",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Poll",
+        "location"      : "poll/",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Simple polling with bars that update as you tally votes",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Pokemon Card Generator",
+        "location"      : "pokemon/",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Create custom pokemon cards.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Reflections",
+        "location"      : "reflections",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "A study in how lines reflect",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Sirdsteroids",
+        "location"      : "sirdsteroids/",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "An Asteroids clone that uses SIRDs to display the game in 3D",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Sparky",
+        "location"      : "sparky/",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "A Qix clone",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Line-ify",
+        "location"      : "lineify",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Filter to represent images by horizontal line of varying thickness",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Saw Display",
+        "location"      : "saw",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Graphical display for panel saw project.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
+    {
+        "name"          : "Sun and Moon",
+        "location"      : "sunmoon/",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "status"        : IDEA,
+        "description"   : "Experimental clock that shows sun and moon rises based on your location.",
+	"date"		: "Unknown",
+	"tags"		: [],
+	"mobile"	: false,
+    },
 ];
 
 function compare(a, b){
@@ -112,77 +1007,70 @@ function populate_apps(div, prefix, show_unreleased=false){
     // Clear out div first
     div.innerHTML = "";
 
-    for (let status of [COMPLETE, DEVELOPMENT, IDEA]) {
-        if (status > COMPLETE) {
-            if (!show_unreleased)
-                break;
-            let unreleased_title = document.createElement("h1");
-            unreleased_title.innerHTML = status == DEVELOPMENT ? "In Development" : "Ideas";
-            div.appendChild(unreleased_title);
+    apps.sort(compare);
+
+    // Add apps by category
+    for (let category of categories) {
+
+        let category_div = document.createElement("div");
+        category_div.classList.add("category");
+
+	// Creat a heading for the category
+        let category_title = document.createElement("h2");
+        category_title.classList.add("category_title");
+        category_title.innerHTML = category.name;
+        category_div.appendChild(category_title);
+
+        // If we have a category description, add it here
+        if (category.description !="") {
+            let category_description = document.createElement("p");
+            category_description.innerHTML = category.description;
+            category_div.appendChild(category_description);
         }
 
-        // Find all the populated categories
-        let categories = [];
+	// Add apps alphabetically
         for (let app of apps) {
-            if (status != app.status)
-                continue;
-            if (!categories.includes(app.category))
-                categories.push(app.category);
+            if (app.category != category.name) continue;
+
+            let link = document.createElement("a");
+            link.href = prefix+app.location;
+
+            let div = document.createElement("div");
+            div.classList.add("app")
+
+	    let icon_wrapper = document.createElement("div");
+	    icon_wrapper.classList.add("icon-wrapper");
+	    if (app.status > RELEASE || app.tags.length > 0)
+		icon_wrapper.classList.add("icon-banner");
+	    if (app.status > RELEASE) {
+		icon_wrapper.setAttribute("data-label", ["", "RELEASE", "BETA", "ALPHA"][app.status]);
+		icon_wrapper.style = "--ribbon-color: " + ["", "green", "steelblue", "crimson"][app.status];
+	    } else if (app.tags.includes("Updated")) {
+		icon_wrapper.setAttribute("data-label", "Updated");
+		icon_wrapper.style = "--ribbon-color: green";
+	    }
+
+            let icon = document.createElement("img");
+            icon.classList.add("icon");
+            icon.src = prefix+"icons/"+app.icon+"_256.png";
+
+	    icon_wrapper.appendChild(icon);
+
+            let title = document.createElement("h2");
+            title.classList.add("title");
+            title.innerHTML = app.name
+
+            let description = document.createElement("p");
+            description.classList.add("description");
+            description.innerHTML = app.description;
+
+            link.appendChild(icon_wrapper);
+            link.appendChild(title);
+            div.appendChild(link);
+            div.appendChild(description);
+            category_div.appendChild(div);
         }
 
-        categories.sort();
-
-        for (let category_string of categories) {
-            let category = document.createElement("div");
-            category.classList.add("category");
-
-            let category_title = document.createElement("h2");
-            category_title.classList.add("category_title");
-            category_title.innerHTML = category_string;
-            category.appendChild(category_title);
-
-            // If we have a category description, add it here
-            if (category_string in descriptions) {
-                let category_description = document.createElement("p");
-                //category_description.innerHTML = descriptions[category_string]; // Disable descriptions for now
-                category.appendChild(category_description);
-            }
-
-            apps.sort(compare);
-
-            for (let app of apps){
-                if (app.category != category_string)
-                    continue;
-
-                if (status != app.status)
-                    continue;
-
-                let link = document.createElement("a");
-                link.href = prefix+app.location;
-
-                let div = document.createElement("div");
-                div.classList.add("app")
-
-                let icon = document.createElement("img");
-                icon.classList.add("icon");
-                icon.src = prefix+"icons/"+app.icon+"_256.png";
-
-                let title = document.createElement("h2");
-                title.classList.add("title");
-                title.innerHTML = app.name
-
-                let description = document.createElement("p");
-                description.classList.add("description");
-                description.innerHTML = app.description;
-
-                link.appendChild(icon);
-                link.appendChild(title);
-                div.appendChild(link);
-                div.appendChild(description);
-                category.appendChild(div);
-            }
-
-            div.appendChild(category);
-        }
+        div.appendChild(category_div);
     }
 }
