@@ -1031,6 +1031,7 @@ function populate_apps(div, prefix, show_unreleased=false){
 	// Add apps alphabetically
         for (let app of apps) {
             if (app.category != category.name) continue;
+	    if (!show_unreleased && app.status > RELEASE) continue;
 
             let link = document.createElement("a");
             link.href = prefix+app.location;
