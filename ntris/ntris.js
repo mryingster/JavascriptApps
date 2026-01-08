@@ -1,3 +1,18 @@
+const sound_definitions = {
+    "SLIDE"     : { volume: .5, path: "sounds/short_click.mp3"},
+    "ROTATE"    : { volume: .5, path: "sounds/rotate.mp3"},
+    "TETRIS"    : { volume: .5, path: "sounds/electricity.mp3"},
+    "LEVEL_UP"  : { volume: .5, path: "sounds/level_up.mp3"},
+    "GAME_OVER" : { volume: .5, path: "sounds/record_scratch.mp3"},
+}
+
+let sounds = {};
+async function load_sound(audioCtx, name, definition) {
+    const response = await fetch(definition.path);
+    const arrayBuffer = await response.arrayBuffer();
+    sounds[name] = await audioCtx.decodeAudioData(arrayBuffer);
+}
+
 function sound(src) {
     this.sound = document.createElement("audio");
     this.sound.src = src;
@@ -17,6 +32,13 @@ class tetris {
     constructor(canvas){
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
+
+	// Setup Audio
+	this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+	// Load Sound Effects
+	for (let name in sound_definitions)
+	    load_sound(this.audioCtx, name, sound_definitions[name]);
 
         // Game dimensions
         this.dimension = {
@@ -171,21 +193,6 @@ class tetris {
 
 	this.music = new sound("music/8bit_march.mp3");
 	this.music.sound.loop = true;
-
-        this.sounds = [
-            "sounds/short_click.mp3",
-            "sounds/rotate.mp3",
-            "sounds/electricity.mp3",
-            "sounds/level_up.mp3",
-            "sounds/record_scratch.mp3",
-        ];
-        this.sfx = [
-            new sound("sounds/short_click.mp3"),
-            new sound("sounds/short_click.mp3"),
-            new sound("sounds/short_click.mp3"),
-            new sound("sounds/short_click.mp3"),
-        ];
-        this.sfx_index = 0;
 
         this.block_defs = {
             // Tetrominoes
@@ -439,7 +446,7 @@ class tetris {
         }
 
         if (lines_cleared.length > 0) {
-            this.play_sfx(2);
+            this.play_sound("TETRIS");
             this.animateLineClear(lines_cleared, 8*lines_cleared.length);
         }
 
@@ -554,7 +561,7 @@ class tetris {
         }
 
         if (dir == this.direction.drop){
-            this.play_sfx(0);
+            this.play_sound("SLIDE");
             this.state.block_position[3] = 0; // only get points from where it was fast dropped
             this.animateDrop(thisBlock);
             // Call mainloop now so it registers the block
@@ -563,25 +570,25 @@ class tetris {
         }
 
         if (dir == this.direction.left){
-            this.play_sfx(0);
+            this.play_sound("SLIDE");
             this.state.block_position[3] = 0; // only get points for how far it dropped without shifting
             this.state.block_position[0] = this.state.block_position[0] - 1;
         }
 
         if (dir == this.direction.right){
-            this.play_sfx(0);
+            this.play_sound("SLIDE");
             this.state.block_position[3] = 0; // only get points for how far it dropped without shifting
             this.state.block_position[0] = this.state.block_position[0] + 1;
         }
 
         if (dir == this.direction.ccw){
-            this.play_sfx(1);
+            this.play_sound("ROTATE");
             this.state.block_position[3] = 0; // only get points for how far it dropped without shifting
             this.state.block_position[2] = this.state.block_position[2] + 1;
         }
 
         if (dir == this.direction.cw){
-            this.play_sfx(1);
+            this.play_sound("ROTATE");
             this.state.block_position[3] = 0; // only get points for how far it dropped without shifting
             this.state.block_position[2] = this.state.block_position[2] + 3;
         }
@@ -636,7 +643,7 @@ class tetris {
     select_button() {
 	if (this.state.game_active == true) {
 	    this.toggleMusicSetting();
-	    //this.toggleSoundSetting();
+	    this.toggleSoundSetting();
 	} else
 	    this.toggleExtraPieces();
     }
@@ -673,19 +680,6 @@ class tetris {
 
     stopMusic() {
 	this.music.stop();
-    }
-
-    play_sfx(sound_index) {
-        if (this.settings.sounds == false) return;
-
-        //console.log(sound_index, this.sounds[sound_index], this.sfx_index);
-        this.sfx[this.sfx_index].sound.src = this.sounds[sound_index];
-        this.sfx[this.sfx_index].sound.volume = .5;
-        this.sfx[this.sfx_index].sound.play();
-
-        // Prep next index
-        this.sfx_index++;
-        this.sfx_index %= this.sfx.length;
     }
 
     onscreen_gamepad_move(d) {
@@ -917,7 +911,7 @@ class tetris {
         this.clearAnimationTimer();
         this.state.game_active = false;
         this.stopMusic();
-        this.play_sfx(4);
+        this.play_sound("GAME_OVER");
         this.game_over_overlay();
     }
 
@@ -961,7 +955,7 @@ class tetris {
             this.state.score += this.rules.line_scores[lines_cleared] * this.state.level;
             if (Math.floor(this.state.lines / 10) < Math.floor((this.state.lines + lines_cleared) / 10)){
                 this.state.level += 1;
-                this.play_sfx(3);
+                this.play_sound("LEVEL_UP");
                 this.redrawFrame();
             }
             this.state.lines += lines_cleared;
@@ -1040,6 +1034,22 @@ class tetris {
                                      0,
                                      0];
     }
+
+    play_sound(name) {
+	if (!this.settings.sounds) return;
+
+	const source = this.audioCtx.createBufferSource();
+	const gain = this.audioCtx.createGain();
+
+	source.buffer = sounds[name];
+	gain.gain.value = sound_definitions[name].volume;
+
+	source.connect(gain);
+	gain.connect(this.audioCtx.destination);
+
+	source.start(0);
+    }
+
 
     resizeCanvas(width, height){
         this.canvas.height = width * this.dimension.square_size;
