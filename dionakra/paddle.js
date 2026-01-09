@@ -236,9 +236,10 @@ class Paddle {
 
 	if (current_powerup == PU_BREAK) {
 	    if (this.pos.x + this.width >= sizes.arena.right) {
+		if (this.animate_break == false)
+		    play_sound("SFX_BREAK");
 		this.freeze = true;
 		this.animate_break = true;
-		play_sound("SFX_BREAK");
 		//advance_level();
 	    }
 	    if (this.pos.x > sizes.arena.right) {

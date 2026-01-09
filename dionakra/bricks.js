@@ -58,7 +58,14 @@ class Brick {
         this.pos = {
             x: x * this.width + sizes.frame.left,
             y: y * this.height + sizes.frame.top,
-        }
+        };
+	this.v = {
+	    x: .15,
+	};
+
+	// Reverse direction of moving blocks on right side to preserve symmetry of movement
+	if (this.pos.x > sizes.canvas.width / 2)
+	    this.v.x *= -1;
 
         this.drop_chance = style.drop_chance;
         this.hits_required = style.hits;
@@ -132,6 +139,49 @@ class Brick {
 		if (this.regenerate_timer > this.regenerate_timeout) {
 		    this.regenerate_timer = 0;
 		    this.hits = 2;
+		}
+	    }
+	}
+
+	if (this.mobile) {
+	    this.pos.x += this.v.x * ms;
+	    this.collide();
+	}
+    }
+
+    collide() {
+	// Collide with walls
+	if (this.v.x > 0) {
+	    if (this.pos.x + this.width > sizes.arena.right) {
+		this.v.x *= -1;
+		this.pos.x = sizes.arena.right - this.width;
+		return;
+	    }
+	}
+	if (this.v.x < 0) {
+	    if (this.pos.x < sizes.arena.left) {
+		this.v.x *= -1;
+		this.pos.x = sizes.arena.left;
+		return;
+	    }
+	}
+
+	// Collide with bricks
+	for (let brick of bricks) {
+	    if (brick.pos.y != this.pos.y) continue;
+
+	    if (this.v.x > 0) {
+		if (this.pos.x < brick.pos.x && this.pos.x + this.width > brick.pos.x) {
+		    this.v.x *= -1;
+		    this.pos.x = brick.pos.x - this.width;
+		    return;
+		}
+	    }
+	    if (this.v.x < 0) {
+		if (this.pos.x > brick.pos.x && this.pos.x < brick.pos.x + brick.width) {
+		    this.v.x *= -1;
+		    this.pos.x = brick.pos.x + brick.width;
+		    return;
 		}
 	    }
 	}

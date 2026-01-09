@@ -195,7 +195,7 @@ function update_score(add_to_score) {
     // Check for enough points for extra life
     if (score  % 25000 + add_to_score > 25000) {
         play_sound("PLAYER_EXTEND");
-        current_powerup = PU_PLAYER;
+	add_life();
     }
 
     score += add_to_score;
