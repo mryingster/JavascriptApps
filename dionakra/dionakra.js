@@ -7,6 +7,15 @@ function main_loop(timestamp, refresh=false) {
     const elapsed = timestamp - last_frame;
     last_frame = timestamp;
 
+    if (input_timeout > 0) {
+        if (!isNaN(elapsed)) {
+            input_timeout -= elapsed;
+            if (input_timeout <= 0) {
+                supress_input = false;
+            }
+        }
+    }
+
     if (!paused) {
         // Do all the movements
         paddle.move(elapsed);
@@ -110,6 +119,15 @@ function main_loop(timestamp, refresh=false) {
 
 	// Check if level cleared
 	if (level_cleared()) {
+            // Clear the level befor bringup dialogue
+            clear_context(ctx_shadow_static);
+            clear_context(ctx_bricks);
+            clear_context(ctx_dynamic);
+            clear_context(ctx_shadow_dynamic);
+
+            // Stop canvas input
+            supress_input = true;
+
 	    advance_level();
             return;
 	}
@@ -208,7 +226,6 @@ function update_score(add_to_score) {
 }
 
 function advance_level(n=null) {
-    console.log("Advancing from Level", level);
     level++;
     if (n !== null)
 	level = n;
@@ -262,6 +279,7 @@ function populate_level(l) {
 
     // Sounds!
     play_sound("STAGE_START");
+    input_timeout = 1500; // 1.5 seconds
 
     // Start loop
     main_loop(undefined, true);
@@ -419,7 +437,9 @@ const size_ratios = {
 
 let sizes = {};
 
-let active = false;;
+let active = false;
+let supress_input = false;
+let input_timout = 0;
 let score;
 let highscore = 50000;
 let level;
@@ -505,6 +525,9 @@ function resize(canvas) {
     }
 }
 
+function interact() {
+}
+
 function firstLoad() {
     // Define Canvases
     canvas_dynamic = document.getElementById('canvas_dynamic')
@@ -528,6 +551,7 @@ function firstLoad() {
     // Input Listeners
     canvas_overlay.addEventListener('touchstart', function(e) {
         e.preventDefault();
+        if (supress_input == true) return;
 	touch_start = getTouchPosition(e);
 
 	if (current_powerup == PU_LASER) {
@@ -540,6 +564,7 @@ function firstLoad() {
 
     canvas_overlay.addEventListener('touchmove', function(e) {
         e.preventDefault();
+        if (supress_input == true) return;
 	touch_end = getTouchPosition(e);
         paddle.set_pos(touch_end.x);
     });
@@ -547,6 +572,7 @@ function firstLoad() {
     canvas_overlay.addEventListener('touchend', function(e) {
         e.preventDefault();
 	if (touch_start == false) return;
+        if (supress_input == true) return;
 
 	// If game is inactive, lets make this start a new game
 	if (active === false) {
@@ -570,6 +596,7 @@ function firstLoad() {
     });
 
     canvas_overlay.addEventListener('mousedown', function(e) {
+        if (supress_input == true) return;
 	mouse_down = getCursorPosition(canvas_overlay, e);
 
 	if (current_powerup == PU_LASER) {
@@ -581,12 +608,14 @@ function firstLoad() {
     });
 
     canvas_overlay.addEventListener('mousemove', function(e) {
+        if (supress_input == true) return;
         paddle.set_pos(getCursorPosition(canvas_overlay, e).x);
     });
 
     canvas_overlay.addEventListener('mouseup', function(e) {
 	if (mouse_down == false) return;
 	const pos = getCursorPosition(canvas_overlay, e);
+        if (supress_input == true) return;
 
 	// If game is inactive, lets make this start a new game
 	if (active === false) {

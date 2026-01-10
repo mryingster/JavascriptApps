@@ -524,21 +524,28 @@ class Laser {
 	this.ctx = ctx;
 	this.ctx_shadow = ctx_shadow;
 
+	this.offset = (sizes.paddle.width - sizes.laser.spacing) / 2;
+
 	this.pos = {
-	    x: x,
+	    xleft:  x + this.offset,
+            xright: x + this.offset + sizes.laser.spacing,
+	    y: y,
+	};
+
+        this.prev = {
 	    y: y,
 	};
 
 	this.remove = false;
 	this.color = "#FFFF88";
 
-	this.offset = (sizes.paddle.width - sizes.laser.spacing) / 2;
     }
 
     move(ms) {
 	if (isNaN(ms))
             return;
 
+        this.prev.y = this.pos.y;
 	this.pos.y -= 1.25 * ms;
 
 	// Check for intersection with top
@@ -547,10 +554,12 @@ class Laser {
 	}
 
 	// Check for intersection with bricks
+        let left_hit = false;
+        let right_hit = false;
 	for (let brick of bricks) {
 	    // Check left
-	    if (this.pos.x + this.offset > brick.pos.x &&
-		this.pos.x + this.offset < brick.pos.x + brick.width &&
+	    if (this.pos.xleft > brick.pos.x &&
+		this.pos.xleft < brick.pos.x + brick.width &&
 		this.pos.y > brick.pos.y &&
 		this.pos.y < brick.pos.y + brick.height) {
 		if (brick.hits != 0) {
@@ -560,8 +569,8 @@ class Laser {
 	    }
 
 	    // Check right
-	    if (this.pos.x + sizes.laser.spacing + this.offset > brick.pos.x &&
-		this.pos.x + sizes.laser.spacing + this.offset < brick.pos.x + brick.width &&
+	    if (this.pos.xright > brick.pos.x &&
+		this.pos.xright < brick.pos.x + brick.width &&
 		this.pos.y > brick.pos.y &&
 		this.pos.y < brick.pos.y + brick.height) {
 		if (brick.hits != 0) {
@@ -581,7 +590,7 @@ class Laser {
 
         canvas_draw_rounded_rectangle(
 	    this.ctx_shadow,
-	    this.pos.x + this.offset,
+	    this.pos.xleft,
 	    this.pos.y,
 	    sizes.laser.width,
 	    sizes.laser.height,
@@ -591,7 +600,7 @@ class Laser {
 
         canvas_draw_rounded_rectangle(
 	    this.ctx_shadow,
-	    this.pos.x + this.offset + sizes.laser.spacing,
+	    this.pos.xright,
 	    this.pos.y,
 	    sizes.laser.width,
 	    sizes.laser.height,
@@ -606,7 +615,7 @@ class Laser {
 
         canvas_draw_rounded_rectangle(
 	    this.ctx,
-	    this.pos.x + this.offset,
+	    this.pos.xleft,
 	    this.pos.y,
 	    sizes.laser.width,
 	    sizes.laser.height,
@@ -616,7 +625,7 @@ class Laser {
 
         canvas_draw_rounded_rectangle(
 	    this.ctx,
-	    this.pos.x + this.offset + sizes.laser.spacing,
+	    this.pos.xright,
 	    this.pos.y,
 	    sizes.laser.width,
 	    sizes.laser.height,
