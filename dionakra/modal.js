@@ -86,9 +86,12 @@ function showLevelSelection(stage, levelIndicies) {
     buttons.className = 'game-modal-buttons';
 
     for (let index of levelIndicies) {
+        let text = `${levels[index].source}`;
+        if (levels[index].note != "")
+            text += ` (${levels[index].note})`;
         const btn = document.createElement('button');
         btn.className = 'game-modal-button';
-        btn.textContent = `${levels[index].source}`;
+        btn.textContent = text;
         btn.onclick = () => {
             closeModal(overlay);
             populate_level(levels[index]);

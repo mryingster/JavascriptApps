@@ -554,6 +554,8 @@ function firstLoad() {
         if (supress_input == true) return;
 	touch_start = getTouchPosition(e);
 
+        if (paused) return;
+
 	if (current_powerup == PU_LASER) {
             if (lasers.length < 3) {
                 play_sound("LASER_FIRE");
@@ -598,6 +600,8 @@ function firstLoad() {
     canvas_overlay.addEventListener('mousedown', function(e) {
         if (supress_input == true) return;
 	mouse_down = getCursorPosition(canvas_overlay, e);
+
+        if (paused) return;
 
 	if (current_powerup == PU_LASER) {
             if (lasers.length < 3) {
