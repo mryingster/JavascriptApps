@@ -93,3 +93,10 @@ canvas {
 .hidden {
     display: none;
 }
+
+.preview {
+    margin: auto;
+    position: unset !important;
+    top: unset;
+    left: unset;
+}

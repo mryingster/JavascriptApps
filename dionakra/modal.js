@@ -63,6 +63,28 @@ function closeModal(overlay) {
     setTimeout(() => overlay.remove(), 300);
 }
 
+function renderLevelPreview(canvas, level) {
+    const ctx = canvas.getContext("2d");
+
+    const w = canvas.width / 13;
+    const h = w / 2;
+
+    // Draw bricks
+    for (let y=0; y<level.bricks.length; y++) {
+        for (let x=0; x<level.bricks[y].length; x++) {
+            const brick = level.bricks[y][x];
+            if (brick != null) {
+                const style = brick_types[level.bricks[y][x]];
+                const color = `hsl(${style.h}, ${style.s}%, ${style.l}%)`;
+                ctx.fillStyle = color;
+                ctx.fillRect(x * w, y * h, w, h);
+            }
+        }
+    }
+
+    return;
+}
+
 function showLevelSelection(stage, levelIndicies) {
     // Remove any existing modal
     const oldModal = document.getElementById('game-modal');
@@ -86,6 +108,14 @@ function showLevelSelection(stage, levelIndicies) {
     buttons.className = 'game-modal-buttons';
 
     for (let index of levelIndicies) {
+        // Create preview image
+        let preview = document.createElement('canvas');
+        preview.classList.add("preview");
+        preview.width = 130;
+        preview.height = 90;
+        renderLevelPreview(preview, levels[index]);
+        buttons.append(preview);
+
         let text = `${levels[index].source}`;
         if (levels[index].note != "")
             text += ` (${levels[index].note})`;

@@ -27,7 +27,7 @@ const pill_types = [
     { note: "Illusion",    type: PU_ILLUSION,    text: "I", c1: {h: 120, s: 100, l:  25}, c2: "#ff0", weight: 4 },
     { note: "Reduce",      type: PU_REDUCE,      text: "R", c1: {h:   0, s:   0, l:  10}, c2: "#ff0", weight: 3 },
     { note: "New Disrupt", type: PU_NEW_DISRUPT, text: "N", c1: {h:   0, s:   0, l:  90}, c2: "#ff0", weight: 3 },
-    { note: "Auto Pilot",  type: PU_AUTO_PILOT,  text: "A", c1: {h:  60, s: 100, l:  50}, c2: "#ff0", weight: 7 },
+    { note: "Auto Pilot",  type: PU_AUTO_PILOT,  text: "A", c1: {h:  60, s: 100, l:  50}, c2: "#ff0", weight: 3 },
 ]
 
 let weighted_pills = [];
