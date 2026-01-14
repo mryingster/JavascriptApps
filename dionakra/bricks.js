@@ -245,10 +245,10 @@ class Brick {
 	this.render_bevel(this.ctx, this.ctx_shadow, this.pos.x, this.pos.y, this.width, this.height);
     }
 
-    renderShimmer() {
+    renderShimmer() { // Maybe rename to render_dynamic?
 	// If there are no hits left, don't render
-	if (this.hits == 0)
-	    return;
+	//if (this.hits == 0)
+	    //return;
 
 	// If this is a moving block, it renders on the dynamic canvas
 	if (this.mobile == true) {
@@ -257,8 +257,28 @@ class Brick {
 
 	// If this is a regenerating block, it renders on dynamic canvas twice
 	if (this.regenerates == true) {
-	    this.render_bevel(this.ctx_dynamic, this.ctx_shadow_dynamic, this.pos.x, this.pos.y, this.width / 2, this.height);
-	    this.render_bevel(this.ctx_dynamic, this.ctx_shadow_dynamic, this.pos.x + (this.width / 2), this.pos.y, this.width / 2, this.height);
+	    if (this.regenerate_timer < 500 || this.regenerate_timer > this.regenerate_timeout - 500) {
+		this.render_bevel(this.ctx_dynamic, this.ctx_shadow_dynamic, this.pos.x, this.pos.y, this.width / 2, this.height);
+		this.render_bevel(this.ctx_dynamic, this.ctx_shadow_dynamic, this.pos.x + (this.width / 2), this.pos.y, this.width / 2, this.height);
+
+		// If the timer is within 1/2 second (500ms) of 0 or regenerate_timeout, we will animate it's appearance
+		if (this.regenerate_timer > 0) {
+		    let n = this.regenerate_timer;
+		    if (n > 500)
+			n = this.regenerate_timeout - this.regenerate_timer;
+
+		    // Normalize to a number between 0 and 1
+		    n /= 500;
+		    // Make that the size of the hole we are cutting out of the brick
+		    n *= this.height;
+		    // Find the offset so it is centered
+		    let o = ((this.width / 2) - n) / 2;
+
+		    // Cut the hole!
+		    this.ctx_dynamic.clearRect(this.pos.x + o, this.pos.y + o, n, n);
+		    this.ctx_dynamic.clearRect(this.pos.x + o + (this.width /2), this.pos.y + o, n, n);
+		}
+	    }
 	}
 
 	if (this.shimmer > 0) {

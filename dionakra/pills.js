@@ -113,11 +113,21 @@ class Pill {
         if (this.pos.y > sizes.arena.height)
             this.remove = true;
 
+        // Animate
+        this.scroll += .05 * ms;
+        if (this.scroll > this.height * 2)
+            this.scroll = 0;
+
         // Check if collided with paddle
 	const paddle_center = paddle.pos.x + (paddle.width / 2);
 	const twin_center = paddle_center + paddle.twin_offset;
 	if (this.pos.y + this.height >= paddle.pos.y && this.pos.y <= paddle.pos.y + paddle.height) {
-	    let twin_intersect = false;
+	    // Don't pick up pills when breaking
+	    if (current_powerup == PU_BREAK)
+		if (paddle.animate_break != false)
+		    return;
+
+		let twin_intersect = false;
 	    let paddle_intersect = Math.abs(this.pos.x + (this.width / 2) - paddle_center) < paddle.width / 2
 	    if (current_powerup == PU_TWIN)
 		twin_intersect = Math.abs(this.pos.x + (this.width / 2) - twin_center) < paddle.width / 2
@@ -142,11 +152,6 @@ class Pill {
                 }
 	    }
 	}
-
-        // Animate
-        this.scroll += .05 * ms;
-        if (this.scroll > this.height * 2)
-            this.scroll = 0;
     }
 
     render() {
