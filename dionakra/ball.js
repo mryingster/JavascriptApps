@@ -8,115 +8,6 @@ function reset_ball() {
     balls.push(new Ball(ctx_dynamic, ctx_shadow_dynamic, true));
 }
 
-// 26.5, 30, 37, 68 < default?
-function bounceArkanoidStyle(ball, paddle, offset=0) {
-    // 1. Normalize hit position -1..1
-    const paddleCenter = paddle.pos.x + offset + paddle.width / 2;
-    let t = (ball.pos.x - paddleCenter) / (paddle.width / 2);
-
-    // Clamp
-    t = Math.max(-1, Math.min(1, t));
-
-    // 2. Define Arkanoid angle zones (in radians)
-    // degrees relative to vertical
-    const angles = [-68, -37, -30, -26.5, 26.5, 30, 37, 68].map(a => (-90 + a) * Math.PI/180); 
-    // This maps to "mostly upward" directions.
-
-    // 3. Map t (-1..1) to zone index
-    const idx = Math.round((t + 1) * 0.5 * (angles.length - 1));
-
-    const chosenAngle = angles[idx];
-
-    // 4. Keep the original speed
-    const speed = ball.v.s; //Math.hypot(ball.v.x, ball.v.y);
-
-    // 5. Convert angle to velocity
-    return {
-	x : speed * Math.cos(chosenAngle),
-	y : speed * Math.sin(chosenAngle),
-	s : speed,
-    };
-}
-
-function sweptBallAABB(ball, brick) {
-    const dx = ball.pos.x - ball.prev.x;
-    const dy = ball.pos.y - ball.prev.y;
-
-    // Expand brick by ball radius
-    const minX = brick.pos.x - ball.radius;
-    const maxX = brick.pos.x + brick.width + ball.radius;
-    const minY = brick.pos.y - ball.radius;
-    const maxY = brick.pos.y + brick.height + ball.radius;
-
-    let txEntry, txExit;
-    let tyEntry, tyExit;
-
-    // X axis
-    if (dx === 0) {
-        if (ball.prev.x < minX || ball.prev.x > maxX) return false;
-        txEntry = -Infinity;
-        txExit = Infinity;
-    } else {
-        const invDx = 1 / dx;
-        txEntry = (minX - ball.prev.x) * invDx;
-        txExit  = (maxX - ball.prev.x) * invDx;
-        if (txEntry > txExit) [txEntry, txExit] = [txExit, txEntry];
-    }
-
-    // Y axis
-    if (dy === 0) {
-        if (ball.prev.y < minY || ball.prev.y > maxY) return false;
-        tyEntry = -Infinity;
-        tyExit = Infinity;
-    } else {
-        const invDy = 1 / dy;
-        tyEntry = (minY - ball.prev.y) * invDy;
-        tyExit  = (maxY - ball.prev.y) * invDy;
-        if (tyEntry > tyExit) [tyEntry, tyExit] = [tyExit, tyEntry];
-    }
-
-    const tEntry = Math.max(txEntry, tyEntry);
-    const tExit  = Math.min(txExit, tyExit);
-
-    return !(tEntry > tExit || tEntry < 0 || tEntry > 1);
-}
-
-function penetrationInfo(ball, brick) {
-    const cx = ball.pos.x;
-    const cy = ball.pos.y;
-
-    const closestX = Math.max(
-        brick.pos.x,
-        Math.min(cx, brick.pos.x + brick.width)
-    );
-    const closestY = Math.max(
-        brick.pos.y,
-        Math.min(cy, brick.pos.y + brick.height)
-    );
-
-    const dx = cx - closestX;
-    const dy = cy - closestY;
-    const dist = Math.hypot(dx, dy);
-
-    return {
-        depth: ball.radius - dist,
-        dx,
-        dy
-    };
-}
-
-function circle_intersect_with_rectangle(cx, cy, cr, rx, ry, rw, rh) {
-    let rect_left = rx - cr;
-    let rect_right = rx + rw + cr;
-    let rect_top = ry - cr;
-    let rect_bottom = ry + rh + cr;
-
-    if (cx >= rect_left && cx <= rect_right &&
-	cy >= rect_top && cy <= rect_bottom)
-	return true;
-    return false;
-}
-
 class Ball {
     constructor(ctx, ctx_shadow, caught=false, pos=null, v=null) {
 	this.ctx = ctx;
@@ -252,43 +143,45 @@ class Ball {
                 // Ignore bircks that are too far away
                 if (Math.hypot(brick.pos.x - this.pos.x, brick.pos.y - this.pos.y) > 100) continue;
 
-		// Ignore bricks we can;t interact with
+		// Ignore bricks we can't interact with
 		if (brick.hits == 0) continue;
 
-                if (sweptBallAABB(this, brick))
-                    candidates.push(brick);
+		let result = sweptCircleVsRect(this, brick);
+		if (result.hit) {
+		    candidates.push({
+			brick: brick,
+			result: result,
+		    });
+		}
             }
 
-            // If megaball, just erase all of them!
-            if (current_powerup == PU_MEGABALL) {
-                for (let candidate of candidates)
-                    candidate.hit(true);
-            } else {
+            // Only bother with these calculations if we have a candidate!
+            if (candidates.length > 0) {
 
-                // Get most overlapped
-                let bestBrick = null;
-                let bestPenetration = null;
+                // If megaball, just erase all of them!
+                if (current_powerup == PU_MEGABALL) {
+                    for (let candidate of candidates)
+                        candidate.brick.hit(true);
+                } else {
 
-                for (let candidate of candidates) {
-                    const p = penetrationInfo(this, candidate);
-                    if (p.depth <= 0) continue;
+		    // Find earliest intersection(s) from hit result times
+                    const epsilon = 1e-4;
+                    let earliestCandidates = partitionEarliestAxisContacts(candidates, epsilon);
 
-                    if (!bestPenetration || p.depth > bestPenetration.depth) {
-                        bestPenetration = p;
-                        bestBrick = candidate;
-                    }
-                }
+                    // If there are multiple candidates for either axis, only select the CLOSEST to original ball position
+                    let closestCandidates = determineClosestAxisContact(earliestCandidates);
 
-                if (bestBrick) {
-                    // Determine which side is hit, and reflect accordingly
-                    bestBrick.hit();
-
-                    let axis;
-                    if (Math.abs(bestPenetration.dx) > Math.abs(bestPenetration.dy)) {
+		    // Allow only 1 horizontal and 1 vertical hit per frame
+                    if (closestCandidates.x !== null) {
+		        // Remove brick
+                        closestCandidates.x.brick.hit();
                         vertical_collision = true;
-                    } else {
+		    }
+                    if (closestCandidates.y !== null) {
+		        // Remove brick
+                        closestCandidates.y.brick.hit();
                         horizontal_collision = true;
-                    }
+		    }
                 }
             }
         }
