@@ -10,13 +10,13 @@ body {
     color: #333;
     width:768px;
     margin: 0 auto 0 auto;
-    padding: 25px;
+    padding: 25px 25px 15px 25px;
     border-radius: 25px;
 }
 
-#settings {
+#stats {
     position: absolute;
-    top: 45px;
+    top: 50px;
     right: 25px;
 }
 
