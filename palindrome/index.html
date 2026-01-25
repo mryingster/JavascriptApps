@@ -2,25 +2,38 @@
   <head>
     <title>Palindrome Finder</title>
     <style>
+      body {
+          max-width: 650px;
+          margin: auto;
+          padding-top: 50px;
+          font-family: sans-serif;
+          line-height: 1.5em;
+          background: linear-gradient(0deg,rgb(255, 255, 255) 0%, rgb(240, 240, 240) 95%, rgb(180, 180, 180) 100%) top no-repeat;
+      }
+      #results {
+          column-count: 5;
+      }
     </style>
   </head>
   <body>
     <h1>Palindrome Finder</h1>
-    <p></p>
+    <p>This was an exercise I saw a candidate have to solve in a job interview, and wanted to make my own solution. This represents what I think a reasonable solution to create, given a short time constraint. I limited my time spent on this to only a few minutes, aside from a little extra time making the icon and come minimal CSS.</p>
     <h2>Settings</h2>
     <input type="checkbox" id="ignorespaces" name="ignorespaces" value="ignorespaces" checked>
-    <label for="ignorespaces">Ignore spaces</label>
+    <label for="ignorespaces">Don't include spaces in palindrome solutions</label>
     <br>
     <input type="checkbox" id="ignorepunctuation" name="ignorepunctuation" value="ignorepunctuation" checked>
-    <label for="ignorepunctuation">Ignore Punctuation</label>
+    <label for="ignorepunctuation">Don't include punctuation in palindrome solutions</label>
     <br>
     <input type="checkbox" id="ignorecase" name="ignorecase" value="ignorecase" checked>
-    <label for="ignorecase">Ignore Case</label>
-    <br>
-    <button id="run">Find Palindromes</button>
+    <label for="ignorecase">Don't consider case in palindrome solutions</label>
 
     <h2>Input</h2>
     <textarea id="text_input" rows="10" cols="80">Amid the calm of noon, a lone owl flew level over a poplar grove, its wings slicing the still air like a radar. The bird, a civic symbol of wisdom, landed near a kayak by the river, where it watched a rotator spin in the breeze. Nearby, a small finch chirped “wow,” as if in awe of the radar’s motion. Even in the forest's hush, nature spoke in quiet palindromes—echoes of life, mirrored in sound and flight.</textarea>
+
+    <p>
+      <button id="run">Find Palindromes</button>
+    </p>
 
     <h2>Palindromes Found</h2>
     <ul id="results">
