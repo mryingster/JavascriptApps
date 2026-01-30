@@ -1,0 +1,95 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --accent-color: #007acc;
+    --border-color: #cccccc;
+    --font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+}
+
+.app {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+canvas {
+    width: 100%;
+    height: 200px;
+    border: 1px solid var(--border-color);
+    display: block;
+    margin-bottom: 16px;
+}
+
+/* Accordion */
+.accordion-section {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.accordion-header {
+    width: 100%;
+    text-align: left;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    background: transparent;
+    color: var(--text-color);
+    border: none;
+    cursor: pointer;
+}
+
+.accordion-header:focus {
+    outline: 2px solid var(--accent-color);
+}
+
+.accordion-content {
+    display: none;
+    padding: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.accordion-section.open .accordion-content {
+    display: block;
+}
+
+/* Settings layout */
+.form-row {
+    margin-bottom: 12px;
+}
+
+label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+select,
+textarea {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: inherit;
+}
+
+textarea {
+    min-height: 200px;
+    resize: vertical;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

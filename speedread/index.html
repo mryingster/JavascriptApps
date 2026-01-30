@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Speed Read</title>
+  <link rel="stylesheet" type="text/css" href="speedread.css" id="style">
+  <script src="speedread.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <div class="app">
+    <canvas id="mainCanvas"></canvas>
+
+    <!-- About -->
+    <div class="accordion-section open">
+      <button class="accordion-header">About</button>
+      <div class="accordion-content">
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
+          ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat.
+        </p>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="accordion-section">
+      <button class="accordion-header">Settings</button>
+      <div class="accordion-content">
+        <div class="form-row">
+          <label for="speedSelect">Speed (WPM)</label>
+          <select id="speedSelect"></select>
+        </div>
+
+        <div class="form-row">
+          <label for="fontSelect">Font</label>
+          <select id="fontSelect"></select>
+        </div>
+
+        <div class="form-row">
+          <label for="themeSelect">Theme</label>
+          <select id="themeSelect"></select>
+        </div>
+
+        <div class="form-row checkbox-row">
+          <input type="checkbox" id="rampSpeed" />
+          <label for="rampSpeed">Ramp Speed</label>
+        </div>
+
+        <div class="form-row checkbox-row">
+          <input type="checkbox" id="showFocalPoint" />
+          <label for="showFocalPoint">Show Focal Point</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Text Input -->
+    <div class="accordion-section">
+      <button class="accordion-header">Text Input</button>
+      <div class="accordion-content">
+        <textarea id="text-input" placeholder="Enter text here..."></textarea>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
