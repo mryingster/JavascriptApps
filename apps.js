@@ -545,6 +545,18 @@ const apps = [
         "mobile"        : false,
     },
     {
+        "name"          : "Speed Read",
+        "location"      : "speedread",
+        "category"      : "Utilities",
+        "icon"          : "icon_missing",
+        "visible"       : false,
+        "description"   : "This allows you to read text one word at a time in rapid succession. This is based off a viral vieo I saw and wanted to try it for myself.",
+        "date"          : "1/29/2026",
+        "tags"          : [],
+        "flair"         : "BETA",
+        "mobile"        : false,
+    },
+    {
         "name"          : "Stary",
         "location"      : "stars",
         "category"      : "Toys",

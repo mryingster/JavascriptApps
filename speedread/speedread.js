@@ -141,6 +141,7 @@ function firstLoad() {
     canvas.addEventListener('mouseleave', function(e) {
 	mouse_down = false;
 	canvasButtonMode = NONE;
+	renderCanvas();
     });
 
     updateSettings();
