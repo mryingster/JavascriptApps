@@ -87,6 +87,9 @@ class Paddle {
 	if (this.freeze == true)
 	    return;
 
+        if (current_powerup == PU_AUTO_PILOT)
+            return;
+
 	this.prev.x = this.pos.x;
 	this.prev.y = this.pos.y;
 
@@ -198,14 +201,38 @@ class Paddle {
 
         // Autopilot
         if (current_powerup == PU_AUTO_PILOT && balls.length > 0) {
-            if (balls[0].v.x > 0)
-                this.pos.x = balls[0].pos.x - (this.width * .6);
-            else
-                this.pos.x = balls[0].pos.x - (this.width * .4);
+            const top_speed = 1.5;
+            // Find closest ball
+            let closest = {
+                index: -1,
+                position: 0,
+            };
+            for (let i=0; i<balls.length; i++) {
+                // Only paying attention to balls moving towards paddle
+                if (balls[i].v.y > 0) {
+                    const d = balls[i].pos.y;
+                    if (d > closest.position) {
+                        closest.position = d;
+                        closest.index = i;
+                    }
+                }
+            }
 
-            this.autopiloting += ms;
+            // Find target x position
+            if (closest.index != -1) {
+                let target = balls[closest.index].pos.x - (this.width * .4);
+                if (balls[closest.index].v.x > 0)
+                    target = balls[closest.index].pos.x - (this.width * .6);
+
+                // Move towards ball at fastest allowed rate
+                if (this.pos.x > target)
+                    this.pos.x = Math.max(target, this.pos.x - ms * top_speed)
+                else
+                    this.pos.x = Math.min(target, this.pos.x + ms * top_speed)
+            }
 
             // Only autopilot for 15 seconds
+            this.autopiloting += ms;
             if (this.autopiloting >= 15000) {
                 this.autopiloting = 0;
                 current_powerup = PU_NONE;

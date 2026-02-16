@@ -82,75 +82,77 @@ function sweptCircleVsRect(ball, brick) {
     };
 }
 
-function partitionEarliestAxisContacts(candidates, eps = 1e-4) {
-    let minTimeX = Infinity;
-    let minTimeY = Infinity;
+function determineEarliestContacts(candidates, eps = 1e-4) {
+    let minTime = Infinity;
 
-    // First pass: find earliest time per axis
     for (const c of candidates) {
-        const n = c.result.normal;
         const t = c.result.time;
 
-        if (n.x !== 0 && t < minTimeX) {
-            minTimeX = t;
-        }
-        if (n.y !== 0 && t < minTimeY) {
-            minTimeY = t;
+        if (t < minTime) {
+            minTime = t;
         }
     }
 
-    const xContacts = [];
-    const yContacts = [];
+    const allContacts = [];
 
-    // Second pass: collect contacts within epsilon of earliest time
     for (const c of candidates) {
-        const n = c.result.normal;
         const t = c.result.time;
 
-        if (n.x !== 0 && Math.abs(t - minTimeX) <= eps) {
-            xContacts.push(c);
-        }
-
-        if (n.y !== 0 && Math.abs(t - minTimeY) <= eps) {
-            yContacts.push(c);
+        if (Math.abs(t - minTime) <= eps) {
+            allContacts.push(c);
         }
     }
 
-    return {
-        xContacts,
-        yContacts,
-        minTimeX,
-        minTimeY
-    };
+    return allContacts;
 }
 
-function determineClosestAxisContact(partitioned) {
-    let closestX = null;
-    let closestY = null;
+function determineClosestContact(candidates) {
+    let closest = null;
 
-    // X axis
-    for (const c of partitioned.xContacts) {
-        if (
-            !closestX ||
-            c.result.distance < closestX.result.distance
-        ) {
-            closestX = c;
+    for (const c of candidates) {
+        if (!closest || c.result.distance < closest.result.distance) {
+            closest = c;
         }
     }
 
-    // Y axis
-    for (const c of partitioned.yContacts) {
-        if (
-            !closestY ||
-            c.result.distance < closestY.result.distance
-        ) {
-            closestY = c;
-        }
-    }
+    return closest;
+}
+
+function applyCollision(ball, collisionResult, epsilon = 1e-4) {
+    const P0x = ball.prev.x;
+    const P0y = ball.prev.y;
+
+    const Vx = ball.pos.x - ball.prev.x;
+    const Vy = ball.pos.y - ball.prev.y;
+
+    const t = collisionResult.time;
+    const Nx = collisionResult.normal.x;
+    const Ny = collisionResult.normal.y;
+
+    // Move to collision point
+    let Cx = P0x + Vx * t;
+    let Cy = P0y + Vy * t;
+
+    // Reflect velocity
+    let RVx = Vx;
+    let RVy = Vy;
+
+    if (Nx !== 0) RVx = -RVx;
+    if (Ny !== 0) RVy = -RVy;
+
+    // Push slightly out along normal (prevents re-collision)
+    Cx += Nx * epsilon;
+    Cy += Ny * epsilon;
+
+    // Move through remaining time
+    const remaining = 1 - t;
+
+    const newPosX = Cx + RVx * remaining;
+    const newPosY = Cy + RVy * remaining;
 
     return {
-        x: closestX,
-        y: closestY
+        prev: { x: Cx, y: Cy },
+        pos:  { x: newPosX, y: newPosY }
     };
 }
 

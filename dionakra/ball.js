@@ -137,51 +137,65 @@ class Ball {
         // Brick Collisions
         if (this.prev.y != this.pos.y) {
 
-            // Get all candidate bricks that have intersection
-            let candidates = [];
-            for (const brick of bricks) {
-                // Ignore bircks that are too far away
-                if (Math.hypot(brick.pos.x - this.pos.x, brick.pos.y - this.pos.y) > 100) continue;
+            let bounced = true;
+            // Keep detecting  collisions, backing up the ball, then looking for collisions again...
+            while (bounced) {
+                // Detect hits
+                let candidates = [];
+                for (const brick of bricks) {
+                    // Ignore bricks that are too far away
+                    if (Math.hypot(brick.pos.x - this.pos.x, brick.pos.y - this.pos.y) > 100) continue;
 
-		// Ignore bricks we can't interact with
-		if (brick.hits == 0) continue;
+		    // Ignore bricks we can't interact with
+		    if (brick.hits == 0) continue;
 
-		let result = sweptCircleVsRect(this, brick);
-		if (result.hit) {
-		    candidates.push({
-			brick: brick,
-			result: result,
-		    });
-		}
-            }
+		    let result = sweptCircleVsRect(this, brick);
 
-            // Only bother with these calculations if we have a candidate!
-            if (candidates.length > 0) {
+		    if (result.hit) {
+		        candidates.push({
+			    brick: brick,
+			    result: result,
+		        });
+		    }
+                }
 
-                // If megaball, just erase all of them!
-                if (current_powerup == PU_MEGABALL) {
-                    for (let candidate of candidates)
-                        candidate.brick.hit(true);
+                // Only bother with these calculations if we have a candidate!
+                if (candidates.length > 0) {
+
+                    // If megaball, just erase all of them and stop looping!
+                    if (current_powerup == PU_MEGABALL) {
+                        for (let candidate of candidates)
+                            candidate.brick.hit(true);
+                        bounced = false;
+                    } else {
+
+                        // Find earliest intersection(s) from hit result times
+                        const epsilon = 1e-4;
+                        let earliestCandidates = determineEarliestContacts(candidates, epsilon);
+
+                        // If there are multiple candidates for either axis, only select the CLOSEST to original ball position
+                        let closestCandidate = determineClosestContact(earliestCandidates);
+
+                        // Hit closest brick
+                        closestCandidate.brick.hit();
+                        if (closestCandidate.result.normal.x !== 0)
+                            vertical_collision = true;
+                        else
+                            horizontal_collision = true;
+
+                        // Back up the ball to collision point and apply the reflection, then move the ball forward in time
+                        const updated = applyCollision(this, closestCandidate.result);
+
+                        this.prev.x = updated.prev.x;
+                        this.prev.y = updated.prev.y;
+
+                        this.pos.x = updated.pos.x;
+                        this.pos.y = updated.pos.y;
+                    }
+
                 } else {
-
-		    // Find earliest intersection(s) from hit result times
-                    const epsilon = 1e-4;
-                    let earliestCandidates = partitionEarliestAxisContacts(candidates, epsilon);
-
-                    // If there are multiple candidates for either axis, only select the CLOSEST to original ball position
-                    let closestCandidates = determineClosestAxisContact(earliestCandidates);
-
-		    // Allow only 1 horizontal and 1 vertical hit per frame
-                    if (closestCandidates.x !== null) {
-		        // Remove brick
-                        closestCandidates.x.brick.hit();
-                        vertical_collision = true;
-		    }
-                    if (closestCandidates.y !== null) {
-		        // Remove brick
-                        closestCandidates.y.brick.hit();
-                        horizontal_collision = true;
-		    }
+                    // No collisions, so stop looping!
+                    bounced = false;
                 }
             }
         }
