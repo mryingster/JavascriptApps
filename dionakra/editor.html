@@ -33,6 +33,7 @@
         <canvas id="canvas_selection" width="250" height="820"></canvas>
         <br>
         Source:<input id="source"></input><br>
+        Note:<input id="note"></input><br>
         Level:<input id="level"></input><br>
         Description:<input id="desc"></input><br>
         Background:<input id="background" value="#0000FF"></input><br>
@@ -236,6 +237,7 @@ function copyToClipboard() {
 function render() {
     let background = document.getElementById("background").value;
     let source = document.getElementById("source").value;
+    let note = document.getElementById("note").value;
     let levelnum = Number(document.getElementById("level").value);
     let description = document.getElementById("desc").value;
 
@@ -281,6 +283,7 @@ function render() {
     const tab="    ";
     let output = "{\n";
     output += `${tab}source: "${source}",\n`;
+    output += `${tab}note: "${note}",\n`;
     output += `${tab}level: ${levelnum},\n`;
     output += `${tab}description: "${description}",\n`;
     output += `${tab}background: "${background}",\n`;
