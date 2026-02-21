@@ -63,6 +63,7 @@ class Paddle {
 	this.animate_break = false;
 	this.exploding = false;
 	this.visible = true;
+        this.autopiloting = 0;
         //play_sound("GAME_START"); // Add sound for each life?
     }
 
@@ -87,7 +88,7 @@ class Paddle {
 	if (this.freeze == true)
 	    return;
 
-        if (current_powerup == PU_AUTO_PILOT)
+        if (this.autopiloting > 0)
             return;
 
 	this.prev.x = this.pos.x;
@@ -199,22 +200,32 @@ class Paddle {
 	    this.pos.x += .1 * ms;
 	}
 
-        // Autopilot
-        if (current_powerup == PU_AUTO_PILOT && balls.length > 0) {
+        // Autopilot - Add 15 seconds for each capsule
+        if (current_powerup == PU_AUTO_PILOT) {
+            this.autopiloting += 15000;
+            current_powerup = PU_NONE;
+        }
+
+        if (this.autopiloting > 0 && balls.length > 0) {
             const top_speed = 1.5;
             // Find closest ball
             let closest = {
                 index: -1,
                 position: 0,
+                incoming: false,
             };
             for (let i=0; i<balls.length; i++) {
-                // Only paying attention to balls moving towards paddle
-                if (balls[i].v.y > 0) {
-                    const d = balls[i].pos.y;
-                    if (d > closest.position) {
-                        closest.position = d;
-                        closest.index = i;
-                    }
+                // Ignore caught balls
+                if (balls[i].is_caught)
+                    continue;
+                // favor balls moving towards paddle
+                const incoming = balls[i].v.y > 0;
+                const d = balls[i].pos.y;
+
+                if (d > closest.position || (closest.incoming == false && incoming == true)) {
+                    if (incoming) closest.incoming = true;
+                    closest.position = d;
+                    closest.index = i;
                 }
             }
 
@@ -231,15 +242,9 @@ class Paddle {
                     this.pos.x = Math.min(target, this.pos.x + ms * top_speed)
             }
 
-            // Only autopilot for 15 seconds
-            this.autopiloting += ms;
-            if (this.autopiloting >= 15000) {
-                this.autopiloting = 0;
-                current_powerup = PU_NONE;
-            }
+            // Count down PU time
+            this.autopiloting = Math.max(0, this.autopiloting - ms);
         }
-        if (current_powerup != PU_AUTO_PILOT && this.autopiloting > 0)
-            this.autopiloting = 0;
 
 	this.collide();
     }
