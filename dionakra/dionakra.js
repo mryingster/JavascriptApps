@@ -7,6 +7,12 @@ function main_loop(timestamp, refresh=false) {
     const elapsed = timestamp - last_frame;
     last_frame = timestamp;
 
+    // TODO If elapsed is too long, do nothing?
+    // if (elapsed > 1000) {
+    // window.requestAnimationFrame((t) => main_loop(t));
+    // return
+    // }
+
     if (input_timeout > 0) {
         if (!isNaN(elapsed)) {
             input_timeout -= elapsed;
@@ -291,6 +297,8 @@ function toggle_pause() {
     clear_context(ctx_overlay);
     if (paused) {
 	overlay_message("Paused");
+    } else {
+        just_unpaused = true;
     }
 }
 
@@ -448,6 +456,7 @@ let pills;
 let paddle;
 let balls;
 let paused;
+let just_unpaused = false;
 let lives;
 let lasers;
 let sounds = {};
@@ -554,14 +563,21 @@ function firstLoad() {
         if (supress_input == true) return;
 	touch_start = getTouchPosition(e);
 
-        if (paused) return;
-
-	if (current_powerup == PU_LASER) {
-            if (lasers.length < 3) {
-                play_sound("LASER_FIRE");
-	        lasers.push(new Laser(ctx_dynamic, ctx_shadow_dynamic, paddle.pos.x, paddle.pos.y));
+        if (active) {
+	    // If game is active, split the screen into two halves
+	    if ( touch_start.y < canvas_overlay.height / 2) {
+                // Top half of screen pauses game
+		toggle_pause();
+	    } else {
+                // Otherwise a tap is fire the lasers
+	        if (current_powerup == PU_LASER && paused === false) {
+                    if (lasers.length < 3) {
+                        play_sound("LASER_FIRE");
+	                lasers.push(new Laser(ctx_dynamic, ctx_shadow_dynamic, paddle.pos.x, paddle.pos.y));
+                    }
+	        }
             }
-	}
+        }
     });
 
     canvas_overlay.addEventListener('touchmove', function(e) {
@@ -575,24 +591,19 @@ function firstLoad() {
         e.preventDefault();
 	if (touch_start == false) return;
         if (supress_input == true) return;
+        if (paused) return;
 
 	// If game is inactive, lets make this start a new game
 	if (active === false) {
 	    new_game();
-
-	} else {
-	    // If game is active, split the screen into two halves
-	    if ( touch_end.y < canvas_overlay.height / 2) {
-		toggle_pause();
-	    } else {
-		//this is going to be a click for releasing the ball
-		const distance = Math.abs(Math.hypot(touch_start.x - touch_end.x, touch_start.y - touch_end.y));
-		if (distance < 50 || touch_end == false)
-		    for (let ball of balls)
-			ball.is_caught = false;
-	    }
+        } else {
+	    //this is going to be a click for releasing the ball
+	    if (touch_end == false && just_unpaused == false)
+		for (let ball of balls)
+		    ball.is_caught = false;
 	}
 
+        just_unpaused = false;
 	touch_start = false;
 	touch_end = false;
     });

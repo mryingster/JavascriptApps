@@ -119,18 +119,21 @@ class Pill {
             this.scroll = 0;
 
         // Check if collided with paddle
-	const paddle_center = paddle.pos.x + (paddle.width / 2);
-	const twin_center = paddle_center + paddle.twin_offset;
 	if (this.pos.y + this.height >= paddle.pos.y && this.pos.y <= paddle.pos.y + paddle.height) {
 	    // Don't pick up pills when breaking
 	    if (current_powerup == PU_BREAK)
 		if (paddle.animate_break != false)
 		    return;
 
-		let twin_intersect = false;
-	    let paddle_intersect = Math.abs(this.pos.x + (this.width / 2) - paddle_center) < paddle.width / 2
-	    if (current_powerup == PU_TWIN)
-		twin_intersect = Math.abs(this.pos.x + (this.width / 2) - twin_center) < paddle.width / 2
+	    const paddle_center = paddle.pos.x + (paddle.width / 2);
+	    let paddle_intersect = Math.abs(this.pos.x + (this.width / 2) - paddle_center) < paddle.width / 1.5;
+
+	    let twin_intersect = false;
+	    if (current_powerup == PU_TWIN) {
+	        const twin_center = paddle_center + paddle.twin_offset;
+	        twin_intersect = Math.abs(this.pos.x + (this.width / 2) - twin_center) < paddle.width / 1.5;
+            }
+
 	    if (paddle_intersect || twin_intersect) {
 		this.remove = true;
 

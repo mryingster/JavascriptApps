@@ -169,7 +169,9 @@ class Paddle {
 		this.illusion_pos.x += .1 * ms;
 	    if (illusion_distance > 0)
 		this.illusion_pos.x -= .1 * ms;
-	}
+	} else {
+            this.illusion_pos.x = this.pos.x; // Keep it lined up when not in use
+        }
 
 	// Break Movement
 	if (current_powerup == PU_BREAK) {
@@ -588,25 +590,29 @@ class Laser {
 	// Check for intersection with bricks
         let left_hit = false;
         let right_hit = false;
-	for (let brick of bricks) {
+
+        const left_center_pos = this.pos.xleft + (sizes.laser.width / 2);
+        const right_center_pos = this.pos.xright + (sizes.laser.width / 2);
+
+        for (let i=bricks.length-1; i>=0; i--) {
 	    // Check left
-	    if (this.pos.xleft > brick.pos.x &&
-		this.pos.xleft < brick.pos.x + brick.width &&
-		this.pos.y > brick.pos.y &&
-		this.pos.y < brick.pos.y + brick.height) {
-		if (brick.hits != 0) {
-		    brick.hit();
+	    if (left_center_pos > bricks[i].pos.x &&
+		left_center_pos < bricks[i].pos.x + bricks[i].width &&
+		this.pos.y > bricks[i].pos.y &&
+		this.pos.y < bricks[i].pos.y + bricks[i].height) {
+		if (bricks[i].hits != 0) {
+		    bricks[i].hit();
 		    this.remove = true;
 		}
 	    }
 
 	    // Check right
-	    if (this.pos.xright > brick.pos.x &&
-		this.pos.xright < brick.pos.x + brick.width &&
-		this.pos.y > brick.pos.y &&
-		this.pos.y < brick.pos.y + brick.height) {
-		if (brick.hits != 0) {
-		    brick.hit();
+	    if (right_center_pos > bricks[i].pos.x &&
+		right_center_pos < bricks[i].pos.x + bricks[i].width &&
+		this.pos.y > bricks[i].pos.y &&
+		this.pos.y < bricks[i].pos.y + bricks[i].height) {
+		if (bricks[i].hits != 0) {
+		    bricks[i].hit();
 		    this.remove = true;
 		}
 	    }

@@ -3,7 +3,7 @@
     top: 0;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100%;
     color: #000;
     background-color: rgba(0,0,0,0.5);
     display: flex;
@@ -12,8 +12,13 @@
     z-index: 9999;
     opacity: 0;
     animation: fadeIn 0.3s ease forwards;
+    overflow-y: scroll;
+    scrollbar-width: none;
 }
 
+#game-modal::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari, and Opera */
+}
 
 /* Modal box */
 .game-modal-box {
