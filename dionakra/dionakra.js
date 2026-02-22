@@ -262,7 +262,7 @@ function populate_level(l) {
     // Update background
     document.getElementById("canvases").style = `background: radial-gradient( circle at 50%, #000, ${l.background})`;
 
-    const texture_list = ["texture1","texture2","texture3"];
+    const texture_list = ["texture1", "texture2", "texture3", "texture4"];
     for (let texture_index in texture_list) {
         document.getElementById(texture_list[texture_index]).classList.add("hidden");
 
