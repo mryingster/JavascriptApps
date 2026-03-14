@@ -129,12 +129,20 @@
         Enemy Count: <input id="enemycount" value="2"></input><br>
         <hr>
         Select Level:<br>
-        <button onclick="incrementLevel(-1);">&lt;-</button>
         <select id="levelSelect">
           <option value="-1">---</option>
         </select>
+        <button onclick="incrementLevel(-1);">&lt;-</button>
         <button onclick="incrementLevel(1);">-&gt;</button>
+        <br>
         <button onclick="newLevel();">New Level</button>
+        <br>
+        <button onclick="organizeLevels();">Organize Levels</button>
+        <br>
+        <button onclick="loadFromDionakra();">Load Default</button>
+        <br>
+        <button onclick="loadFromStorage();">Load Locally Saved</button>
+        <button onclick="saveToStorage();">Save Locally</button>
         <hr>
         Import Screenshot:
         <input type="file" id="imageInput" accept="image/*" class="hidden"></input>
@@ -161,6 +169,7 @@ const selection = document.getElementById("canvas_selection");
 const ctx_selection = selection.getContext("2d");
 
 let selected_bricktype = null;
+let myLevels = [];
 
 const texture_map = {
     "Hexagons"         : "texture1",
@@ -348,29 +357,39 @@ function shift(dir) {
     const cols = level[0].length;
 
     if (dir === 0) { // up
-        for (let r = 0; r < rows - 1; r++)
-            for (let c = 0; c < cols; c++)
+        for (let c = 0; c < cols; c++) {
+            const first = level[0][c];
+            for (let r = 0; r < rows - 1; r++) {
                 level[r][c] = level[r + 1][c];
-        for (let c = 0; c < cols; c++) level[rows - 1][c] = null;
+            }
+            level[rows - 1][c] = first;
+        }
 
     } else if (dir === 1) { // down
-        for (let r = rows - 1; r > 0; r--)
-            for (let c = 0; c < cols; c++)
+        for (let c = 0; c < cols; c++) {
+            const last = level[rows - 1][c];
+            for (let r = rows - 1; r > 0; r--) {
                 level[r][c] = level[r - 1][c];
-        for (let c = 0; c < cols; c++) level[0][c] = null;
+            }
+            level[0][c] = last;
+        }
 
     } else if (dir === 2) { // left
         for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols - 1; c++)
+            const first = level[r][0];
+            for (let c = 0; c < cols - 1; c++) {
                 level[r][c] = level[r][c + 1];
-            level[r][cols - 1] = undefined;
+            }
+            level[r][cols - 1] = first;
         }
 
     } else if (dir === 3) { // right
         for (let r = 0; r < rows; r++) {
-            for (let c = cols - 1; c > 0; c--)
+            const last = level[r][cols - 1];
+            for (let c = cols - 1; c > 0; c--) {
                 level[r][c] = level[r][c - 1];
-            level[r][0] = undefined;
+            }
+            level[r][0] = last;
         }
     }
 
@@ -660,46 +679,76 @@ function selectExistingLevel() {
     let ls = document.getElementById("levelSelect");
     let selectedLevel = ls.value;
     if (selectedLevel < 0) return;
-    loadLevel(levels[selectedLevel]);
+    loadLevel(myLevels[selectedLevel]);
 }
 
 function incrementLevel(n) {
     let ls = document.getElementById("levelSelect");
-    console.log(ls.value, n);
-    ls.value = Number(ls.value) + Number(n);;
+    newIndex = Math.max(0, Number(ls.value) + Number(n));
+    newIndex = Math.min(newIndex, myLevels.length - 1);
+    ls.value = newIndex;
     selectExistingLevel();
 }
 
 function newLevel() {
     // Add level to levels
-    levels.push({});
+    myLevels.push({});
 
     // Create new option and select it
-    let select = document.getElementById("levelSelect");
-    let option = document.createElement("option");
-    option.value = levels.length - 1;
-    option.innerHTML = `New Level`
-    select.appendChild(option);
-    select.value = levels.length - 1;
+    updateLevelSelect(myLevels.length-1);
 
     // Clear and save the level
     levelclear();
 }
 
 function saveLevel(l) {
-    let levelIndex = document.getElementById("levelSelect").value
+    let levelIndex = document.getElementById("levelSelect").value;
     if (levelIndex < 0)
 	return;
 
-    levels[levelIndex] = l;
+    myLevels[levelIndex] = l;
 }
 
 function exportLevels() {
     let output=""
-    for (let level of levels) {
+    for (let level of myLevels) {
 	output += convertObjectToString(level);
     }
     console.log(output);
+}
+
+function updateLevelSelect(select=-1) {
+    let levelSelect = document.getElementById("levelSelect");
+    // Clear out options
+    levelSelect.innerHTML = "";
+
+    // Rebuild from our internal levels structure
+    for (let levelIndex=0; levelIndex<myLevels.length; levelIndex++) {
+        let option = document.createElement("option");
+        option.value = levelIndex;
+        option.innerHTML = `${myLevels[levelIndex].level} ${myLevels[levelIndex].source} (${myLevels[levelIndex].description})`
+        levelSelect.appendChild(option);
+    }
+
+    // Select indicated index if not -1
+    if (select != -1)
+	levelSelect.selectedIndex = select;
+}
+
+function loadFromDionakra() {
+    myLevels = JSON.parse(JSON.stringify(levels));
+    updateLevelSelect(0);
+    selectExistingLevel();
+}
+
+function loadFromStorage() {
+    myLevels = JSON.parse(localStorage.getItem("dionakraLevels"));
+    updateLevelSelect(0);
+    selectExistingLevel();
+}
+
+function saveToStorage() {
+    localStorage.dionakraLevels = JSON.stringify(myLevels);
 }
 
 window.onload = function() {
@@ -729,13 +778,7 @@ window.onload = function() {
 	patterns.appendChild(option);
     }
 
-    let levelSelect = document.getElementById("levelSelect");
-    for (let levelIndex=0; levelIndex<levels.length; levelIndex++) {
-        let option = document.createElement("option");
-        option.value = levelIndex;
-        option.innerHTML = `${levels[levelIndex].level} ${levels[levelIndex].source} (${levels[levelIndex].description})`
-        levelSelect.appendChild(option);
-    }
+    updateLevelSelect();
 
     selection.height = ((Math.max(...Object.keys(brick_types).map(Number)) >> 4) + 1) * brick_height;
 
@@ -759,16 +802,16 @@ window.onload = function() {
     ctx_selection.fillText("Erase", brick_width, 20);
 
     // Look for editor input from menu bar
-    const url_split = window.location.href.split('#')
-    if (url_split.length < 2) {
-        levelclear();
-    }
+    // const url_split = window.location.href.split('#')
+    // if (url_split.length < 2) {
+    //     levelclear();
+    // }
 
-    let demo_level_encoded = url_split[url_split.length-1];
-    if (demo_level_encoded) {
-        let parsed = JSON.parse(atob(demo_level_encoded));
-        loadLevel(parsed);
-    }
+    // let demo_level_encoded = url_split[url_split.length-1];
+    // if (demo_level_encoded) {
+    //     let parsed = JSON.parse(atob(demo_level_encoded));
+    //     loadLevel(parsed);
+    // }
 
     render();
 }
