@@ -6,13 +6,80 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=672px, user-scalable=no" /> <!-- disabled in iOS 10+ -->
     <script src="bricks.js"></script>
+    <script src="enemy.js"></script>
+    <script src="levels.js"></script>
     <style>
+      body {
+          background: #222;
+          color: #fff;
+          font-family: sans-serif;
+      }
+      #content {
+          margin: auto;
+          width: fit-content;
+      }
       canvas {
-          border: 1px solid black;
+          border: 0px;
       }
       #input, #results {
           display: inline-block;
           vertical-align: top;
+      }
+      #input {
+          line-height: 1.75em;
+      }
+      input, select {
+          width: 100px;
+          float: right;
+      }
+      #canvases {
+          position: relative;
+          background: radial-gradient( circle at 50%, #000, #00f);
+          border-radius: 30px 30px 0px 0px;
+          width: 672px;
+          height: 720px;
+      }
+      #frame {
+          position: absolute;
+          width: 672px;
+      }
+      #canvas_preview {
+          position: absolute;
+          top: 24px;
+          left: 24px;
+          width: 624px;
+      }
+      #background {
+          height: 24px;
+      }
+      .texture {
+          position: absolute;
+          width: 672px;
+      }
+      .hidden {
+          display: none;
+      }
+      #alternativeUpload {
+          color: #000;
+          border: 1px solid #CCC;
+          background: #DDD;
+          box-shadow: 0 0 5px -1px rgba(0,0,0,0.2);
+          cursor: pointer;
+          vertical-align: middle;
+          max-width: 100px;
+          padding: 1px 8px;
+          text-align: center;
+          float: right;
+      }
+      #heading {
+          display: block;
+      }
+      span#title {
+          display: inline-block;
+          font-size: 50px;
+          font-style: italic;
+          font-weight: bold;
+          vertical-align: 22px;
       }
     </style>
   </head>
@@ -20,27 +87,62 @@
   <body>
 
     <div id="content">
-      <h1>Dionakra Simple Level Editor</h1>
+      <div id="heading">
+      <img id="logo" src="images/dionakra.svg" width="300px">
+      <span id="title">Level Editor</span>
+      </div>
       <div id="results">
-        <canvas id="canvas_preview" width="672" height="820"></canvas>
+        <div id="canvases">
+          <object data="images/background_texture_1.svg" id="texture1" class="texture" type="image/svg+xml"></object>
+          <object data="images/background_texture_2.svg" id="texture2" class="texture hidden" type="image/svg+xml"></object>
+          <object data="images/background_texture_3.svg" id="texture3" class="texture hidden" type="image/svg+xml"></object>
+          <object data="images/background_texture_4.svg" id="texture4" class="texture hidden" type="image/svg+xml"></object>
+          <object data="images/background_texture_5.svg" id="texture5" class="texture hidden" type="image/svg+xml"></object>
+          <object data="images/background_texture_6.svg" id="texture6" class="texture hidden" type="image/svg+xml"></object>
+          <object data="images/frame.svg" id="frame" type="image/svg+xml"></object>
+          <canvas id="canvas_preview" width="672" height="820"></canvas>
+        </div>
         <br>
         <pre id="output"></pre>
-        <br>
-        <button id="copy" onclick="copyToClipboard();">Copy Output</button>
-        <a id="demo" href="#">Try level</a>
       </div>
       <div id="input">
+        Selected Color: <span id="selected">None</span><br>
         <canvas id="canvas_selection" width="250" height="820"></canvas>
         <br>
-        Source:<input id="source"></input><br>
-        Note:<input id="note"></input><br>
-        Level:<input id="level"></input><br>
-        Description:<input id="desc"></input><br>
-        Background:<input id="background" value="#0000FF"></input><br>
+        <a id="demo" href="#"><button>Try level</button></a>
+        <button id="copy" onclick="copyToClipboard();">Copy Output</button>
         <button onclick="levelclear();">Clear</button>
-        <input type="file" id="imageInput" accept="image/*"></input>
+        <hr>
+        <button onclick="shift(0);">Shift Up</button>
+        <button onclick="shift(1);">Shift Down</button>
         <br>
-        <canvas id="screenshot" width="224" height="256"></canvas>
+        <button onclick="shift(2);">Shift Left</button>
+        <button onclick="shift(3);">Shift Right</button>
+        <hr>
+        Source: <input id="source"></input><br>
+        Note: <input id="note"></input><br>
+        Level: <input id="level"></input><br>
+        Description: <input id="desc"></input><br>
+        Background: <input type="color" id="background" value="#0000FF"></input><br>
+        Pattern: <select id="pattern"></select><br>
+        Enemy Type: <select id="enemy"></select><br>
+        Enemy Count: <input id="enemycount" value="2"></input><br>
+        <hr>
+        Select Level:<br>
+        <button onclick="incrementLevel(-1);">&lt;-</button>
+        <select id="levelSelect">
+          <option value="-1">---</option>
+        </select>
+        <button onclick="incrementLevel(1);">-&gt;</button>
+        <button onclick="newLevel();">New Level</button>
+        <hr>
+        Import Screenshot:
+        <input type="file" id="imageInput" accept="image/*" class="hidden"></input>
+        <label id="alternativeUpload" for="imageInput">Upload File</label>
+        <br>
+        <center>
+          <canvas id="screenshot" width="224" height="256"></canvas>
+        </center>
       </div>
     </div>
 
@@ -50,17 +152,26 @@
 
 const preview = document.getElementById("canvas_preview");
 const ctx_preview = preview.getContext("2d");
-preview.width = 13 * 50;
-preview.height = 18 * 25;
+const brick_width = 48;
+const brick_height = 24;
+preview.width = 13 * brick_width;
+preview.height = 18 * brick_height;
 
 const selection = document.getElementById("canvas_selection");
 const ctx_selection = selection.getContext("2d");
 
 let selected_bricktype = null;
 
-// Setup blank level
-levelclear();
+const texture_map = {
+    "Hexagons"         : "texture1",
+    "Diamonds"         : "texture2",
+    "Hexagon Donuts"   : "texture3",
+    "Circuitry 1"      : "texture4",
+    "Circuitry 2"      : "texture5",
+    "Rounded Hexagons" : "texture6",
+};
 
+// Setup blank level
 function levelclear() {
     level = [];
     for (let y=0; y<18; y++) {
@@ -185,7 +296,6 @@ function rgbToHsl(r, g, b) {
 
 function guessAndPopulate(a) {
     levelclear();
-    console.log(a)
     for (let y=0; y<18; y++) {
         for (let x=0; x<13; x++) {
             let found = false;
@@ -233,6 +343,40 @@ function copyToClipboard() {
     document.body.removeChild(textarea);
 }
 
+function shift(dir) {
+    const rows = level.length;
+    const cols = level[0].length;
+
+    if (dir === 0) { // up
+        for (let r = 0; r < rows - 1; r++)
+            for (let c = 0; c < cols; c++)
+                level[r][c] = level[r + 1][c];
+        for (let c = 0; c < cols; c++) level[rows - 1][c] = null;
+
+    } else if (dir === 1) { // down
+        for (let r = rows - 1; r > 0; r--)
+            for (let c = 0; c < cols; c++)
+                level[r][c] = level[r - 1][c];
+        for (let c = 0; c < cols; c++) level[0][c] = null;
+
+    } else if (dir === 2) { // left
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols - 1; c++)
+                level[r][c] = level[r][c + 1];
+            level[r][cols - 1] = undefined;
+        }
+
+    } else if (dir === 3) { // right
+        for (let r = 0; r < rows; r++) {
+            for (let c = cols - 1; c > 0; c--)
+                level[r][c] = level[r][c - 1];
+            level[r][0] = undefined;
+        }
+    }
+
+    render();
+}
+
 // Rendering
 function render() {
     let background = document.getElementById("background").value;
@@ -240,15 +384,46 @@ function render() {
     let note = document.getElementById("note").value;
     let levelnum = Number(document.getElementById("level").value);
     let description = document.getElementById("desc").value;
+    let selected_texture = document.getElementById("pattern").value;
+    let enemy = document.getElementById("enemy").selectedIndex;
+    let enemyCount = document.getElementById("enemycount").value;
 
     ctx_preview.clearRect(0, 0, preview.width, preview.height);
 
     // Background
-    ctx_preview.save();
-    ctx_preview.globalAlpha = .5;
-    ctx_preview.fillStyle = background;
-    ctx_preview.fillRect(0, 0, preview.width, preview.height);
-    ctx_preview.restore();
+    document.getElementById("canvases").style = `background: radial-gradient( circle at 50%, #000, ${background})`;
+
+    const texture_list = Object.values(texture_map).sort((a, b) => a.localeCompare(b));
+    for (let texture of texture_list) {
+        document.getElementById(texture).classList.add("hidden");
+
+        if (texture == selected_texture)
+	    document.getElementById(texture).classList.remove("hidden");
+    }
+
+    let texture_element = document.getElementById("pattern");
+    let selected_texture_name = "Undefined"
+    if (texture_element.options) {
+        let texture_index = texture_element.selectedIndex
+        if (texture_index >= 0)
+            selected_texture_name = texture_element.options[texture_index].innerHTML;
+    }
+
+    // Grid
+    ctx_preview.lineWidth = 1;
+    ctx_preview.strokeStyle = "#fff";
+    for (let y=1; y<18; y++) {
+        ctx_preview.beginPath();
+        ctx_preview.moveTo(0, y * brick_height + .5);
+        ctx_preview.lineTo(ctx_preview.canvas.width, y * brick_height + .5);
+        ctx_preview.stroke();
+    }
+    for (let x=1; x<13; x++) {
+        ctx_preview.beginPath();
+        ctx_preview.moveTo(x * brick_width + .5, 0);
+        ctx_preview.lineTo(x * brick_width + .5, ctx_preview.canvas.height);
+        ctx_preview.stroke();
+    }
 
     // Bricks
     for (let y=0; y<18; y++) {
@@ -258,50 +433,70 @@ function render() {
 
             let type = brick_types[level[y][x]];
             let color = `hsl(${type.h} ${type.s}% ${type.l}%)`;
-            ctx_preview.fillStyle = color;
-            ctx_preview.fillRect(x*50, y*25, 50, 25);
+
+	    render_bevel(ctx_preview, type, x*brick_width, y*brick_height, brick_width, brick_height);
         }
     }
 
-    // Grid
-    ctx_preview.lineWidth = 1;
-    ctx_preview.strokeStyle = "#000";
-    for (let y=1; y<18; y++) {
-        ctx_preview.beginPath();
-        ctx_preview.moveTo(0, y * 25 + .5);
-        ctx_preview.lineTo(ctx_preview.canvas.width, y * 25 + .5);
-        ctx_preview.stroke();
-    }
-    for (let x=1; x<13; x++) {
-        ctx_preview.beginPath();
-        ctx_preview.moveTo(x * 50 + .5, 0);
-        ctx_preview.lineTo(x * 50 + .5, ctx_preview.canvas.height);
-        ctx_preview.stroke();
-    }
+    // Produce output
+    const level_output = {
+	source: source,
+	note: note,
+	level: levelnum,
+	description: description,
+	background: background,
+	texture: selected_texture_name,
+	enemy : {
+	    style: enemy,
+	    max: enemyCount,
+	},
+	bricks: level,
+    };
 
-    // Produce output code
-    const tab="    ";
-    let output = "{\n";
-    output += `${tab}source: "${source}",\n`;
-    output += `${tab}note: "${note}",\n`;
-    output += `${tab}level: ${levelnum},\n`;
-    output += `${tab}description: "${description}",\n`;
-    output += `${tab}background: "${background}",\n`;
-    output += `${tab}bricks: [\n`;
-    for (let row of level) {
-        rowOut = [];
-        for (let cell of row) {
-            if (cell == null)
-                rowOut.push("null");
-            else
-                rowOut.push(`0x${cell.toString(16)}`);
-        }
-        output += `${tab}${tab}[${rowOut.join(',')}],\n`;
-    }
-    output += `${tab}]\n},`;
+    document.getElementById("output").innerHTML = convertObjectToString(level_output);
+    update_demo_link(level_output);
+    //update_urlbar(level_output);
+    saveLevel(level_output);
+}
 
-    document.getElementById("output").innerHTML = output;
-    update_demo_link();
+function convertObjectToString(o) {
+    let output = "{\n"
+    for (key in o)
+	switch (key) {
+	case "enemy":
+	    output += `    ${key}: ${JSON.stringify(o[key]).replaceAll('"', '', true)},\n`
+	    break;
+	case "bricks":
+	    output += `    ${key}: ${convert2dArrayToString(o[key], "    ")}\n`;
+	    break;
+        case "level":
+	    output += `    ${key}: ${o[key]},\n`
+            break;
+	default:
+	    output += `    ${key}: "${o[key]}",\n`
+	    break;
+	}
+    output += "},"
+    return output;
+}
+
+function convert2dArrayToString(a, i="") {
+    output = "[\n";
+    for (let y of a) {
+	const newLine = y
+	      .map(v => {
+		  if (v === null)
+		      return "null";
+		  else
+		      return "0x" + Number(v).toString(16);
+
+		  return String(v);
+	      })
+	      .join(",");
+	output += `${i}${i}[${newLine}],\n`
+    }
+    output += `${i}],`
+    return output;
 }
 
 function getCursorPosition(canvas, event) {
@@ -316,23 +511,24 @@ function getCursorPosition(canvas, event) {
 }
 
 selection.addEventListener('mousedown', function(e) {
-    let pos = getCursorPosition(selection, e);
-    let selectionIndex = Math.floor(pos.y/25);
-    let numbricktypes = Object.keys(brick_types).length;
-    if (selectionIndex < numbricktypes)
-        selected_bricktype = Number([ ...Object.keys(brick_types) ][selectionIndex]);
-    else
-        selected_bricktype = null;
+    let p = getCursorPosition(selection, e);
+    selected_bricktype = null; // default to erase
+    for (let m of selectionMapping)
+	if (p.x > m.x1 && p.x < m.x2 && p.y > m.y1 && p.y < m.y2) {
+	    selected_bricktype = m.type;
+	    document.getElementById('selected').innerHTML = brick_types[m.type].note;
+	}
 });
 
 let mouse_down = false;
 let erasing = false;
+let selectionMapping = [];
 
 preview.addEventListener('mousedown', function(e) {
     mouse_down = true;
     let pos = getCursorPosition(preview, e);
-    let x = Math.floor(pos.x / 50);
-    let y = Math.floor(pos.y / 25);
+    let x = Math.floor(pos.x / brick_width);
+    let y = Math.floor(pos.y / brick_height);
 
     if (x >= 13 || x < 0) return;
     if (y >= 18 || y < 0) return;
@@ -352,8 +548,8 @@ preview.addEventListener('mousemove', function(e) {
     if (mouse_down != true) return;
 
     let pos = getCursorPosition(preview, e);
-    let x = Math.floor(pos.x / 50);
-    let y = Math.floor(pos.y / 25);
+    let x = Math.floor(pos.x / brick_width);
+    let y = Math.floor(pos.y / brick_height);
 
     if (x >= 13 || x < 0) return;
     if (y >= 18 || y < 0) return;
@@ -378,42 +574,200 @@ preview.addEventListener('mouseleave', function(e) {
     render();
 });
 
-function update_demo_link() {
-    var c2 = btoa(JSON.stringify({
-        background: document.getElementById("background").value,
-        bricks: level,
-    }));
+function update_demo_link(d) {
+    var c2 = btoa(JSON.stringify(d));
     document.getElementById("demo").href = "index.html?" + c2;
+}
+
+function update_urlbar(d) {
+    var c2 = btoa(JSON.stringify(d));
+    history.replaceState("", "", "#" + c2);
+}
+
+function render_bevel(ctx, brick, x, y, w, h) {
+    const colors = [
+        `hsl(${brick.h}, ${brick.s}%, ${brick.l - 20}%)`,
+        `hsl(${brick.h}, ${brick.s}%, ${brick.l - 10}%)`,
+        `hsl(${brick.h}, ${brick.s}%, ${brick.l}%)`,
+        `hsl(${brick.h}, ${brick.s}%, ${brick.l + 10}%)`,
+        `hsl(${brick.h}, ${brick.s}%, ${brick.l + 30}%)`,
+    ]
+
+    const bevel = brick.bevel * h;
+
+    // Fill in background color
+    ctx.fillStyle = colors[2];
+    ctx.fillRect(x, y, w, h);
+
+    // North edge
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + bevel, y + bevel);
+    ctx.lineTo(x + w - bevel, y + bevel);
+    ctx.lineTo(x + w, y);
+    ctx.fillStyle = colors[4];
+    ctx.fill();
+
+    // East edge
+    ctx.beginPath();
+    ctx.moveTo(x + w, y);
+    ctx.lineTo(x + w - bevel, y + bevel);
+    ctx.lineTo(x + w - bevel, y + h - bevel);
+    ctx.lineTo(x + w, y + h);
+    ctx.fillStyle = colors[1];
+    ctx.fill();
+
+    // South edge
+    ctx.beginPath();
+    ctx.moveTo(x, y + h);
+    ctx.lineTo(x + bevel, y  + h - bevel);
+    ctx.lineTo(x + w - bevel, y + h - bevel);
+    ctx.lineTo(x + w, y + h);
+    ctx.fillStyle = colors[0];
+    ctx.fill();
+
+    // West edge
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + bevel, y + bevel);
+    ctx.lineTo(x + bevel, y + h - bevel);
+    ctx.lineTo(x, y + h);
+    ctx.fillStyle = colors[3];
+    ctx.fill();
+}
+
+function loadLevel(l) {
+    document.getElementById("desc").value = l.description;
+    document.getElementById("note").value = l.note;
+    document.getElementById("level").value = l.level;
+    document.getElementById("source").value = l.source;
+    document.getElementById("background").value = l.background;
+    console.log(l.texture);
+    if (l.texture != undefined) {
+        let pattern = document.getElementById("pattern");
+        pattern.value = [...pattern.options].find(o => o.text === l.texture).value;
+    }
+    if (l.enemy != undefined) {
+        document.getElementById("enemy").selectedIndex = l.enemy.style;
+        document.getElementById("enemycount").value = l.enemy.max;
+    }
+    level = l.bricks;
+
+    render();
+}
+
+function selectExistingLevel() {
+    let ls = document.getElementById("levelSelect");
+    let selectedLevel = ls.value;
+    if (selectedLevel < 0) return;
+    loadLevel(levels[selectedLevel]);
+}
+
+function incrementLevel(n) {
+    let ls = document.getElementById("levelSelect");
+    console.log(ls.value, n);
+    ls.value = Number(ls.value) + Number(n);;
+    selectExistingLevel();
+}
+
+function newLevel() {
+    // Add level to levels
+    levels.push({});
+
+    // Create new option and select it
+    let select = document.getElementById("levelSelect");
+    let option = document.createElement("option");
+    option.value = levels.length - 1;
+    option.innerHTML = `New Level`
+    select.appendChild(option);
+    select.value = levels.length - 1;
+
+    // Clear and save the level
+    levelclear();
+}
+
+function saveLevel(l) {
+    let levelIndex = document.getElementById("levelSelect").value
+    if (levelIndex < 0)
+	return;
+
+    levels[levelIndex] = l;
+}
+
+function exportLevels() {
+    let output=""
+    for (let level of levels) {
+	output += convertObjectToString(level);
+    }
+    console.log(output);
 }
 
 window.onload = function() {
     document.getElementById("desc").oninput = function() { render(); };
+    document.getElementById("note").oninput = function() { render(); };
     document.getElementById("level").oninput = function() { render(); };
     document.getElementById("source").oninput = function() { render(); };
     document.getElementById("background").oninput = function() { render(); };
+    document.getElementById("pattern").oninput = function() { render(); };
+    document.getElementById("enemy").oninput = function() { render(); };
+    document.getElementById("enemycount").oninput = function() { render(); };
+    document.getElementById("levelSelect").oninput = function() { selectExistingLevel(); };
 
-    selection.height = (Object.keys(brick_types).length + 1) * 25;
+    let enemies = document.getElementById("enemy");
+    for (let enemy in enemy_types) {
+	let option = document.createElement("option")
+	option.value = enemy_types[enemy].note;
+	option.innerHTML = enemy_types[enemy].note;
+	enemies.appendChild(option);
+    }
+
+    let patterns = document.getElementById("pattern");
+    for (let pattern in texture_map) {
+        let option = document.createElement("option")
+	option.value = texture_map[pattern];
+	option.innerHTML = pattern;
+	patterns.appendChild(option);
+    }
+
+    let levelSelect = document.getElementById("levelSelect");
+    for (let levelIndex=0; levelIndex<levels.length; levelIndex++) {
+        let option = document.createElement("option");
+        option.value = levelIndex;
+        option.innerHTML = `${levels[levelIndex].level} ${levels[levelIndex].source} (${levels[levelIndex].description})`
+        levelSelect.appendChild(option);
+    }
+
+    selection.height = ((Math.max(...Object.keys(brick_types).map(Number)) >> 4) + 1) * brick_height;
 
     ctx_selection.font = "bold 18px Arial";
-    let x = 0;
-    let y = 0;
     for (let brick in brick_types){
-        ctx_selection.fillStyle = `hsl(${brick_types[brick].h} ${brick_types[brick].s}% ${brick_types[brick].l}%)`;
-        ctx_selection.fillRect(x, y, 50, 25);
+	let x = (brick & 0x3) * brick_width;
+	let y = (brick >> 4) * brick_height;
+	render_bevel(ctx_selection, brick_types[brick], x, y, brick_width, brick_height);
+	selectionMapping.push({
+	    x1: x,
+	    y1: y,
+	    x2: x + brick_width,
+	    y2: y + brick_height,
+	    type: brick,
+	});
         ctx_selection.fillStyle = "#000";
-        ctx_selection.fillText(brick_types[brick].note, x + 60, y + 20);
+        //ctx_selection.fillText(brick_types[brick].note, x + 60, y + 20);
 
-        y += 25;
+        y += brick_height;
     }
-    ctx_selection.fillText("Erase", x + 60, y + 20);
+    ctx_selection.fillText("Erase", brick_width, 20);
 
     // Look for editor input from menu bar
-    const url_split = window.location.href.split('?')
+    const url_split = window.location.href.split('#')
+    if (url_split.length < 2) {
+        levelclear();
+    }
+
     let demo_level_encoded = url_split[url_split.length-1];
     if (demo_level_encoded) {
         let parsed = JSON.parse(atob(demo_level_encoded));
-        document.getElementById("background").value = parsed.background;
-        level = parsed.bricks;
+        loadLevel(parsed);
     }
 
     render();
