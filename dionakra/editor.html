@@ -56,9 +56,6 @@
           position: absolute;
           width: 672px;
       }
-      .hidden {
-          display: none;
-      }
       #alternativeUpload {
           color: #000;
           border: 1px solid #CCC;
@@ -81,6 +78,44 @@
           font-weight: bold;
           vertical-align: 22px;
       }
+      #toolbar{
+          padding:10px;
+          background:#222;
+          color:white;
+      }
+
+      #board {
+          display:flex;
+          gap:12px;
+          padding:12px;
+          overflow-x:auto;
+      }
+
+      .column {
+          min-width:60px;
+          background:#eee;
+          border-radius:4px;
+          padding:6px;
+      }
+
+      .column-header {
+          font-weight:bold;
+          margin-bottom:6px;
+      }
+
+      .card {
+          margin-bottom:6px;
+          cursor:grab;
+          border:1px solid #aaa;
+          background:white;
+      }
+
+      canvas.card {
+          display:block;
+      }
+      .hidden {
+          display: none !important;
+      }
     </style>
   </head>
 
@@ -91,6 +126,9 @@
       <img id="logo" src="images/dionakra.svg" width="300px">
       <span id="title">Level Editor</span>
       </div>
+
+      <div id="board" class="hidden"></div>
+
       <div id="results">
         <div id="canvases">
           <object data="images/background_texture_1.svg" id="texture1" class="texture" type="image/svg+xml"></object>
@@ -190,7 +228,7 @@ function levelclear() {
         }
         level.push(row);
     }
-    render();
+    renderPreview();
 }
 
 // File Input Support
@@ -322,7 +360,7 @@ function guessAndPopulate(a) {
         }
     }
 
-    render();
+    renderPreview();
 }
 
 function copyToClipboard() {
@@ -393,11 +431,11 @@ function shift(dir) {
         }
     }
 
-    render();
+    renderPreview();
 }
 
 // Rendering
-function render() {
+function renderPreview() {
     let background = document.getElementById("background").value;
     let source = document.getElementById("source").value;
     let note = document.getElementById("note").value;
@@ -560,7 +598,7 @@ preview.addEventListener('mousedown', function(e) {
         erasing = false;
     }
 
-    render();
+    renderPreview();
 });
 
 preview.addEventListener('mousemove', function(e) {
@@ -578,19 +616,19 @@ preview.addEventListener('mousemove', function(e) {
     else
         level[y][x] = selected_bricktype;
 
-    render();
+    renderPreview();
 });
 
 preview.addEventListener('mouseup', function(e) {
     mouse_down = false;
     erasing = false;
-    render();
+    renderPreview();
 });
 
 preview.addEventListener('mouseleave', function(e) {
     mouse_down = false;
     erasing = false;
-    render();
+    renderPreview();
 });
 
 function update_demo_link(d) {
@@ -672,7 +710,7 @@ function loadLevel(l) {
     }
     level = l.bricks;
 
-    render();
+    renderPreview();
 }
 
 function selectExistingLevel() {
@@ -751,15 +789,162 @@ function saveToStorage() {
     localStorage.dionakraLevels = JSON.stringify(myLevels);
 }
 
+//// Organizer Board /////
+
+const MAX_LEVEL = 34
+const board = document.getElementById("board")
+
+function populateOrganizer() {
+    // clear out old stuff
+    board.innerHTML = "";
+
+    // create columns
+    for(let i=0;i<=MAX_LEVEL;i++){
+	const col=document.createElement("div")
+	col.className="column"
+	col.dataset.level=i
+
+	const header=document.createElement("div")
+	header.className="column-header"
+	header.textContent="Level "+i
+
+	col.appendChild(header)
+
+	col.addEventListener("dragover",e=>{
+            e.preventDefault()
+	})
+
+	col.addEventListener("drop",e=>{
+            e.preventDefault()
+
+            const mapIndex=e.dataTransfer.getData("text/plain")
+            const map=myLevels[mapIndex]
+
+            map.level=i
+
+            render()
+	})
+
+	board.appendChild(col)
+    }
+}
+
+function render(){
+    document.querySelectorAll(".card").forEach(e=>e.remove())
+
+    myLevels.forEach((map,index)=>{
+
+        const column=document.querySelector(
+            `.column[data-level='${map.level}']`
+        )
+
+        if(!column) return
+
+        const canvas=document.createElement("canvas")
+        canvas.width=52
+        canvas.height=36
+
+        canvas.className="card"
+        canvas.draggable=true
+        canvas.title=map.note || ""
+
+        canvas.addEventListener("dragstart",e=>{
+            e.dataTransfer.setData("text/plain",index)
+        })
+
+        column.appendChild(canvas)
+
+        renderLevel(canvas,map)
+    })
+}
+
+function renderLevel(canvas, level) {
+    const ctx = canvas.getContext("2d");
+
+    const w = canvas.width / 13;
+    const h = w / 2;
+
+    // Draw bricks
+    for (let y=0; y<level.bricks.length; y++) {
+        for (let x=0; x<level.bricks[y].length; x++) {
+            const brick = level.bricks[y][x];
+            if (brick != null) {
+                const style = brick_types[level.bricks[y][x]];
+                const color = `hsl(${style.h}, ${style.s}%, ${style.l}%)`;
+                ctx.fillStyle = color;
+                ctx.fillRect(x * w, y * h, w, h);
+            }
+        }
+    }
+
+    return;
+}
+
+function exportLevels() {
+    let output=""
+    for (let level of myLevels) {
+	output += convertObjectToString(level);
+    }
+    console.log(output);
+}
+
+function convertObjectToString(o) {
+    let output = "{\n"
+    for (key in o)
+	switch (key) {
+	case "enemy":
+	    output += `    ${key}: ${JSON.stringify(o[key]).replaceAll('"', '', true)},\n`
+	    break;
+	case "bricks":
+	    output += `    ${key}: ${convert2dArrayToString(o[key], "    ")}\n`;
+	    break;
+        case "level":
+	    output += `    ${key}: ${o[key]},\n`
+            break;
+	default:
+	    output += `    ${key}: "${o[key]}",\n`
+	    break;
+	}
+    output += "},\n"
+    return output;
+}
+
+function convert2dArrayToString(a, i="") {
+    output = "[\n";
+    for (let y of a) {
+	const newLine = y
+	      .map(v => {
+		  if (v === null)
+		      return "null";
+		  else
+		      return "0x" + Number(v).toString(16);
+
+		  return String(v);
+	      })
+	      .join(",");
+	output += `${i}${i}[${newLine}],\n`
+    }
+    output += `${i}],`
+    return output;
+}
+
+function organizeLevels() {
+    populateOrganizer();
+    render();
+    board.classList.toggle("hidden");
+}
+
+//// Organizer Board End ////
+
 window.onload = function() {
-    document.getElementById("desc").oninput = function() { render(); };
-    document.getElementById("note").oninput = function() { render(); };
-    document.getElementById("level").oninput = function() { render(); };
-    document.getElementById("source").oninput = function() { render(); };
-    document.getElementById("background").oninput = function() { render(); };
-    document.getElementById("pattern").oninput = function() { render(); };
-    document.getElementById("enemy").oninput = function() { render(); };
-    document.getElementById("enemycount").oninput = function() { render(); };
+    document.getElementById("desc").oninput = function() { renderPreview(); };
+    document.getElementById("note").oninput = function() { renderPreview(); };
+    document.getElementById("level").oninput = function() { renderPreview(); };
+    document.getElementById("source").oninput = function() { renderPreview(); };
+    document.getElementById("background").oninput = function() { renderPreview(); };
+    document.getElementById("pattern").oninput = function() { renderPreview(); };
+    document.getElementById("enemy").oninput = function() { renderPreview(); };
+    document.getElementById("enemycount").oninput = function() { renderPreview(); };
     document.getElementById("levelSelect").oninput = function() { selectExistingLevel(); };
 
     let enemies = document.getElementById("enemy");
@@ -813,7 +998,7 @@ window.onload = function() {
     //     loadLevel(parsed);
     // }
 
-    render();
+    renderPreview();
 }
 
 </script>
