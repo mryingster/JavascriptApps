@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Advanced Sprite Tester</title>
+    <style>
+      body {
+          font-family: sans-serif;
+          background: #1e1e1e;
+          color: #ddd;
+          padding: 20px;
+      }
+      canvas {
+          border: 1px solid #555;
+          display: block;
+          margin-bottom: 20px;
+          image-rendering: pixelated;
+      }
+      .controls {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+          gap: 10px;
+          max-width: 1200px;
+      }
+      label {
+          display: flex;
+          flex-direction: column;
+          font-size: 12px;
+      }
+      .timeline {
+          margin: 15px 0;
+      }
+    </style>
+  </head>
+  <body>
+
+    <center>
+      <canvas id="canvas" width="700" height="700"></canvas>
+    </center>
+
+    <div class="timeline">
+      <input type="range" id="timeline" min="0" max="0" value="0" style="width:100%;">
+      <div>Frame: <span id="frameDisplay">0</span></div>
+    </div>
+
+    <h2>Playback Settings</h2>
+    <div class="controls">
+
+      <label>Speed (FPS)
+        <input type="range" id="speed" min="1" max="60" value="10">
+        <span id="speedValue">10</span>
+      </label>
+
+      <label>Scale
+        <input type="range" id="scale" min="0.25" max="8" step="0.25" value="2">
+        <span id="scaleValue">2x</span>
+      </label>
+
+      <label>Background
+        <select id="backgroundSelect">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="neutral">Neutral</option>
+          <option value="checker">Checker</option>
+          <option value="custom">Custom</option>
+        </select>
+      </label>
+
+      <label id="customColorWrapper" style="display:none;">
+        Custom Color
+        <input type="color" id="customColor" value="#444444">
+      </label>
+
+      <label>Loop
+        <input type="checkbox" id="loop" checked>
+      </label>
+
+      <button id="playPause">Pause</button>
+    </div>
+
+    <h2>Sprite Sheet Settings</h2>
+
+    <div class="controls">
+
+      <label>Sprite Sheet
+        <input type="file" id="fileInput" accept="image/*">
+      </label>
+
+      <label>Frame Width
+        <input type="number" id="frameWidth" value="64">
+      </label>
+
+      <label>Frame Height
+        <input type="number" id="frameHeight" value="64">
+      </label>
+
+      <label>Sheet Columns
+        <input type="number" id="sheetCols" value="8">
+      </label>
+
+      <label>Sheet Rows
+        <input type="number" id="sheetRows" value="4">
+      </label>
+    </div>
+
+    <h2>Sprite Settings</h2>
+    <div class="controls">
+
+      <label>Sprite Start Column
+        <input type="number" id="spriteStartCol" value="0">
+      </label>
+
+      <label>Sprite Start Row
+        <input type="number" id="spriteStartRow" value="0">
+      </label>
+
+      <label>Animation Columns
+        <input type="number" id="animCols" value="4">
+      </label>
+
+      <label>Animation Rows
+        <input type="number" id="animRows" value="1">
+      </label>
+    </div>
+
+    <h2>Shadow Settings</h2>
+    <div class="controls">
+      <label>Sprite Includes Shadow
+        <input type="checkbox" id="hasShadow">
+      </label>
+
+      <label>Shadow Column Offset
+        <input type="number" id="shadowColOffset" value="0">
+      </label>
+
+      <label>Shadow Row Offset
+        <input type="number" id="shadowRowOffset" value="1">
+      </label>
+
+      <label>Shadow X Offset (px)
+        <input type="number" id="shadowXOffset" value="20">
+      </label>
+
+      <label>Shadow Y Offset (px)
+        <input type="number" id="shadowYOffset" value="20">
+      </label>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = false;
+
+      const get = id => document.getElementById(id);
+
+      let image = new Image();
+      let currentFrame = 0;
+      let lastTime = 0;
+      let playing = true;
+
+      function totalAnimFrames() {
+          return get("animCols").value * get("animRows").value;
+      }
+
+      function updateTimelineMax() {
+          get("timeline").max = totalAnimFrames() - 1;
+      }
+
+      ["animCols","animRows"].forEach(id =>
+          get(id).addEventListener("input", updateTimelineMax)
+      );
+
+      get("timeline").addEventListener("input", e => {
+          currentFrame = parseInt(e.target.value);
+      });
+
+      get("speed").addEventListener("input", e =>
+          get("speedValue").textContent = e.target.value
+      );
+
+      get("scale").addEventListener("input", e =>
+          get("scaleValue").textContent = e.target.value + "x"
+      );
+
+      get("backgroundSelect").addEventListener("change", e =>
+          get("customColorWrapper").style.display =
+              e.target.value === "custom" ? "block" : "none"
+      );
+
+      get("fileInput").addEventListener("change", e => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = evt => image.src = evt.target.result;
+          reader.readAsDataURL(file);
+      });
+
+      get("playPause").addEventListener("click", () => {
+          playing = !playing;
+          get("playPause").textContent = playing ? "Pause" : "Play";
+      });
+
+      function drawBackground() {
+          const mode = get("backgroundSelect").value;
+          if (mode === "dark") ctx.fillStyle = "#111";
+          else if (mode === "light") ctx.fillStyle = "#eee";
+          else if (mode === "neutral") ctx.fillStyle = "#777";
+          else if (mode === "custom") ctx.fillStyle = get("customColor").value;
+
+          if (mode !== "checker") {
+              ctx.fillRect(0,0,canvas.width,canvas.height);
+          } else {
+              const size = 20;
+              for (let y=0;y<canvas.height;y+=size) {
+                  for (let x=0;x<canvas.width;x+=size) {
+                      ctx.fillStyle = ((x+y)/size)%2===0 ? "#aaa":"#666";
+                      ctx.fillRect(x,y,size,size);
+                  }
+              }
+          }
+      }
+
+      function drawFrame(sheetCol, sheetRow, dx, dy, scale) {
+          const fw = parseInt(get("frameWidth").value);
+          const fh = parseInt(get("frameHeight").value);
+
+          ctx.drawImage(
+              image,
+              sheetCol * fw,
+              sheetRow * fh,
+              fw, fh,
+              dx, dy,
+              fw * scale,
+              fh * scale
+          );
+      }
+
+      function draw() {
+          drawBackground();
+          if (!image.complete) return;
+
+          const fw = parseInt(get("frameWidth").value);
+          const fh = parseInt(get("frameHeight").value);
+          const scale = parseFloat(get("scale").value);
+
+          const animCols = parseInt(get("animCols").value);
+          const animRow = Math.floor(currentFrame / animCols);
+          const animCol = currentFrame % animCols;
+
+          const baseCol = parseInt(get("spriteStartCol").value) + animCol;
+          const baseRow = parseInt(get("spriteStartRow").value) + animRow;
+
+          const dw = fw * scale;
+          const dh = fh * scale;
+          const baseX = Math.floor((canvas.width - dw) / 2);
+          const baseY = Math.floor((canvas.height - dh) / 2);
+
+          if (get("hasShadow").checked) {
+              const shadowCol = baseCol + parseInt(get("shadowColOffset").value);
+              const shadowRow = baseRow + parseInt(get("shadowRowOffset").value);
+
+              drawFrame(
+                  shadowCol,
+                  shadowRow,
+                  baseX + parseInt(get("shadowXOffset").value),
+                  baseY + parseInt(get("shadowYOffset").value),
+                  scale
+              );
+          }
+
+          drawFrame(baseCol, baseRow, baseX, baseY, scale);
+
+          get("timeline").value = currentFrame;
+          get("frameDisplay").textContent = currentFrame;
+      }
+
+      function update(delta) {
+          const fps = parseInt(get("speed").value);
+          if (delta >= 1000/fps) {
+              currentFrame++;
+              if (currentFrame >= totalAnimFrames()) {
+                  if (get("loop").checked) currentFrame = 0;
+                  else {
+                      currentFrame = totalAnimFrames()-1;
+                      playing = false;
+                  }
+              }
+              return true;
+          }
+          return false;
+      }
+
+      function loop(ts) {
+          const delta = ts - lastTime;
+          if (playing && update(delta)) lastTime = ts;
+          draw();
+          requestAnimationFrame(loop);
+      }
+
+      updateTimelineMax();
+      requestAnimationFrame(loop);
+    </script>
+
+  </body>
+</html>

@@ -15,9 +15,11 @@
     <script src="paddle.js"></script>
     <script src="canvas.js"></script>
     <script src="bricks.js"></script>
+    <script src="enemy.js"></script>
     <script src="levels.js"></script>
     <script src="pills.js"></script>
     <script src="sounds.js"></script>
+    <script src="scores.js"></script>
   </head>
 
   <body>
@@ -44,6 +46,8 @@
         <object data="images/background_texture_2.svg" id="texture2" class="texture hidden" type="image/svg+xml"></object>
         <object data="images/background_texture_3.svg" id="texture3" class="texture hidden" type="image/svg+xml"></object>
         <object data="images/background_texture_4.svg" id="texture4" class="texture hidden" type="image/svg+xml"></object>
+        <object data="images/background_texture_5.svg" id="texture5" class="texture hidden" type="image/svg+xml"></object>
+        <object data="images/background_texture_6.svg" id="texture6" class="texture hidden" type="image/svg+xml"></object>
 
         <object data="images/frame.svg" id="frame" type="image/svg+xml"></object>
 
@@ -53,7 +57,7 @@
       </div>
 
       <span id="debug" class="hidden"></span>
-
+      <audio id="music" preload="metadata"><source src="sounds/music/high_score.wav" type="audio/mpeg">Your browser does not support the audio element.</audio>
     </div>
 
   </body>

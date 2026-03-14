@@ -4,14 +4,16 @@ function main_loop(timestamp, refresh=false) {
         last_frame = timestamp;
     }
 
-    const elapsed = timestamp - last_frame;
+    let elapsed = timestamp - last_frame;
+    if (isNaN(elapsed))
+	elapsed = 0;
     last_frame = timestamp;
 
     // TODO If elapsed is too long, do nothing?
-    // if (elapsed > 1000) {
-    // window.requestAnimationFrame((t) => main_loop(t));
-    // return
-    // }
+    if (elapsed > 1000) {
+	window.requestAnimationFrame((t) => main_loop(t));
+	return
+    }
 
     if (input_timeout > 0) {
         if (!isNaN(elapsed)) {
@@ -32,6 +34,9 @@ function main_loop(timestamp, refresh=false) {
 	for (const laser of lasers)
 	    laser.move(elapsed);
 
+	for (const enemy of enemies)
+	    enemy.move(elapsed);
+
 	for (const brick of bricks)
 	    brick.move(elapsed);
 
@@ -43,7 +48,11 @@ function main_loop(timestamp, refresh=false) {
             ball.move(elapsed);
             for (let i=0; i<bricks.length; i++) {
 		if (bricks[i].remove == true) {
-                    update_score(bricks[i].value);
+		    if (bricks[i].type == 1)
+			// Silvers get 50 * level/stage number
+			update_score(bricks[i].value * level);
+		    else
+			update_score(bricks[i].value);
 
                     // Remove Brick
                     bricks.splice(i, 1);
@@ -76,6 +85,24 @@ function main_loop(timestamp, refresh=false) {
                 i--;
             }
         }
+
+        // Remove enemies
+        for (let i=0; i<enemies.length; i++) {
+            if (enemies[i].remove == true) {
+                enemies.splice(i, 1);
+                i--;
+		next_enemy = Math.random() * 10000;
+            }
+        }
+
+	// Add enemies
+	if (enemies.length < max_enemies) {
+	    next_enemy -= elapsed;
+	    if (next_enemy <= 0) {
+		add_enemy(enemy_type);
+		next_enemy = Math.random() * 10000;
+	    }
+	}
 
 	// Do Powerup things
 	switch(current_powerup) {
@@ -153,6 +180,9 @@ function main_loop(timestamp, refresh=false) {
         clear_context(ctx_dynamic);
         clear_context(ctx_shadow_dynamic);
 
+	for (const enemy of enemies)
+	    enemy.render();
+
         for (const brick of bricks)
 	    brick.renderShimmer();
 
@@ -176,6 +206,7 @@ function main_loop(timestamp, refresh=false) {
 function game_over() {
     active = false;
     play_sound("GAME_END");
+    check_high_score(score);
     showModal("Game over!");
     return;
 }
@@ -216,8 +247,9 @@ function update_score(add_to_score) {
     if (current_powerup == PU_REDUCE)
  	add_to_score *= 2;
 
-    // Check for enough points for extra life
-    if (score  % 25000 + add_to_score > 25000) {
+    // Check for enough points for extra life (20k, 60k, 60k+)
+    if ((score < 20000 && score + add_to_score > 20000) ||
+	((score - 20000) % 60000 + add_to_score > 60000)) {
         play_sound("PLAYER_EXTEND");
 	add_life();
     }
@@ -244,13 +276,17 @@ function advance_level(n=null) {
 	if (levels[i].level == level)
             levelIndicies.push(i);
 
-    showLevelSelection(level, levelIndicies);
-
-    paddle.reset();
-    reset_ball();
+    // Stop things from moving in background
     reset_pills();
     reset_powerups();
     reset_lasers();
+    reset_enemies();
+
+    showLevelSelection(level, levelIndicies);
+
+    // Reset user controlled things
+    paddle.reset();
+    reset_ball();
 }
 
 function add_life() {
@@ -259,15 +295,23 @@ function add_life() {
 }
 
 function populate_level(l) {
+    // Clear overlay
+    clear_context(ctx_overlay);
+
     // Update background
     document.getElementById("canvases").style = `background: radial-gradient( circle at 50%, #000, ${l.background})`;
 
-    const texture_list = ["texture1", "texture2", "texture3", "texture4"];
-    for (let texture_index in texture_list) {
-        document.getElementById(texture_list[texture_index]).classList.add("hidden");
+    const texture_list = Object.values(texture_map).sort((a, b) => a.localeCompare(b));
+    let selected_texture = texture_list[(level - 1) % texture_list.length]; // Default texture if unspecified
+    if (l.texture) {
+	selected_texture = texture_map[l.texture];
+    }
 
-        if (texture_index == (level - 1) % texture_list.length)
-            document.getElementById(texture_list[texture_index]).classList.remove("hidden");
+    for (let texture of texture_list) {
+        document.getElementById(texture).classList.add("hidden");
+
+        if (texture == selected_texture)
+	    document.getElementById(texture).classList.remove("hidden");
     }
 
     // Create bricks
@@ -278,6 +322,15 @@ function populate_level(l) {
 	    if (brick_type in brick_types)
 		bricks.push(new Brick(ctx_bricks, ctx_dynamic, ctx_shadow_static, ctx_shadow_dynamic, x, y, brick_types[brick_type]));
 	}
+
+    // Set enemy rules
+    enemy_type = Math.floor(Math.random() * enemy_types.length);
+    max_enemies = 2;
+    next_enemy = Math.random() * 10000; // up to 10 seconds
+    if (l.enemy) {
+	enemy_type = l.enemy.style;
+	max_enemies = l.enemy.max;
+    }
 
     // Start with a shimmer
     for (let brick of bricks)
@@ -311,7 +364,6 @@ function overlay_message(m) {
     ctx_overlay.lineWidth = 5;
     ctx_overlay.fillStyle = "#fff";
     ctx_overlay.fillText(m, canvas_overlay.width / 2, canvas_overlay.height / 2);
-
 }
 
 function new_game(continued=false, demo=null) {
@@ -340,6 +392,7 @@ function new_game(continued=false, demo=null) {
     reset_ball();
     reset_pills();
     reset_lasers();
+    reset_enemies();
 
     // Set up level information
     if (demo == null)
@@ -441,6 +494,12 @@ const size_ratios = {
 	height: 1/14,
 	ypos: 31/28,
     },
+    enemy: {
+	width: 1/14,
+	height: 1/14,
+	left_entry: 5/28,
+	right_entry: 19/28,
+    }
 }
 
 let sizes = {};
@@ -459,6 +518,11 @@ let paused;
 let just_unpaused = false;
 let lives;
 let lasers;
+let enemies = [];
+let enemy_sprites;
+let max_enemies;
+let next_enemy;
+let enemy_type;
 let sounds = {};
 let current_powerup = 0;
 
@@ -470,6 +534,15 @@ let touch_start = false;
 let touch_end;
 
 let last_frame;
+
+const texture_map = {
+    "Hexagons"         : "texture1",
+    "Diamonds"         : "texture2",
+    "Hexagon Donuts"   : "texture3",
+    "Circuitry 1"      : "texture4",
+    "Circuitry 2"      : "texture5",
+    "Rounded Hexagons" : "texture6",
+};
 
 function resize(canvas) {
     width = canvas.width;
@@ -531,13 +604,20 @@ function resize(canvas) {
 	    height: size_ratios.controller.height * width,
 	    ypos: size_ratios.controller.ypos * width,
 	},
+	enemy: {
+	    width: size_ratios.enemy.width * width,
+	    height: size_ratios.enemy.height * width,
+	    left_entry: size_ratios.enemy.left_entry * width,
+	    right_entry: size_ratios.enemy.right_entry * width,
+	    radius: size_ratios.enemy.width * width * .5,
+	}
     }
 }
 
 function interact() {
 }
 
-function firstLoad() {
+async function firstLoad() {
     // Define Canvases
     canvas_dynamic = document.getElementById('canvas_dynamic')
     ctx_dynamic = canvas_dynamic.getContext("2d");
@@ -660,12 +740,19 @@ function firstLoad() {
     // Define paddle
     paddle = new Paddle(ctx_dynamic, ctx_shadow_dynamic);
 
+    // Setup Sprites
+    enemy_sprites = await loadImageBitmap("images/enemies_64.png");
+
     // Look for editor input from menu bar
     let demo_level_encoded = window.location.href.split('?')[1];
     if (demo_level_encoded) {
         let demo_level = JSON.parse(atob(demo_level_encoded));
+	console.log(atob(demo_level_encoded));
 	console.log(demo_level);
 	new_game(false, demo_level);
+    } else {
+	// Show high scores
+	check_high_score();
     }
 }
 

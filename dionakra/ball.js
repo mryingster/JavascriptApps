@@ -200,6 +200,24 @@ class Ball {
             }
         }
 
+	// Collide with enemies
+	for (let enemy of enemies) {
+	    if (!enemy.ignore) {
+		const d = Math.hypot(enemy.pos.x + (enemy.width/2) - this.pos.x, enemy.pos.y + (enemy.height/2) - this.pos.y);
+		if (d < enemy.radius) {
+		    if (current_powerup != PU_MEGABALL) {
+			// Just do orthogonal reflection for faster axis - Improve later
+			if (Math.abs(this.v.x) > Math.abs(this.v.y)) {
+			    vertical_collision = true;
+			} else {
+			    horizontal_collision = true;
+			}
+		    }
+		    enemy.hit();
+		}
+	    }
+	}
+
 	// Collide with paddle
 	if (circle_intersect_with_rectangle(this.pos.x, this.pos.y, this.radius, paddle.pos.x, paddle.pos.y, paddle.width, paddle.height)) {
 	    // Ensure previous frame had no collision

@@ -14,6 +14,7 @@ const SOUND_DEFINITIONS = {
     "STAGE_START"    : { volume: .75, path: "sounds/effects/stage_start.wav" },
     "GAME_END"       : { volume: .75, path: "sounds/effects/game_over.wav" },
     "SFX_BREAK"      : { volume: .75, path: "sounds/effects/break.wav" },
+    "ENEMY_HIT"      : { volume: .75, path: "sounds/effects/enemy_hit.wav" },
     // { volume:  .5, replicas: 2, path: "sounds/effects/boss_shot_new.wav" },
 };
 
