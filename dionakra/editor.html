@@ -141,7 +141,7 @@
           <canvas id="canvas_preview" width="672" height="820"></canvas>
         </div>
         <br>
-        <pre id="output"></pre>
+        <pre id="output" contenteditable=""></pre>
       </div>
       <div id="input">
         Selected Color: <span id="selected">None</span><br>
@@ -699,7 +699,7 @@ function loadLevel(l) {
     document.getElementById("level").value = l.level;
     document.getElementById("source").value = l.source;
     document.getElementById("background").value = l.background;
-    console.log(l.texture);
+
     if (l.texture != undefined) {
         let pattern = document.getElementById("pattern");
         pattern.value = [...pattern.options].find(o => o.text === l.texture).value;
@@ -789,6 +789,23 @@ function saveToStorage() {
     localStorage.dionakraLevels = JSON.stringify(myLevels);
 }
 
+function parseJsLevel(text) {
+    return Function('"use strict"; return (' + text + ')')();
+}
+
+function updateFromOutput() {
+    let output = document.getElementById("output").innerHTML;
+    if (output.endsWith("\n")) {
+	output = output.slice(0, -1);
+    }
+    if (output.endsWith(",")) {
+	output = output.slice(0, -1);
+    }
+
+    level = parseJsLevel(output);
+    loadLevel(level);
+}
+
 //// Organizer Board /////
 
 const MAX_LEVEL = 34
@@ -823,6 +840,7 @@ function populateOrganizer() {
             map.level=i
 
             render()
+	    selectExistingLevel();
 	})
 
 	board.appendChild(col)
@@ -880,54 +898,6 @@ function renderLevel(canvas, level) {
     return;
 }
 
-function exportLevels() {
-    let output=""
-    for (let level of myLevels) {
-	output += convertObjectToString(level);
-    }
-    console.log(output);
-}
-
-function convertObjectToString(o) {
-    let output = "{\n"
-    for (key in o)
-	switch (key) {
-	case "enemy":
-	    output += `    ${key}: ${JSON.stringify(o[key]).replaceAll('"', '', true)},\n`
-	    break;
-	case "bricks":
-	    output += `    ${key}: ${convert2dArrayToString(o[key], "    ")}\n`;
-	    break;
-        case "level":
-	    output += `    ${key}: ${o[key]},\n`
-            break;
-	default:
-	    output += `    ${key}: "${o[key]}",\n`
-	    break;
-	}
-    output += "},\n"
-    return output;
-}
-
-function convert2dArrayToString(a, i="") {
-    output = "[\n";
-    for (let y of a) {
-	const newLine = y
-	      .map(v => {
-		  if (v === null)
-		      return "null";
-		  else
-		      return "0x" + Number(v).toString(16);
-
-		  return String(v);
-	      })
-	      .join(",");
-	output += `${i}${i}[${newLine}],\n`
-    }
-    output += `${i}],`
-    return output;
-}
-
 function organizeLevels() {
     populateOrganizer();
     render();
@@ -946,6 +916,7 @@ window.onload = function() {
     document.getElementById("enemy").oninput = function() { renderPreview(); };
     document.getElementById("enemycount").oninput = function() { renderPreview(); };
     document.getElementById("levelSelect").oninput = function() { selectExistingLevel(); };
+    document.getElementById("output").oninput = function() { updateFromOutput(); };
 
     let enemies = document.getElementById("enemy");
     for (let enemy in enemy_types) {
