@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Bible Parallel Viewer</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 20px; }
+      .controls { margin-bottom: 15px; }
+      .verse-row { display: flex; border-bottom: 1px solid #ddd; padding: 6px 0; }
+      .verse { width: 50%; padding: 0 10px; }
+      .verse-number { font-weight: bold; margin-right: 6px; }
+      select, button { margin-right: 8px; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
+  </head>
+  <body>
+
+    <div class="controls">
+      <select id="bookSelect"></select>
+      <select id="chapterSelect"></select>
+      <button id="prevBtn">Prev</button>
+      <button id="nextBtn">Next</button>
+      <label>
+        <input type="checkbox" id="diffToggle">
+        Show Differences
+      </label>
+    </div>
+
+    <div id="content"></div>
+    <script>
+
+const books = [
+    "Old Testament 01 genesis.txt",
+    "Old Testament 02 exodus.txt",
+    "Old Testament 03 leviticus.txt",
+    "Old Testament 04 numbers.txt",
+    "Old Testament 05 deuteronomy.txt",
+    "Old Testament 06 joshua.txt",
+    "Old Testament 07 judges.txt",
+    "Old Testament 08 ruth.txt",
+    "Old Testament 09 1-samuel.txt",
+    "Old Testament 10 2-samuel.txt",
+    "Old Testament 11 1-kings.txt",
+    "Old Testament 12 2-kings.txt",
+    "Old Testament 13 1-chronicles.txt",
+    "Old Testament 14 2-chronicles.txt",
+    "Old Testament 15 ezra.txt",
+    "Old Testament 16 nehemiah.txt",
+    "Old Testament 17 esther.txt",
+    "Old Testament 18 job.txt",
+    "Old Testament 19 psalms.txt",
+    "Old Testament 20 proverbs.txt",
+    "Old Testament 21 ecclesiastes.txt",
+    "Old Testament 22 song-of-solomon.txt",
+    "Old Testament 23 isaiah.txt",
+    "Old Testament 24 jeremiah.txt",
+    "Old Testament 25 lamentations.txt",
+    "Old Testament 26 ezekiel.txt",
+    "Old Testament 27 daniel.txt",
+    "Old Testament 28 hosea.txt",
+    "Old Testament 29 joel.txt",
+    "Old Testament 30 amos.txt",
+    "Old Testament 31 obadiah.txt",
+    "Old Testament 32 jonah.txt",
+    "Old Testament 33 micah.txt",
+    "Old Testament 34 nahum.txt",
+    "Old Testament 35 habakkuk.txt",
+    "Old Testament 36 zephaniah.txt",
+    "Old Testament 37 haggai.txt",
+    "Old Testament 38 zechariah.txt",
+    "Old Testament 39 malachi.txt",
+    "New Testament 01 matthew.txt",
+    "New Testament 02 mark.txt",
+    "New Testament 03 luke.txt",
+    "New Testament 04 john.txt",
+    "New Testament 05 acts.txt",
+    "New Testament 06 romans.txt",
+    "New Testament 07 1-corinthians.txt",
+    "New Testament 08 2-corinthians.txt",
+    "New Testament 09 galatians.txt",
+    "New Testament 10 ephesians.txt",
+    "New Testament 11 philippians.txt",
+    "New Testament 12 colossians.txt",
+    "New Testament 13 1-thessalonians.txt",
+    "New Testament 14 2-thessalonians.txt",
+    "New Testament 15 1-timothy.txt",
+    "New Testament 16 2-timothy.txt",
+    "New Testament 17 titus.txt",
+    "New Testament 18 philemon.txt",
+    "New Testament 19 hebrews.txt",
+    "New Testament 20 james.txt",
+    "New Testament 21 1-peter.txt",
+    "New Testament 22 2-peter.txt",
+    "New Testament 23 1-john.txt",
+    "New Testament 24 2-john.txt",
+    "New Testament 25 3-john.txt",
+    "New Testament 26 jude.txt",
+    "New Testament 27 revelation.txt",
+];
+
+const bookSelect = document.getElementById('bookSelect');
+const chapterSelect = document.getElementById('chapterSelect');
+const content = document.getElementById('content');
+
+let cache = {}; // { book: { KJV: data, JST: data } }
+let currentBook = null;
+let currentChapter = 1;
+let maxChapter = 1;
+
+const verseRegex = /^(?:[A-Z]+\s+)?(\d+):(\d+)\s+(.*)$/;
+
+function diffText(a, b) {
+    const diff = Diff.diffWords(a || '', b || '');
+
+    return diff.map(part => {
+	if (part.added) return `<span style="background:#c8f7c5">${part.value}</span>`;
+	if (part.removed) return `<span style="background:#f7c5c5">${part.value}</span>`;
+	return part.value;
+    }).join('');
+}
+
+function populateBooks() {
+    books.forEach(b => {
+	const opt = document.createElement('option');
+	opt.value = b;
+	opt.textContent = b;
+	bookSelect.appendChild(opt);
+    });
+
+    currentBook = bookSelect.value;
+}
+
+async function loadBook(book) {
+    if (cache[book]) return cache[book];
+
+    const [kjvText, jstText] = await Promise.all([
+	fetch(`text/KJV/${book}`).then(r => r.text()),
+	fetch(`text/JST/${book}`).then(r => r.text())
+    ]);
+
+    const parsed = {
+	KJV: parseText(kjvText),
+	JST: parseText(jstText)
+    };
+
+    cache[book] = parsed;
+    return parsed;
+}
+
+function parseText(text) {
+    const lines = text.split('\n');
+    const result = {};
+
+    for (let rawLine of lines) {
+	const line = rawLine.trim();
+
+	// Skip obvious non-verse lines early
+	if (
+	    !line ||
+		line.startsWith('Chapter ') ||              // "Chapter 1"
+		/^[A-Za-z\s]+$/.test(line)                  // titles like "Mark", "His Testimony..."
+	) continue;
+
+	const match = line.match(verseRegex);
+
+	// STRICT: only accept CH:VS lines
+	if (!match) continue;
+
+	const ch = parseInt(match[1]);
+	const vs = parseInt(match[2]);
+	const content = match[3];
+
+	if (!result[ch]) result[ch] = {};
+	result[ch][vs] = content;
+    }
+
+    return result;
+}
+
+function updateChapterDropdown(data) {
+    chapterSelect.innerHTML = '';
+    maxChapter = Math.max(
+	...Object.keys(data.KJV).map(Number),
+	...Object.keys(data.JST).map(Number)
+    );
+
+    for (let i = 1; i <= maxChapter; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = i;
+        chapterSelect.appendChild(opt);
+    }
+}
+
+function normalize(text) {
+  return (text || '')
+    .replace(/\s+/g, ' ')                // collapse whitespace
+    .replace(/\s+([.,;:!?])/g, '$1')    // remove space before punctuation
+    .trim();
+}
+
+function diffSplit(a, b) {
+    const diff = Diff.diffWords(a || '', b || '');
+
+    let left = '';
+    let right = '';
+
+    for (const part of diff) {
+	if (part.added) {
+	    right += `<span style="background:#c8f7c5">${part.value}</span>`;
+	} else if (part.removed) {
+	    left += `<span style="background:#f7c5c5">${part.value}</span>`;
+	} else {
+	    left += part.value;
+	    right += part.value;
+	}
+    }
+
+    return { left, right };
+}
+
+function render(data) {
+    content.innerHTML = '';
+
+    showDiff = document.getElementById('diffToggle').checked;
+
+    const kjvCh = data.KJV[currentChapter] || {};
+    const jstCh = data.JST[currentChapter] || {};
+
+    const verses = new Set([
+        ...Object.keys(kjvCh).map(Number),
+        ...Object.keys(jstCh).map(Number)
+    ]);
+
+    const sorted = [...verses].sort((a,b)=>a-b);
+
+    for (let v of sorted) {
+	const row = document.createElement('div');
+	row.className = 'verse-row';
+
+	const kjvText = kjvCh[v] || '';
+	const jstText = jstCh[v] || '';
+	const normKJV = normalize(kjvText);
+	const normJST = normalize(jstText);
+
+	const { left: kjvDiff, right: jstDiff } = diffSplit(normKJV, normJST);
+
+	const left = document.createElement('div');
+	left.className = 'verse';
+	//left.innerHTML = `<span class="verse-number">${v}</span>${kjvCh[v] || ''}`;
+	//left.innerHTML = `<span class="verse-number">${v}</span>${kjvDiff}`;
+	left.innerHTML = showDiff
+	    ? `<span class="verse-number">${v}</span>${kjvDiff}`
+	    : `<span class="verse-number">${v}</span>${kjvText}`;
+
+	const right = document.createElement('div');
+	right.className = 'verse';
+	//right.innerHTML = `<span class="verse-number">${v}</span>${jstCh[v] || ''}`;
+	//right.innerHTML = `<span class="verse-number">${v}</span>${diffText(kjvCh[v], jstCh[v])}`;
+	//right.innerHTML = `<span class="verse-number">${v}</span>${jstDiff}`;
+	right.innerHTML = showDiff
+	    ? `<span class="verse-number">${v}</span>${jstDiff}`
+	    : `<span class="verse-number">${v}</span>${jstText}`;
+
+	row.appendChild(left);
+	row.appendChild(right);
+	content.appendChild(row);
+    }
+}
+
+bookSelect.addEventListener('change', async () => {
+    currentBook = bookSelect.value;
+    currentChapter = 1;
+
+    const data = await loadBook(currentBook);
+    updateChapterDropdown(data);
+    chapterSelect.value = currentChapter;
+    render(data);
+});
+
+chapterSelect.addEventListener('change', async () => {
+    currentChapter = parseInt(chapterSelect.value);
+    const data = await loadBook(currentBook);
+    render(data);
+});
+
+document.getElementById('prevBtn').onclick = async () => {
+    if (currentChapter > 1) {
+	currentChapter--;
+	chapterSelect.value = currentChapter;
+	const data = await loadBook(currentBook);
+	render(data);
+    }
+};
+
+document.getElementById('nextBtn').onclick = async () => {
+    if (currentChapter < maxChapter) {
+        currentChapter++;
+        chapterSelect.value = currentChapter;
+        const data = await loadBook(currentBook);
+        render(data);
+    }
+};
+
+document.getElementById('diffToggle').addEventListener('change', async (e) => { rerender(); } );
+
+async function rerender() {
+    if (currentBook) {
+	const data = await loadBook(currentBook);
+	render(data);
+    }
+}
+
+populateBooks();
+rerender();
+
+</script>
+
+  </body>
+</html>

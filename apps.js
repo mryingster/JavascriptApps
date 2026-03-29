@@ -1002,6 +1002,18 @@ const apps = [
         "mobile"        : false,
     },
     {
+        "name"          : "JST Compare",
+        "location"      : "bible/",
+        "category"      : "Ideas",
+        "icon"          : "icon_missing",
+        "visible"       : false,
+        "description"   : "Copmare the KJV and JST versions of the Bible",
+        "date"          : "3/26/2026",
+        "tags"          : [],
+        "flair"         : null,
+        "mobile"        : false,
+    },
+    {
         "name"          : "Poll",
         "location"      : "poll/",
         "category"      : "Ideas",
