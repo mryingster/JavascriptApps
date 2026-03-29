@@ -26,14 +26,18 @@ function create_word_element(word){
         span.classList.add('duplicate');
     if (word.selected)
         span.classList.add('selected');
-    if (word.duplicate === undefined)
+    if (word.duplicate === undefined) {
         span.onclick = () => reveal_word(word);
-    else
+	span.onmouseenter = () => draw_word_underlay(overlay_ctx, word.path, GREY);
+	span.onmouseleave = () => clear_canvas(overlay_ctx);
+    }
+    else {
         span.onclick = function() {
             word.duplicate = ! word.duplicate;
             render_found_words(document.getElementById('found_words_div'), words_found);
             render_score(words_found);
         };
+    }
     span.appendChild(document.createTextNode(word.word + (word.score != undefined ? " ("+word.score+")": "")));
     span.appendChild(document.createElement('br'));
     return span;
@@ -44,10 +48,8 @@ function clear_canvas(ctx){
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 }
 
-function draw_word_underlay(ctx, path) {
+function draw_word_underlay(ctx, path, color) {
     if (path.length == 0) return;
-
-    var color = "#afdeed";
 
     // Draw circle around each letter
     for (var i=0; i<path.length; i++){
@@ -133,7 +135,7 @@ function render_grid(ctx, game){
         spacing * .6,
         spacing * .6,
         spacing / 6,
-        "#bbddff",
+        YELLOW,
 	true,
     );
 
@@ -422,7 +424,7 @@ function get_masked_game(game, paths) {
 function draw_underlays() {
     clear_canvas(underlay_ctx);
     for (p of this_paths)
-        draw_word_underlay(underlay_ctx, p.path);
+        draw_word_underlay(underlay_ctx, p.path, BLUE);
     return
 }
 
@@ -440,6 +442,7 @@ function reveal_word(word){
     if (foundPath == false)
         this_paths.push(word);
 
+    clear_canvas(overlay_ctx);
     clear_canvas(underlay_ctx);
     masked_game = JSON.parse(JSON.stringify(this_game));
 
@@ -467,6 +470,10 @@ var ctx     = null;
 var underlay     = null;
 var underlay_ctx = null;
 
+//overlay
+var overlay     = null;
+var overlay_ctx = null;
+
 // Figure out tile sizes
 const tile_size   = 120;
 const game_border = 30;
@@ -480,6 +487,11 @@ const DOWN  = 2;
 const LEFT  = 3;
 const RIGHT = 4;
 
+// Colors
+const GREY   = "#DBD8C7";
+const BLUE   = "#B8DEEC";
+const YELLOW = "#F1CF46";
+
 window.onload = function () {
     canvas  = document.getElementById("canvas");
     width   = canvas.width;
@@ -489,6 +501,10 @@ window.onload = function () {
     //underlay
     underlay     = document.getElementById('underlay');
     underlay_ctx = underlay.getContext("2d");
+
+    //overlay
+    overlay     = document.getElementById('overlay');
+    overlay_ctx = overlay.getContext("2d");
 
     // Figure out tile sizes
     spacing     = canvas.width / (game_width);
