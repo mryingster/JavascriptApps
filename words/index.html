@@ -26,7 +26,9 @@
       <canvas id="overlay"  width="730px" height="310px" style="touch-action:manipulation; position:absolute; top:0; left:0;"></canvas>
     </div>
 
-    <div id="found_words">
+    <div id="options">
+      <h2>Options</h2>
+
       Minimum Length: <select id="min" onchange="update_word_list();">
         <option>1</option>
         <option>2</option>
@@ -45,6 +47,7 @@
         <option>15</option>
         <option>16</option>
       </select>
+
       Maximum Length: <select id="max" onchange="update_word_list();">
         <option>4</option>
         <option>5</option>
@@ -63,6 +66,8 @@
 
       <span id="spacer" style="margin-right:10px;"></span>
 
+      <br>
+
       <input type="checkbox" id="hint" onchange="update_word_list();"><label for="hint">Hint (Only show first
         <button id="shorter-hint" onclick="hint(-1);">-</button>
         <span id="hint_length">3</span>
@@ -70,6 +75,12 @@
         letters)
       </label>
 
+      <br>
+
+      <input type="checkbox" id="reuse" onchange="update_word_list();" checked><label for="reuse">Reuse Letters</label>
+    </div>
+
+    <div id="found_words">
       <h2>Words Found<span id="number"></span></h2>
       <div id="found_words_div">
       </div>

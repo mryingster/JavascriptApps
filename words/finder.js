@@ -466,10 +466,22 @@ function update_word_list(){
 		    break;
 		}
 
+	    // Mark if word reuses letters
+	    let reuse = false
+	    for (let letter of w) {
+		word_letter_count = w.split(letter).length;
+		pool_letter_count = pool.join("").split(letter).length;
+		if (word_letter_count > pool_letter_count) {
+		    reuse = true
+		    break;
+		}
+	    }
+
             short_list.push({
-                "word"        : w,
-		"pangram"     : pangram,
-		"score"       : w.length <= 4 ? 1 : w.length,
+                "word"    : w,
+		"pangram" : pangram,
+		"score"   : w.length <= 4 ? 1 : w.length,
+		"reuse"   : reuse,
             });
         }
     }
@@ -480,7 +492,6 @@ function update_word_list(){
 }
 
 function hint(n){
-    console.log(n)
     hint_length += n;
     hint_length = Math.max(hint_length, 1);
     document.getElementById("hint_length").innerHTML = hint_length;
@@ -489,6 +500,7 @@ function hint(n){
 
 function render_found_words(wdiv, cdiv, words) {
     let hint = document.getElementById("hint").checked;
+    let reuse = document.getElementById("reuse").checked;
 
     // Get limits
     let max = Number(document.getElementById("max").value);
@@ -506,6 +518,7 @@ function render_found_words(wdiv, cdiv, words) {
     // Add each answer to DIV
     for (var w of words){
 	if (w.word.length < min || w.word.length > max) continue;
+	if (!reuse && w.reuse) continue;
         let span = document.createElement('span');
         if (hint)
             span.appendChild(document.createTextNode(w.word.substring(0,hint_length)+".".repeat(Math.max(0, w.word.length-hint_length))));
