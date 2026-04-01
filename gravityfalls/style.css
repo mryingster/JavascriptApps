@@ -42,3 +42,7 @@ textarea {
     text-align: left;
     border: #aa0000 2px solid;
 }
+
+#bill {
+  width: 50%;
+}

@@ -311,6 +311,7 @@ const messages = [
 ];
 
 function populateMessage(i) {
+    if (i < 0) return;
     const textBox = document.getElementById("cipherInput");
     textBox.value = options[i];
 }
