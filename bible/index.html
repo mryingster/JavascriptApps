@@ -3,14 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Bible Parallel Viewer</title>
-    <style>
-      body { font-family: Arial, sans-serif; margin: 20px; }
-      .controls { margin-bottom: 15px; }
-      .verse-row { display: flex; border-bottom: 1px solid #ddd; padding: 6px 0; }
-      .verse { width: 50%; padding: 0 10px; }
-      .verse-number { font-weight: bold; margin-right: 6px; }
-      select, button { margin-right: 8px; }
-    </style>
+    <link rel="stylesheet" type="text/css" href="style.css" id="style">
     <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
   </head>
   <body>
@@ -113,18 +106,18 @@ function diffText(a, b) {
     const diff = Diff.diffWords(a || '', b || '');
 
     return diff.map(part => {
-	if (part.added) return `<span style="background:#c8f7c5">${part.value}</span>`;
-	if (part.removed) return `<span style="background:#f7c5c5">${part.value}</span>`;
-	return part.value;
+        if (part.added) return `<span style="background:#c8f7c5">${part.value}</span>`;
+        if (part.removed) return `<span style="background:#f7c5c5">${part.value}</span>`;
+        return part.value;
     }).join('');
 }
 
 function populateBooks() {
     books.forEach(b => {
-	const opt = document.createElement('option');
-	opt.value = b;
-	opt.textContent = b;
-	bookSelect.appendChild(opt);
+        const opt = document.createElement('option');
+        opt.value = b;
+        opt.textContent = b;
+        bookSelect.appendChild(opt);
     });
 
     currentBook = bookSelect.value;
@@ -134,13 +127,13 @@ async function loadBook(book) {
     if (cache[book]) return cache[book];
 
     const [kjvText, jstText] = await Promise.all([
-	fetch(`text/KJV/${book}`).then(r => r.text()),
-	fetch(`text/JST/${book}`).then(r => r.text())
+        fetch(`text/KJV/${book}`).then(r => r.text()),
+        fetch(`text/JST/${book}`).then(r => r.text())
     ]);
 
     const parsed = {
-	KJV: parseText(kjvText),
-	JST: parseText(jstText)
+        KJV: parseText(kjvText),
+        JST: parseText(jstText)
     };
 
     cache[book] = parsed;
@@ -152,26 +145,26 @@ function parseText(text) {
     const result = {};
 
     for (let rawLine of lines) {
-	const line = rawLine.trim();
+        const line = rawLine.trim();
 
-	// Skip obvious non-verse lines early
-	if (
-	    !line ||
-		line.startsWith('Chapter ') ||              // "Chapter 1"
-		/^[A-Za-z\s]+$/.test(line)                  // titles like "Mark", "His Testimony..."
-	) continue;
+        // Skip obvious non-verse lines early
+        if (
+            !line ||
+                line.startsWith('Chapter ') ||              // "Chapter 1"
+                /^[A-Za-z\s]+$/.test(line)                  // titles like "Mark", "His Testimony..."
+        ) continue;
 
-	const match = line.match(verseRegex);
+        const match = line.match(verseRegex);
 
-	// STRICT: only accept CH:VS lines
-	if (!match) continue;
+        // STRICT: only accept CH:VS lines
+        if (!match) continue;
 
-	const ch = parseInt(match[1]);
-	const vs = parseInt(match[2]);
-	const content = match[3];
+        const ch = parseInt(match[1]);
+        const vs = parseInt(match[2]);
+        const content = match[3];
 
-	if (!result[ch]) result[ch] = {};
-	result[ch][vs] = content;
+        if (!result[ch]) result[ch] = {};
+        result[ch][vs] = content;
     }
 
     return result;
@@ -180,8 +173,8 @@ function parseText(text) {
 function updateChapterDropdown(data) {
     chapterSelect.innerHTML = '';
     maxChapter = Math.max(
-	...Object.keys(data.KJV).map(Number),
-	...Object.keys(data.JST).map(Number)
+        ...Object.keys(data.KJV).map(Number),
+        ...Object.keys(data.JST).map(Number)
     );
 
     for (let i = 1; i <= maxChapter; i++) {
@@ -206,14 +199,14 @@ function diffSplit(a, b) {
     let right = '';
 
     for (const part of diff) {
-	if (part.added) {
-	    right += `<span style="background:#c8f7c5">${part.value}</span>`;
-	} else if (part.removed) {
-	    left += `<span style="background:#f7c5c5">${part.value}</span>`;
-	} else {
-	    left += part.value;
-	    right += part.value;
-	}
+        if (part.added) {
+            right += `<span style="background:#c8f7c5">${part.value}</span>`;
+        } else if (part.removed) {
+            left += `<span style="background:#f7c5c5">${part.value}</span>`;
+        } else {
+            left += part.value;
+            right += part.value;
+        }
     }
 
     return { left, right };
@@ -235,36 +228,43 @@ function render(data) {
     const sorted = [...verses].sort((a,b)=>a-b);
 
     for (let v of sorted) {
-	const row = document.createElement('div');
-	row.className = 'verse-row';
+        const row = document.createElement('div');
+        row.className = 'verse-row';
 
-	const kjvText = kjvCh[v] || '';
-	const jstText = jstCh[v] || '';
-	const normKJV = normalize(kjvText);
-	const normJST = normalize(jstText);
+        const kjvText = kjvCh[v] || '';
+        const jstText = jstCh[v] || '';
+        const normKJV = normalize(kjvText);
+        const normJST = normalize(jstText);
 
-	const { left: kjvDiff, right: jstDiff } = diffSplit(normKJV, normJST);
+        const { left: kjvDiff, right: jstDiff } = diffSplit(normKJV, normJST);
 
-	const left = document.createElement('div');
-	left.className = 'verse';
-	//left.innerHTML = `<span class="verse-number">${v}</span>${kjvCh[v] || ''}`;
-	//left.innerHTML = `<span class="verse-number">${v}</span>${kjvDiff}`;
-	left.innerHTML = showDiff
-	    ? `<span class="verse-number">${v}</span>${kjvDiff}`
-	    : `<span class="verse-number">${v}</span>${kjvText}`;
+        const left = document.createElement('div');
+        left.className = 'verse';
+        const leftText = document.createElement('p');
+        leftText.className = 'verse-text';
+        leftText.innerHTML = showDiff ? `${kjvDiff}` : `${kjvText}`;
+        const leftNumber = document.createElement('span');
+        leftNumber.className = 'verse-number';
+        leftNumber.innerHTML = `${v}`
 
-	const right = document.createElement('div');
-	right.className = 'verse';
-	//right.innerHTML = `<span class="verse-number">${v}</span>${jstCh[v] || ''}`;
-	//right.innerHTML = `<span class="verse-number">${v}</span>${diffText(kjvCh[v], jstCh[v])}`;
-	//right.innerHTML = `<span class="verse-number">${v}</span>${jstDiff}`;
-	right.innerHTML = showDiff
-	    ? `<span class="verse-number">${v}</span>${jstDiff}`
-	    : `<span class="verse-number">${v}</span>${jstText}`;
+        left.appendChild(leftNumber);
+        left.appendChild(leftText);
 
-	row.appendChild(left);
-	row.appendChild(right);
-	content.appendChild(row);
+        const right = document.createElement('div');
+        right.className = 'verse';
+        const rightText = document.createElement('p');
+        rightText.className = 'verse-text';
+        rightText.innerHTML = showDiff ? `${jstDiff}` : `${jstText}`;
+        const rightNumber = document.createElement('span');
+        rightNumber.className = 'verse-number';
+        rightNumber.innerHTML = `${v}`
+
+        right.appendChild(rightNumber);
+        right.appendChild(rightText);
+
+        row.appendChild(left);
+        row.appendChild(right);
+        content.appendChild(row);
     }
 }
 
@@ -286,10 +286,10 @@ chapterSelect.addEventListener('change', async () => {
 
 document.getElementById('prevBtn').onclick = async () => {
     if (currentChapter > 1) {
-	currentChapter--;
-	chapterSelect.value = currentChapter;
-	const data = await loadBook(currentBook);
-	render(data);
+        currentChapter--;
+        chapterSelect.value = currentChapter;
+        const data = await loadBook(currentBook);
+        render(data);
     }
 };
 
@@ -306,8 +306,8 @@ document.getElementById('diffToggle').addEventListener('change', async (e) => { 
 
 async function rerender() {
     if (currentBook) {
-	const data = await loadBook(currentBook);
-	render(data);
+        const data = await loadBook(currentBook);
+        render(data);
     }
 }
 

@@ -1,0 +1,41 @@
+body {
+    font-family: Georgia, serif;
+    margin: 20px;
+}
+
+#content {
+    width: 600px;
+    margin: auto;
+}
+
+.controls {
+    margin: 0px auto 15px auto;
+    width: fit-content;
+}
+
+.verse-row {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    padding: 6px 0;
+}
+
+.verse {
+    width: 300px;
+    padding: 0 40px;
+}
+
+.verse-number {
+    font-weight: bold;
+    margin-right: 6px;
+    position: relative;
+    left: -25px;
+}
+
+.verse-text {
+    position: relative;
+    margin-top: -1em;
+}
+
+select, button {
+    margin-right: 8px;
+}
