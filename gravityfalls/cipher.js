@@ -105,15 +105,15 @@ const messages = [
 
     // Shorts
     {
-        episode: "Candy Monster",
+        episode: "Interseason E01 Candy Monster",
         messages: ["IURP WKH ILUVW XQWLO WKH ODVW VHDUFK WKH",]
     },
     {
-        episode: "Lefty",
+        episode: "Interseason E04 Lefty",
         messages: ["WKHP DOO ZHOFRPH WR JUDYLWB IDOOV",]
     },
     {
-        episode: "Tooth",
+        episode: "Interseason E05 Tooth",
         messages: ["FRGHV RI FUHGLWV SDVW RQH PHDQV RQH VR VHDUFK",]
     },
 

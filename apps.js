@@ -269,6 +269,18 @@ const apps = [
         "mobile"        : false,
     },
     {
+        "name"          : "Gravity Falls Decoder",
+        "location"      : "gravityfalls",
+        "category"      : "Utilities",
+        "icon"          : "icon_gravity_falls",
+        "visible"       : true,
+        "description"   : "Utility for decoding the cryptograms found in the show, Gravity Falls.",
+        "date"          : "3/31/2026",
+        "tags"          : [],
+        "flair"         : null,
+        "mobile"        : false,
+    },
+    {
         "name"          : "Groups",
         "location"      : "groups",
         "category"      : "Games",
