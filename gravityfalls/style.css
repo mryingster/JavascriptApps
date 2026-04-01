@@ -4,7 +4,7 @@
 }
 
 body {
-    background: black;
+    background: #333;
     margin: 0px;
     padding: 0px;
     font-family: "Handwriting";
@@ -16,10 +16,11 @@ h1, h2 {
 }
 
 #content {
-    width: 600px;
+    width: 630px;
     margin: auto;
-    background: tan;
-    padding: 20px;
+    background: tan url(images/parchment.jpg);
+    background-size: 100% 2000px;
+    padding: 40px;
     text-align: center;
 }
 
@@ -35,12 +36,16 @@ textarea {
 }
 
 .cipher {
-    background: rgba(0,0,0,.1);
+    background: rgba(0,0,0,.08);
     padding: 20px;
     border-radius: 20px;
     margin: 10px;
     text-align: left;
     border: #aa0000 2px solid;
+}
+
+#title {
+    width: 80%;
 }
 
 #bill {
