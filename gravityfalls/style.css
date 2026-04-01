@@ -1,0 +1,44 @@
+@font-face {
+    font-family: "Handwriting";
+    src: url('fonts/MarkerFelt-Thin.woff');
+}
+
+body {
+    background: black;
+    margin: 0px;
+    padding: 0px;
+    font-family: "Handwriting";
+}
+
+h1, h2 {
+    margin-top: 0px;
+    color: #AA0000;
+}
+
+#content {
+    width: 600px;
+    margin: auto;
+    background: tan;
+    padding: 20px;
+    text-align: center;
+}
+
+textarea {
+    width: 512px;
+    height: 128px;
+    background: rgba(0,0,0,.1);
+    margin-bottom: 10px;
+}
+
+#resultContainer {
+    font-size: 2em;
+}
+
+.cipher {
+    background: rgba(0,0,0,.1);
+    padding: 20px;
+    border-radius: 20px;
+    margin: 10px;
+    text-align: left;
+    border: #aa0000 2px solid;
+}

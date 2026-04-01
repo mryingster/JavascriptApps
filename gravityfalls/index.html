@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Gravity Falls Ciphers</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="style.css" id="style">
+    <script src="cipher.js"></script>
+  </head>
+
+  <body>
+    <div id="content">
+      <img src="images/GravityFalls.svg" id="title">
+      <h1>Gravity Falls Cipher Decoder</h1>
+
+      <div id="input">
+        <textarea id="cipherInput"></textarea>
+        <br>
+        Load Episode Message: <select id="preloadedMessages"></select>
+      </div>
+
+      <br>
+
+      <div class="cipher">
+        <h2>A1Z26 Cipher (Digitize)</h2>
+         <p>This cipher converts numbers into letters. As the name suggests, A=1, B=2... Z=26.</p>
+         <input type="checkbox" id="useA1z26">Enable A1Z26</input>
+      </div>
+
+      <div class="cipher">
+        <h2>Ceasar Cipher (Shift)</h2>
+         <p>A Ceasar or Shift Cipher works by shifting all the letters of the text a given amount. Select the shift amount to recompute the text.</p>
+         <input type="checkbox" id="useCeasar">Enable Ceasar</input>
+         <br>
+         <select id="ceasarShift"></select>
+       </div>
+
+      <div class="cipher">
+        <h2>Atbash (Reverse)</h2>
+         <p>The Atbash Cipher uses a reversed alphabet.</p>
+         <input type="checkbox" id="useAtbash">Enable Atbash/Reversed</input>
+       </div>
+
+      <div class="cipher">
+        <h2>Vigen&egrave;re</h2>
+         <p>Vigen&egrave;re Ciphers use a (repeated) keyword to indicate how much to shift a letter over, like a Ceasar Cipher.</p>
+         <input type="checkbox" id="useVigenere">Enable Vigen&egrave;re</input>
+         <br>
+         Key: <input id="vigenereKey" value="SAMPLE"></input>
+       </div>
+
+      <p id="resultContainer">
+        <span id="cipherOutput"></span>
+      </p>
+
+    </div>
+  </body>
+</html>
