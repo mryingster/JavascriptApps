@@ -22,30 +22,29 @@
       <br>
 
       <div class="cipher">
-        <h2>A1Z26 Cipher (Digitize)</h2>
-         <p>This cipher converts numbers into letters. As the name suggests, A=1, B=2... Z=26.</p>
-         <input type="checkbox" id="useA1z26">Enable A1Z26</input>
+        <input class="checkbox" type="checkbox" id="useA1z26"></input>A1Z26 Cipher (Digitize)
+         <img class="help" src="images/help.svg" title="This cipher converts numbers into letters. As the name suggests, A=1, B=2... Z=26.">
       </div>
 
       <div class="cipher">
-        <h2>Ceasar Cipher (Shift)</h2>
-         <p>A Ceasar or Shift Cipher works by shifting all the letters of the text a given amount. Select the shift amount to recompute the text.</p>
-         <input type="checkbox" id="useCeasar">Enable Ceasar</input>
-         <br>
+        <input class="checkbox" type="checkbox" id="useBinary"></input>Binary
+        <img class="help" src="images/help.svg" title="This converts binary numbers into letters. Each set of 8 binary digits equates to a digit representing ASCII.">
+      </div>
+
+      <div class="cipher">
+        <input class="checkbox" type="checkbox" id="useCeasar"></input>Ceasar Cipher (Shift)
+         <img class="help" src="images/help.svg" title="A Ceasar or Shift Cipher works by shifting all the letters of the text a given amount. Select the shift amount to recompute the text.">
          <select id="ceasarShift"></select>
        </div>
 
       <div class="cipher">
-        <h2>Atbash (Reverse)</h2>
-         <p>The Atbash Cipher uses a reversed alphabet.</p>
-         <input type="checkbox" id="useAtbash">Enable Atbash/Reversed</input>
+        <input class="checkbox" type="checkbox" id="useAtbash"></input>Atbash (Reverse)
+         <img class="help" src="images/help.svg" title="The Atbash Cipher uses a reversed alphabet.">
        </div>
 
       <div class="cipher">
-        <h2>Vigen&egrave;re</h2>
-         <p>Vigen&egrave;re Ciphers use a (repeated) keyword to indicate how much to shift a letter over, like a Ceasar Cipher.</p>
-         <input type="checkbox" id="useVigenere">Enable Vigen&egrave;re</input>
-         <br>
+        <input class="checkbox" type="checkbox" id="useVigenere"></input>Vigen&egrave;re
+         <img class="help" src="images/help.svg" title="Vigen&egrave;re Ciphers use a (repeated) keyword to indicate how much to shift a letter over, like a Ceasar Cipher.">
          Key: <input id="vigenereKey" value="SAMPLE"></input>
        </div>
 
@@ -53,7 +52,7 @@
         <span id="cipherOutput"></span>
       </p>
 
-      <img src="images/BillCipher.svg" id="bill">
+      <object data="images/BillCipher.svg" id="bill" type="image/svg+xml"></object>
 
     </div>
   </body>

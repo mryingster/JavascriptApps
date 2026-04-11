@@ -36,12 +36,30 @@ textarea {
 }
 
 .cipher {
-    background: rgba(0,0,0,.08);
-    padding: 20px;
-    border-radius: 20px;
+    #background: rgba(0,0,0,0.1);
+    #padding: 20px;
+    #border-radius: 20px;
+    #border: #aa0000 0px solid;
     margin: 10px;
     text-align: left;
-    border: #aa0000 2px solid;
+    font-size: 1.5em;
+    color: #AA0000;
+}
+
+.help {
+    width: .75em;
+    filter: invert(30%) sepia(80%) saturate(2476%) hue-rotate(330deg) brightness(60%) contrast(119%);
+}
+
+input {
+    alignment-baseline: middle;
+}
+
+.checkbox {
+    alignment-baseline: middle;
+    width: 1.5em;
+    height: 1.5em;
+    margin-right: 1em;
 }
 
 #title {

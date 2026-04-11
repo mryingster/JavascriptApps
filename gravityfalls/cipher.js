@@ -358,6 +358,26 @@ function a1z26Decode(input) {
     return output;
 }
 
+function binaryDecode(input) {
+    let output = "";
+
+    let value = ""
+    console.log(input)
+    for (let c of input) {
+	if (c == "1" || c == "0") {
+	    value += c;
+	}
+	console.log(input, c, value, output)
+	if (value.length == 8) {
+	    const d = parseInt(value, 2);
+	    output += String.fromCharCode(d);
+	    value = "";
+	}
+    }
+
+    return output;
+}
+
 function ceasarDecode(input, n) {
     const A = "A".charCodeAt(0);
     const a = "a".charCodeAt(0);
@@ -456,6 +476,10 @@ function recomputeAllCiphers() {
         output = a1z26Decode(output);
     }
 
+    if (document.getElementById("useBinary").checked) {
+        output = binaryDecode(output);
+    }
+
     if (document.getElementById("useCeasar").checked) {
         output = ceasarDecode(
             output,
@@ -484,7 +508,55 @@ function recomputeAllCiphers() {
     }
 }
 
+function spinBill(ignore=false) {
+    if (ignore == false) {
+	bill.style.transition = "transform 300ms ease-in-out";
+
+	if (billHidden == true) {
+            billHidden = false;
+            bill.style.transform = "scaleX(1.0)";
+	} else {
+            billHidden = true;
+            bill.style.transform = "scaleX(0.0)";
+	}
+    }
+
+    // New timeout
+    setTimeout(() => { spinBill(); }, Math.random() * 60000); // Once a minute-ish
+}
+
+function rotateOuterRing(n) {
+    rotation += n;
+    circle.style.transform = `rotate(${rotation}deg)`;
+}
+
+function blink(ignore=false) {
+    if (billHidden == false && ignore == false) {
+	eye.style.transition = "transform 300ms ease-in-out";
+
+	// unsquish
+	eye.style.transform = "scaleY(1.0)";
+
+	// restore after a bit
+	setTimeout(() => {
+            eye.style.transform = "scaleY(0.0)";
+	}, 1000);
+    }
+
+    // New timeout
+    setTimeout(() => { blink(); }, Math.random() * 60000); // Once a minute-ish
+}
+
 let options = [];
+
+// Animation Variables
+let rune;
+let rune_document;
+let bill;
+let circle;
+let eye;
+let rotation = 0;
+let billHidden = false;
 
 function onLoad() {
     // Main Input
@@ -534,21 +606,53 @@ function onLoad() {
     };
 
     // Hook up checkboxes
-    document.getElementById("useA1z26").onchange = () => {
+    document.getElementById("useA1z26").onchange = (e) => {
+	if (e.target.checked) { rotateOuterRing(35) } else { rotateOuterRing(-35) };
         recomputeAllCiphers();
     };
-    document.getElementById("useCeasar").onchange = () => {
+    document.getElementById("useBinary").onchange = (e) => {
+	if (e.target.checked) { rotateOuterRing(35) } else { rotateOuterRing(-35) };
         recomputeAllCiphers();
     };
-    document.getElementById("useAtbash").onchange = () => {
+    document.getElementById("useCeasar").onchange = (e) => {
+	if (e.target.checked) { rotateOuterRing(35) } else { rotateOuterRing(-35) };
         recomputeAllCiphers();
     };
-    document.getElementById("useVigenere").onchange = () => {
+    document.getElementById("useAtbash").onchange = (e) => {
+	if (e.target.checked) { rotateOuterRing(35) } else { rotateOuterRing(-35) };
+        recomputeAllCiphers();
+    };
+    document.getElementById("useVigenere").onchange = (e) => {
+	if (e.target.checked) { rotateOuterRing(35) } else { rotateOuterRing(-35) };
         recomputeAllCiphers();
     };
 
     // Compute
     recomputeAllCiphers();
+
+    // Set up animations
+    rune = document.getElementById("bill");
+    rune_document = rune.contentDocument;
+
+    bill = rune_document.getElementById("Bill");
+    bill.style.transformOrigin = "center";
+    bill.style.transformBox = "fill-box";
+    bill.style.transformStyle = "preserve-3d";
+    bill.style.backfaceVisibility = "hidden";
+
+    circle = rune_document.getElementById("Outer");
+    circle.style.transformBox = "fill-box";
+    circle.style.transformOrigin = "center";
+    circle.style.transitionTimingFunction = "ease";
+    circle.style.transition = "1s";
+
+    eye = rune_document.getElementById("Eye");
+    eye.style.transformBox = "fill-box";
+    eye.style.transformOrigin = "center";
+    eye.style.transform = "scaleY(0.0)";
+
+    blink(true);
+    spinBill(true);
 }
 
 window.onload = function () {
