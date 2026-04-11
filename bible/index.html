@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Bible Parallel Viewer</title>
+    <meta name="viewport" content="width=600px, user-scalable=no" />
     <link rel="stylesheet" type="text/css" href="style.css" id="style">
     <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
   </head>
@@ -23,72 +24,72 @@
     <script>
 
 const books = [
-    "Old Testament 01 genesis.txt",
-    "Old Testament 02 exodus.txt",
-    "Old Testament 03 leviticus.txt",
-    "Old Testament 04 numbers.txt",
-    "Old Testament 05 deuteronomy.txt",
-    "Old Testament 06 joshua.txt",
-    "Old Testament 07 judges.txt",
-    "Old Testament 08 ruth.txt",
-    "Old Testament 09 1-samuel.txt",
-    "Old Testament 10 2-samuel.txt",
-    "Old Testament 11 1-kings.txt",
-    "Old Testament 12 2-kings.txt",
-    "Old Testament 13 1-chronicles.txt",
-    "Old Testament 14 2-chronicles.txt",
-    "Old Testament 15 ezra.txt",
-    "Old Testament 16 nehemiah.txt",
-    "Old Testament 17 esther.txt",
-    "Old Testament 18 job.txt",
-    "Old Testament 19 psalms.txt",
-    "Old Testament 20 proverbs.txt",
-    "Old Testament 21 ecclesiastes.txt",
-    "Old Testament 22 song-of-solomon.txt",
-    "Old Testament 23 isaiah.txt",
-    "Old Testament 24 jeremiah.txt",
-    "Old Testament 25 lamentations.txt",
-    "Old Testament 26 ezekiel.txt",
-    "Old Testament 27 daniel.txt",
-    "Old Testament 28 hosea.txt",
-    "Old Testament 29 joel.txt",
-    "Old Testament 30 amos.txt",
-    "Old Testament 31 obadiah.txt",
-    "Old Testament 32 jonah.txt",
-    "Old Testament 33 micah.txt",
-    "Old Testament 34 nahum.txt",
-    "Old Testament 35 habakkuk.txt",
-    "Old Testament 36 zephaniah.txt",
-    "Old Testament 37 haggai.txt",
-    "Old Testament 38 zechariah.txt",
-    "Old Testament 39 malachi.txt",
-    "New Testament 01 matthew.txt",
-    "New Testament 02 mark.txt",
-    "New Testament 03 luke.txt",
-    "New Testament 04 john.txt",
-    "New Testament 05 acts.txt",
-    "New Testament 06 romans.txt",
-    "New Testament 07 1-corinthians.txt",
-    "New Testament 08 2-corinthians.txt",
-    "New Testament 09 galatians.txt",
-    "New Testament 10 ephesians.txt",
-    "New Testament 11 philippians.txt",
-    "New Testament 12 colossians.txt",
-    "New Testament 13 1-thessalonians.txt",
-    "New Testament 14 2-thessalonians.txt",
-    "New Testament 15 1-timothy.txt",
-    "New Testament 16 2-timothy.txt",
-    "New Testament 17 titus.txt",
-    "New Testament 18 philemon.txt",
-    "New Testament 19 hebrews.txt",
-    "New Testament 20 james.txt",
-    "New Testament 21 1-peter.txt",
-    "New Testament 22 2-peter.txt",
-    "New Testament 23 1-john.txt",
-    "New Testament 24 2-john.txt",
-    "New Testament 25 3-john.txt",
-    "New Testament 26 jude.txt",
-    "New Testament 27 revelation.txt",
+    {name:"Genesis",         path:"Old Testament 01 genesis.txt"},
+    {name:"Exodus",          path:"Old Testament 02 exodus.txt"},
+    {name:"Leviticus",       path:"Old Testament 03 leviticus.txt"},
+    {name:"Numbers",         path:"Old Testament 04 numbers.txt"},
+    {name:"Deuteronomy",     path:"Old Testament 05 deuteronomy.txt"},
+    {name:"Joshua",          path:"Old Testament 06 joshua.txt"},
+    {name:"Judges",          path:"Old Testament 07 judges.txt"},
+    {name:"Ruth",            path:"Old Testament 08 ruth.txt"},
+    {name:"Samuel 1",        path:"Old Testament 09 1-samuel.txt"},
+    {name:"Samuel 2",        path:"Old Testament 10 2-samuel.txt"},
+    {name:"Kings 1",         path:"Old Testament 11 1-kings.txt"},
+    {name:"Kings 2",         path:"Old Testament 12 2-kings.txt"},
+    {name:"Chronicles 1",    path:"Old Testament 13 1-chronicles.txt"},
+    {name:"Chronicles 2",    path:"Old Testament 14 2-chronicles.txt"},
+    {name:"Ezra",            path:"Old Testament 15 ezra.txt"},
+    {name:"Nehemiah",        path:"Old Testament 16 nehemiah.txt"},
+    {name:"Esther",          path:"Old Testament 17 esther.txt"},
+    {name:"Job",             path:"Old Testament 18 job.txt"},
+    {name:"Psalms",          path:"Old Testament 19 psalms.txt"},
+    {name:"Proverbs",        path:"Old Testament 20 proverbs.txt"},
+    {name:"Ecclesiastes",    path:"Old Testament 21 ecclesiastes.txt"},
+    {name:"Song-of-solomon", path:"Old Testament 22 song-of-solomon.txt"},
+    {name:"Isaiah",          path:"Old Testament 23 isaiah.txt"},
+    {name:"Jeremiah",        path:"Old Testament 24 jeremiah.txt"},
+    {name:"Lamentations",    path:"Old Testament 25 lamentations.txt"},
+    {name:"Ezekiel",         path:"Old Testament 26 ezekiel.txt"},
+    {name:"Daniel",          path:"Old Testament 27 daniel.txt"},
+    {name:"Hosea",           path:"Old Testament 28 hosea.txt"},
+    {name:"Joel",            path:"Old Testament 29 joel.txt"},
+    {name:"Amos",            path:"Old Testament 30 amos.txt"},
+    {name:"Obadiah",         path:"Old Testament 31 obadiah.txt"},
+    {name:"Jonah",           path:"Old Testament 32 jonah.txt"},
+    {name:"Micah",           path:"Old Testament 33 micah.txt"},
+    {name:"Nahum",           path:"Old Testament 34 nahum.txt"},
+    {name:"Habakkuk",        path:"Old Testament 35 habakkuk.txt"},
+    {name:"Zephaniah",       path:"Old Testament 36 zephaniah.txt"},
+    {name:"Haggai",          path:"Old Testament 37 haggai.txt"},
+    {name:"Zechariah",       path:"Old Testament 38 zechariah.txt"},
+    {name:"Malachi",         path:"Old Testament 39 malachi.txt"},
+    {name:"Matthew",         path:"New Testament 01 matthew.txt"},
+    {name:"Mark",            path:"New Testament 02 mark.txt"},
+    {name:"Luke",            path:"New Testament 03 luke.txt"},
+    {name:"John",            path:"New Testament 04 john.txt"},
+    {name:"Acts",            path:"New Testament 05 acts.txt"},
+    {name:"Romans",          path:"New Testament 06 romans.txt"},
+    {name:"Corinthians 1",   path:"New Testament 07 1-corinthians.txt"},
+    {name:"Corinthians 2",   path:"New Testament 08 2-corinthians.txt"},
+    {name:"Galatians",       path:"New Testament 09 galatians.txt"},
+    {name:"Ephesians",       path:"New Testament 10 ephesians.txt"},
+    {name:"Philippians",     path:"New Testament 11 philippians.txt"},
+    {name:"Colossians",      path:"New Testament 12 colossians.txt"},
+    {name:"Thessalonians 1", path:"New Testament 13 1-thessalonians.txt"},
+    {name:"Thessalonians 2", path:"New Testament 14 2-thessalonians.txt"},
+    {name:"Timothy 1",       path:"New Testament 15 1-timothy.txt"},
+    {name:"Timothy 2",       path:"New Testament 16 2-timothy.txt"},
+    {name:"Titus",           path:"New Testament 17 titus.txt"},
+    {name:"Philemon",        path:"New Testament 18 philemon.txt"},
+    {name:"Hebrews",         path:"New Testament 19 hebrews.txt"},
+    {name:"James",           path:"New Testament 20 james.txt"},
+    {name:"Peter 1",         path:"New Testament 21 1-peter.txt"},
+    {name:"Peter 2",         path:"New Testament 22 2-peter.txt"},
+    {name:"John 1",          path:"New Testament 23 1-john.txt"},
+    {name:"John 2",          path:"New Testament 24 2-john.txt"},
+    {name:"John 3",          path:"New Testament 25 3-john.txt"},
+    {name:"Jude",            path:"New Testament 26 jude.txt"},
+    {name:"Revelation",      path:"New Testament 27 revelation.txt"},
 ];
 
 const bookSelect = document.getElementById('bookSelect');
@@ -115,8 +116,8 @@ function diffText(a, b) {
 function populateBooks() {
     books.forEach(b => {
         const opt = document.createElement('option');
-        opt.value = b;
-        opt.textContent = b;
+        opt.value = b.path;
+        opt.textContent = b.name;
         bookSelect.appendChild(opt);
     });
 
@@ -307,6 +308,8 @@ document.getElementById('diffToggle').addEventListener('change', async (e) => { 
 async function rerender() {
     if (currentBook) {
         const data = await loadBook(currentBook);
+	updateChapterDropdown(data);
+	chapterSelect.value = currentChapter;
         render(data);
     }
 }
