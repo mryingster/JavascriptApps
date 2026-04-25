@@ -299,12 +299,20 @@ function populate_level(l) {
     clear_context(ctx_overlay);
 
     // Update background
-    document.getElementById("canvases").style = `background: radial-gradient( circle at 50%, #000, ${l.background})`;
+    switch (l.background.gradient) {
+    case "1":
+        document.getElementById("canvases").style = `background: radial-gradient(circle at 50%, ${l.background.color1}, ${l.background.color2})`;
+        break;
+    case "2":
+    default:
+        document.getElementById("canvases").style = `background: linear-gradient(${l.background.color1}, ${l.background.color2})`;
+        break;
+    }
 
     const texture_list = Object.values(texture_map).sort((a, b) => a.localeCompare(b));
     let selected_texture = texture_list[(level - 1) % texture_list.length]; // Default texture if unspecified
-    if (l.texture) {
-	selected_texture = texture_map[l.texture];
+    if (l.background.texture) {
+	selected_texture = texture_map[l.background.texture];
     }
 
     for (let texture of texture_list) {

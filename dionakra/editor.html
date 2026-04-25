@@ -32,9 +32,11 @@
           width: 100px;
           float: right;
       }
+      .color {
+          height: 25px;
+      }
       #canvases {
           position: relative;
-          background: radial-gradient( circle at 50%, #000, #00f);
           border-radius: 30px 30px 0px 0px;
           width: 672px;
           height: 720px;
@@ -161,7 +163,12 @@
         Note: <input id="note"></input><br>
         Level: <input id="level"></input><br>
         Description: <input id="desc"></input><br>
-        Background: <input type="color" id="background" value="#0000FF"></input><br>
+        Background: <select id="gradient">
+          <option value="1">Radial</option>
+          <option value="2">Linear</option>
+        </select><br>
+        Color 1: <input class="color" type="color" id="background1" value="#0000FF"></input><br>
+        Color 2: <input class="color" type="color" id="background2" value="#000077"></input><br>
         Pattern: <select id="pattern"></select><br>
         Enemy Type: <select id="enemy"></select><br>
         Enemy Count: <input id="enemycount" value="2"></input><br>
@@ -434,21 +441,44 @@ function shift(dir) {
     renderPreview();
 }
 
+function divideColor(c, d=2) {
+    let newString = "#"
+
+    // Isolate RGB channels
+    for (let i=0; i<6; i+=2) {
+	let channel = parseInt(c.substring(i+1, i+3), 16);
+	channel = Math.floor(channel / d);
+	let string = channel.toString(16);
+	if (string.length == 1)
+	    newString += "0"
+	newString += string;
+    }
+
+    return newString;
+}
+
 // Rendering
 function renderPreview() {
-    let background = document.getElementById("background").value;
+    let background1 = document.getElementById("background1").value;
+    let background2 = document.getElementById("background2").value;
+    let gradient = document.getElementById("gradient").value;
     let source = document.getElementById("source").value;
     let note = document.getElementById("note").value;
     let levelnum = Number(document.getElementById("level").value);
     let description = document.getElementById("desc").value;
     let selected_texture = document.getElementById("pattern").value;
-    let enemy = document.getElementById("enemy").selectedIndex;
+    let enemy = document.getElementById("enemy").value;
     let enemyCount = document.getElementById("enemycount").value;
 
     ctx_preview.clearRect(0, 0, preview.width, preview.height);
 
     // Background
-    document.getElementById("canvases").style = `background: radial-gradient( circle at 50%, #000, ${background})`;
+    switch (gradient) {
+    case "1": document.getElementById("canvases").style = `background: radial-gradient(circle at 50%, ${background1}, ${background2})`;
+        break;
+    case "2": document.getElementById("canvases").style = `background: linear-gradient(${background1}, ${background2})`;
+        break;
+    }
 
     const texture_list = Object.values(texture_map).sort((a, b) => a.localeCompare(b));
     for (let texture of texture_list) {
@@ -501,8 +531,12 @@ function renderPreview() {
 	note: note,
 	level: levelnum,
 	description: description,
-	background: background,
-	texture: selected_texture_name,
+	background: {
+            color1: background1,
+            color2: background2,
+            gradient: gradient,
+	    texture: selected_texture_name,
+        },
 	enemy : {
 	    style: enemy,
 	    max: enemyCount,
@@ -516,24 +550,57 @@ function renderPreview() {
     saveLevel(level_output);
 }
 
+const enemy_map = {
+    "0" : "ENEMY_RED_CUBE",
+    "1" : "ENEMY_GREEN_PYRAMID",
+    "2" : "ENEMY_BLUE_CONE",
+    "3" : "ENEMY_TRICOLOR_BALLS",
+    "4" : "ENEMY_RED_ORBITER",
+    "5" : "ENEMY_BLUE_SATURN",
+    "6" : "ENEMY_BLUE_BOUNCER",
+    "-1" : "ENEMY_RANDOM",
+};
+
+function convertBackgroundString(o) {
+    let output = "{\n";
+    for (key in o)
+        switch (key) {
+        case "color1":
+        case "color2":
+        case "texture":
+            output += `        ${key}: "${o[key]}",\n`;
+            break;
+        case "gradient":
+            output += `        ${key}: ${o[key]},\n` //.replaceAll('"', '', true)},\n`;
+            break;
+        };
+    output += "    },\n"
+    return output;
+}
+
 function convertObjectToString(o) {
     let output = "{\n"
     for (key in o)
 	switch (key) {
+        case "background":
+            output += `    ${key}: ${convertBackgroundString(o[key])}`;
+            break;
 	case "enemy":
-	    output += `    ${key}: ${JSON.stringify(o[key]).replaceAll('"', '', true)},\n`
+	    let tmp = JSON.parse(JSON.stringify(o[key]));
+	    tmp.style = enemy_map[tmp.style];
+	    output += `    ${key}: ${JSON.stringify(tmp).replaceAll('"', '', true)},\n`;
 	    break;
 	case "bricks":
 	    output += `    ${key}: ${convert2dArrayToString(o[key], "    ")}\n`;
 	    break;
         case "level":
-	    output += `    ${key}: ${o[key]},\n`
+	    output += `    ${key}: ${o[key]},\n`;
             break;
 	default:
-	    output += `    ${key}: "${o[key]}",\n`
+	    output += `    ${key}: "${o[key]}",\n`;
 	    break;
-	}
-    output += "},"
+	};
+    output += "},\n"
     return output;
 }
 
@@ -698,14 +765,23 @@ function loadLevel(l) {
     document.getElementById("note").value = l.note;
     document.getElementById("level").value = l.level;
     document.getElementById("source").value = l.source;
-    document.getElementById("background").value = l.background;
 
-    if (l.texture != undefined) {
-        let pattern = document.getElementById("pattern");
-        pattern.value = [...pattern.options].find(o => o.text === l.texture).value;
+    try {
+        document.getElementById("background1").value = l.background.color1;
+        document.getElementById("background2").value = l.background.color2;
+        document.getElementById("gradient").value = l.background.gradient;
+        document.getElementById("pattern").value = [...pattern.options].find(o => o.text === l.background.texture).value;
     }
+    catch (e) {
+        // Default values
+        document.getElementById("background1").value = "#0000ff";
+        document.getElementById("background2").value = "#000077";
+        document.getElementById("gradient").value = 1;
+        document.getElementById("pattern").value = "texture1";
+    }
+
     if (l.enemy != undefined) {
-        document.getElementById("enemy").selectedIndex = l.enemy.style;
+        document.getElementById("enemy").value = l.enemy.style;
         document.getElementById("enemycount").value = l.enemy.max;
     }
     level = l.bricks;
@@ -816,41 +892,41 @@ function populateOrganizer() {
     board.innerHTML = "";
 
     // create columns
-    for(let i=0;i<=MAX_LEVEL;i++){
-	const col=document.createElement("div")
-	col.className="column"
-	col.dataset.level=i
+    for(let i=0; i<=MAX_LEVEL; i++){
+	const col = document.createElement("div");
+	col.className = "column";
+	col.dataset.level = i;
 
-	const header=document.createElement("div")
-	header.className="column-header"
-	header.textContent="Level "+i
+	const header=document.createElement("div");
+	header.className="column-header";
+	header.textContent="Level " + i;
 
-	col.appendChild(header)
+	col.appendChild(header);
 
-	col.addEventListener("dragover",e=>{
-            e.preventDefault()
+	col.addEventListener("dragover", e => {
+            e.preventDefault();
 	})
 
-	col.addEventListener("drop",e=>{
-            e.preventDefault()
+	col.addEventListener("drop", e => {
+            e.preventDefault();
 
-            const mapIndex=e.dataTransfer.getData("text/plain")
-            const map=myLevels[mapIndex]
+            const mapIndex = e.dataTransfer.getData("text/plain");
+            const map = myLevels[mapIndex];
 
-            map.level=i
+            map.level = i;
 
-            render()
+            render();
 	    selectExistingLevel();
 	})
 
-	board.appendChild(col)
+	board.appendChild(col);
     }
 }
 
 function render(){
     document.querySelectorAll(".card").forEach(e=>e.remove())
 
-    myLevels.forEach((map,index)=>{
+    myLevels.forEach((map, index) => {
 
         const column=document.querySelector(
             `.column[data-level='${map.level}']`
@@ -858,21 +934,26 @@ function render(){
 
         if(!column) return
 
-        const canvas=document.createElement("canvas")
-        canvas.width=52
-        canvas.height=36
+        const canvas = document.createElement("canvas");
+        canvas.width = 52;
+        canvas.height = 36;
 
-        canvas.className="card"
-        canvas.draggable=true
-        canvas.title=map.note || ""
+        canvas.className = "card";
+        canvas.draggable = true;
+        canvas.title = map.note || "";
 
-        canvas.addEventListener("dragstart",e=>{
-            e.dataTransfer.setData("text/plain",index)
+        canvas.addEventListener("dragstart", e => {
+            e.dataTransfer.setData("text/plain", index);
         })
 
-        column.appendChild(canvas)
+        canvas.addEventListener("mousedown", e => {
+            document.getElementById("levelSelect").selectedIndex = index;
+            loadLevel(levels[index]);
+        })
 
-        renderLevel(canvas,map)
+        column.appendChild(canvas);
+
+        renderLevel(canvas, map);
     })
 }
 
@@ -881,6 +962,10 @@ function renderLevel(canvas, level) {
 
     const w = canvas.width / 13;
     const h = w / 2;
+
+    // Draw Background
+    ctx.fillStyle = level.background.color1;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw bricks
     for (let y=0; y<level.bricks.length; y++) {
@@ -911,7 +996,9 @@ window.onload = function() {
     document.getElementById("note").oninput = function() { renderPreview(); };
     document.getElementById("level").oninput = function() { renderPreview(); };
     document.getElementById("source").oninput = function() { renderPreview(); };
-    document.getElementById("background").oninput = function() { renderPreview(); };
+    document.getElementById("background1").oninput = function() { renderPreview(); };
+    document.getElementById("background2").oninput = function() { renderPreview(); };
+    document.getElementById("gradient").oninput = function() { renderPreview(); };
     document.getElementById("pattern").oninput = function() { renderPreview(); };
     document.getElementById("enemy").oninput = function() { renderPreview(); };
     document.getElementById("enemycount").oninput = function() { renderPreview(); };
@@ -919,10 +1006,14 @@ window.onload = function() {
     document.getElementById("output").oninput = function() { updateFromOutput(); };
 
     let enemies = document.getElementById("enemy");
-    for (let enemy in enemy_types) {
+    let option = document.createElement("option")
+    option.value = "-1";
+    option.innerHTML = "Random Enemy";
+    enemies.appendChild(option);
+    for (let i in enemy_types) {
 	let option = document.createElement("option")
-	option.value = enemy_types[enemy].note;
-	option.innerHTML = enemy_types[enemy].note;
+	option.value = i;
+	option.innerHTML = enemy_types[i].note;
 	enemies.appendChild(option);
     }
 
