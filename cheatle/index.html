@@ -53,6 +53,7 @@ const KEY    = 1;
 const WORD   = 2;
 const BUTTON = 3;
 
+const BLANK = ' ';
 const UNICODE_DELETE = "⌫";
 
 // Settings
@@ -175,7 +176,7 @@ function input_up(pos){
 
             // Toggling letter in word area
             if (selected == mouse_over){
-                if (tiles[mouse_over].letter != ' '){
+                if (tiles[mouse_over].letter != BLANK){
 		    tiles[mouse_over].state += 1;
 		    if (tiles[mouse_over].state > RIGHTPOS)
                         tiles[mouse_over].state = NOTUSED;
@@ -187,11 +188,11 @@ function input_up(pos){
 
                     // Erasing letter with blank tile
                     if (tiles[selected].letter == UNICODE_DELETE) {
-                        if (tiles[mouse_over].letter != ' ')
+                        if (tiles[mouse_over].letter != BLANK)
                             for (var i=0; i<tiles.length; i++)
                                 if (tiles[i].type == KEY && tiles[i].letter == tiles[mouse_over].letter)
                                     tiles[i].state = UNKNOWN;
-                        tiles[mouse_over].letter = ' ';
+                        tiles[mouse_over].letter = BLANK;
                         tiles[mouse_over].state = UNKNOWN;
                     } else {
 
@@ -247,15 +248,15 @@ document.addEventListener('keydown', function(e) {
 function update_user_input(c){
     if (c == null) {
 	for (let i=tiles.length - 1; i>=0; i--)
-	    if (tiles[i].type == WORD && tiles[i].letter != ' '){
-		tiles[i].letter = ' ';
+	    if (tiles[i].type == WORD && tiles[i].letter != BLANK){
+		tiles[i].letter = BLANK;
 		tiles[i].state = UNKNOWN;
 		break;
 	    }
 
     } else {
 	for (let tile of tiles)
-	    if (tile.type == WORD && tile.letter == ' '){
+	    if (tile.type == WORD && tile.letter == BLANK){
 		tile.letter = c;
 		tile.state = NOTUSED;
 		break;
@@ -374,7 +375,7 @@ function reset_word(){
     for (let w=0; w<6; w++)
 	for (let i=0; i<5; i++)
             tiles.push({
-		'letter'   : ' ', // Space means it's blank
+		'letter'   : BLANK, // Space means it's blank
 		'state'    : UNKNOWN,
 		'y'        : tile_padding + (w * (tile_padding + tile_width)),
 		'x'        : tile_padding + (i * (tile_padding + tile_width)),
@@ -443,7 +444,7 @@ function draw_state(){
 	    key_tile.state = UNKNOWN;
 
 	    for (let word_tile of tiles)
-		if (word_tile.type == WORD && word_tile.letter != ' ')
+		if (word_tile.type == WORD && word_tile.letter != BLANK)
 		    if (key_tile.letter == word_tile.letter)
 			key_tile.state = word_tile.state;
 	}
@@ -468,7 +469,7 @@ function update_word_list(){
         let used = [];
         for (var tile of tiles)
             if (tile.type == WORD)
-                if (tile.letter != ' ' && used.indexOf(tile.letter) < 0)
+                if (tile.letter != BLANK && used.indexOf(tile.letter) < 0)
                     if (tile.state == RIGHTPOS || tile.state == WRONGPOS)
                         used.push(tile.letter);
 
@@ -483,7 +484,7 @@ function update_word_list(){
                 // Go through each word tile
                 for (var tile of tiles){
                     if (tile.type == WORD){
-                        if (tile.letter == ' ') continue;
+                        if (tile.letter == BLANK) continue;
 
                     // Check for black-listed letters
                     if (tile.state == NOTUSED)
@@ -530,6 +531,31 @@ function update_word_list(){
     render_found_words(words_div, count_div, short_list);
 }
 
+function clickOnWord(w) {
+    // Find the first available row for a word
+    for (let r=0; r<30; r+=5) {
+	let occupied = false;
+	for (let e=0; e<5; e++) {
+	    if (tiles[r+e].letter != BLANK) {
+		occupied = true;
+		break;
+	    }
+	}
+	if (occupied) {
+	    continue;
+	} else {
+	    for (let e=0; e<5; e++) {
+		tiles[r+e].letter = w[e];
+		tiles[r+e].state = NOTUSED;
+	    }
+	    break;
+	}
+    }
+
+    update_word_list();
+    draw_state();
+}
+
 function render_found_words(wdiv, cdiv, words) {
     // Clear out DIV
     wdiv.innerHTML = "";
@@ -542,11 +568,13 @@ function render_found_words(wdiv, cdiv, words) {
 
     // Add each answer to DIV
     for (var w of words){
+	let word = w.word;
         let span = document.createElement('span');
         span.appendChild(document.createTextNode(w.word));
         span.appendChild(document.createElement('br'));
 	span.title = w.source;
 	span.classList.add("reliability"+w.reliability);
+	span.onclick = () => { clickOnWord(word); };
         wdiv.appendChild(span);
     }
 }
