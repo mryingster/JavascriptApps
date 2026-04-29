@@ -40,11 +40,17 @@ function render() {
     let hexGroup;
     let hexLine;
     let asciiLine;
+    let start = Number(startOffset.value);
+    let end = buffer.length - start;
 
-    for (i=0; i<buffer.length; i++) {
+    for (i=0; i<=end; i++) {
         // Handle new lines after appropriate number of bytes
         if (i % bw == 0) {
             if (i != 0) {
+		if (hexGroup.innerHTML != "") {
+		    hexLine.appendChild(hexGroup);
+		}
+
                 lineContainer.appendChild(lineLine);
                 hexContainer.appendChild(hexLine);
                 asciiContainer.appendChild(asciiLine);
@@ -58,22 +64,30 @@ function render() {
             hexGroup = document.createElement('span');
             hexGroup.classList.add("group");
             asciiLine = document.createElement('p');
+
+	    if (i == end) {
+		break;
+	    }
         }
+
+	// Get Offset Value
+	const offset = i + start;
+	const byteValue = buffer[offset];
 
         // Get our ASCII value
         let asciiChar = ".";
-        if (buffer[i] <= "~".charCodeAt(0) && buffer[i] >= " ".charCodeAt(0))
-            asciiChar = String.fromCharCode(buffer[i]);
+        if (byteValue <= "~".charCodeAt(0) && byteValue >= " ".charCodeAt(0))
+            asciiChar = String.fromCharCode(byteValue);
 
         // Title text
-        let byteTitle = formatTitleText(i, buffer[i], asciiChar);
+        let byteTitle = formatTitleText(offset, byteValue, asciiChar);
 
         // Class type
-        const byteClass = formatByteClass(buffer[i]);
+        const byteClass = formatByteClass(byteValue);
 
         // Create our hex Byte
         let hexElement = document.createElement('span');
-        hexElement.innerHTML = intToPaddedHex(buffer[i], 2);
+        hexElement.innerHTML = intToPaddedHex(byteValue, 2);
         hexElement.title = byteTitle;
 	if (colorize.checked == true)
             hexElement.classList.add(byteClass);
@@ -110,6 +124,7 @@ function render() {
 }
 
 function intToPaddedHex(i, p){
+    if (i == undefined) return 0;
     var s = i.toString(16).toUpperCase();
     while (s.length < p)
         s = "0" + s;
@@ -117,9 +132,17 @@ function intToPaddedHex(i, p){
 }
 
 function formatTitleText(i, v, c) {
-    const vs = `${v}/0x${v.toString(16)}`;
-    const is = `${i}/0x${i.toString(16)}`;
-    return `offset:${is} value:${vs} ascii:${c}`;
+    let vs = "??";
+    if (v != undefined)
+	vs = `${v} (0x${v.toString(16)})`;
+
+    let is = "??";
+    if (is != undefined)
+	is = `${i} (0x${i.toString(16)})`;
+
+    const newline = '\n';
+
+    return `offset: ${is}${newline}value: ${vs}${newline}ascii: "${c}"`;
 }
 
 function formatByteClass(v) {
@@ -178,10 +201,26 @@ function populateTestData() {
     processFile(n, s, results);
 }
 
+function verifyInput(element) {
+    element.classList.remove("invalid")
+    const valueString = element.value;
+
+    // Convert to number
+    const valueInteger = Number(valueString);
+
+    // Check if its valid
+    if (isNaN(valueInteger)) {
+	element.classList.add("invalid")
+    } else {
+	render();
+    }
+}
+
 let colorize;
 let buffer;
 let byteWidth;
 let groupWidth;
+let startOffset;
 
 function firstLoad() {
     // File Input Support
@@ -196,6 +235,9 @@ function firstLoad() {
 
     groupWidth = document.getElementById("groupWidth");
     groupWidth.onchange = () => { render(); };
+
+    startOffset = document.getElementById("startOffset");
+    startOffset.oninput = () => { verifyInput(startOffset); };
 
     // DEBUG
     populateTestData();
