@@ -1,0 +1,20 @@
+{
+    "name" : "Wordy",
+    "short_name": "Wordy",
+    "display" : "standalone",
+    "orientation" : "portrait",
+    "start_url" : "http://yingster.net/apps/wordy",
+    "scope" : "http://yingster.net/apps/wordy",
+    "icons" : [
+        {
+            "src" : "https://yingster.net/apps/icons/icon_wordy_1024.png",
+            "sizes" : "1024x1024",
+            "type" : "png"
+        },
+        {
+            "src" : "https://yingster.net/apps/icons/icon_wordy_256.png",
+            "sizes" : "256x256",
+            "type" : "png"
+        }
+    ]
+}
