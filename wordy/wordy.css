@@ -1,0 +1,36 @@
+body {
+    background:#fff;
+    color:#000;
+    font-family:sans-serif;
+}
+
+div#content {
+    margin: 0px auto;
+}
+
+h1 {
+    margin:10px;
+    font-size:3em;
+}
+
+h1, h2 {
+    color:#00177A;
+}
+
+.button {
+    font-size: 1.5em;
+    padding: 17px;
+}
+
+.hidden {
+    display: none;
+}
+
+#all_words.visible, #found_words.visible {
+    width:768px;
+    margin:0 auto;
+}
+
+.duplicate {
+    text-decoration: line-through;
+}
