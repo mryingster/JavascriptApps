@@ -1,0 +1,28 @@
+body {
+    max-width:1000px;
+    margin: auto;
+    padding: 20px;
+}
+.controls {
+    display: inline-block;
+    border-radius: 10px;
+    padding: 0 20px 20px 20px;
+    min-width: 200px;
+    border: 2px solid lightgrey;
+    min-height: 165px;
+    vertical-align: top;
+    margin: 10px;
+    box-shadow: 0px 10px 15px lightgray;
+}
+img {
+    width:200px;
+}
+#cw_control {
+    border-color:blue;
+}
+#ccw_control {
+    border-color:red;
+}
+.center {
+    text-align: center;
+}
