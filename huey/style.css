@@ -1,0 +1,64 @@
+body {
+    background:#aaa;
+    color:#000;
+    font-family:sans-serif;
+}
+
+div#content {
+    width: 512px;
+    background:#fff;
+    margin: 0 auto 0 auto;
+    padding:15px 15px 15px 15px;
+    border-radius: 10px;
+    box-shadow: 0px 8px 20px grey;
+}
+
+#canvas_wrapper {
+    position: relative;
+    width: 512px;
+    height: 512px;
+}
+
+canvas {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    touch-action: manipulation;
+}
+
+h1 {
+    margin:10px;
+    font-size:3em;
+}
+
+#header {
+    text-align:left;
+}
+
+#score_container{
+    float: right;
+    margin-top: -30px;
+}
+
+#controls{
+    margin-top:10px;
+}
+
+#debug{
+    display: none;
+}
+
+.hidden{
+    display: none !important;
+}
+
+#game_over{
+    display:block;
+    width:400px;
+    background: #eee;
+    border: 1px solid #aaa;
+    border-radius: 15px;
+    margin: 10px auto;
+    padding:0px 10px 10px 10px;
+    text-align: center;
+}
