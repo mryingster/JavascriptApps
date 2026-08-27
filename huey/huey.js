@@ -1,4 +1,3 @@
-
 let buffer;
 let bctx;
 
@@ -25,17 +24,17 @@ let inactive = false;
 
 class Tile {
     constructor(ctx, octx, imageData, stationary, x, y, w, h, i) {
-	this.ctx = ctx;
-	this.octx = octx;
-	this.index = i;
+        this.ctx = ctx;
+        this.octx = octx;
+        this.index = i;
 
-	this.image = imageData;
-	this.stationary = stationary;
+        this.image = imageData;
+        this.stationary = stationary;
 
-	this.width = w;
-	this.height = h;
+        this.width = w;
+        this.height = h;
 
-	this.correct_grid_coords = {x:x, y:y},
+        this.correct_grid_coords = {x:x, y:y},
         this.last_grid_coords = {x:x, y:y},
         this.current_grid_coords = {x:x, y:y},
         this.current_pix_coords = {x:x * w, y:y * h},
@@ -44,44 +43,44 @@ class Tile {
     }
 
     normalize() {
-	// Reset pixel positions
-	this.current_pix_coords = {
+        // Reset pixel positions
+        this.current_pix_coords = {
             x: this.current_grid_coords.x * this.width,
             y: this.current_grid_coords.y * this.height
-	};
+        };
 
-	// Reset last positions
-	this.last_grid_coords = {
+        // Reset last positions
+        this.last_grid_coords = {
             x: this.current_grid_coords.x,
             y: this.current_grid_coords.y
-	};
+        };
     }
 
     renderBlank() {
-	this.ctx.globalAlpha = 1;
-	this.ctx.fillStyle = "rgb(0,0,0)";
-	this.ctx.fillRect(
-	    this.last_grid_coords.x * this.width,
-	    this.last_grid_coords.y * this.height,
-	    this.width,
-	    this.height
-	);
+        this.ctx.globalAlpha = 1;
+        this.ctx.fillStyle = "rgb(0,0,0)";
+        this.ctx.fillRect(
+            this.last_grid_coords.x * this.width,
+            this.last_grid_coords.y * this.height,
+            this.width,
+            this.height
+        );
     }
 
     renderStatic() {
-	this.placeGradient(this.ctx);
+        this.ctx.putImageData(
+            this.image,
+            this.current_grid_coords.x * this.width,
+            this.current_grid_coords.y * this.height
+        );
     }
 
     renderMoving() {
-	this.placeGradient(this.octx);
-    }
-
-    placeGradient(ctx) {
-	ctx.putImageData(
-	    this.image,
-	    this.current_pix_coords.x,
-	    this.current_pix_coords.y
-	);
+        this.octx.putImageData(
+            this.image,
+            this.current_pix_coords.x,
+            this.current_pix_coords.y
+        );
     }
 }
 
@@ -101,16 +100,16 @@ function input_down(e) {
 
     for (let i=0; i<tiles.length; i++)
         if (tiles[i].current_grid_coords.x == grid_x &&
-	    tiles[i].current_grid_coords.y == grid_y) {
-	    selected = i;
+            tiles[i].current_grid_coords.y == grid_y) {
+            selected = i;
         }
 
     if (selected == null)
-	return;
+        return;
 
     // If selected tile is stationary, ignore
     if (tiles[selected].stationary == true)
-	return;
+        return;
 
     // Create pointer
     activePointers.set(e.pointerId, {
@@ -178,10 +177,10 @@ function find_closest_tile(p){
         const centerY = tiles[i].current_grid_coords.y * tile_height + (tile_height / 2);
 
         let distance = Math.abs(
-	    Math.hypot(
-		centerX - p.x,
+            Math.hypot(
+                centerX - p.x,
                 centerY - p.y,
-	    )
+            )
         );
 
         if (distance < radius){
@@ -194,9 +193,9 @@ function find_closest_tile(p){
 
 function switch_tiles(a, b, shuffle){
     if ((tiles[a].stationary || tiles[b].stationary) || (a == b)) {
-	tiles[a].normalize();
-	tiles[b].normalize();
-	return false;
+        tiles[a].normalize();
+        tiles[b].normalize();
+        return false;
     }
 
     tiles[a].current_grid_coords = tiles[b].last_grid_coords;
@@ -216,7 +215,7 @@ function rerenderBackground() {
     clear_canvas(ctx);
 
     for (tile of tiles)
-	tile.renderStatic();
+        tile.renderStatic();
 }
 
 function rerenderOverlay() {
@@ -224,11 +223,11 @@ function rerenderOverlay() {
 
     for (const [pointerId, pointer] of activePointers) {
 
-	// Draw black tile where the tile once was
-	pointer.object.renderBlank();
+        // Draw black tile where the tile once was
+        pointer.object.renderBlank();
 
-	// Draw moving block
-	pointer.object.renderMoving();
+        // Draw moving block
+        pointer.object.renderMoving();
     }
 }
 
@@ -307,8 +306,8 @@ function create_tiles(gs=null){
     reset_moves();
 
     if (gs != null){
-	Number(document.getElementById("width").value = gs.w);
-	Number(document.getElementById("height").value = gs.h);
+        Number(document.getElementById("width").value = gs.w);
+        Number(document.getElementById("height").value = gs.h);
     }
 
     tiles_wide = Number(document.getElementById("width").value);
@@ -328,25 +327,25 @@ function create_tiles(gs=null){
 
     // If we were not provided a game state, make a new one
     if (gs == null)
-	gs = {
-	    c1:random_color(),
-	    c2:random_color(),
-	    c3:random_color(),
-	    c4:random_color(),
-	    w:tiles_wide,
-	    h:tiles_high
-	};
+        gs = {
+            c1:random_color(),
+            c2:random_color(),
+            c3:random_color(),
+            c4:random_color(),
+            w:tiles_wide,
+            h:tiles_high
+        };
 
     create_game_link(gs);
 
     // calculate gradient for overall puzzle
     let g = create_gradient(
-    	gradient_width,
-	gradient_height,
-	gs.c1,
-	gs.c2,
-	gs.c3,
-	gs.c4,
+        gradient_width,
+        gradient_height,
+        gs.c1,
+        gs.c2,
+        gs.c3,
+        gs.c4,
     );
 
     // Create tile with gradient for each pair here
@@ -378,16 +377,16 @@ function create_tiles(gs=null){
 
             // Create tile data
             tiles.push(new Tile(
-		ctx,
-		octx,
+                ctx,
+                octx,
                 bctx.getImageData(x * tile_width, y * tile_height, tile_width, tile_height),
                 stationary,
                 x,
-		y,
-		tile_width,
-		tile_height,
-		tiles.length,
-	    ));
+                y,
+                tile_width,
+                tile_height,
+                tiles.length,
+            ));
         }
 
     rerenderBackground();
@@ -414,23 +413,23 @@ function new_game(gs=null){
 
 function animate_shuffle(ctx, f){
     if (f==0){
-	clear_canvas(ctx);
-	inactive = false;
-	clearTimeout(timer);
-	return;
+        clear_canvas(ctx);
+        inactive = false;
+        clearTimeout(timer);
+        return;
     }
 
     // for 100-50, white out board
     if (f >= 50)
-	ctx.globalAlpha = ((100-f)/50.0);
+        ctx.globalAlpha = ((100-f)/50.0);
 
     // shuffle
     if (f == 50)
-	shuffle_tiles(50);
+        shuffle_tiles(50);
 
     // for 50-0, reveal shuffled board
     if (f < 50)
-	ctx.globalAlpha = (f/50.0);
+        ctx.globalAlpha = (f/50.0);
 
     clear_canvas(ctx);
     ctx.fillStyle = "#ffffff";
@@ -438,8 +437,8 @@ function animate_shuffle(ctx, f){
 
     // Draw stationary tiles though on the overlay
     for (let tile of tiles)
-	if (tile.stationary)
-	    tile.renderMoving();
+        if (tile.stationary)
+            tile.renderMoving();
     timer = setTimeout(() => animate_shuffle(ctx, f-1), 10);
 }
 
@@ -529,7 +528,7 @@ function decode_game_link(c2){
 
 function debug(m, reset=false){
     if (reset)
-	document.getElementById("debug_msg").innerHTML = "";
+        document.getElementById("debug_msg").innerHTML = "";
     document.getElementById("debug_msg").innerHTML += "<br>"+m;
 }
 
@@ -563,6 +562,7 @@ function first_load(){
     document.getElementById("btn_newgame2").onclick = () => { new_game() };
     document.getElementById("btn_debug_generate").onclick = () => { create_tiles() };
     document.getElementById("btn_debug_shuffle").onclick = () => { shuffle_tiles(50) };
+    document.getElementById("close").onclick = () => { document.getElementById("game_over").classList.add("hidden"); };
 
     // Pointer listeners
     overlay.addEventListener('pointerdown',  input_down, false);
