@@ -16,135 +16,156 @@ let tiles_high;
 let tile_width;
 let tile_height;
 
-let mouse_down = null;
-let selected_tile = null;
-let last_touch = null;
+const activePointers = new Map();
+
 let tiles = [];
 let moves = 0;
 let timer = null;
 let inactive = false;
 
+class Tile {
+    constructor(ctx, octx, imageData, stationary, x, y, w, h, i) {
+	this.ctx = ctx;
+	this.octx = octx;
+	this.index = i;
 
-function getTouchPosition(overlay, event){
-    if (!e){
-        var e = event;
+	this.image = imageData;
+	this.stationary = stationary;
+
+	this.width = w;
+	this.height = h;
+
+	this.correct_grid_coords = {x:x, y:y},
+        this.last_grid_coords = {x:x, y:y},
+        this.current_grid_coords = {x:x, y:y},
+        this.current_pix_coords = {x:x * w, y:y * h},
+
+        this.moves = 0
     }
 
-    var x = null;
-    var y = null;
+    normalize() {
+	// Reset pixel positions
+	this.current_pix_coords = {
+            x: this.current_grid_coords.x * this.width,
+            y: this.current_grid_coords.y * this.height
+	};
 
-    if(e.touches) {
-        if (e.touches.length == 1) { // Only deal with one finger
-            var touch = e.touches[0]; // Get the information for finger #1
-            x = touch.pageX-touch.target.getBoundingClientRect().left;
-            y = touch.pageY-touch.target.getBoundingClientRect().top;
-        }
+	// Reset last positions
+	this.last_grid_coords = {
+            x: this.current_grid_coords.x,
+            y: this.current_grid_coords.y
+	};
     }
 
-    return {x:x, y:y};
+    renderBlank() {
+	this.ctx.globalAlpha = 1;
+	this.ctx.fillStyle = "rgb(0,0,0)";
+	this.ctx.fillRect(
+	    this.last_grid_coords.x * this.width,
+	    this.last_grid_coords.y * this.height,
+	    this.width,
+	    this.height
+	);
+    }
+
+    renderStatic() {
+	this.placeGradient(this.ctx);
+    }
+
+    renderMoving() {
+	this.placeGradient(this.octx);
+    }
+
+    placeGradient(ctx) {
+	ctx.putImageData(
+	    this.image,
+	    this.current_pix_coords.x,
+	    this.current_pix_coords.y
+	);
+    }
 }
 
-function input_down_touch(e){
+// Input Functions
+
+function input_down(e) {
     // Don't do anything if we are inactive
     if (inactive) return;
-    last_touch = getTouchPosition(overlay, e)
-    input_down(last_touch);
-    e.preventDefault();
-}
 
-function input_move_touch(e){
-    if (mouse_down != null){
-	last_touch = getTouchPosition(overlay, e)
-        move_tile(last_touch);
-    }
-    e.preventDefault();
-}
+    // Determine selection
+    const x = e.clientX - e.target.getBoundingClientRect().left;
+    const y = e.clientY - e.target.getBoundingClientRect().top;
 
-function input_up_touch(e){
-    if (mouse_down == null) return;
-    input_up(last_touch);
-    e.preventDefault();
-}
+    let grid_x = Math.floor(x / tile_width);
+    let grid_y = Math.floor(y / tile_height);
+    let selected = null;
 
-function getCursorPosition(overlay, event){
-    // Determine where clicked
-    const rect = overlay.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    return {x:x, y:y};
-}
-
-function input_down_mouse(e){
-    // Don't do anything if we are inactive
-    if (inactive) return;
-
-    input_down(getCursorPosition(overlay, e));
-}
-
-function input_move_mouse(e){
-    if (mouse_down != null)
-        move_tile(getCursorPosition(overlay, e));
-}
-
-function input_up_mouse(e){
-    if (mouse_down == null) return;
-
-    input_up(getCursorPosition(overlay, e));
-}
-
-// Actual input code here
-
-function input_down(p){
-    // Determine which tile is selected
-    let grid_x = Math.floor(p.x / tile_width);
-    let grid_y = Math.floor(p.y / tile_height);
     for (let i=0; i<tiles.length; i++)
         if (tiles[i].current_grid_coords.x == grid_x &&
-            tiles[i].current_grid_coords.y == grid_y) {
-            selected_tile = i;
-            break;
+	    tiles[i].current_grid_coords.y == grid_y) {
+	    selected = i;
         }
+
+    if (selected == null)
+	return;
 
     // If selected tile is stationary, ignore
-    if (tiles[selected_tile].stationary == true){
-        return;
-    }
+    if (tiles[selected].stationary == true)
+	return;
 
-    mouse_down = {
-        x: tiles[selected_tile].current_pix_coords.x - p.x,
-        y: tiles[selected_tile].current_pix_coords.y - p.y,
-    };
+    // Create pointer
+    activePointers.set(e.pointerId, {
+        object: tiles[selected],
+        offsetX: x - tiles[selected].current_pix_coords.x,
+        offsetY: y - tiles[selected].current_pix_coords.y,
+    });
+
+    e.preventDefault();
 }
 
-function input_up(p){
+function input_move(e) {
+    const drag = activePointers.get(e.pointerId);
+
+    if (!drag) return;
+
+    const x = e.clientX - e.target.getBoundingClientRect().left;
+    const y = e.clientY - e.target.getBoundingClientRect().top;
+
+    const { object, offsetX, offsetY } = drag;
+
+    object.current_pix_coords.x = x - offsetX;
+    object.current_pix_coords.y = y - offsetY;
+
+    // redraw
+    rerenderOverlay();
+
+    e.preventDefault();
+}
+
+function input_up(e) {
+    const x = e.clientX - e.target.getBoundingClientRect().left;
+    const y = e.clientY - e.target.getBoundingClientRect().top;
+
     // find nearest slot for dragged tile
-    let new_position = find_closest_tile(p);
-    //console.log(p, new_position)
+    const newPosition = find_closest_tile({x:x, y:y});
+    const placedTile = activePointers.get(e.pointerId).object.index;
 
     // Switch tile positions
-    if (selected_tile != new_position) {
-        let valid = switch_tiles(selected_tile, new_position, false);
+    let valid = switch_tiles(placedTile, newPosition, false);
 
-        // Check for winning condition
-        if (is_solved() && valid){
-            document.getElementById("game_over").classList.remove("hidden");
-            document.getElementById("go_moves").innerHTML = moves;
-            make_confetti();
-
-            //alert("You solved it!");
-        }
+    // Check for winning condition
+    if (is_solved() && valid){
+        document.getElementById("game_over").classList.remove("hidden");
+        document.getElementById("go_moves").innerHTML = moves;
+        make_confetti();
     }
 
-    // Clear out variables
-    mouse_down = null;
-    selected_tile = null;
+    // Remove this pointer
+    activePointers.delete(e.pointerId);
+    e.preventDefault();
 
     // Rerender
-    normalize_tiles();
-    clear_canvas(octx);
-    clear_canvas(ctx);
-    draw_tiles(ctx, true);
+    rerenderBackground();
+    rerenderOverlay();
 }
 
 function find_closest_tile(p){
@@ -153,9 +174,15 @@ function find_closest_tile(p){
     let closest = -1;
 
     for (let i=0; i<tiles.length; i++){
-        let distance = Math.abs(Math.hypot(tiles[i].current_pix_center.x - p.x,
-                                           tiles[i].current_pix_center.y - p.y)
-                               );
+        const centerX = tiles[i].current_grid_coords.x * tile_width  + (tile_width  / 2);
+        const centerY = tiles[i].current_grid_coords.y * tile_height + (tile_height / 2);
+
+        let distance = Math.abs(
+	    Math.hypot(
+		centerX - p.x,
+                centerY - p.y,
+	    )
+        );
 
         if (distance < radius){
             radius = distance;
@@ -164,6 +191,48 @@ function find_closest_tile(p){
     }
     return closest;
 }
+
+function switch_tiles(a, b, shuffle){
+    if ((tiles[a].stationary || tiles[b].stationary) || (a == b)) {
+	tiles[a].normalize();
+	tiles[b].normalize();
+	return false;
+    }
+
+    tiles[a].current_grid_coords = tiles[b].last_grid_coords;
+    tiles[b].current_grid_coords = tiles[a].last_grid_coords;
+
+    tiles[a].normalize();
+    tiles[b].normalize();
+
+    if (!shuffle)
+        tiles[a].moves++;
+    increment_moves();
+
+    return true;
+}
+
+function rerenderBackground() {
+    clear_canvas(ctx);
+
+    for (tile of tiles)
+	tile.renderStatic();
+}
+
+function rerenderOverlay() {
+    clear_canvas(octx);
+
+    for (const [pointerId, pointer] of activePointers) {
+
+	// Draw black tile where the tile once was
+	pointer.object.renderBlank();
+
+	// Draw moving block
+	pointer.object.renderMoving();
+    }
+}
+
+// Drawing Functions
 
 function calc_gradient(c1, c2, s, l){
     let color = {r:0, g:0, b:0};
@@ -232,21 +301,6 @@ function draw_tile_to_buffer(ctx, x, y, g, s){
         );
     }
 
-}
-
-function draw_tile(ctx, t){
-    ctx.putImageData(t.image, t.current_pix_coords.x, t.current_pix_coords.y);
-}
-
-function draw_tiles(ctx){
-    for (tile of tiles)
-        draw_tile(ctx, tile);
-}
-
-function draw_blank(ctx, t){
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = "rgb(0,0,0)";
-    ctx.fillRect(t.last_grid_coords.x * tile_width, t.last_grid_coords.y * tile_height, tile_width, tile_height);
 }
 
 function create_tiles(gs=null){
@@ -323,21 +377,23 @@ function create_tiles(gs=null){
             );
 
             // Create tile data
-            tiles.push({
-                image : bctx.getImageData(x * tile_width, y * tile_height, tile_width, tile_height),
-                stationary: stationary,
-                correct_grid_coords: {x:x, y:y},
-                last_grid_coords: {x:x, y:y},
-                current_grid_coords: {x:x, y:y},
-                current_pix_coords: {x:x * tile_width, y:y * tile_height},
-                current_pix_center: {x:x * tile_width + (tile_width/2), y:y * tile_height + (tile_height/2)},
-                moves: 0
-            })
+            tiles.push(new Tile(
+		ctx,
+		octx,
+                bctx.getImageData(x * tile_width, y * tile_height, tile_width, tile_height),
+                stationary,
+                x,
+		y,
+		tile_width,
+		tile_height,
+		tiles.length,
+	    ));
         }
 
-    clear_canvas(ctx);
-    draw_tiles(ctx);
+    rerenderBackground();
 }
+
+// Gameplay Functions
 
 function replay(){
     clearTimeout(timer);
@@ -380,10 +436,10 @@ function animate_shuffle(ctx, f){
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, width, height);
 
-    // Draw stationary tiles though
+    // Draw stationary tiles though on the overlay
     for (let tile of tiles)
 	if (tile.stationary)
-	    draw_tile(ctx, tile);
+	    tile.renderMoving();
     timer = setTimeout(() => animate_shuffle(ctx, f-1), 10);
 }
 
@@ -396,63 +452,17 @@ function increment_moves(){
     document.getElementById("moves").innerHTML = ++moves;
 }
 
-function switch_tiles(a, b, shuffle){
-    if (tiles[a].stationary || tiles[b].stationary) return false;
-    tiles[a].current_grid_coords = tiles[b].last_grid_coords;
-    tiles[b].current_grid_coords = tiles[a].last_grid_coords;
-    if (!shuffle)
-        tiles[a].moves++;
-    increment_moves();
-    return true;
-}
-
-function normalize_tiles(){
-    for (let i=0; i<tiles.length; i++){
-        // Reset pixel positions
-        tiles[i].current_pix_coords = {
-            x:tiles[i].current_grid_coords.x * tile_width,
-            y:tiles[i].current_grid_coords.y * tile_height
-        };
-
-        tiles[i].current_pix_center = {
-            x:tiles[i].current_grid_coords.x * tile_width  + (tile_width  / 2),
-            y:tiles[i].current_grid_coords.y * tile_height + (tile_height / 2)
-        };
-
-        // Reset last positions
-        tiles[i].last_grid_coords = {
-            x:tiles[i].current_grid_coords.x,
-            y:tiles[i].current_grid_coords.y
-        };
-    }
-}
-
 function shuffle_tiles(s){
     while (s > 0){
         let a = Math.floor(Math.random() * tiles.length);
         let b = Math.floor(Math.random() * tiles.length);
         if (a == b) continue;
         switch_tiles(a, b, true);
-        normalize_tiles();
         s--;
     }
+
     reset_moves();
-    draw_tiles(ctx);
-}
-
-function move_tile(p, e){
-    // Update position on tile
-    tiles[selected_tile].current_pix_coords.x = p.x + mouse_down.x;
-    tiles[selected_tile].current_pix_coords.y = p.y + mouse_down.y;
-
-    // redraw
-    clear_canvas(octx);
-
-    // Draw black tile where the tile once was
-    draw_blank(octx, tiles[selected_tile]);
-
-    // Draw moving block
-    draw_tile(octx, tiles[selected_tile]);
+    rerenderBackground();
 }
 
 function stats(){
@@ -509,7 +519,6 @@ function is_solved(){
 
 function create_game_link(game){
     var c2 = btoa(JSON.stringify(game));
-    //console.log("Encoded", c2);
     document.getElementById("share").href = window.location.href.split('?')[0] + "?" + c2;
 }
 
@@ -518,7 +527,9 @@ function decode_game_link(c2){
     return game;
 }
 
-function debug(m){
+function debug(m, reset=false){
+    if (reset)
+	document.getElementById("debug_msg").innerHTML = "";
     document.getElementById("debug_msg").innerHTML += "<br>"+m;
 }
 
@@ -553,15 +564,15 @@ function first_load(){
     document.getElementById("btn_debug_generate").onclick = () => { create_tiles() };
     document.getElementById("btn_debug_shuffle").onclick = () => { shuffle_tiles(50) };
 
-    // Touch listeners
-    overlay.addEventListener('touchstart', input_down_touch, false);
-    overlay.addEventListener('touchmove',  input_move_touch, false);
-    overlay.addEventListener('touchend',   input_up_touch, false);
+    // Pointer listeners
+    overlay.addEventListener('pointerdown',  input_down, false);
+    overlay.addEventListener('pointermove',  input_move, false);
+    overlay.addEventListener('pointerup',    input_up, false);
+    overlay.addEventListener('pointercancel',input_up, false);
 
-    // Mouse listeners
-    overlay.addEventListener('mousedown',  input_down_mouse);
-    overlay.addEventListener('mousemove',  input_move_mouse);
-    overlay.addEventListener('mouseup',    input_up_mouse);
+    // Touch cancellers
+    overlay.addEventListener('touchstart', (e) => { e.preventDefault(); });
+    overlay.addEventListener('touchmove',  (e) => { e.preventDefault(); });
 
     // Start a new game
     new_game(game_state);
