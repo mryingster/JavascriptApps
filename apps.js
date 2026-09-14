@@ -82,7 +82,7 @@ const apps = [
         "category"      : "Demos",
         "icon"          : "icon_bezier",
         "visible"       : true,
-        "description"   : "Bezier Curve Demo that visually shows how b&eacute; curves are constructed.",
+        "description"   : "B&eacute;zier Curve Demo that visually shows how b&eacute;zier curves are constructed.",
         "date"          : "Unknown",
         "tags"          : [],
         "flair"         : null,
@@ -1123,7 +1123,7 @@ const apps = [
     },
 ];
 
-function compare(a, b){
+function compare(a, b) {
     if (a.name < b.name)
         return -1;
     if (a.name > b.name)
@@ -1131,7 +1131,25 @@ function compare(a, b){
     return 0;
 }
 
-function populate_apps(div, prefix, show_all=false){
+function filter(s) {
+    const filterString = s.toLowerCase();
+    for (const category of document.getElementsByClassName("category")) {
+	let appsMatched = false;
+	for (const app of category.getElementsByClassName("app")) {
+	    if (app.innerHTML.toLowerCase().indexOf(filterString) != -1) {
+		app.classList.remove("hidden");
+		appsMatched = true
+	    } else
+		app.classList.add("hidden");
+	}
+	if (appsMatched)
+	    category.classList.remove("hidden");
+	else
+	    category.classList.add("hidden");
+    }
+}
+
+function populate_apps(div, prefix, show_all=false) {
     // Clear out div first
     div.innerHTML = "";
 
@@ -1139,6 +1157,7 @@ function populate_apps(div, prefix, show_all=false){
 
     // Add apps by category
     for (let category of categories) {
+	let description_added = false;
 
         let category_div = document.createElement("div");
         category_div.classList.add("category");
@@ -1149,17 +1168,18 @@ function populate_apps(div, prefix, show_all=false){
         category_title.innerHTML = category.name;
         category_div.appendChild(category_title);
 
-        // If we have a category description, add it here
-        if (category.description !="") {
-            let category_description = document.createElement("p");
-            category_description.innerHTML = category.description;
-            category_div.appendChild(category_description);
-        }
-
 	// Add apps alphabetically
         for (let app of apps) {
             if (app.category != category.name) continue;
 	    if (!show_all && app.visible == false) continue;
+
+            // If we have a category description, add it now that we have at least one app
+            if (category.description != "" && description_added == false) {
+		let category_description = document.createElement("p");
+		category_description.innerHTML = category.description;
+		category_div.appendChild(category_description);
+		description_added = true;
+            }
 
             let link = document.createElement("a");
             link.href = prefix+app.location;
