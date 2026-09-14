@@ -582,10 +582,13 @@ function resize(canvas) {
 	ball: {
 	    diameter: size_ratios.ball.diameter * width,
 	    radius: size_ratios.ball.diameter * width / 2,
+	    shadowRadius: size_ratios.ball.diameter * width / 1.3,
 	},
 	shadow_offset: {
-	    vertical: 12,
-	    horizontal: 12,
+	    vertical: size_ratios.brick.width * width / 2,
+	    horizontal: size_ratios.brick.width * width / 2,
+	    verticalSmall: size_ratios.brick.width * width / 3,
+	    horizontalSmall: size_ratios.brick.width * width / 3,
 	},
 	paddle: {
 	    reduced_width: size_ratios.paddle.reduced_width * width,

@@ -78,7 +78,7 @@ canvas {
 }
 
 #canvas_shadow_dynamic, #canvas_shadow_static {
-    opacity: .35;
+    opacity: .4;
 }
 
 #frame {

@@ -3,9 +3,22 @@ const HORIZONTALHIT = 1;
 const VERTICALHIT   = 2;
 
 function reset_ball() {
-    document.getElementById("lives").innerHTML = Math.max(0, lives);;
-    balls = []
-    balls.push(new Ball(ctx_dynamic, ctx_shadow_dynamic, true));
+    document.getElementById("lives").innerHTML = Math.max(0, lives);
+    balls = [];
+    let speed = 50 + (level / 2); // The last level (32) is about 15 faster than default so this kind of works out even though it seem insignificant...
+    balls.push(
+	new Ball(
+	    ctx_dynamic,
+	    ctx_shadow_dynamic,
+	    true,
+	    null,
+	    {
+		x: 16,
+		y: -32,
+		s: speed,
+	    },
+	)
+    );
 }
 
 class Ball {
@@ -17,6 +30,7 @@ class Ball {
 	    x: 300,
 	    y: 400,
 	};
+
 	if (pos !== null) {
 	    this.pos.x = pos.x;
 	    this.pos.y = pos.y;
@@ -26,6 +40,7 @@ class Ball {
             x: 0,
             y: 0,
         }
+
 	if (pos !== null) {
 	    this.prev.x = pos.x;
 	    this.prev.y = pos.y;
@@ -34,11 +49,12 @@ class Ball {
 	this.v = {
 	    x: 16,
 	    y: -32,
-	    s: 40,
+	    s: 50,
 	};
+
 	if (v !== null) {
-	    this.v.x = v.x;
-	    this.v.y = v.y;
+	    this.v.x = v.x
+	    this.v.y = v.y
 	    this.v.s = v.s
 	}
 
@@ -50,7 +66,8 @@ class Ball {
         this.mega_color_outer = "#008800";
         this.mega_color_inner = "#00ff00";
 
-        this.radius = this.ctx.canvas.width / (56 * 2);
+        this.radius = sizes.ball.radius; //this.ctx.canvas.width / (56 * 2);
+        this.shadowRadius = sizes.ball.shadowRadius;
         this.border = 2;
 
         this.hits = 0;
@@ -319,9 +336,9 @@ class Ball {
 
     render() {
         // Shadow
-        this.ctx_shadow.moveTo(this.pos.x+sizes.shadow_offset.horizontal, this.pos.y+sizes.shadow_offset.vertical);
+        this.ctx_shadow.moveTo(this.pos.x+sizes.shadow_offset.horizontalSmall, this.pos.y+sizes.shadow_offset.verticalSmall);
         this.ctx_shadow.beginPath();
-        this.ctx_shadow.arc(this.pos.x+sizes.shadow_offset.horizontal, this.pos.y+sizes.shadow_offset.vertical, this.radius, 0, 2*Math.PI);
+        this.ctx_shadow.arc(this.pos.x+sizes.shadow_offset.horizontalSmall, this.pos.y+sizes.shadow_offset.verticalSmall, this.shadowRadius, 0, 2*Math.PI);
         this.ctx_shadow.fillStyle = "#000";
         this.ctx_shadow.fill();
 

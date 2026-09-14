@@ -107,7 +107,7 @@ class Pill {
             return;
 
         // Descend
-        this.pos.y += .1 * ms;
+        this.pos.y += .2 * ms;
 
         // Check if off the screen
         if (this.pos.y > sizes.arena.height)

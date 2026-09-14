@@ -303,7 +303,7 @@ class Paddle {
     render_normal_paddle(offset=0) {
         // Draw Shadow
         this.ctx_shadow.save();
-        this.ctx_shadow.translate(sizes.shadow_offset.horizontal + offset, sizes.shadow_offset.vertical);
+        this.ctx_shadow.translate(sizes.shadow_offset.horizontalSmall + offset, sizes.shadow_offset.verticalSmall);
 
         this.ctx_shadow.fillStyle = "#000000";
 
