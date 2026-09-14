@@ -1,11 +1,25 @@
+<!DOCTYPE HTML>
 <html>
   <head>
     <title>Mike's Rad Software</title>
     <link rel="stylesheet" type="text/css" media="screen" href="apps.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="/style.css">
+    <style>
+      #filter {
+          margin-top: 2em;
+      }
+      #filterInput {
+          margin-left: .5em;
+      }
+    </style>
     <script src="apps.js"></script>
   </head>
   <body>
     <div id="content">
+
+      <div id="filter">
+        <label id="filterLabel" for="filterInput">Filter</label><input id="filterInput"></input>
+      </div>
 
       <div id="webapps">
         <p>Javascript must be enabled to load app list.</p>
@@ -14,7 +28,15 @@
     </div>
 
     <script>
-      window.onload = () => populate_apps(document.getElementById("webapps"), "", true);
+      window.onload = () => {
+          const resultsDiv  = document.getElementById("webapps");
+          const filterInput = document.getElementById("filterInput");
+
+          populate_apps(resultsDiv, "", true);
+          filterInput.oninput = () => {
+              filter(filterInput.value)
+          };
+      }
     </script>
 
   </body>
