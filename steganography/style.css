@@ -1,0 +1,46 @@
+body {
+    background:#eee;
+    color:#000;
+    font-family : sans-serif;
+    text-align: center;
+}
+
+#content {
+    background :#fff;
+    margin: auto;
+    width: 600px;
+    padding: 10px;
+    border-radius: 25px;
+}
+
+#header {
+    width: 512px;
+    text-align: left;
+    margin: auto;
+}
+
+.canvasContainer {
+    display: inline-block;
+    vertical-align: top;
+}
+
+canvas {
+    max-width: 256px;
+}
+
+.hidden {
+    display: none;
+}
+
+.slider {
+    vertical-align: middle;
+}
+.preview {
+    width: 128px;
+}
+canvas {
+    border:1px solid black;
+}
+.channel {
+    display: inline-block;
+}
