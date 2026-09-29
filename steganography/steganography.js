@@ -18,7 +18,7 @@ function decode() {
     const bits = Number(document.getElementById("bits").value);
     const hiddenMask = (1 << bits) - 1;
     const baseMask = (0xFF << bits) & 0xFF;
-    const scale = (0x01 << bits);
+    const scale = (0x01 << bits) - 1;
     const normalize = 256 / scale;
     const channel = document.getElementById("channel").value.toLowerCase();
 
@@ -43,8 +43,10 @@ function decode() {
         base.data[i + 1] = g;
         base.data[i + 2] = b;
 
-        if (i == 0 && DEBUG == true)
-            console.log(r, r & hiddenMask, normalize, normalized_r);
+        if (i == 0 && DEBUG == true) {
+            console.log("[DECODE]", "Combined Red Value:", r, "Masked Red Value:", r & hiddenMask, "Normalized Output:", normalized_r);
+            console.log("[DECODE]", "Normalization Factor:", normalize, "Scale:", scale, "baseMask:", baseMask.toString(2), "hiddenMask:", hiddenMask.toString(2));
+        }
 
 	if (channel == "all") {
             hidden.data[i + 0] = normalized_r
@@ -132,8 +134,10 @@ function encode() {
         const mg = Math.floor(scale / 256 * message.data[i + 1]);
         const mb = Math.floor(scale / 256 * message.data[i + 2]);
 
-        if (i == 0 && DEBUG == true)
-            console.log(br, mr, br & mask, (br & mask) + mr);
+        if (i == 0 && DEBUG == true) {
+            console.log("[ENCODE]", "Base Red Value:", br, "Masked Red Value:", br & mask, "Normalized Hidden Red Value:", mr, "Combined Value", (br & mask) + mr);
+            console.log("[DECODE]", "Scale:", scale, "mask:", mask.toString(2));
+        }
 
 	if (channel == "all") {
             output.data[i + 0] = (br & mask) + mr;
@@ -234,7 +238,7 @@ function toggleMode(m=null) {
 
 const ENCODE = 1;
 const DECODE = 2;
-const DEBUG = true//false;
+const DEBUG = false;
 
 let mode = ENCODE;
 
