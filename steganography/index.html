@@ -4,7 +4,7 @@
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Steganography</title>
     <link rel="stylesheet" type="text/css" media="screen" href="style.css">
-    <script src="steno.js"></script>
+    <script src="steganography.js"></script>
   </head>
 
   <body onload="first_run();" onresize="">
@@ -14,169 +14,69 @@
         <p>Encode a hidden image in an image, or try to find one.</p>
       </div>
 
-      <div id="inputdiv">
-        <h3>Input</h3>
-        <canvas id="input_canvas"></canvas>
+
+      <div id="left" class="main_third">
+        <div id="inputdiv">
+          <h3>Base Image</h3>
+          <canvas id="base_canvas"></canvas>
+          <br>
+          <input type="file" id="load_base"/>
+          <br>
+          <button id="save_base">Save</button>
+        </div>
+
         <br>
-        <input type="file" id="load"/>
+
+        <div id="inputdiv">
+          <h3>Hidden Image</h3>
+          <canvas id="hidden_canvas"></canvas>
+          <br>
+          <input type="file" id="load_hidden"/>
+          <br>
+          <button id="save_hidden">Save</button>
+        </div>
       </div>
 
-      <div id="outputdiv">
-        <h3>Output</h3>
-        <canvas id="output_canvas"></canvas>
+      <div id="middle" class="main_third">
+        <h3>Mode</h3>
+        <button id="toggle_mode">Encode</button>
+
+        <h3>Options</h3>
+
+        <label for="bits">Significant Bits</label>
+        <select id="bits">
+          <option value="1">1</option>
+          <option value="2" selected>2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+        </select>
+
         <br>
-        <button onclick="save();">Save</button>
+
+        <label for="channel">Channel(s)</label>
+        <select id="channel">
+          <option value="red">Red</option>
+          <option value="green">Green</option>
+          <option value="blue">Blue</option>
+          <option value="all" selected>All</option>
+        </select>
       </div>
 
-      <h3>Options</h3>
-
-      <label for="bits">Significant Bits</label>
-      <select id="bits">
-        <option value="1">1</option>
-        <option value="2" selected>2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-      </select>
-
-      <br>
-
-      <label for="channel">Channel(s)</label>
-      <select id="channel">
-        <option value="red">Red</option>
-        <option value="green">Green</option>
-        <option value="blue">Blue</option>
-        <option value="all" selected>All</option>
-      </select>
+      <div id="right" class="main_third">
+        <div id="outputdiv">
+          <h3>Combined</h3>
+          <canvas id="combined_canvas"></canvas>
+          <br>
+          <input type="file" id="load_combined"/>
+          <br>
+          <button id="save_combined">Save</button>
+        </div>
+      </div>
 
     </div>
   </body>
-
-  <script>
-
-// comment
-
-document.getElementById('load').addEventListener('change', load, false);
-
-let loaded = false;
-
-function load(e){
-    // Get image from user & Load it into main canvas
-    var reader = new FileReader();
-    reader.onload = function(event){
-        var img = new Image();
-        img.onload = function() {
-            load_image("input_canvas", img);
-        }
-        img.src = event.target.result;
-    }
-    reader.readAsDataURL(e.target.files[0]);
-}
-
-function load_image(canvas_name, image){
-    let canvas = document.getElementById(canvas_name);
-    let ctx = canvas.getContext("2d");
-
-    // Resize
-    canvas.width = image.width;
-    canvas.height = image.height;
-
-    // Clear the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw!
-    ctx.drawImage(image, 0, 0);
-
-    // Mark as loaded
-    if (canvas == "depth_canvas")
-        depth_loaded = true;
-    if (canvas == "tile_canvas")
-        tile_loaded = true;
-
-    // Try rendering
-    generate();
-}
-
-function generate() {
-    let input_canvas = document.getElementById("input_canvas")
-    let input_ctx = input_canvas.getContext("2d");
-
-    let output_canvas = document.getElementById("output_canvas")
-    let output_ctx = output_canvas.getContext("2d");
-
-    // Resize output canvas to match input canvas
-    output_canvas.width  = input_canvas.width
-    output_canvas.height = input_canvas.height
-
-    // Get options
-    const bits = Number(document.getElementById("bits").value);
-    const mask = (1 << bits) - 1;
-    const scale = (0x01 << bits);
-    const normalize = 0x255 / scale;
-    const channel = document.getElementById("channel").value.toLowerCase();
-
-    // Read through our input canvas 1 pixel at a time
-    let input     = input_ctx.getImageData(0, 0, input_canvas.width, input_canvas.height);
-    let output    = output_ctx.getImageData(0, 0, output_canvas.width, output_canvas.height);
-
-    for (let i=0; i<input.data.length; i+=4){
-        // determine the brightness of the pixel by averageing the 3 channels
-        const r = input.data[i + 0];
-        const g = input.data[i + 1];
-        const b = input.data[i + 2];
-        const a = input.data[i + 3];
-
-        const normalized_r = Math.min(255, Math.floor((r & mask) * normalize));
-        const normalized_g = Math.min(255, Math.floor((g & mask) * normalize));
-        const normalized_b = Math.min(255, Math.floor((b & mask) * normalize));
-
-        if (i == 0)
-            console.log(r, r & mask, normalize, normalized_r);
-
-	if (channel == "all") {
-            output.data[i + 0] = normalized_r
-            output.data[i + 1] = normalized_g
-            output.data[i + 2] = normalized_b
-	} else {
-	    let value = 0;
-	    if (channel == "red")
-		value = normalized_r;
-
-	    if (channel == "green")
-		value = normalized_g;
-
-	    if (channel == "blue")
-		value = normalized_b;
-
-	    output.data[i + 0] = value;
-            output.data[i + 1] = value;
-            output.data[i + 2] = value;
-	}
-
-        output.data[i + 3] = a;
-    }
-
-    // Write it back out
-    output_ctx.putImageData(output, 0, 0);
-}
-
-function save() {
-    window.open(document.getElementById("output_canvas").toDataURL('image/png'));
-}
-
-function first_run() {
-    // Connect Inputs
-    document.getElementById("bits").onchange = () => { generate() };
-    document.getElementById("channel").onchange = () => { generate() };
-
-    // Load sample image
-    let image = new Image();
-    image.onload = function() {
-        load_image("input_canvas", image);
-    }
-    image.src = "sample.png";
-}
-
-first_run();
-
-  </script>
 </html>

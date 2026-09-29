@@ -8,7 +8,6 @@ body {
 #content {
     background :#fff;
     margin: auto;
-    width: 600px;
     padding: 10px;
     border-radius: 25px;
 }
@@ -35,12 +34,27 @@ canvas {
 .slider {
     vertical-align: middle;
 }
+
 .preview {
     width: 128px;
 }
+
 canvas {
     border:1px solid black;
 }
+
 .channel {
     display: inline-block;
+}
+
+.main_third {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 10px;
+}
+
+#middle {
+    border-radius: 10px;
+    background: lightgray;
+    padding: 10px;
 }
