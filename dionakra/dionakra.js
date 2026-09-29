@@ -111,7 +111,7 @@ function main_loop(timestamp, refresh=false) {
 	    current_powerup = PU_NONE;
 	    break;
 	case PU_DISRUPT:
-	    disrupt_ball();
+	    disrupt_ball(5);
 	    current_powerup = PU_NONE;
 	    break;
 	case PU_PLAYER:
