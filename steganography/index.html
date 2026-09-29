@@ -9,71 +9,77 @@
 
   <body onload="first_run();" onresize="">
     <div id="content">
-      <div id="header">
-        <h1>Steganography</h1>
-        <p>Encode a hidden image in an image, or try to find one.</p>
-      </div>
+      <h1>Steganography</h1>
+      <p><a href="https://en.wikipedia.org/wiki/Steganography">Steganography</a> is the art of hiding visual information within other visual media. This can be accomplished in many ways. In this example, you can encode or decode a hidden image in the lower bytes of another image.</p>
+      <p>Uncompressed digital images store visual information using numbers. Each pixel of an image contains a number representing the amount of red, green, and blue required to produce the desired color. Typically, these values ranges from 0 (no color) to 255 (all color). When represented in binary, there are 8 bits per color channel.</p>
+      <img src="images/explain_pixels.png">
+      <p>With this type of steganography, we are going to ignore the lower (least significant) bits in our image, and replace them with values from the surreptitious image we want to hide.</p>
+      <img src="images/explain_process.png">
+      <p>The values from the hidden message image have to be scaled down though to fit within the amount of bits we've dedicated to them. In this example, instead of being between 0 and 255, the values will be between 0-3 (2 bits). When the image is decoded, the values will have to be multiplied back up to make the image visible.</p>
 
+      <h1>Demo</h1>
 
-      <div id="left" class="main_third">
-        <div id="inputdiv">
-          <h3>Base Image</h3>
-          <canvas id="base_canvas"></canvas>
+      <div id="demo-container">
+        <div id="left" class="main_third">
+          <div class="inputdiv">
+            <h3>Base Image</h3>
+            <canvas id="base_canvas"></canvas>
+            <br>
+            <input type="file" id="load_base"/>
+            <br>
+            <button id="save_base">Save</button>
+          </div>
+
           <br>
-          <input type="file" id="load_base"/>
-          <br>
-          <button id="save_base">Save</button>
+
+          <div class="inputdiv">
+            <h3>Hidden Image</h3>
+            <canvas id="hidden_canvas"></canvas>
+            <br>
+            <input type="file" id="load_hidden"/>
+            <br>
+            <button id="save_hidden">Save</button>
+          </div>
         </div>
 
-        <br>
+        <div id="middle" class="main_third">
+          <h3>Mode</h3>
+          <button id="toggle_mode">Encode</button>
 
-        <div id="inputdiv">
-          <h3>Hidden Image</h3>
-          <canvas id="hidden_canvas"></canvas>
+          <h3>Options</h3>
+
+          <label for="bits">Significant Bits</label>
+          <select id="bits">
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+          </select>
+
           <br>
-          <input type="file" id="load_hidden"/>
-          <br>
-          <button id="save_hidden">Save</button>
+
+          <label for="channel">Channel(s)</label>
+          <select id="channel">
+            <option value="red">Red</option>
+            <option value="green">Green</option>
+            <option value="blue">Blue</option>
+            <option value="all" selected>All</option>
+          </select>
         </div>
-      </div>
 
-      <div id="middle" class="main_third">
-        <h3>Mode</h3>
-        <button id="toggle_mode">Encode</button>
-
-        <h3>Options</h3>
-
-        <label for="bits">Significant Bits</label>
-        <select id="bits">
-          <option value="1">1</option>
-          <option value="2" selected>2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-        </select>
-
-        <br>
-
-        <label for="channel">Channel(s)</label>
-        <select id="channel">
-          <option value="red">Red</option>
-          <option value="green">Green</option>
-          <option value="blue">Blue</option>
-          <option value="all" selected>All</option>
-        </select>
-      </div>
-
-      <div id="right" class="main_third">
-        <div id="outputdiv">
-          <h3>Combined</h3>
-          <canvas id="combined_canvas"></canvas>
-          <br>
-          <input type="file" id="load_combined"/>
-          <br>
-          <button id="save_combined">Save</button>
+        <div id="right" class="main_third">
+          <div class="inputdiv">
+            <h3>Combined</h3>
+            <canvas id="combined_canvas"></canvas>
+            <br>
+            <input type="file" id="load_combined"/>
+            <br>
+            <button id="save_combined">Save</button>
+          </div>
         </div>
       </div>
 

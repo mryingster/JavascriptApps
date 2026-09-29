@@ -581,6 +581,18 @@ const apps = [
         "mobile"        : true,
     },
     {
+        "name"          : "Steganography",
+        "location"      : "steganography",
+        "category"      : "Demos",
+        "icon"          : "icon_steganography",
+        "visible"       : true,
+        "description"   : "Demonstration of the concept of steganography in digital images",
+        "date"          : "9/29/2026",
+        "tags"          : [],
+        "flair"         : null,
+        "mobile"        : false,
+    },
+    {
         "name"          : "Sudoku",
         "location"      : "sudoku",
         "category"      : "Utilities",
