@@ -8,7 +8,7 @@ function decode() {
     let hidden_canvas = document.getElementById("hidden_canvas")
     let hidden_ctx = hidden_canvas.getContext("2d");
 
-    // Resize output canvas to match input canvas
+    // Resize output canvases to match input canvas
     hidden_canvas.width  = combined_canvas.width
     hidden_canvas.height = combined_canvas.height
     base_canvas.width  = combined_canvas.width
@@ -19,8 +19,9 @@ function decode() {
     const hiddenMask = (1 << bits) - 1;
     const baseMask = (0xFF << bits) & 0xFF;
     const scale = (0x01 << bits);
-    const normalize = 0x255 / scale;
+    const normalize = 256 / scale;
     const channel = document.getElementById("channel").value.toLowerCase();
+
 
     // Read through our input canvas 1 pixel at a time
     let base      = base_ctx.getImageData(0,     0, base_canvas.width,     base_canvas.height);
@@ -97,6 +98,17 @@ function encode() {
     // Resize output canvas to match input canvas
     combined_canvas.width  = base_canvas.width
     combined_canvas.height = base_canvas.height
+
+    // Resize hidden image and canvas to match base image
+    const temp = document.createElement("canvas");
+    temp.width = hidden_canvas.width;
+    temp.height = hidden_canvas.height;
+    temp.getContext("2d").drawImage(hidden_canvas, 0, 0);
+
+    hidden_canvas.width  = base_canvas.width;
+    hidden_canvas.height = base_canvas.height;
+
+    hidden_ctx.drawImage(temp, 0, 0, hidden_canvas.width, hidden_canvas.height);
 
     // Get options
     const bits = Number(document.getElementById("bits").value);
@@ -187,12 +199,6 @@ function load_image(canvas_name, image) {
     // Draw!
     ctx.drawImage(image, 0, 0);
 
-    // Mark as loaded
-    if (canvas == "depth_canvas")
-        depth_loaded = true;
-    if (canvas == "tile_canvas")
-        tile_loaded = true;
-
     // Try rendering
     update();
 }
@@ -226,12 +232,11 @@ function toggleMode(m=null) {
     update();
 }
 
-let loaded = false;
 const ENCODE = 1;
 const DECODE = 2;
-const DEBUG = false;
-let mode = ENCODE;
+const DEBUG = true//false;
 
+let mode = ENCODE;
 
 function first_run() {
     // Connect Inputs
