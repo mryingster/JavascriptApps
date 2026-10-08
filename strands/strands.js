@@ -271,6 +271,24 @@ function move_cursor(d) {
     return;
 }
 
+function set_cursor_position(x, y) {
+    cursor.x = Math.max(0, Math.min(game_width - 1, x));
+    cursor.y = Math.max(0, Math.min(game_height - 1, y));
+    render_grid(ctx, this_game);
+    draw_underlays();
+}
+
+function input_down(e) {
+    // Determine selection
+    const x = e.clientX - e.target.getBoundingClientRect().left;
+    const y = e.clientY - e.target.getBoundingClientRect().top;
+
+    let grid_x = Math.floor(x / spacing);
+    let grid_y = Math.floor(y / spacing);
+
+    set_cursor_position(grid_x, grid_y);
+}
+
 function create_game_link(game){
     var c2 = btoa(game.map(function(a) { return a.join(',') } ).join(' '));
     //console.log("Encoded", c2);
@@ -503,7 +521,7 @@ const tile_size   = 120;
 const game_border = 30;
 const game_width  = 6;
 const game_height = 8;
-var spacing     = null;
+var spacing       = null;
 
 let cursor  = { x:0, y:0 };
 const UP    = 1;
@@ -529,6 +547,8 @@ window.onload = function () {
     //overlay
     overlay     = document.getElementById('overlay');
     overlay_ctx = overlay.getContext("2d");
+
+    canvas.addEventListener('pointerdown',  input_down, false);
 
     // Figure out tile sizes
     spacing     = canvas.width / (game_width);
