@@ -22,6 +22,8 @@ function render_found_words(div, words) {
 function create_word_element(word){
     let span = document.createElement('span');
     span.classList.add('clickable');
+    if (word.spangram)
+        span.classList.add('spangram');
     if (word.duplicate)
         span.classList.add('duplicate');
     if (word.selected)
@@ -65,7 +67,7 @@ function draw_word_underlay(ctx, path, color) {
         ctx.arc(
 	    (x * spacing) + (spacing / 2),
             (y * spacing) + (spacing / 3),
-	    25,
+	    spacing/3, // Circle radius
 	    0, 2*Math.PI);
         ctx.fillStyle = color;
         ctx.fill();
@@ -91,7 +93,7 @@ function draw_word_underlay(ctx, path, color) {
         );
     }
 
-    ctx.lineWidth = spacing / 3;
+    ctx.lineWidth = spacing / 4;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = color;
@@ -186,9 +188,9 @@ function user_input(e) {
 
     // Delete
     if (e.keyCode == 8) {
+        move_cursor(LEFT);
         this_game[cursor.y][cursor.x] = " ";
         remove_conflicting_path(cursor)
-        move_cursor(LEFT);
     }
 
     // Left
@@ -212,8 +214,8 @@ function user_input(e) {
     }
 
     // Stop the event from doing anything automatically
-    if ("preventDefault" in e)
-        e.preventDefault();
+    //if ("preventDefault" in e)
+    //e.preventDefault();
 
     render_grid(ctx, this_game);
 
@@ -407,6 +409,28 @@ function find_solutions(puzzle, dictionary, extrawords = []){
         if (!answers_filtered.includes(w.word) && ! words_found.includes(w.word))
             answers_filtered.push(w);
 
+    // Check answers for spangraminess
+    for (const w of answers_filtered) {
+        let leftmost = game_width;
+        let rightmost = 0;
+        let topmost = game_height;
+        let bottommost = 0;
+
+        for (const letter of w.path) {
+            leftmost   = Math.min(leftmost,   letter.x);
+            rightmost  = Math.max(rightmost,  letter.x);
+            topmost    = Math.min(topmost,    letter.y);
+            bottommost = Math.max(bottommost, letter.y);
+
+        }
+
+        if (rightmost - leftmost == game_width - 1 ||
+           bottommost - topmost == game_height - 1) {
+            w.spangram = true;
+        }
+    }
+
+    // Render it out
     render_found_words(document.getElementById("all_words_div"), [...answers_filtered, ...extrawords]);
 
     // Unhide DIV
@@ -424,7 +448,7 @@ function get_masked_game(game, paths) {
 function draw_underlays() {
     clear_canvas(underlay_ctx);
     for (p of this_paths)
-        draw_word_underlay(underlay_ctx, p.path, BLUE);
+        draw_word_underlay(underlay_ctx, p.path, (p.spangram) ? YELLOW : BLUE);
     return
 }
 
@@ -489,8 +513,8 @@ const RIGHT = 4;
 
 // Colors
 const GREY   = "#DBD8C7";
-const BLUE   = "#B8DEEC";
-const YELLOW = "#F1CF46";
+const BLUE   = "#AEDFEE";
+const YELLOW = "#F8CD05";
 
 window.onload = function () {
     canvas  = document.getElementById("canvas");

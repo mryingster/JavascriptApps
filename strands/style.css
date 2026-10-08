@@ -39,10 +39,6 @@ h1, h2 {
     column-count:4;
 }
 
-.duplicate {
-    text-decoration: line-through;
-}
-
 canvas {
     touch-action:manipulation;
     position:absolute;
@@ -70,5 +66,17 @@ canvas {
 }
 
 .selected {
+    color: #66aabb;
+}
+
+.duplicate {
+    text-decoration: line-through;
+}
+
+.spangram {
+    font-weight: 600;
+}
+
+.selected.spangram {
     color: #bb8800;
 }
