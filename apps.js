@@ -1170,6 +1170,7 @@ function populate_apps(div, prefix, show_all=false) {
     // Add apps by category
     for (let category of categories) {
 	let description_added = false;
+        let app_added = false;
 
         let category_div = document.createElement("div");
         category_div.classList.add("category");
@@ -1226,8 +1227,11 @@ function populate_apps(div, prefix, show_all=false) {
             div.appendChild(link);
             div.appendChild(description);
             category_div.appendChild(div);
+
+            app_added = true;
         }
 
-        div.appendChild(category_div);
+        if (app_added)
+            div.appendChild(category_div);
     }
 }
