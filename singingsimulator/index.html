@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <title>Singing Simulator</title>
+    <link rel="stylesheet" type="text/css" href="style.css" id="style">
+    <script src="simulator.js"></script>
+  </head>
+  <body>
+    <div id="content">
+      <h1>Singing Simulator</h1>
+      <p>For a recent coding interview, I was asked to debug what they called a "singing simulator". There was no code but a description of a bug. I asked probing questions about how it was coded to get to the bottom of the described issue.</p>
+      <p>The hypothetical project reminded me of the old FreeVerse toy, <a href="https://freeverse.com/mac/product/?id=7016">Jared the Butcher of Song</a>. After the coding interview, I thought it would be fun to reimplement Jared using the described method from the coding interview.</p>
+      <p>The original Jared's mouth movements were not accurate. I decided to create my own animations for the various mouth shapes, and time it appropriately. Hopefully it looks better than the original. Below you can enjoy, Jared the Buther of Song, reimplemented...</p>
+
+      <div id="demo">
+        <canvas id="canvas" width="256" height="256" style="background:#333;"></canvas>
+
+        <br>
+        <br>
+
+        <audio id="audio" controls>
+	  <source src="music/jared.mp3" type="audio/mpeg">
+	  Your browser does not support the audio element.
+        </audio>
+
+        <p id="debug"></p>
+      </div>
+    </div>
+  </body>
+</html>
