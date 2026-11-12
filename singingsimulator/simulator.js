@@ -278,17 +278,22 @@ function drawSprite(x, y, spriteWidth, spriteHeight, ctx) {
     );
 }
 
+function findClosestFrame(ms) {
+    for (let i=0; i<animation.length-1; i++) {
+	if (animation[i].time < ms && animation[i+1].time > ms) {
+	    return animation[i];
+	}
+    }
+
+    // No frame found - default to first frame?
+    return animation[0];
+}
+
 function animate() {
     const positionMs = audio.currentTime * 1000;
 
     // Find frame closest to current position
-    let currentFrame = animation[0];
-    for (let i=0; i<animation.length-1; i++) {
-	if (animation[i].time < positionMs && animation[i+1].time > positionMs) {
-	    currentFrame = animation[i];
-	    break;
-	}
-    }
+    let currentFrame = findClosestFrame(positionMs);
 
     // Lookup sprite coords
     let coords = {x:0, y:0};
