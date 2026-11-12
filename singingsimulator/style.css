@@ -1,6 +1,52 @@
+@font-face {
+    font-family: 'ChicagoFLF';
+    src: url('fonts/ChicagoFLF.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+body {
+    background: url(images/background.gif);
+    font-family: sans-serif;
+    line-height: 1.5em;
+    margin-bottom: 30px;
+}
+
 #content {
+    background: #fff;
     max-width: 700px;
     margin: auto;
+    padding: 0 25px 25px;
+    border-radius: 15px;
+    box-shadow: 5px 10px 0px black;
+    overflow: hidden;
+}
+
+#title {
+    background: black;
+    color: white;
+    width: 100%;
+    padding: 15px 25px 15px 55px;
+    margin: 0 -25px 25px;
+    font-size: 1.5em;
+    position: relative;
+}
+
+#title, h1, h2, h3 {
+    font-family: 'ChicagoFLF', Chicago, sans-serif;
+}
+
+#title::before {
+  content: "";
+  position: absolute;
+  left: 25px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border: 2px solid white;
+  box-sizing: border-box;
 }
 
 #demo {
@@ -14,4 +60,18 @@
 
 #audio {
     width: 50%;
+}
+
+#canvas {
+}
+
+img {
+    max-width: 300px;
+    margin: auto;
+    display: block;
+}
+
+.aside {
+    font-style: italic;
+    font-size: .9em;
 }

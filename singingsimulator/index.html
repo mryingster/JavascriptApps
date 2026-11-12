@@ -6,13 +6,16 @@
   </head>
   <body>
     <div id="content">
-      <h1>Singing Simulator</h1>
-      <p>For a recent coding interview, I was asked to debug what they called a "singing simulator". There was no code but a description of a bug. I asked probing questions about how it was coded to get to the bottom of the described issue.</p>
-      <p>The hypothetical project reminded me of the old FreeVerse toy, <a href="https://freeverse.com/mac/product/?id=7016">Jared the Butcher of Song</a>. After the coding interview, I thought it would be fun to reimplement Jared using the described method from the coding interview.</p>
-      <p>The original Jared's mouth movements were not accurate. I decided to create my own animations for the various mouth shapes, and time it appropriately. Hopefully it looks better than the original. Below you can enjoy, Jared the Buther of Song, reimplemented...</p>
+      <div id="title">Singing Simulator</div>
+      <p>In a recent coding interview, I was asked to debug what they called a "singing simulator". The example program reminded me of the old FreeVerse toy, <a href="https://freeverse.com/mac/product/?id=7016">Jared the Butcher of Song</a>. After the coding interview, I thought it would be fun to reimplement Jared using the described method from the coding interview.</p>
+
+      <p>Below you can enjoy Jared the Butcher of Song, reimplemented...</p>
+
+      <p>
+      <h2>Demo</h2>
 
       <div id="demo">
-        <canvas id="canvas" width="256" height="256" style="background:#333;"></canvas>
+        <canvas id="canvas" width="256" height="256"></canvas>
 
         <br>
         <br>
@@ -24,6 +27,27 @@
 
         <p id="debug"></p>
       </div>
+
+      <h2>Coding Interview</h2>
+      <p>For the coding interview, there was no code but a description of a program and a bug. I asked probing questions about how it was coded to get to the bottom of the described issue.</p>
+
+      <p>I won't disclose the issue or solution as discussed in the interview. However, I found that in my particular implementation the described issue didn't affect the program. I still implemented the discussed bug fix for completeness.
+
+      <h2>Choreography</h2>
+
+      <p>Jared's original mouth movements were not accurate. I decided to create my own animations for the various mouth shapes and time them appropriately. This was accomplished by creating a set of sprites that approximate several mouth positions. I over-simplified the process by creating only 4 vowel positions, and 8 consonant positions. <span class="aside">(Apologies to my SLP wife who is probably traumatized by my rudimentary oversimplifications).</span> I found that adding teeth was necessary for the mouth shapes to make sense.</p>
+
+      <img src="images/jared_sounds.png">
+
+      <p>I took the lyrics and broke them down into syllables, and then from syllables to consonants and vowels.</p>
+
+      <img src="images/sounds_break_down.png">
+
+      <p>Lastly, I ran through the music on this page and tapped on the space bar every time Jared went to a new syllable. This gave me millisecond values in the console to use for timing. I assigned the time values to each vowel in the syllable, and then fudged any paired consonant, usually by shaving off ~100 ms from the accompanying vowel value.</p>
+
+      <h2>Disclaimer</h2>
+
+      <p>I don't own the rights to Jared, or this recording, and am not affiliated in any way with FreeVerse Inc.</p>
     </div>
   </body>
 </html>
