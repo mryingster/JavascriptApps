@@ -845,6 +845,18 @@ const apps = [
         "mobile"        : false,
     },
     {
+        "name"          : "Singing Simulator",
+        "location"      : "singingsimulator",
+        "category"      : "Demos",
+        "icon"          : "icon_singingsimulator",
+        "visible"       : true,
+        "description"   : "I reimplemented the classic Jared Mac app after getting inspired by a coding interview question",
+        "date"          : "11/12/2026",
+        "tags"          : [],
+        "flair"         : null,
+        "mobile"        : false,
+    },
+    {
         "name"          : "Strands Helper",
         "location"      : "strands/",
         "category"      : "NYT Helpers",
