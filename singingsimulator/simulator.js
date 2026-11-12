@@ -279,14 +279,20 @@ function drawSprite(x, y, spriteWidth, spriteHeight, ctx) {
 }
 
 function findClosestFrame(ms) {
-    for (let i=0; i<animation.length-1; i++) {
-	if (animation[i].time < ms && animation[i+1].time > ms) {
-	    return animation[i];
-	}
+    let low = 0;
+    let high = animation.length - 1;
+
+    while (low < high) {
+        const mid = Math.floor((low + high + 1) / 2);
+
+        if (animation[mid].time <= ms) {
+            low = mid;
+        } else {
+            high = mid - 1;
+        }
     }
 
-    // No frame found - default to first frame?
-    return animation[0];
+    return animation[low];
 }
 
 function animate() {
