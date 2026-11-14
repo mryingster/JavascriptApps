@@ -192,6 +192,42 @@ function resetLights() {
 
 
 // --------------------------------------------------
+// Preview lights
+// --------------------------------------------------
+
+function clearPreview() {
+    if (!previewElement) return;
+
+    previewElement.classList.remove("preview");
+
+    // Don't hide a light that has already been activated.
+    if (!activeLights.includes(previewElement)) {
+        previewElement.classList.add("hidden");
+    }
+
+    previewElement = null;
+    previewNode = null;
+}
+
+function showPreview(node) {
+    if (previewNode === node) return;
+
+    clearPreview();
+
+    if (!node || !node.id) return;
+
+    const element = svgDocument.getElementById(node.id);
+    if (!element) return;
+
+    element.classList.remove("hidden");
+    element.classList.add("preview");
+
+    previewElement = element;
+    previewNode = node;
+}
+
+
+// --------------------------------------------------
 // Audio
 // --------------------------------------------------
 
@@ -275,7 +311,15 @@ function animateMeters() {
 
     if (animationMode === "press" && pressStart !== null) {
         const elapsed = now - pressStart;
+
         setProgress(pressBar, elapsed / (TIME_UNIT * 3));
+
+        // Switch from dot preview to dash preview at 2 units.
+        if (elapsed < TIME_UNIT * 2) {
+            showPreview(currentNode.dot);
+        } else {
+            showPreview(currentNode.dash);
+        }
 
     } else if (animationMode === "gap" && gapStart !== null) {
         const elapsed = now - gapStart;
@@ -329,6 +373,8 @@ const speedSettings = {
 let pressStart = null;
 let activePointerId = null;
 let currentNode = morseTree;
+let previewElement = null;
+let previewNode = null;
 let activeLights = [];
 
 let letterTimer = null;
@@ -399,6 +445,7 @@ function firstLoad() {
         if (pressStart !== null) return;
 
         pressStart = performance.now();
+        showPreview(currentNode.dot);
         activePointerId = event.pointerId;
 
         // Capture pointer so release outside button is detected
@@ -407,7 +454,7 @@ function firstLoad() {
         startTone();
 
         // Animate bars
-            setProgress(pressBar, 0);
+        setProgress(pressBar, 0);
         setProgress(gapBar, 0);
 
         gapStart = null;
@@ -422,6 +469,7 @@ function firstLoad() {
         const duration = performance.now() - pressStart;
 
         pressStart = null;
+        clearPreview();
         activePointerId = null;
 
         stopTone();
@@ -433,7 +481,7 @@ function firstLoad() {
 
         processSymbol(symbol);
 
-            // Start measuring silence.
+        // Start measuring silence.
         gapStart = performance.now();
         animationMode = "gap";
         setProgress(gapBar, 0);
@@ -445,6 +493,7 @@ function firstLoad() {
         activePointerId = null;
 
         stopTone();
+        clearPreview();
 
         setProgress(pressBar, 0);
         setProgress(gapBar, 0);

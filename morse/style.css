@@ -14,6 +14,11 @@ body {
     display: none;
 }
 
+.preview {
+    filter: drop-shadow(0 0 6px #7cff9b);
+    opacity: 1;
+}
+
 #content {
     width: 100%;
     min-height: calc(100vh - 32px);
