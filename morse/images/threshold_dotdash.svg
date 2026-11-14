@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 512 30" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <rect id="Artboard1" x="0" y="0" width="512" height="30" style="fill:none;"/>
+    <g>
+        <clipPath id="_clip1">
+            <path d="M506,14.626C506,19.939 501.687,24.252 496.374,24.252L15.626,24.252C10.313,24.252 6,19.939 6,14.626C6,9.313 10.313,5 15.626,5L496.374,5C501.687,5 506,9.313 506,14.626Z"/>
+        </clipPath>
+        <g clip-path="url(#_clip1)">
+            <rect x="0" y="0" width="512" height="30" style="fill:rgb(141,141,141);"/>
+            <rect id="BAR" x="6" y="5" width="500" height="19.252" style="fill:rgb(23,107,53);"/>
+            <path d="M172.667,5L172.667,24.252" style="fill:none;stroke:rgb(14,64,31);stroke-width:1px;"/>
+            <path d="M339.333,5L339.333,24.252" style="fill:none;stroke:rgb(14,64,31);stroke-width:1px;"/>
+            <g transform="matrix(10,0,0,10,169.147,18.2216)">
+            </g>
+            <text x="148.039px" y="18.222px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:10px;fill:white;">DOT</text>
+            <g transform="matrix(10,0,0,10,502.523,18.2216)">
+            </g>
+            <text x="474.739px" y="18.222px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:10px;fill:white;">DASH</text>
+        </g>
+    </g>
+</svg>

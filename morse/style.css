@@ -70,6 +70,22 @@ body {
     height: 100%;
 }
 
+/* SVG meters */
+#meters {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+#press-meter,
+#gap-meter {
+    display: block;
+    width: min(90%, 500px);
+    height: 24px;
+}
+
 /* Input controls */
 
 #controls {
@@ -121,18 +137,14 @@ body {
     font-size: 1rem;
 }
 
+@media (max-width: 600px) {
+    #press-meter,
+    #gap-meter {
+        width: 100%;
+        height: 18px;
+    }
 
-/* body { */
-/*     color: #fff; */
-/*     background: #000; */
-/* } */
-
-/* .hidden { */
-/*     display: none; */
-/* } */
-
-/* #input { */
-/*     touch-action: none; */
-/*     user-select: none; */
-/*     -webkit-user-select: none; */
-/* } */
+    #meters {
+        gap: 2px;
+    }
+}

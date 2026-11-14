@@ -252,6 +252,62 @@ function stopTone() {
 
 
 // --------------------------------------------------
+// Visual feedback
+// --------------------------------------------------
+
+function setProgress(bar, fraction) {
+    if (!bar) return;
+
+    fraction = Math.max(0, Math.min(fraction, 1));
+    bar.setAttribute("width", 500 * fraction);
+}
+
+function startMeterAnimation() {
+    if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+    }
+
+    animationFrameId = requestAnimationFrame(animateMeters);
+}
+
+function animateMeters() {
+    const now = performance.now();
+
+    if (animationMode === "press" && pressStart !== null) {
+        const elapsed = now - pressStart;
+        setProgress(pressBar, elapsed / (TIME_UNIT * 3));
+
+    } else if (animationMode === "gap" && gapStart !== null) {
+        const elapsed = now - gapStart;
+        const duration = TIME_UNIT * 7;
+
+        setProgress(gapBar, elapsed / duration);
+
+        if (elapsed >= duration) {
+            setProgress(gapBar, 1);
+            animationFrameId = null;
+            animationMode = null;
+            return;
+        }
+    } else {
+        animationFrameId = null;
+        return;
+    }
+
+    animationFrameId = requestAnimationFrame(animateMeters);
+}
+
+function stopMeterAnimation() {
+    if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+    }
+
+    animationMode = null;
+}
+
+
+// --------------------------------------------------
 // Initialization and event handling
 // --------------------------------------------------
 
@@ -278,6 +334,13 @@ let activeLights = [];
 let letterTimer = null;
 let wordTimer = null;
 
+let animationFrameId = null;
+let animationMode = null;
+let gapStart = null;
+
+const BAR_WIDTH = 500;
+let pressBar;
+let gapBar;
 
 function firstLoad() {
     svg = document.getElementById("tree");
@@ -305,6 +368,13 @@ function firstLoad() {
     document.getElementById("clear").addEventListener("click", () => {
         output.textContent = "";
     });
+
+    // Timer Bars
+    pressBar = document.getElementById("press-meter").contentDocument.getElementById("BAR");
+    pressBar.setAttribute("width", 0);
+
+    gapBar = document.getElementById("gap-meter").contentDocument.getElementById("BAR");
+    gapBar.setAttribute("width", 0);
 
     // Input speed settings
     const speedSelect = document.getElementById("speed");
@@ -335,6 +405,14 @@ function firstLoad() {
         button.setPointerCapture(event.pointerId);
 
         startTone();
+
+        // Animate bars
+            setProgress(pressBar, 0);
+        setProgress(gapBar, 0);
+
+        gapStart = null;
+        animationMode = "press";
+        startMeterAnimation();
     });
 
     button.addEventListener("pointerup", (event) => {
@@ -348,9 +426,18 @@ function firstLoad() {
 
         stopTone();
 
+        // Leave the press meter showing the completed press.
+        setProgress(pressBar, duration / (TIME_UNIT * 3));
+
         const symbol = duration < TIME_UNIT * 2 ? "." : "-";
 
         processSymbol(symbol);
+
+            // Start measuring silence.
+        gapStart = performance.now();
+        animationMode = "gap";
+        setProgress(gapBar, 0);
+        startMeterAnimation();
     });
 
     button.addEventListener("pointercancel", () => {
@@ -358,6 +445,12 @@ function firstLoad() {
         activePointerId = null;
 
         stopTone();
+
+        setProgress(pressBar, 0);
+        setProgress(gapBar, 0);
+        gapStart = null;
+
+        resetInput();
     });
 
     // Initialize SVG lights
