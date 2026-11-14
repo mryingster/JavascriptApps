@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Morse Code</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" id="style" type="text/css" media="screen" href="style.css">
+    <script type="text/javascript" src="morse.js"></script>
+  </head>
+  <body>
+    <div id="content">
+
+      <div id="output-container">
+        <div id="output"></div>
+        <button id="clear" type="button">Clear</button>
+      </div>
+
+      <div id="tree-container">
+        <object
+          data="images/tree.svg"
+          id="tree"
+          type="image/svg+xml">
+        </object>
+      </div>
+
+      <div id="controls">
+        <button id="input" type="button">PRESS</button>
+
+        <div id="speed-control">
+          <label for="speed">Input speed:</label>
+          <select id="speed">
+            <option value="fast">Fast</option>
+            <option value="normal" selected>Normal</option>
+            <option value="slow">Slow</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+  </body>
+</html>
