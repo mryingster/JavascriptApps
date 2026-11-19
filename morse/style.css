@@ -118,6 +118,7 @@ body {
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #input:active {
@@ -141,6 +142,21 @@ body {
     border-radius: 6px;
     font-size: 1rem;
 }
+
+/* Prevent interactions */
+
+#content,
+#controls,
+#speed-control,
+#speed-control label,
+#input {
+    -webkit-user-select: none;
+    user-select: none;
+
+    -webkit-touch-callout: none;
+}
+
+/* Mobile */
 
 @media (max-width: 600px) {
     #press-meter,
