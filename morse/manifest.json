@@ -9,12 +9,12 @@
         {
             "src" : "https://yingster.net/apps/icons/icon_morse_1024.png",
             "sizes" : "1024x1024",
-            "type" : "png"
+            "type" : "image/png"
         },
         {
             "src" : "https://yingster.net/apps/icons/icon_morse_256.png",
             "sizes" : "256x256",
-            "type" : "png"
+            "type" : "image/png"
         }
     ]
 }
