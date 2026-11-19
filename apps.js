@@ -1241,7 +1241,7 @@ function populate_apps(div, prefix, show_all=false) {
 
 	    icon_wrapper.appendChild(icon);
 
-            let title = document.createElement("h2");
+            let title = document.createElement("h3");
             title.classList.add("title");
             title.innerHTML = app.name
 
