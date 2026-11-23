@@ -1,4 +1,4 @@
-function showModal(message) {
+function showModal(message, continueGame) {
     // Remove any existing modal
     const oldModal = document.getElementById('game-modal');
     if (oldModal) oldModal.remove();
@@ -25,15 +25,20 @@ function showModal(message) {
     okBtn.textContent = 'End Game';
     okBtn.onclick = () => closeModal(overlay);
 
-    const newGameBtn = document.createElement('button');
-    newGameBtn.className = 'game-modal-button';
-    newGameBtn.textContent = 'Continue';
-    newGameBtn.onclick = () => {
-        closeModal(overlay);
-        new_game(true);
+    buttons.append(okBtn);
+
+    if (continueGame) {
+	const newGameBtn = document.createElement('button');
+	newGameBtn.className = 'game-modal-button';
+	newGameBtn.textContent = 'Continue';
+	newGameBtn.onclick = () => {
+            closeModal(overlay);
+            new_game(true);
+	};
+
+	buttons.append(newGameBtn);
     };
 
-    buttons.append(okBtn, newGameBtn);
     box.append(msg, buttons);
     overlay.append(box);
     document.body.append(overlay);

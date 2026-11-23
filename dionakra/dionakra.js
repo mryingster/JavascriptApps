@@ -10,7 +10,8 @@ function main_loop(timestamp, refresh=false) {
     last_frame = timestamp;
 
     // TODO If elapsed is too long, do nothing?
-    if (elapsed > 1000) {
+    // If we aren't supposed to be animating, do nothing
+    if (elapsed > 1000 || running == false) {
 	window.requestAnimationFrame((t) => main_loop(t));
 	return
     }
@@ -146,7 +147,7 @@ function main_loop(timestamp, refresh=false) {
 
 	// End game once no lives left, and animations are complete
 	if (lives < 0 && paddle.exploding == false) {
-	    game_over();
+	    game_over("Game over!", true);
 	    return;
 	}
 
@@ -203,11 +204,11 @@ function main_loop(timestamp, refresh=false) {
     window.requestAnimationFrame((t) => main_loop(t));
 }
 
-function game_over() {
+function game_over(m, continueGame=true) {
     active = false;
     play_sound("GAME_END");
     check_high_score(score);
-    showModal("Game over!");
+    showModal(m, continueGame);
     return;
 }
 
@@ -270,7 +271,7 @@ function advance_level(n=null) {
 
     document.getElementById("level").innerHTML = level;
 
-    // Show modal for now to select level?
+    // Collect levels belonging to new stage
     let levelIndicies = []
     for (let i=0; i<levels.length; i++)
 	if (levels[i].level == level)
@@ -281,7 +282,15 @@ function advance_level(n=null) {
     reset_powerups();
     reset_lasers();
     reset_enemies();
+    running = false;
 
+    // Check if we are past last level
+    if (levelIndicies.length === 0) {
+	game_over("You passed the game!", false);
+	return;
+    }
+
+    // Show modal for now to select level?
     showLevelSelection(level, levelIndicies);
 
     // Reset user controlled things
@@ -349,6 +358,7 @@ function populate_level(l) {
     input_timeout = 1500; // 1.5 seconds
 
     // Start loop
+    running = true;
     main_loop(undefined, true);
 }
 
@@ -506,7 +516,7 @@ const size_ratios = {
 	width: 1/14,
 	height: 1/14,
 	left_entry: 5/28,
-	right_entry: 19/28,
+	right_entry: 21/28,
     }
 }
 
@@ -542,6 +552,7 @@ let touch_start = false;
 let touch_end;
 
 let last_frame;
+let running = false;
 
 const texture_map = {
     "Hexagons"         : "texture1",
